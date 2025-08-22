@@ -1,10 +1,28 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BoolTypeConverter.h"
 
 BoolTypeConverter::BoolTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
@@ -30,15 +48,12 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
 
     llvm::BasicBlock *currentBlock = _builder->GetInsertBlock();
-    llvm::BasicBlock *nullBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NullBlock",
-                                 _builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *notNullBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NotNullBlock",
-                                 _builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *mergeBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::MergeBlock",
-                                 _builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *nullBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::NullBlock", currentBlock->getParent());
+    llvm::BasicBlock *notNullBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::NotNullBlock", currentBlock->getParent());
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::MergeBlock", currentBlock->getParent());
 
     _builder->CreateCondBr(_builder->CreateIsNull(value), nullBlock,
                            notNullBlock);

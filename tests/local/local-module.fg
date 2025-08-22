@@ -1,0 +1,31 @@
+module [local]
+
+
+type T ={
+    a:int 
+  }
+var x:int
+
+
+class A {
+
+  var x:local::T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+
+
+var g:local::T = {}
+
+fun main()-> nthg {
+var a:local::A =  new local::A()
+print(a.u)
+a.x = {a:100}
+
+print(a.x)
+
+}

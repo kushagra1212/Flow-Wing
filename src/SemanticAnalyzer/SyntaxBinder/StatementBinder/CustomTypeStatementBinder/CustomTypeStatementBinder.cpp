@@ -1,5 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "CustomTypeStatementBinder.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -24,22 +50,25 @@ CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   std::unordered_map<std::string, int8_t> attributes;
 
-  for (int i = 0; i < customTypeStatement->getKeyTypePairsRef().size(); i++) {
+  for (size_t i = 0; i < customTypeStatement->getKeyTypePairsRef().size();
+       i++) {
     const std::string &key = customTypeStatement->getKeyTypePairsRef()[i]
                                  ->getKey()
                                  ->getTokenPtr()
                                  ->getText();
 
     if (attributes.find(key) != attributes.end()) {
-      ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Duplicate Attribute key " + key + " in Custom Type" +
-                         Utils::getActualTypeName(
-                             boundCustomTypeStatement->getTypeNameAsString()),
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     customTypeStatement->getKeyTypePairsRef()[i]
-                         ->getKey()
-                         ->getSourceLocation()));
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {key, Utils::getActualTypeName(
+                    boundCustomTypeStatement->getTypeNameAsString())},
+          customTypeStatement->getKeyTypePairsRef()[i]
+              ->getKey()
+              ->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              DuplicateAttributeKeyInCustomType));
+
       return std::move(boundCustomTypeStatement);
     }
     attributes[key] = 1;
@@ -75,24 +104,24 @@ CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
   if (ctx->getCurrentModuleName() != "" &&
       !ctx->getRootRef()->tryDeclareCustomTypeGlobal(
           boundCustomTypeStatement.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Duplicate Custom Type " +
-                       Utils::getActualTypeName(
-                           boundCustomTypeStatement->getTypeNameAsString()),
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {Utils::getActualTypeName(
+            boundCustomTypeStatement->getTypeNameAsString())},
+        customTypeStatement->getTypeNameRef()->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateCustomTypeDeclaration));
   }
   if (ctx->getCurrentModuleName() == "" &&
       !ctx->getRootRef()->tryDeclareCustomType(
           boundCustomTypeStatement.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Duplicate Custom Type " +
-                       Utils::getActualTypeName(
-                           boundCustomTypeStatement->getTypeNameAsString()),
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {Utils::getActualTypeName(
+            boundCustomTypeStatement->getTypeNameAsString())},
+        customTypeStatement->getTypeNameRef()->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateCustomTypeDeclaration));
   }
 
   return std::move(boundCustomTypeStatement);

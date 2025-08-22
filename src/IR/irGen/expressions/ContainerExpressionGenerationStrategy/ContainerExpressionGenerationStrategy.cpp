@@ -1,7 +1,26 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ContainerExpressionGenerationStrategy.h"
 
-#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 ContainerExpressionGenerationStrategy::ContainerExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
@@ -10,8 +29,9 @@ ContainerExpressionGenerationStrategy::ContainerExpressionGenerationStrategy(
       _elementType(elementType), _containerName(containerName),
       _isGlobal(false) {
 
-  _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
-                               std::multiplies<uint64_t>());
+  _totalSize =
+      std::accumulate(_actualSizes.begin(), _actualSizes.end(),
+                      static_cast<uint64_t>(1), std::multiplies<uint64_t>());
 }
 
 llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
@@ -61,7 +81,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   return createExpression(arrayType, _allocaInst, containerExpression);
 }
 
-const bool ContainerExpressionGenerationStrategy::canGenerateExpression(
+bool ContainerExpressionGenerationStrategy::canGenerateExpression(
     BoundContainerExpression *containerExpression) {
 
   _sizeToFill = containerExpression->getElementsRef().size();
@@ -143,8 +163,8 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
     return nullptr;
   }
 
-  for (uint64_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
-    indices.push_back(Builder->getInt32(i));
+  for (size_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
+    indices.push_back(Builder->getInt32(static_cast<uint32_t>(i)));
 
     if (containerExpression->getElementsRef()[i].get()->getKind() ==
         BinderKindUtils::BoundContainerExpression) {
@@ -152,7 +172,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
           arrayType, v,
           (BoundContainerExpression *)containerExpression->getElementsRef()[i]
               .get(),
-          indices, index + 1);
+          indices, index + static_cast<uint64_t>(1));
     } else {
       std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
           std::make_unique<AssignmentExpressionGenerationStrategy>(
@@ -166,7 +186,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
             static_cast<BoundCallExpression *>(
                 containerExpression->getElementsRef()[i].get());
 
-        innerCallExpression->setArgumentAlloca(0., {elementPtr, _elementType});
+        innerCallExpression->setArgumentAlloca(0, {elementPtr, _elementType});
       }
 
       // if (containerExpression->getElementsRef()[i].get()->getKind() ==

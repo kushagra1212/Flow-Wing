@@ -1,18 +1,43 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IRCodeGenerator.h"
 
 IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
     : _variableDeclarationStatementGenerationStrategy(
           std::make_unique<VariableDeclarationStatementGenerationStrategy>(
               context)),
-      _callExpressionGenerationStrategy(
-          std::make_unique<CallExpressionGenerationStrategy>(context)),
+      _multipleVariableDeclarationStatementGenerationStrategy(
+          std::make_unique<
+              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
       _customTypeStatementGenerationStrategy(
           std::make_unique<CustomTypeStatementGenerationStrategy>(context)),
       _classStatementGenerationStrategy(
           std::make_unique<ClassStatementGenerationStrategy>(context)),
-      _multipleVariableDeclarationStatementGenerationStrategy(
-          std::make_unique<
-              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
+      _callExpressionGenerationStrategy(
+          std::make_unique<CallExpressionGenerationStrategy>(context)),
+      _assignmentExpressionGenerationStrategy(
+          std::make_unique<AssignmentExpressionGenerationStrategy>(context)),
+      _binaryExpressionGenerationStrategy(
+          std::make_unique<BinaryExpressionGenerationStrategy>(context)),
+      _unaryExpressionGenerationStrategy(
+          std::make_unique<UnaryExpressionGenerationStrategy>(context)),
       _multipleAssignmentExpressionGenerationStrategy(
           std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
               context)),
@@ -56,6 +81,13 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
         static_cast<BoundMultipleVariableDeclaration *>(child);
 
+    {
+      for (auto &variable :
+           boundMultipleVariableDeclaration->getVariableDeclarationListRef()) {
+        variable->setParentMultipleVariableDeclaration(
+            boundMultipleVariableDeclaration);
+      }
+    }
     declareVariables(child, isGlobal);
     if (isGlobal) {
       _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
@@ -71,6 +103,7 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
 
     _callExpressionGenerationStrategy->declare(
         static_cast<BoundCallExpression *>(child));
+    declareVariables(child, isGlobal);
     break;
   }
   case BinderKindUtils::BoundNodeKind::BoundModuleStatement: {
@@ -96,6 +129,19 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     declareVariables(child, isGlobal);
     break;
   }
+  case BinderKindUtils::BoundNodeKind::BinaryExpression: {
+    _binaryExpressionGenerationStrategy->declare(
+        static_cast<BoundBinaryExpression *>(child));
+    declareVariables(child, isGlobal);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::UnaryExpression: {
+    _unaryExpressionGenerationStrategy->declare(
+        static_cast<BoundUnaryExpression *>(child));
+    declareVariables(child, isGlobal);
+    break;
+  }
+
   case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression: {
 
     declareVariables(child, isGlobal);

@@ -1,7 +1,26 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ContainerDeclarationStatementGenerationStrategy.h"
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ContainerDeclarationStatementGenerationStrategy::
     ContainerDeclarationStatementGenerationStrategy(
@@ -94,6 +113,7 @@ ContainerDeclarationStatementGenerationStrategy::assignExpression() {
 
 void ContainerDeclarationStatementGenerationStrategy::initialize(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
+  DEBUG_LOG("Container Declaration Statement", "Initializing");
   _variableDeclExpr = static_cast<BoundVariableDeclaration *>(statement);
 
   // set memory kind
@@ -106,6 +126,7 @@ void ContainerDeclarationStatementGenerationStrategy::initialize(
   _arrayTypeExpression = static_cast<BoundArrayTypeExpression *>(
       _variableDeclExpr->getTypeExpression().get());
   _memoryKind = _variableDeclExpr->getMemoryKind();
+  DEBUG_LOG("Container Declaration Statement", "Initialized");
 }
 
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(

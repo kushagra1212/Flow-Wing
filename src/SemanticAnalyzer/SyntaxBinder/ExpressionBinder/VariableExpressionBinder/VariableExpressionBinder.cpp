@@ -1,7 +1,34 @@
-#include "VariableExpressionBinder.h"
-#include <memory>
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../ExpressionBinderFactory.h"
+#include "VariableExpressionBinder.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundExpression>
 VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
@@ -10,7 +37,7 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   VariableExpressionSyntax *variableExpressionSyntax =
       static_cast<VariableExpressionSyntax *>(expression);
 
-  DEBUG_LOG("Checking out variable " +
+  DEBUG_LOG("Checking out variable ",
             variableExpressionSyntax->getVariableName());
 
   BoundVariableDeclaration *variable = ctx->getRootRef()->tryGetVariable(
@@ -22,11 +49,11 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
     if (!module) {
       ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Module " + variableExpressionSyntax->getVariableName() +
-                         " Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
+          Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Semantic,
-                     variableExpressionSyntax->getSourceLocation()));
+                     {variableExpressionSyntax->getVariableName()},
+                     variableExpressionSyntax->getSourceLocation(),
+                     FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleNotFound));
       return nullptr;
     }
     return ExpressionBinderFactory::create(
@@ -63,12 +90,13 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (!variable && variableExpressionSyntax->getVariableName() != "self" &&
       !func) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
-                       " Not Found",
-                   DiagnosticUtils::DiagnosticLevel::Error,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   variableExpressionSyntax->getSourceLocation()));
+                   {variableExpressionSyntax->getVariableName()},
+                   variableExpressionSyntax->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableNotFound));
     return nullptr;
   }
 
@@ -142,8 +170,8 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
       for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
         localBoundIndexExp->addBoundIndexExpression(
-            std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                          ->bindExpression(ctx, indexExp.get())));
+            (ExpressionBinderFactory::create(indexExp->getKind())
+                 ->bindExpression(ctx, indexExp.get())));
       }
       boundVariableExpression->addDotExpression(std::move(localBoundIndexExp));
     } else {
@@ -162,12 +190,12 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
         }
 
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(callExpression->getKind())
-                          ->bindExpression(ctx, callExpression)));
+            (ExpressionBinderFactory::create(callExpression->getKind())
+                 ->bindExpression(ctx, callExpression)));
       } else {
         std::unique_ptr<BoundExpression> localBoundExpression =
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get()));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get()));
 
         if (!classNameVariableBelongsTo.empty()) {
           BoundClassStatement *boundClassStatement =
@@ -197,8 +225,8 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           }
         }
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get())));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get())));
       }
     }
     DEBUG_LOG("classNameVariableBelongsTo: ", classNameVariableBelongsTo);

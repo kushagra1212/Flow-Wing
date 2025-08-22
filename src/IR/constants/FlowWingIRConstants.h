@@ -1,7 +1,26 @@
-#ifndef FLOWWING_IR_CONSTANTS_H
-#define FLOWWING_IR_CONSTANTS_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../utils/FlowWingConfig.h"
+#pragma once
+
+#include "src/utils/FlowWingConfig.h"
+
 #include <string>
 
 namespace FLOWWING::IR::CONSTANTS {
@@ -32,6 +51,33 @@ extern const std::string TEMP_BC_FILES_DIR;
 extern const std::string TEMP_BIN_DIR;
 extern const std::string OBJECT_FILE_EXTENSION;
 enum ENVIRONMENT { REPL, SOURCE_FILE };
+
+namespace DYNAMIC_VALUE {
+namespace TYPE {
+extern const std::string TYPE_INT32;
+extern const std::string TYPE_INT64;
+extern const std::string TYPE_FLOAT32;
+extern const std::string TYPE_FLOAT64;
+extern const std::string TYPE_STRING;
+extern const std::string TYPE_BOOLEAN;
+
+// Dynamic Value Initial Values
+
+enum VALUE_TYPE {
+  INT8,
+  INT32,
+  INT64,
+  FLOAT32,
+  FLOAT64,
+  STRING,
+  BOOLEAN,
+  NIRAST
+};
+
+// Dynamic Value Type Name
+extern const std::string DYNAMIC_VALUE_TYPE;
+} // namespace TYPE
+} // namespace DYNAMIC_VALUE
 
 namespace INNERS {
 namespace FUNCTIONS {
@@ -65,5 +111,3 @@ extern const std::string GC_MALLOC;
 extern const std::string IS_EXISTS;
 
 }; // namespace FLOWWING::IR::CONSTANTS
-
-#endif // FLOWWING_IR_CONSTANTS_H

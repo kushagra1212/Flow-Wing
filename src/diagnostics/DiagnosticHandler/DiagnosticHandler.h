@@ -1,17 +1,39 @@
-#ifndef DIAGNOSTIC_HANDLER_H
-#define DIAGNOSTIC_HANDLER_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
+#pragma once
+
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include <functional>
 #include <string>
+#include <vector>
 
-#include "../Diagnostic/Diagnostic.h"
-#include "../DiagnosticUtils/DiagnosticUtils.h"
+class Diagnostic;
 
 namespace FlowWing {
 class DiagnosticHandler {
 private:
   std::vector<Diagnostic> diagnostics;
   DiagnosticHandler *parent;
-  int previousLineCount = 0;
+  size_t previousLineCount = 0;
   std::string _filePath;
   std::vector<std::string> _replLines;
 
@@ -26,13 +48,13 @@ public:
 
   std::string getAbsoluteFilePath();
 
-  std::string getErrorProducingSnippet(int lineNumber, int columnNumber);
+  std::string getErrorProducingSnippet(size_t lineNumber, size_t columnNumber);
   void addParentDiagnostics(DiagnosticHandler *parent);
-  const void logDiagnostics(std::ostream &outputStream,
-                            std::function<bool(const Diagnostic &)> filter);
+  void logDiagnostics(std::ostream &outputStream,
+                      std::function<bool(const Diagnostic &)> filter);
 
-  const void printDiagnostic(std::ostream &outputStream,
-                             const Diagnostic &diagnostic);
+  void printDiagnostic(std::ostream &outputStream,
+                       const Diagnostic &diagnostic);
 
   void logJSONifAsked(const std::string &outputFilePath,
                       const Diagnostic &diagnostic);
@@ -41,7 +63,7 @@ public:
 
   bool hasError(DiagnosticUtils::DiagnosticType) const;
 
-  void updatePreviousLineCount(const int count);
+  void updatePreviousLineCount(const size_t count);
 
   void setReplLines(const std::vector<std::string> &replLines);
 
@@ -49,7 +71,7 @@ public:
 
   std::vector<std::string> getLines();
 
-  const int8_t isRepl() const;
+  int8_t isRepl() const;
 
   inline auto setOutputFilePath(const std::string &outputFilePath) -> void {
     this->_outputFilePath = outputFilePath;
@@ -60,5 +82,3 @@ public:
   }
 };
 } // namespace FlowWing
-
-#endif // DIAGNOSTIC_HANDLER_H

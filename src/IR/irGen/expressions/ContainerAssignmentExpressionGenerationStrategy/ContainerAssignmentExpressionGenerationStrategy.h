@@ -1,9 +1,27 @@
-#ifndef __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#pragma once
+
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -14,7 +32,7 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
-  const bool canGenerateExpressionAssignment(BoundExpression *expr);
+  bool canGenerateExpressionAssignment(BoundExpression *expr);
 
   void setVariable(llvm::Value *var);
   void setContainerName(const std::string &containerName);
@@ -46,15 +64,11 @@ private:
   std::string _containerName;
   llvm::Value *_variable = nullptr;
   llvm::ArrayType *_arrayType = nullptr;
-  llvm::Value *_size = nullptr;
 
   // RHS
   llvm::Value *_rhsVariable = nullptr;
   llvm::ArrayType *_rhsArrayType = nullptr;
-  llvm::Value *_rhsSize = nullptr;
 
   std::vector<uint64_t> _lhsSizes, _rhsSizes;
   llvm::Type *_rhsArrayElementType = nullptr, *_lhsArrayElementType = nullptr;
 };
-
-#endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

@@ -1,4 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ParserContext.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Utils.h"
 
 ParserContext::ParserContext(
     FlowWing::DiagnosticHandler *diagnosticHandler,
@@ -19,7 +46,7 @@ ParserContext::~ParserContext() {
 */
 
 SyntaxToken<std::any> *ParserContext::peek(const int &offset) {
-  const int index = _position + offset;
+  size_t index = _position + static_cast<size_t>(offset);
   if (index >= _tokens.size()) {
     return _tokens[_tokens.size() - 1].get();
   }
@@ -67,16 +94,16 @@ ParserContext::match(const SyntaxKindUtils::SyntaxKind &kind) {
   _codeFormatter->append(getCurrent()->getText());
 
   if (getKind() == kind) {
-    return std::move(nextToken());
+    return nextToken();
   }
-  _diagnosticHandler->addDiagnostic(
-      Diagnostic("Unexpected Token <" + SyntaxKindUtils::to_string(getKind()) +
-                     ">, Expected <" + SyntaxKindUtils::to_string(kind) + ">",
-                 DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Syntactic,
-                 Utils::getSourceLocation(getCurrent())));
+  _diagnosticHandler->addDiagnostic(Diagnostic(
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Syntactic,
+      {SyntaxKindUtils::to_string(getKind()), SyntaxKindUtils::to_string(kind)},
+      Utils::getSourceLocation(getCurrent()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
   if (getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    return std::move(nextToken());
+    return nextToken();
   } else {
 
     return std::make_unique<SyntaxToken<std::any>>(
@@ -113,20 +140,20 @@ FlowWing::DiagnosticHandler *ParserContext::getDiagnosticHandler() {
   return _diagnosticHandler;
 }
 
-const bool ParserContext::getIsInsideCallExpression() const {
+bool ParserContext::getIsInsideCallExpression() const {
   return _isInsideCallExpression;
 }
-const bool ParserContext::getIsInsideIndexExpression() const {
+bool ParserContext::getIsInsideIndexExpression() const {
   return _isInsideIndexExpression;
 }
-const bool ParserContext::getIsInsideContainerExpression() const {
+bool ParserContext::getIsInsideContainerExpression() const {
   return _isInsideContainerExpression;
 }
-const bool ParserContext::getIsInsideReturnStatement() const {
+bool ParserContext::getIsInsideReturnStatement() const {
   return _isInsideReturnStatement;
 }
 
-const int8_t ParserContext::getDependencyFileCount(const std::string &path) {
+int8_t ParserContext::getDependencyFileCount(const std::string &path) {
   return _dependencyPathsMap[path];
 }
 
@@ -157,6 +184,11 @@ void ParserContext::updateDependencyCount(const std::string &path,
   _dependencyPathsMap[path] += count;
 }
 
+const std::unordered_map<std::string, int8_t> &
+ParserContext::getDependencyPathsMap() {
+  return _dependencyPathsMap;
+}
+
 //? Builder Methods
 
 void ParserContext::buildTokenList(SourceTokenizer *lexer) {
@@ -165,8 +197,7 @@ void ParserContext::buildTokenList(SourceTokenizer *lexer) {
   bool isEncounteredEndOfLineBefore = false;
 
   do {
-    std::unique_ptr<SyntaxToken<std::any>> token =
-        std::move(lexer->nextToken());
+    std::unique_ptr<SyntaxToken<std::any>> token = lexer->nextToken();
     _kind = token->getKind();
 
     handleDiagnosticsForBadToken(token.get());
@@ -192,10 +223,10 @@ void ParserContext::buildTokenList(SourceTokenizer *lexer) {
 void ParserContext::handleDiagnosticsForBadToken(SyntaxToken<std::any> *token) {
   if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
     this->_diagnosticHandler->addDiagnostic(
-        Diagnostic("Unexpected Character <" + token->getText() + ">",
-                   DiagnosticUtils::DiagnosticLevel::Error,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Syntactic,
-                   Utils::getSourceLocation(token)));
+                   {token->getText()}, Utils::getSourceLocation(token),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedCharacter));
   }
 }
 void ParserContext::handleFormatCommentToken(

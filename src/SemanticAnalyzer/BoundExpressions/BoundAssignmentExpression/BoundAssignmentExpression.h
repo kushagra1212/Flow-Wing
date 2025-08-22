@@ -1,8 +1,26 @@
-#ifndef ASSIGNMENT_EXPRESSION_H
-#define ASSIGNMENT_EXPRESSION_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
-#include "../BoundExpression/BoundExpression.h"
+#pragma once
+
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundAssignmentExpression : public BoundExpression {
 private:
@@ -10,7 +28,7 @@ private:
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
   BoundVariableDeclaration *_variable;
-  bool _needDefaulInitilization;
+  bool _needDefaultInitialization;
 
 public:
   BoundAssignmentExpression(const DiagnosticUtils::SourceLocation &location,
@@ -18,7 +36,7 @@ public:
                             std::unique_ptr<BoundExpression> left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
                             std::unique_ptr<BoundExpression> right,
-                            bool needDefaulInitilization = false);
+                            bool needDefaultInitialization = false);
 
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
@@ -28,15 +46,13 @@ public:
 
   std::vector<BoundNode *> getChildren() override;
 
-  BinderKindUtils::BoundBinaryOperatorKind &getOperatorPtr();
-
   std::unique_ptr<BoundExpression> &getLeftPtr();
 
   std::unique_ptr<BoundExpression> &getRightPtr();
 
   BoundVariableDeclaration *getVariable();
 
-  inline bool getNeedDefaulInitilization() { return _needDefaulInitilization; }
+  inline bool getNeedDefaultInitialization() {
+    return _needDefaultInitialization;
+  }
 };
-
-#endif // ASSIGNMENT_EXPRESSION_H

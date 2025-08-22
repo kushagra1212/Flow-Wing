@@ -1,3 +1,22 @@
+﻿/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #pragma once
 
 // ANSI color codes
@@ -35,3 +54,8 @@ constexpr auto ERROR_COLOR = RED_TEXT;
 constexpr auto WARNING_COLOR = YELLOW_TEXT;
 constexpr auto SUCCESS_COLOR = GREEN_TEXT;
 constexpr auto INFO_COLOR = BLUE_TEXT;
+constexpr auto BOLD_RED_TEXT = "\033[1;31m";
+constexpr auto BOLD_GREEN_TEXT = "\033[1;32m";
+constexpr auto BOLD_YELLOW_TEXT = "\033[1;33m";
+constexpr auto BOLD_BLUE_TEXT = "\033[1;34m";
+constexpr auto BOLD_WHITE_TEXT = "\033[1;37m";

@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IRGenerator.h"
 #include <string>
 
@@ -29,8 +48,16 @@ IRGenerator::IRGenerator(
   // LLVM - 16 bit
   // TheContext->setOpaquePointers(false);
 
-  this->declareDependencyFunctions();
-  this->initializeGlobalVariables();
+  FunctionDeclarationManager functionDeclarationManager(
+      _codeGenerationContext.get());
+  functionDeclarationManager.initialize();
+
+  GlobalVariableInitializer globalVariableInitializer(
+      _codeGenerationContext.get());
+  globalVariableInitializer.initialize();
+
+  GlobalTypeInitializer globalTypeInitializer(_codeGenerationContext.get());
+  globalTypeInitializer.initialize();
 
   // Initialize IRCodeGenerator (Statement Generation Strategy)
 
@@ -69,50 +96,9 @@ IRGenerator::IRGenerator(
 
   //.o
   objectFile = std::make_unique<ObjectFile>();
-}
 
-void IRGenerator::declareDependencyFunctions() {
-  std::unique_ptr<FunctionDeclarationManager> functionDeclarationManager =
-      std::make_unique<FunctionDeclarationManager>(
-          _codeGenerationContext.get());
-
-  functionDeclarationManager->declareCompareStringsFn();
-  functionDeclarationManager->declareConcatStringsFn();
-  functionDeclarationManager->declareDtosFn();
-  functionDeclarationManager->declareEqualStringsFn();
-  functionDeclarationManager->declareGetInputFn();
-  functionDeclarationManager->declareGetMallocPtrofIntConstantFn();
-  functionDeclarationManager->declareGetMallocPtrOfStringConstantFn();
-  functionDeclarationManager->declareGreaterThanOrEqualStringsFn();
-  functionDeclarationManager->declareGreaterThanStringsFn();
-  functionDeclarationManager->declareItosFn();
-  functionDeclarationManager->declareLessThanOrEqualStringsFn();
-  functionDeclarationManager->declareLessThanStringsFn();
-  functionDeclarationManager->declarePrintFn();
-  functionDeclarationManager->declarePrintfFn();
-  functionDeclarationManager->declareStringLengthFn();
-  functionDeclarationManager->declareStringToDoubleFn();
-  functionDeclarationManager->declareStringToIntFn();
-  functionDeclarationManager->declareStringToLongFn();
-  functionDeclarationManager->declareRaiseExceptionFn();
-  functionDeclarationManager->declareMallocFunctionFn();
-  functionDeclarationManager->declarePutChar();
-
-#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
-  functionDeclarationManager->declareGC_Malloc();
-#endif
-}
-
-void IRGenerator::initializeGlobalVariables() {
-  std::unique_ptr<GlobalVariableInitializer> globalVariableInitializer =
-      std::make_unique<GlobalVariableInitializer>(_codeGenerationContext.get());
-
-  globalVariableInitializer->initializeTrue();
-  globalVariableInitializer->initializeFalse();
-  globalVariableInitializer->initializeI8Null();
-  globalVariableInitializer->initializeBreakCount();
-  globalVariableInitializer->initializeContinueCount();
-  globalVariableInitializer->initializeErrorCount();
+  m_hasTempDirectories =
+      FLOWWING::IR::UTILS::createTempDirectories(_llvmLogger);
 }
 
 void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
@@ -121,27 +107,8 @@ std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
   return this->_irParser;
 }
 
-void IRGenerator::printIR() {
-  // Print LLVM IR to console
-  TheModule->print(llvm::outs(), nullptr);
-}
-
-void IRGenerator::mergeModules(llvm::Module *sourceModule,
-                               llvm::Module *destinationModule) {
-  llvm::LLVMContext &context = destinationModule->getContext();
-  llvm::ValueToValueMapTy vmap;
-
-  // Iterate through functions in the source module and clone them to the
-  // destination module
-  for (llvm::Function &sourceFunction : *sourceModule) {
-    llvm::Function *clonedFunction = llvm::CloneFunction(&sourceFunction, vmap);
-    clonedFunction->setName(sourceFunction.getName() + ".clone");
-    destinationModule->getFunctionList().push_back(clonedFunction);
-  }
-}
-
-const int32_t IRGenerator::hasErrors() const {
-  return _llvmLogger->getErrorCount();
+int8_t IRGenerator::hasErrors() const {
+  return _llvmLogger->getErrorCount() > 0;
 }
 
 void IRGenerator::generateEvaluateGlobalStatement(
@@ -192,15 +159,12 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   // Declare All Global Variables
 
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+  for (size_t i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
     BinderKindUtils::BoundNodeKind kind = statement->getKind();
     bool generateStatement = true;
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      BoundFunctionDeclaration *functionDeclaration =
-          static_cast<BoundFunctionDeclaration *>(
-              blockStatement->getStatements()[i].get());
       generateStatement = false;
     }
 
@@ -215,7 +179,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+  for (size_t i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
@@ -260,11 +224,11 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
 
-  char **OutMessage = nullptr;
-
 #if DEBUG
 
-  this->printIR();
+  char **OutMessage = nullptr;
+  // Print LLVM IR to console
+  TheModule->print(llvm::outs(), nullptr);
   LLVMVerifyModule(wrap(TheModule),
                    LLVMVerifierFailureAction::LLVMAbortProcessAction,
                    OutMessage);
@@ -275,8 +239,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 #endif
 
-  if (!this->hasErrors()) {
+  if (!this->hasErrors() && m_hasTempDirectories == EXIT_SUCCESS) {
 #if defined(DEBUG)
+    char **OutMessage = nullptr;
     const std::string Filename = (std::string(
         Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
         blockName + std::string(".ll")));
@@ -304,8 +269,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
   // Add handlers
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
+
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -333,14 +297,13 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
     }
 
     if (!functionDeclaration->isOnlyDeclared()) {
-      llvm::Value *F = _functionStatementGenerationStrategy->generate(
+      _functionStatementGenerationStrategy->generate(
           functionDeclaration, {"self"}, classType, classVariables);
     }
   }
   // Rest
   _codeGenerationContext->resetCurrentClassName();
   // Remove handlers
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 }
 
@@ -378,23 +341,4 @@ int IRGenerator::executeGeneratedCode() {
   }
   delete executionEngine;
   return hasError;
-}
-
-bool IRGenerator::saveLLVMModuleToFile(llvm::Module *module,
-                                       const std::string &path) {
-  // Create an output stream for the .ll file
-  std::error_code EC;
-  llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
-
-  if (!EC) {
-    // Write the LLVM module to the .ll file
-    module->print(OS, nullptr);
-    OS.flush();
-    return true;
-  } else {
-    _llvmLogger->LogError("Error opening " + Utils::getFileName(path) +
-                          " for writing: " + EC.message());
-
-    return false;
-  }
 }

@@ -1,4 +1,29 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BringStatementSyntax.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 void BringStatementSyntax::addExpression(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> expression) {
@@ -38,7 +63,7 @@ const std::string &BringStatementSyntax::getAbsoluteFilePath() const {
   return absoluteFilePath;
 }
 
-const SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BringStatementSyntax;
 }
 const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
@@ -59,6 +84,15 @@ const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
 }
 const DiagnosticUtils::SourceLocation
 BringStatementSyntax::getSourceLocation() const {
+
+  if (_pathToken) {
+    return _pathToken->getSourceLocation();
+  }
+
+  if (_openBraceToken) {
+    return _openBraceToken->getSourceLocation();
+  }
+
   return _bringKeyword->getSourceLocation();
 }
 
@@ -67,7 +101,7 @@ BringStatementSyntax::getExpressionsPtr() {
   return expressions;
 }
 
-const bool BringStatementSyntax::getIsChoosyImportPtr() {
+bool BringStatementSyntax::getIsChoosyImportPtr() {
   return this->_openBraceToken != nullptr;
 }
 const std::string &BringStatementSyntax::getAbsoluteFilePathPtr() {

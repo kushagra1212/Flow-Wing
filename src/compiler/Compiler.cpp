@@ -1,4 +1,34 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "Compiler.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/IR/IRGenerator.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/compiler/CompilerUtils.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Colors.h"
+#include "src/utils/Utils.h"
+#include <fstream>
 
 Compiler::Compiler(std::string filePath)
     : _filePath(filePath),
@@ -33,9 +63,6 @@ void Compiler::compile(std::vector<std::string> &text,
                                    ".tokens.json");
   }
 
-  // parser->setIsFormattedCodeRequired(FlowWing::Cli::isFlag::format() ||
-  //                                    FlowWing::Cli::isFlag::shortFormat());
-
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
     currentDiagnosticHandler->logDiagnostics(
@@ -48,7 +75,7 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      (parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -76,8 +103,8 @@ void Compiler::compile(std::vector<std::string> &text,
     Utils::logJSON(jsonObject, _outputFilePath);
   }
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(nullptr, compilationUnit.get(),
+                                            currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
@@ -157,7 +184,8 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 }
 
-void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
+void Compiler::runTests([[maybe_unused]] std::istream &inputStream,
+                        std::ostream &outputStream) {
   std::unique_ptr<FlowWing::DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>();
 
@@ -176,7 +204,7 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      (parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -193,8 +221,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(nullptr, compilationUnit.get(),
+                                            currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);

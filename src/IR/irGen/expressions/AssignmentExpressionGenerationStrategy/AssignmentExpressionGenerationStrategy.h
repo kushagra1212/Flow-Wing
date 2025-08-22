@@ -1,17 +1,36 @@
-#ifndef __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
-#include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
-#include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
-#include "../NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
-#include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+#pragma once
+
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -23,10 +42,9 @@ public:
 
   void declare(BoundExpression *expression);
 
-  llvm::Value *
-  handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
-                                           const std::string &variableName,
-                                           llvm::Value *rhsValue);
+  llvm::Value *handleDynamicPrimitiveVariableAssignment(
+      llvm::Value *variable, const std::string &variableName,
+      llvm::Value *rhsValue, const bool IS_RHS_VALUE_A_DYNAMIC_VALUE);
 
   llvm::Value *
   handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);
@@ -38,7 +56,7 @@ public:
 
   int8_t populateLHS(BoundAssignmentExpression *&assignmentExpression);
 
-  int8_t handleWhenRHSIsConstant(BoundExpression *expression);
+  int8_t handleWhenRHSIsPrimitive(BoundExpression *expression);
 
   llvm::Value *handleAssignmentByBracketedExpression(
       BoundBracketedExpression *bracketedExpression);
@@ -56,21 +74,14 @@ public:
 
 private:
   std::string _variableName;
-  llvm::Value *_allocaInst = nullptr;
-  llvm::GlobalVariable *_previousGlobalVariable = nullptr;
-  SyntaxKindUtils::SyntaxKind _variableType;
-  bool _isGlobal;
   std::vector<llvm::Value *> _indices;
   BoundVariableExpression *_variableExpression = nullptr;
-  BoundExpression *_rhsExpression = nullptr;
 
   // Complete Assignment
   std::string _lhsVariableName;
-  llvm::Type *_lhsType = nullptr, *_rhsType = nullptr;
-  llvm::Value *_lhsPtr = nullptr, *_rhsPtr = nullptr;
+  llvm::Type *_lhsType = nullptr;
+  llvm::Value *_lhsPtr = nullptr;
   SyntaxKindUtils::SyntaxKind _lhsTypeKind;
 
-  llvm::Value *_lhsDynamicPtr = nullptr;
+  int8_t m_isLHSDynamicValue = 0;
 };
-
-#endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

@@ -1,20 +1,39 @@
-#include "PrimaryExpressionParserFactory.h"
-#include "BracketedExpressionParser/BracketedExpressionParser.h"
-#include "CallExpressionParser/CallExpressionParser.h"
-#include "CharacterExpressionParser/CharacterExpressionParser.h"
-#include "CommaExpressionParser/CommaExpressionParser.h"
-#include "DefaultPrimaryExpressionParser/DefaultPrimaryExpressionParser.h"
-#include "ExpressionParser.h"
-#include "FalseExpressionParser/FalseExpressionParser.h"
-#include "IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "NirastExpressionParser/NirastExpressionParser.h"
-#include "NumberExpressionParser/NumberExpressionParser.h"
-#include "ObjectExpressionParser/ObjectExpressionParser.h"
-#include "StringExpressionParser/StringExpressionParser.h"
-#include "TrueExpressionParser/TrueExpressionParser.h"
-#include "TypeExpressionParser/ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include <memory>
+#include "PrimaryExpressionParserFactory.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/BracketedExpressionParser/BracketedExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CallExpressionParser/CallExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CharacterExpressionParser/CharacterExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CommaExpressionParser/CommaExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/DefaultPrimaryExpressionParser/DefaultPrimaryExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/FalseExpressionParser/FalseExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/NirastExpressionParser/NirastExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/NumberExpressionParser/NumberExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ObjectExpressionParser/ObjectExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ParenthesizedExpressionParser/ParenthesizedExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/StringExpressionParser/StringExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TrueExpressionParser/TrueExpressionParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include <cassert>
+
 std::unique_ptr<ExpressionParser>
 PrimaryExpressionParserFactory::createPrimaryExpressionParser(
     const SyntaxKindUtils::SyntaxKind &kind) {

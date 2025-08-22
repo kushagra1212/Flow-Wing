@@ -1,9 +1,27 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#ifndef SYNTAXKINDUTILS_H
-#define SYNTAXKINDUTILS_H
-#include "../common/Common.h"
+#pragma once
+#include <string>
+
 namespace SyntaxKindUtils {
-enum SyntaxKind {
+enum SyntaxKind : int {
 
   // Tokens
 
@@ -167,9 +185,11 @@ bool isInt64(const std::string &str);
 
 bool isDouble(const std::string &str);
 
+bool isValidInteger(const std::string &str);
+
+bool isNumberTooLarge(const std::string &str);
+
 const std::string to_string(SyntaxKind kind);
 
 bool isType(SyntaxKind kind);
 } // namespace SyntaxKindUtils
-
-#endif // SYNTAXKINDUTILS_H

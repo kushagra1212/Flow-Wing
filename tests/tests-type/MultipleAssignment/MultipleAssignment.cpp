@@ -1,3 +1,23 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+
 #include "MultipleAssignment.h"
 
 void MultipleAssignment::SetUp() { _test->SetUp(); }
@@ -346,6 +366,11 @@ fun getFAndA() -> int, A  {
   return 2,new A(32)
 }
 
+
+fun getFAndA2() -> int, A  {
+  return 4,new A(34)
+}
+
 fun getP() -> A {
     return new A(21)
   }
@@ -357,7 +382,7 @@ fun getP() -> A {
 a.printX()
 
 
-var u:int ,b:A
+var u:int ,b:A = getFAndA2()
 
 u,b= getFAndA()
 b.printX()
@@ -389,6 +414,11 @@ fun getFAndA() -> int, A  {
   return 2,new A(32)
 }
 
+
+fun getFAndA2() -> int, A  {
+  return 23,new A(22)
+}
+
 fun getP() -> A {
     return new A(21)
   }
@@ -401,7 +431,7 @@ fun getP() -> A {
 a.printX()
 
 
-var u:int ,b:A
+var u:int ,b:A = getFAndA2()
 
 u,b= getFAndA()
 b.printX()
@@ -452,8 +482,12 @@ fun getFAndA() -> T[2], A  {
   return [],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
 
-var u:T[2] ,b:A
+
+var u:T[2] ,b:A = getFAndA2()
 
 u,b =  getFAndA()
 b.printX()
@@ -503,9 +537,13 @@ fun getFAndA() -> T[2], A  {
   return [],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
+
 
 {
-var u:T[2] ,b:A
+var u:T[2] ,b:A = getFAndA2()
 
 u,b =  getFAndA()
 b.printX()
@@ -557,8 +595,11 @@ fun getFAndA() -> T[2], A  {
   return [{a:10}],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [],new A(22)
+}
 
-var u:T[2] ,b:A
+var u:T[2] ,b:A = getFAndA2()
 print(u)
 u,b =  getFAndA()
 b.printX()

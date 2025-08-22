@@ -1,5 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "commandLineOptions.h"
+#include "src/utils/Utils.h"
 #include <cstdint>
+#include <fstream>
+#include <iostream>
+
+#if defined(__linux__) || defined(__APPLE__)
+#include <sys/unistd.h>
+#include <unistd.h>
+#endif
 
 namespace FlowWing {
 namespace Cli {
@@ -271,13 +298,13 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
     Utils::printErrors({"Unable to open file: " + std::string(filePath),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
-
+#if !defined(_WIN32)
     if (access(filePath.c_str(), R_OK) != 0) {
       Utils::printErrors({"Please check if the file exists and you have "
                           "read permissions."},
                          std::cerr);
     }
-
+#endif
     return FlowWing::Cli::STATUS::FAILURE;
   }
   //! Close the file
@@ -337,13 +364,14 @@ void printHelp() {
   }
 
   // Print options with formatted alignment
-  std::cout << std::left << std::setw(maxFlagLength + 2) << "Options"
+  std::cout << std::left << std::setw(static_cast<int>(maxFlagLength) + 2)
+            << "Options"
             << "Description\n";
   std::cout << std::string(maxFlagLength + 2 + 20, '-') << "\n";
 
   for (const auto &option : options) {
-    std::cout << std::left << std::setw(maxFlagLength + 2) << option.first
-              << option.second << "\n";
+    std::cout << std::left << std::setw(static_cast<int>(maxFlagLength) + 2)
+              << option.first << option.second << "\n";
   }
 
   std::cout << "\nUse " << OPTIONS::Help.name << " or "

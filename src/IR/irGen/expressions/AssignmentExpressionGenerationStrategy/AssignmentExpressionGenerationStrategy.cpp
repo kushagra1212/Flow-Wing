@@ -1,7 +1,27 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "AssignmentExpressionGenerationStrategy.h"
 
-#include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include <cstddef>
 
 AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(
     CodeGenerationContext *context)
@@ -11,7 +31,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
-  _isGlobal = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
   return handleAssignmentExpression(assignmentExpression);
@@ -23,17 +42,13 @@ void AssignmentExpressionGenerationStrategy::declare(
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
 
-  if (assignmentExpression->getNeedDefaulInitilization() &&
+  if (assignmentExpression->getNeedDefaultInitialization() &&
       assignmentExpression->getRightPtr() &&
       assignmentExpression->getRightPtr()->getKind() ==
           BinderKindUtils::CallExpression &&
       assignmentExpression->getLeftPtr() &&
       assignmentExpression->getLeftPtr()->getKind() ==
           BinderKindUtils::VariableExpression) {
-
-    BoundVariableExpression *variableExpression =
-        static_cast<BoundVariableExpression *>(
-            assignmentExpression->getLeftPtr().get());
 
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         assignmentExpression->getRightPtr().get());
@@ -65,7 +80,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
       static_cast<BoundAssignmentExpression *>(expression);
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
-  _isGlobal = true;
   return handleAssignmentExpression(assignmentExpression);
 }
 
@@ -83,8 +97,9 @@ int8_t AssignmentExpressionGenerationStrategy::populateLHS(
       ->generateExpression(assignmentExpression->getLeftPtr().get());
   _lhsPtr = _codeGenerationContext->getValueStackHandler()->getValue();
   _lhsType = _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  _lhsDynamicPtr =
-      _codeGenerationContext->getValueStackHandler()->getDynamicValue();
+  m_isLHSDynamicValue =
+      _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
+
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
@@ -160,6 +175,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       _codeGenerationContext->getValueStackHandler()->getValue();
   llvm::Type *rhsType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
+
+  const bool IS_RHS_VALUE_A_DYNAMIC_VALUE =
+      _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
   llvm::Value *rhsValue = nullptr;
 
   if (!rhsType) {
@@ -171,7 +189,8 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
     return nullptr;
   }
 
-  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant() ||
+      IS_RHS_VALUE_A_DYNAMIC_VALUE) {
 
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
@@ -189,10 +208,15 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  if (_lhsDynamicPtr) {
+  if (m_isLHSDynamicValue) {
+    return handleDynamicPrimitiveVariableAssignment(
+        _lhsPtr, _lhsVariableName, rhsValue, IS_RHS_VALUE_A_DYNAMIC_VALUE);
+  }
 
-    return handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr,
-                                                    _lhsVariableName, rhsValue);
+  if (IS_RHS_VALUE_A_DYNAMIC_VALUE) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSVariable(
+        _lhsPtr, _lhsType, rhsValue, _codeGenerationContext, Builder);
+    return _lhsPtr;
   }
 
   if (llvm::isa<llvm::StructType>(_lhsType) &&
@@ -202,9 +226,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
             llvm::cast<llvm::StructType>(rhsType)) == EXIT_FAILURE) {
       return nullptr;
     }
-
-    llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(_lhsType);
-    llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(rhsType);
 
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
@@ -260,7 +281,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
     break;
   }
 
-  if (handleWhenRHSIsConstant(expression) == EXIT_SUCCESS)
+  if (handleWhenRHSIsPrimitive(expression) == EXIT_SUCCESS)
     return nullptr;
 
   if (expression->getKind() ==
@@ -290,48 +311,70 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   if (populateLHS(assignmentExpression) == EXIT_FAILURE)
     return nullptr;
 
-  if (assignmentExpression->getNeedDefaulInitilization()) {
+  if (assignmentExpression->getNeedDefaultInitialization()) {
     initDefaultValue(_lhsType, _lhsPtr, *Builder);
   }
 
   return handleRHSExpression(assignmentExpression->getRightPtr().get());
 }
 llvm::Value *AssignmentExpressionGenerationStrategy::
-    handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
-                                             const std::string &variableName,
-                                             llvm::Value *rhsValue) {
-  if (llvm::isa<llvm::GlobalVariable>(variable)) {
-    _isGlobal = true;
+    handleDynamicPrimitiveVariableAssignment(
+        llvm::Value *variable, const std::string &variableName,
+        llvm::Value *rhsValue, const bool IS_RHS_VALUE_A_DYNAMIC_VALUE) {
+
+  if (IS_RHS_VALUE_A_DYNAMIC_VALUE) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSDynamicValue(
+        variable, rhsValue, _codeGenerationContext, Builder);
   } else {
-    _isGlobal = false;
+    DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+        variable, variableName, rhsValue, _codeGenerationContext, Builder);
   }
-  std::string varName = _isGlobal ? variableName : variableName;
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      variable, rhsValue, rhsValue->getType(), variableName);
 
   return nullptr;
 }
 
-int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
+int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsPrimitive(
     BoundExpression *expression) {
+
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
   _codeGenerationContext->getValueStackHandler()->popAll();
+
   _expressionGenerationFactory->createStrategy(expression->getKind())
       ->generateExpression(expression);
 
-  llvm::Value *rhsPtr =
-      _codeGenerationContext->getValueStackHandler()->getValue();
   llvm::Type *rhsType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  llvm::Value *rhsValue = nullptr;
+  llvm::Value *rhsValue =
+      _codeGenerationContext->getValueStackHandler()->getValue();
 
-  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
-    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  const bool RHS_VALUE_IS_A_CONSTANT =
+      _codeGenerationContext->getValueStackHandler()->isLLVMConstant();
 
-    if (_lhsDynamicPtr) {
-      handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
-                                               rhsValue);
+  const bool RHS_VALUE_IS_OF_DYNAMIC_TYPE =
+      _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  if (m_isLHSDynamicValue) {
+    //? It is handling both the cases when rhs is dynamic, primitive or
+    //? constant
+    handleDynamicPrimitiveVariableAssignment(
+        _lhsPtr, _lhsVariableName, rhsValue, RHS_VALUE_IS_OF_DYNAMIC_TYPE);
+    return EXIT_SUCCESS;
+  }
+
+  //? Case: When LHS is not a dynamic value
+
+  if (RHS_VALUE_IS_A_CONSTANT) {
+    if (_lhsType == llvm::StructType::getTypeByName(
+                        *_codeGenerationContext->getContext(),
+                        DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE)) {
+
+      DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+          _lhsPtr, _lhsVariableName, rhsValue, _codeGenerationContext, Builder);
+
+      return EXIT_SUCCESS;
     } else {
       if (_lhsType != rhsType) {
 
@@ -349,8 +392,11 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
     }
 
     return EXIT_SUCCESS;
+  } else if (RHS_VALUE_IS_OF_DYNAMIC_TYPE) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSVariable(
+        _lhsPtr, _lhsType, rhsValue, _codeGenerationContext, Builder);
+    return EXIT_SUCCESS;
   }
-  _codeGenerationContext->getValueStackHandler()->popAll();
 
   return EXIT_FAILURE;
 }
@@ -410,7 +456,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy ::handleAssignExpression(
   _lhsPtr = lshPtr;
   _lhsType = lhsType;
   _lhsVariableName = lhsVarName;
-  _lhsDynamicPtr = nullptr;
+  m_isLHSDynamicValue = 0;
 
   return handleRHSExpression(expression);
 }
@@ -466,7 +512,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
     const int64_t sizeToFillVal = std::accumulate(
         dimensions.begin(), dimensions.end(), 1, std::multiplies<uint64_t>());
 
-    for (int i = 0; i < dimensions.size(); i++) {
+    for (size_t i = 0; i < dimensions.size(); i++) {
       std::vector<llvm::BasicBlock *> blocks = {
           llvm::BasicBlock::Create(*TheContext,
                                    "AssignExpr.loopStart-" + std::to_string(i),
@@ -497,7 +543,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
 
     builder.CreateBr(loopBlocks[0][0]);
 
-    for (int i = 0; i < dimensions.size(); i++) {
+    for (size_t i = 0; i < dimensions.size(); i++) {
       // start
       builder.SetInsertPoint(loopBlocks[i][0]);
       builder.CreateStore(builder.getInt32(0), indices[i]);
@@ -507,12 +553,12 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
       builder.SetInsertPoint(loopBlocks[i][1]);
       llvm::Value *currentIndex =
           builder.CreateLoad(builder.getInt32Ty(), indices[i]);
-      llvm::Value *isLessThan =
-          builder.CreateICmpSLT(currentIndex, builder.getInt32(dimensions[i]));
+      llvm::Value *isLessThan = builder.CreateICmpSLT(
+          currentIndex, builder.getInt32(static_cast<uint32_t>(dimensions[i])));
       //?------Comparison Count Increment------
       llvm::Value *isAllElementsFilled = builder.CreateICmpSLT(
           builder.CreateLoad(builder.getInt32Ty(), numberOfElementsFilled),
-          builder.getInt32(sizeToFillVal));
+          builder.getInt32(static_cast<uint32_t>(sizeToFillVal)));
       //?
 
       llvm::Value *success = builder.CreateAnd(isLessThan, isAllElementsFilled);
@@ -524,7 +570,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
       if (i == dimensions.size() - 1) {
         std::vector<llvm::Value *> indexList = {builder.getInt32(0)};
 
-        for (int j = 0; j < dimensions.size(); j++) {
+        for (size_t j = 0; j < dimensions.size(); j++) {
           indexList.push_back(
               builder.CreateLoad(builder.getInt32Ty(), indices[j]));
         }
@@ -598,13 +644,13 @@ void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     llvm::IRBuilder<> builder(entry);
 
     uint64_t index = 0;
-    for (const auto &items : objectType->elements()) {
+    for ([[maybe_unused]] const auto &_ : objectType->elements()) {
 
-      llvm::Value *innerElementPtr =
-          builder.CreateStructGEP(objectType, fun->getArg(0), index);
+      llvm::Value *innerElementPtr = builder.CreateStructGEP(
+          objectType, fun->getArg(0), static_cast<uint32_t>(index));
 
-      initDefaultValue(objectType->getElementType(index), innerElementPtr,
-                       builder);
+      initDefaultValue(objectType->getElementType(static_cast<uint32_t>(index)),
+                       innerElementPtr, builder);
 
       index++;
     }

@@ -1,14 +1,39 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #pragma once
 
-#include "../../../common/Common.h"
-#include "../../../syntax/expression/ExpressionSyntax.h"
-#include "../../../utils/Utils.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../MemoryNode.h"
-#include "llvm/IR/DerivedTypes.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/MemoryNode.h"
+#include <any>
+
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
+#include <llvm/IR/DerivedTypes.h>
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
+
+class BoundMultipleVariableDeclaration;
 
 class BoundVariableDeclaration : public BoundStatement,
                                  public BoundSourceLocation,
@@ -25,6 +50,8 @@ private:
   std::string _classItBelongsTo;
   BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
   std::pair<llvm::Value *, llvm::Type *> _llvmVariable;
+  BoundMultipleVariableDeclaration *_parentMultipleVariableDeclaration =
+      nullptr;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -106,4 +133,14 @@ public:
   inline auto setIsConst(bool isConst) { _isConst = isConst; }
 
   inline auto setIsExposed(bool isExposed) { _isExposed = isExposed; }
+
+  inline auto setParentMultipleVariableDeclaration(
+      BoundMultipleVariableDeclaration *parentMultipleVariableDeclaration) {
+    _parentMultipleVariableDeclaration = parentMultipleVariableDeclaration;
+  }
+
+  inline auto getParentMultipleVariableDeclaration()
+      -> BoundMultipleVariableDeclaration * {
+    return _parentMultipleVariableDeclaration;
+  }
 };

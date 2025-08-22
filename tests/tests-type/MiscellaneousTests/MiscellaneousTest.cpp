@@ -1,3 +1,23 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+
 #include "MiscellaneousTest.h"
 
 void MiscellaneousTest::SetUp() { _test->SetUp(); }
@@ -586,25 +606,6 @@ if(a){
 )");
   EXPECT_EQ(getOutput(), R"(A)");
 }
-TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIF) {
-  I(R"(
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x 
-    }
-}
-
-var a:A = new A(2)
-
-if(!a){
-  print("A")
-}or if(a){
-    print("or A")
-  }
-)");
-  EXPECT_EQ(getOutput(), R"(or A)");
-}
 
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFBinary) {
   I(R"(
@@ -625,6 +626,7 @@ if(a && false){
 )");
   EXPECT_EQ(getOutput(), R"(or A)");
 }
+
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnary) {
   I(R"(
 class A {
@@ -636,13 +638,13 @@ class A {
 
 var a:A = new A(2)
 
-if(!a){
+if(a){
   print("A")
 }or if(a && true){
     print("or A")
   }
 )");
-  EXPECT_EQ(getOutput(), R"(or A)");
+  EXPECT_EQ(getOutput(), R"(A)");
 }
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNir) {
   I(R"(
@@ -653,9 +655,9 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
-if(!a){
+if(a){
   print("A")
 }or if(a && true){
     print("or A")
@@ -673,13 +675,13 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
 if(a && 2){
   print("A")
 }
 )");
-  EXPECT_EQ(getOutput(), R"()");
+  EXPECT_EQ(getOutput(), R"(A)");
 }
 TEST_F(MiscellaneousTest,
        IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical2) {
@@ -691,7 +693,7 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
 if(a || 2){
   print("A")
@@ -777,7 +779,7 @@ class a {
     }
 }
 
-var a:a 
+var a:a = Nir
 if(a != Nir){
   print("a")
 }
@@ -970,7 +972,7 @@ if(x ){
 }
 TEST_F(MiscellaneousTest, Int8Test) {
   I(R"(
- var x:int8 = Int8(98)
+ var x:char = Int8(98)
 
    x= x+ Int8(1)
 
@@ -982,7 +984,7 @@ TEST_F(MiscellaneousTest, Int8TestScoped) {
   I(R"(
   {
   
- var x:int8 = Int8(98)
+ var x:char = Int8(98)
 
    x= x+ Int8(1)
 

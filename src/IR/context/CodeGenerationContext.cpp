@@ -1,4 +1,25 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "CodeGenerationContext.h"
+#include "utils/DynamicValueHandler/ValueChecker/ValueChecker.h"
+#include <memory>
 
 CodeGenerationContext ::CodeGenerationContext(
     FlowWing::DiagnosticHandler *diagnosticHandler,
@@ -22,6 +43,9 @@ CodeGenerationContext ::CodeGenerationContext(
   auto Target =
       llvm::TargetRegistry::lookupTarget(_module->getTargetTriple(), Error);
 
+  // Initialize  LLVM_Logger
+  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
+
   if (Error.size() > 0) {
     this->_llvmLogger->LogError("Failed to lookup target: " + Error);
     exit(1);
@@ -44,13 +68,6 @@ CodeGenerationContext ::CodeGenerationContext(
   // Initialize
   _typeMapper = std::make_unique<TypeMapper>(_context.get(), _builder.get(),
                                              _module.get(), this);
-
-  // Initialize  LLVM_Logger
-  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
-
-  // Initialize the named value chain
-  _namedValueChain = std::make_unique<ValueChain>();
-  _namedValueChain->addHandler(new NamedValueTable());
 
   // Initialize the alloca chain
   _allocaChain = std::make_unique<AllocaChain>();
@@ -123,10 +140,6 @@ std::unique_ptr<ArgsTypeHandler> &CodeGenerationContext::getArgsTypeHandler() {
 std::unique_ptr<ReturnTypeHandler> &
 CodeGenerationContext::getReturnTypeHandler() {
   return _returnTypeHandler;
-}
-
-std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
-  return _namedValueChain;
 }
 
 std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
@@ -244,9 +257,9 @@ auto CodeGenerationContext::createVTableMapEntry(
         return;
       }
 
-      for (int i = 0; i < functionType->getNumParams(); i++) {
-        if (previousFunctionType->getParamType(i) !=
-            functionType->getParamType(i)) {
+      for (size_t i = 0; i < functionType->getNumParams(); i++) {
+        if (previousFunctionType->getParamType(static_cast<unsigned int>(i)) !=
+            functionType->getParamType(static_cast<unsigned int>(i))) {
           this->getLogger()->LogError(
               "Function " + fName + " has different parameter type in class " +
               className + " and its parent class " +
@@ -269,7 +282,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
     return constant;
   }
 
-  if (auto callInst = llvm::dyn_cast<llvm::CallInst>(myValue)) {
+  if (auto _ = llvm::dyn_cast<llvm::CallInst>(myValue)) {
     this->getLogger()->LogError("Unsupported type for conversion to constant");
     return nullptr;
   }
@@ -285,7 +298,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
       return llvm::ConstantFP::get(*_context, floatValue);
     }
   } else if (valueType->isPointerTy()) {
-    if (auto ptrConstant = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
+    if (auto _ = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
       return llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(valueType));
     } else if (auto constArray =
@@ -383,7 +396,7 @@ void CodeGenerationContext::getArraySizeMetadata(llvm::Value *array,
   Utils::split(metaData, ":", sizesStr);
 
   for (const auto &sizeStr : sizesStr) {
-    sizes.push_back(std::stoll(sizeStr));
+    sizes.push_back(static_cast<uint64_t>(std::stoll(sizeStr)));
   }
 }
 
@@ -412,11 +425,13 @@ CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
 void CodeGenerationContext::getMultiArrayType(
     llvm::ArrayType *&arrayType, const std::vector<uint64_t> &actualSizes,
     llvm::Type *elementType) {
-  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+  for (int64_t i = static_cast<int64_t>(actualSizes.size()) - 1; i >= 0; i--) {
     if (arrayType == nullptr) {
-      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+      arrayType = llvm::ArrayType::get(elementType,
+                                       actualSizes[static_cast<size_t>(i)]);
     } else {
-      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+      arrayType =
+          llvm::ArrayType::get(arrayType, actualSizes[static_cast<size_t>(i)]);
     }
   }
 }
@@ -443,7 +458,7 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < lhsSizes.size(); i++) {
+  for (size_t i = 0; i < lhsSizes.size(); i++) {
     if (lhsSizes[i] < rhsSizes[i]) {
       this->getLogger()->LogError(
           "Container size mismatch Expected " + std::to_string(i + 1) +
@@ -508,7 +523,7 @@ CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < lhsTypes.size(); i++) {
+  for (size_t i = 0; i < lhsTypes.size(); i++) {
     if (this->verifyType(lhsTypes[i], rhsTypes[i], inExp) == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
@@ -520,12 +535,34 @@ CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
 int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
                                          llvm::Type *rhsType,
                                          std::string inExp) {
-  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(rhsType, this) &&
+      DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(lhsType, this)) {
+    return EXIT_SUCCESS;
+  }
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(lhsType, this)) {
+    return verifyType(rhsType, lhsType, inExp);
+  }
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(rhsType, this)) {
+    if (!DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicCompatibleType(lhsType,
+                                                                       this)) {
+      this->getLogger()->LogError(
+          "Type mismatch Expected " +
+          this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+          this->getMapper()->getLLVMTypeName(rhsType) + inExp);
+      return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+  }
+
+  if (lhsType && rhsType && llvm::isa<llvm::ArrayType>(lhsType) &&
       llvm::isa<llvm::ArrayType>(rhsType))
     return verifyArrayType(llvm::cast<llvm::ArrayType>(lhsType),
                            llvm::cast<llvm::ArrayType>(rhsType), inExp);
 
-  if (llvm::isa<llvm::StructType>(lhsType) &&
+  if (lhsType && rhsType && llvm::isa<llvm::StructType>(lhsType) &&
       llvm::isa<llvm::StructType>(rhsType))
     return verifyStructType(llvm::cast<llvm::StructType>(lhsType),
                             llvm::cast<llvm::StructType>(rhsType), inExp);
@@ -544,15 +581,18 @@ int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
 void CodeGenerationContext::getMultiArrayTypeForGlobal(
     llvm::ArrayType *&arrayType, llvm::Constant *&def,
     const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
-  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+  for (int64_t i = static_cast<int64_t>(actualSizes.size()) - 1; i >= 0; i--) {
     if (arrayType == nullptr) {
-      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+      arrayType = llvm::ArrayType::get(elementType,
+                                       actualSizes[static_cast<size_t>(i)]);
     } else {
-      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+      arrayType =
+          llvm::ArrayType::get(arrayType, actualSizes[static_cast<size_t>(i)]);
     }
 
     def = llvm::ConstantArray::get(
-        arrayType, std::vector<llvm::Constant *>(actualSizes[i], def));
+        arrayType, std::vector<llvm::Constant *>(
+                       actualSizes[static_cast<size_t>(i)], def));
   }
 }
 
@@ -577,12 +617,9 @@ void CodeGenerationContext::getRetrunedArrayType(
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
           (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
 
-    for (int64_t i = 5; i < strs.size(); i++) {
-      actualSizes.push_back(stoi(strs[i]));
+    for (size_t i = 5; i < strs.size(); i++) {
+      actualSizes.push_back(static_cast<uint64_t>(stoi(strs[i])));
     }
-
-    llvm::Constant *def = llvm::cast<llvm::Constant>(
-        this->getMapper()->getDefaultValue(arrayElementType));
 
     getMultiArrayType(arrayType, actualSizes, arrayElementType);
   } else if (strs[2] == "pr") {
@@ -681,9 +718,15 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
   }
 
   default:
+    std::string prettyFunctionName = "";
+#if defined(_MSC_VER)
+    prettyFunctionName = __FUNCSIG__;
+#else
+    prettyFunctionName = __PRETTY_FUNCTION__;
+#endif
     this->getLogger()->LogError(
         "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
-        " for " + variableName + " in " + __PRETTY_FUNCTION__);
+        " for " + variableName + " in " + prettyFunctionName);
     return nullptr;
   }
 }

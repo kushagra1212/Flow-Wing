@@ -1,3 +1,23 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+
 #include "JITFunction.h"
 
 void JITFunction::SetUp() { _test->SetUp(); }
@@ -20,12 +40,12 @@ fun mainTest()-> nthg {
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       "Function return type is Nothing, return expression is found";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   // check expected output is substring of the output or not
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
@@ -44,12 +64,12 @@ TEST_F(JITFunction, NthgReturnTypeWithStringReturnValue2) {
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -69,12 +89,12 @@ print(mainTest()))";
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -93,12 +113,12 @@ print(mainTest()))";
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -154,12 +174,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -176,12 +196,12 @@ TEST_F(JITFunction, IntReturnTypeWithNoReturn2) {
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -203,12 +223,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Integer is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -230,12 +250,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Integer is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
@@ -258,12 +278,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Integer is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -284,12 +304,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Integer is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -313,12 +333,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Boolean is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -340,12 +360,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -367,12 +387,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -394,12 +414,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Boolean is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -450,12 +470,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch Boolean is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -479,12 +499,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch String is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -506,12 +526,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -533,12 +553,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -560,12 +580,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -587,12 +607,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
@@ -614,12 +634,12 @@ print(mainTest())
   std::string lowerCaseOutput = getOutput();
 
   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
+                 lowerCaseOutput.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
   std::string expected_output =
       R"(Return Type Mismatch String is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+                 expected_output.begin(),  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE

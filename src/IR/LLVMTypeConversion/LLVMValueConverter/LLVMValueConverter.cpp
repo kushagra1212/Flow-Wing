@@ -1,11 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "LLVMValueConverter.h"
+#include "src/utils/LogConfig.h"
 
 LLVMValueConverter::LLVMValueConverter(CodeGenerationContext *context)
-    : _module(context->getModule().get()), _mapper(context->getMapper().get()),
+    : _builder(context->getBuilder().get()),
+      _module(context->getModule().get()), _mapper(context->getMapper().get()),
       _logger(context->getLogger().get()),
-      _builder(context->getBuilder().get()),
       _llvmContext(context->getContext().get()),
-      _codeGenerationContext(context){};
+      _codeGenerationContext(context) {};
 
 llvm::Value *
 LLVMValueConverter::convertToLLVMValue(std::any value,
@@ -29,12 +49,14 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
   }
 
   else {
+
     return nullptr;
   }
 }
 
 llvm::Value *LLVMValueConverter::int32ToLLVMValue(int value) {
-  return llvm::ConstantInt::get(*_llvmContext, llvm::APInt(32, value, true));
+  return llvm::ConstantInt::get(
+      *_llvmContext, llvm::APInt(32, static_cast<uint32_t>(value), true));
 }
 
 llvm::Value *LLVMValueConverter::doubleToLLVMValue(double value) {
@@ -86,7 +108,8 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
     }
 
     if (value.length() == 1) {
-      return llvm::ConstantInt::get(_builder->getInt8Ty(), value[0]);
+      return llvm::ConstantInt::get(_builder->getInt8Ty(),
+                                    static_cast<uint64_t>(value[0]));
     } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'n') {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\n');
     } else if (value.length() == 2 && value[0] == '\\' && value[1] == 't') {
@@ -218,7 +241,7 @@ LLVMValueConverter::stringToTypedLLVMValue(std::string value,
     }
   }
 
-  DEBUG_LOG("value: " + value);
+  DEBUG_LOG("value: %s", value.c_str());
 
   return _builder->CreateGlobalStringPtr(value);
 }

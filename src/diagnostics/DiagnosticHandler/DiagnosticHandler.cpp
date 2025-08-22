@@ -1,4 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "DiagnosticHandler.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/utils/Colors.h"
+#include "src/utils/Utils.h"
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace FlowWing;
 
@@ -19,23 +47,23 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
   }
 }
 
-std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
-                                                        int columnNumber) {
+std::string DiagnosticHandler::getErrorProducingSnippet(size_t lineNumber,
+                                                        size_t columnNumber) {
   std::string snippet = "\n";
   std::vector<std::string> lines = isRepl() ? getReplLines() : getLines();
-  int lineCount = lines.size();
-  int currentLineNumber = 1;
+  size_t lineCount = lines.size();
+  size_t currentLineNumber = 1;
 
   auto errorMarker = [&]() {
     std::string marker = "";
     marker += GREEN;
     marker += BOLD;
-    for (int i = 0; i < columnNumber; i++) {
+    for (size_t i = 0; i < columnNumber; i++) {
       marker += " ";
     }
     marker += "\n";
     marker += "   ";
-    for (int i = 0; i < columnNumber; i++) {
+    for (size_t i = 0; i < columnNumber; i++) {
       if (i == columnNumber - 1) {
         marker += "^";
       } else {
@@ -57,7 +85,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
       } else {
         snippet += RESET;
       }
-      snippet += lines[currentLineNumber - 1] + "\n";
+      snippet += lines[static_cast<size_t>(currentLineNumber) - 1] + "\n";
       snippet += RESET;
       if (lineNumber == currentLineNumber) {
 
@@ -93,13 +121,13 @@ std::vector<std::string> DiagnosticHandler::getLines() {
   return lines;
 }
 
-const int8_t DiagnosticHandler::isRepl() const {
+int8_t DiagnosticHandler::isRepl() const {
   return this->_replLines.size() > 0 ? 1 : 0;
 }
 
 std::string DiagnosticHandler::getAbsoluteFilePath() { return this->_filePath; }
 
-const void DiagnosticHandler::logDiagnostics(
+void DiagnosticHandler::logDiagnostics(
     std::ostream &outputStream,
     std::function<bool(const Diagnostic &)> filter) {
 
@@ -124,7 +152,7 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
   if (filePath == "") {
     return "REPL";
   }
-  const int &lastSlashIndex = filePath.find_last_of("/\\");
+  const size_t &lastSlashIndex = filePath.find_last_of("/\\");
   if (lastSlashIndex == std::string::npos) {
     return "FILE NOT FOUND";
   }
@@ -134,9 +162,6 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
 
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
 
-#ifdef JIT_TEST_MODE
-  return diagnostic.getMessage();
-#endif
   std::string message = diagnostic.getMessage();
   std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
   std::string type = DiagnosticUtils::toString(diagnostic.getType());
@@ -152,12 +177,15 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     line = "";
   } else {
 
-    logString =
-        diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
-            ? getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber))
-            : " ";
+    logString = diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
+                    ? getErrorProducingSnippet(
+                          static_cast<size_t>(std::stoi(lineNumber)),
+                          static_cast<size_t>(std::stoi(columnNumber)))
+                    : " ";
 
-    fileName += "File: ";
+    fileName += BOLD_YELLOW_TEXT;
+    fileName += "File: ----> ";
+    fileName += BOLD_BLUE_TEXT;
     const std::string FILEPATH =
         (diagnostic.getLocation().absoluteFilePath != ""
              ? diagnostic.getLocation().absoluteFilePath
@@ -165,28 +193,60 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     fileName += this->getFileName(FILEPATH);
 
     if (_filePath != "") {
-      fileOut = YELLOW;
-      fileOut += "Location: " + FILEPATH + "\n" + RESET;
+      fileOut = BOLD_YELLOW_TEXT;
+      fileOut += "Location: ----> ";
+      fileOut += BOLD_GREEN_TEXT + FILEPATH + "\n" + RESET;
     }
   }
 
-  if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error) {
+  logString += "\n";
+  logString +=
+      (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error
+           ? BOLD_RED_TEXT
+       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Warning
+           ? BOLD_YELLOW_TEXT
+       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info
+           ? BOLD_GREEN_TEXT
+           : BOLD_BLUE_TEXT);
 
-    logString += RED + fileName + " [" + level + "] : " + RED_TEXT + line +
-                 RED + " \"" + message + "\"" + RESET + "\n";
-  } else if (diagnostic.getLevel() ==
-             DiagnosticUtils::DiagnosticLevel::Warning) {
-    logString += YELLOW + fileName + " [" + level + "] : " + YELLOW_TEXT +
-                 line + YELLOW + " \"" + message + "\"" + RESET + "\n";
-  } else if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info) {
-    logString += BLUE + fileName + " [" + level + "] : " + BLUE_TEXT + line +
-                 BLUE + " \"" + message + "\"" + RESET + "\n";
-  } else if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Debug) {
-    logString += GREEN + fileName + " [" + level + "] : " + GREEN_TEXT + line +
-                 GREEN + " \"" + message + "\"" + RESET + "\n";
-  }
+  logString +=
+      "[" + level + "] : " + BOLD_YELLOW_TEXT + line +
+      (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error
+           ? RED_TEXT
+       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Warning
+           ? YELLOW_TEXT
+       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info
+           ? GREEN_TEXT
+           : BLUE_TEXT) +
+      BOLD_WHITE_TEXT + " \"" + message + "\"" + RESET + "\n\n";
+
+  logString += fileName + "\n\n";
   logString += fileOut;
 
+  if (diagnostic.getCode() != FLOW_WING::DIAGNOSTIC::DiagnosticCode::None) {
+    if (diagnostic.getNote() != "") {
+      logString += RESET;
+      logString += "\n";
+      logString += BOLD_BLUE_TEXT;
+      logString += "Note: ";
+      logString += WHITE_TEXT;
+      logString += diagnostic.getNote() + "\n\n";
+      logString += RESET;
+    }
+    if (diagnostic.getHelp() != "") {
+      logString += RESET;
+      logString += BOLD_BLUE_TEXT;
+      logString += "Help: ";
+      logString += WHITE_TEXT;
+      logString += diagnostic.getHelp() + "\n\n";
+      logString += RESET;
+    }
+
+    const std::string errorCode =
+        FLOW_WING::DIAGNOSTIC::getErrorCode(diagnostic.getCode());
+
+    logString += errorCode + "\n";
+  }
   return logString;
 }
 
@@ -212,8 +272,8 @@ void DiagnosticHandler::logJSONifAsked(const std::string &outputFilePath,
   }
 }
 
-const void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
-                                              const Diagnostic &diagnostic) {
+void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
+                                        const Diagnostic &diagnostic) {
 
   this->logJSONifAsked(_outputFilePath, diagnostic);
   outputStream << getLogString(diagnostic);
@@ -247,6 +307,6 @@ bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticType type) const {
   return hasError;
 }
 
-void DiagnosticHandler::updatePreviousLineCount(const int count) {
+void DiagnosticHandler::updatePreviousLineCount(const size_t count) {
   this->previousLineCount = count;
 }

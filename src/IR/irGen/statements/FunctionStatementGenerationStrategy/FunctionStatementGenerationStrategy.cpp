@@ -1,4 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "FunctionStatementGenerationStrategy.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "src/IR/irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
+#include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/utils/LogConfig.h"
 
 FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
     CodeGenerationContext *context)
@@ -24,7 +51,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   std::string FUNCTION_NAME = functionDeclaration->getFunctionNameRef();
 
-  CODEGEN_DEBUG_LOG("Defining Function : " + FUNCTION_NAME);
+  CODEGEN_DEBUG_LOG("Function Statement",
+                    "Defining Function : " + FUNCTION_NAME);
 
   llvm::Function *F = TheModule->getFunction(FUNCTION_NAME);
 
@@ -33,7 +61,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     if (type && value && llvm::isa<llvm::StructType>(type)) {
-      auto structType = llvm::cast<llvm::StructType>(type);
       functionDeclaration->setFunctionName(FUNCTION_NAME);
       F = TheModule->getFunction(FUNCTION_NAME);
     }
@@ -52,8 +79,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   Builder->SetInsertPoint(entryBlock);
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -91,8 +116,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     llvm::Value *classPtr =
         Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), argValue);
 
-    for (int j = 1; j < structT->getNumElements(); j++) {
-      llvm::Type *type = structT->getElementType(j);
+    for (size_t j = 1; j < structT->getNumElements(); j++) {
+      llvm::Type *type = structT->getElementType(static_cast<uint32_t>(j));
       if (!type) {
         _codeGenerationContext->getLogger()->setCurrentSourceLocation(
             functionDeclaration->getParametersRef()[j - 1]->getLocation());
@@ -100,7 +125,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             "Type not found for variable " + classVariables[j - 1]);
         return nullptr;
       }
-      llvm::Value *elementPtr = Builder->CreateStructGEP(structT, classPtr, j);
+      llvm::Value *elementPtr =
+          Builder->CreateStructGEP(structT, classPtr, static_cast<uint32_t>(j));
       _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});
     }
@@ -137,6 +163,21 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     }
 
     if (functionDeclaration->getParametersRef()[callIndex]
+            ->getHasInOutKeyword() &&
+        functionDeclaration->getParametersRef()[callIndex]->getHasAsKeyword()) {
+      _codeGenerationContext->getLogger()->logError(
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              PassingByReferenceWithAsKeywordIsNotAllowed,
+          {
+              parameterNames[i],
+              _codeGenerationContext->getMapper()->getLLVMTypeName(
+                  llvmArgsTypes[i]->getLLVMType()),
+              functionDeclaration->getFunctionNameRef(),
+          });
+      return nullptr;
+    }
+
+    if (functionDeclaration->getParametersRef()[callIndex]
             ->getHasInOutKeyword()) {
 
       if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
@@ -158,6 +199,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
       } else if (llvmArgsTypes[i]->isPointerToFunction()) {
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
+      } else if (llvmArgsTypes[i]->isPointerToDynamic()) {
 
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
@@ -238,8 +283,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
       } else if (i < llvmArgsTypes.size() &&
                  llvmArgsTypes[i]->isPointerToFunction()) {
-        LLVMFunctionType *llvmFunctionType =
-            static_cast<LLVMFunctionType *>(llvmArgsTypes[i].get());
 
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
@@ -259,10 +302,23 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             parameterNames[i],
             {variable, llvmPrimitiveType->getPrimitiveType()});
 
-        // _codeGenerationContext->getNamedValueChain()->setNamedValue(
-        //     parameterNames[i], loaded);
-      } else if (i < llvmArgsTypes.size()) {
+      } else if (i < llvmArgsTypes.size() &&
+                 llvmArgsTypes[i]->isPointerToDynamic()) {
 
+        LLVMDynamicType *llvmDynamicType =
+            static_cast<LLVMDynamicType *>(llvmArgsTypes[i].get());
+
+        llvm::Value *alloca = Builder->CreateAlloca(
+            llvmDynamicType->getDynamicType(), nullptr, parameterNames[i]);
+
+        llvm::Value *loaded =
+            Builder->CreateLoad(llvmDynamicType->getDynamicType(), argValue);
+
+        Builder->CreateStore(loaded, alloca);
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {alloca, llvmDynamicType->getDynamicType()});
+      } else if (i < llvmArgsTypes.size()) {
         llvm::Value *alloca = Builder->CreateAlloca(
             llvmArgsTypes[i]->getLLVMType(), nullptr, parameterNames[i]);
         Builder->CreateStore(argValue, alloca);
@@ -301,13 +357,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getMapper()->getDefaultValue(returnType));
   }
 
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
   _codeGenerationContext->getReturnAllocaStack().pop();
-
-  //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
-  //   F);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
@@ -322,7 +374,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   std::string FUNCTION_NAME = fd->getFunctionNameRef();
   std::vector<llvm::Type *> argTypes;
-  for (int i = 0; i < callArgs.size(); i++) {
+  for (size_t i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
 
@@ -338,19 +390,16 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   Builder->SetInsertPoint(entryBlock);
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
-
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
   std::vector<std::string> parameterNames;
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     parameterNames.push_back(fd->getParametersRef()[i]->getVariableName());
   }
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
@@ -369,7 +418,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
       ->generateStatement(fd->getBodyRef().get());
 
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,

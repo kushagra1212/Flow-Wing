@@ -1,7 +1,26 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BringStatementGenerationStrategy.h"
 
-#include "../../../IRGenerator.h"
-#include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
+#include "src/IR/IRGenerator.h"
+#include "src/IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 
 BringStatementGenerationStrategy::BringStatementGenerationStrategy(
     CodeGenerationContext *context)
@@ -46,8 +65,17 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       Utils::removeExtensionFromString(
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
+#if defined(__linux__) || defined(__APPLE__)
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), '/', '-');
+#elif defined(_WIN32)   
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+      absoluteFilePathWithoutExtension.end(), '/', '_');
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+	  absoluteFilePathWithoutExtension.end(), '\\', '_');   
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+	  absoluteFilePathWithoutExtension.end(), ':', '_');
+#endif
 
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
@@ -73,9 +101,8 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
                               llvm::ArrayRef<llvm::Type *>(), false);
 
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             absoluteFilePathWithoutExtension, *TheModule);
+  llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                         absoluteFilePathWithoutExtension, *TheModule);
 
   bringStatement->setRootCallerName(absoluteFilePathWithoutExtension);
 

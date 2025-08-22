@@ -1,6 +1,35 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "JITCompiler.h"
-#include "../../common/version.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/common/version.h"
+#include "src/compiler/CompilerUtils.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/external/include/argh.h"
+#include <signal.h>
 #include <string>
+
+#ifdef TESTS_ENABLED
+#include <gtest/gtest.h>
+#endif
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
 
@@ -11,8 +40,8 @@ void JITCompiler::execute() {
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
 
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(FlowWing::Compiler::getLinkedModule(
-          TheContext, _currentDiagnosticHandler.get()));
+      (FlowWing::Compiler::getLinkedModule(TheContext,
+                                           _currentDiagnosticHandler.get()));
 
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
@@ -50,16 +79,24 @@ void JITCompiler::execute() {
                               DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return;
   }
-  int hasError = 1;
-  llvm::Type *returnType = mainFunction->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
 
   try {
-    resultValue = executionEngine->runFunction(mainFunction, {});
 
-    if (returnType->isIntegerTy()) {
-      hasError = (resultValue.IntVal != 0) ? 1 : 0;
-    }
+    std::vector<llvm::GenericValue> args;
+
+    // 2. Add argc (argument count). We'll simulate 1 argument.
+    llvm::GenericValue argc_val;
+    argc_val.IntVal = llvm::APInt(32, 1); // 32-bit integer with value 1
+    args.push_back(argc_val);
+
+    // 3. Add argv (argument vector). We'll pass a null pointer for simplicity.
+    llvm::GenericValue argv_val;
+    argv_val.PointerVal = nullptr;
+    args.push_back(argv_val);
+
+    resultValue = executionEngine->runFunction(mainFunction, args);
+
   } catch (const std::exception &e) {
     std::cerr << e.what();
     _currentDiagnosticHandler->printDiagnostic(
@@ -75,12 +112,33 @@ void JITCompiler::execute() {
 #if defined(JIT_MODE) || defined(JIT_TEST_MODE)
 
 void signalHandler(int signal) {
-  // Output information about the signal:
+  std::cerr << RED_TEXT << "Signal " << signal << " (";
 
-  std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
-            << ") received." << RESET << std::endl;
+// Provide a platform-specific way to get the signal's name.
+#if defined(_WIN32)
+  // On Windows, there is no direct equivalent to strsignal.
+  // We can provide descriptions for the most common signals.
+  switch (signal) {
+  case SIGSEGV:
+    std::cerr << "Segmentation fault";
+    break;
+  case SIGILL:
+    std::cerr << "Illegal instruction";
+    break;
+  case SIGFPE:
+    std::cerr << "Floating-point exception";
+    break;
+  default:
+    std::cerr << "Unknown signal";
+    break;
+  }
+#else
+  // On POSIX systems, strsignal is available.
+  std::cerr << strsignal(signal);
+#endif
 
-  exit(1); // Exit with a non-zero status to indicate an error.
+  std::cerr << ") received." << RESET << std::endl;
+  exit(1);
 }
 
 #endif
@@ -90,14 +148,15 @@ void signalHandler(int signal) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   signal(SIGSEGV, signalHandler);
+  enableVirtualTerminalProcessing();
   return RUN_ALL_TESTS();
 }
 
 #elif JIT_MODE
 
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
-
+  enableVirtualTerminalProcessing();
   argh::parser _cmdl(argv);
 
   FlowWing::Cli::cmdl = &(_cmdl);

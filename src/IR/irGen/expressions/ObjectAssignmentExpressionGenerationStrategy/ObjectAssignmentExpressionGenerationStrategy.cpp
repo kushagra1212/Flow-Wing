@@ -1,13 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ObjectAssignmentExpressionGenerationStrategy.h"
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 
 ObjectAssignmentExpressionGenerationStrategy::
     ObjectAssignmentExpressionGenerationStrategy(CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
-    BoundExpression *expression) {
+    [[maybe_unused]] BoundExpression *expression) {
   return nullptr;
 }
 
@@ -23,11 +42,12 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
   auto processKeyTypePairs = [&](auto &keyTypePairs) {
     unsigned long i = 0;
     for (const auto &[bLE, bTE] : keyTypePairs) {
-      llvm::Value *LHSinnerElementPtr =
-          Builder->CreateStructGEP(parStructType, lshPtr, i);
-      llvm::Value *RHSinnerElementPtr =
-          Builder->CreateStructGEP(parStructType, rhsPtr, i);
-      llvm::Type *innerElementType = parStructType->getElementType(i);
+      llvm::Value *LHSinnerElementPtr = Builder->CreateStructGEP(
+          parStructType, lshPtr, static_cast<uint32_t>(i));
+      llvm::Value *RHSinnerElementPtr = Builder->CreateStructGEP(
+          parStructType, rhsPtr, static_cast<uint32_t>(i));
+      llvm::Type *innerElementType =
+          parStructType->getElementType(static_cast<uint32_t>(i));
       if (bTE->getSyntaxType() ==
           SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
         copyObject(llvm::cast<llvm::StructType>(innerElementType),
@@ -58,7 +78,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     BoundObjectExpression *parObjectExpression, llvm::Value *variable,
-    llvm::StructType *parStructType, std::string lhsVarName) {
+    llvm::StructType *parStructType, [[maybe_unused]] std::string lhsVarName) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       parObjectExpression->getLocation());
@@ -113,8 +133,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bExpr->getLocation());
 
-    llvm::Value *innerElementPtr =
-        Builder->CreateStructGEP(parStructType, variable, indexValue);
+    llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+        parStructType, variable, static_cast<uint32_t>(indexValue));
 
     _codeGenerationContext->getValueStackHandler()->popAll();
     if (propertiesMap[propertyName]->getSyntaxType() ==
@@ -124,7 +144,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
           static_cast<BoundObjectExpression *>(bExpr.get());
 
       llvm::StructType *innerElementType = llvm::cast<llvm::StructType>(
-          parStructType->getElementType(indexValue));
+          parStructType->getElementType(static_cast<uint32_t>(indexValue)));
 
       this->assignObject(innerObjectExpression, innerElementPtr,
                          innerElementType, propertyName);
@@ -142,11 +162,13 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
             static_cast<BoundCallExpression *>(bExpr.get());
 
         innerCallExpression->setArgumentAlloca(
-            0., {innerElementPtr, parStructType->getElementType(indexValue)});
+            0, {innerElementPtr, parStructType->getElementType(
+                                     static_cast<uint32_t>(indexValue))});
       }
 
       assignmentEGS->handleAssignExpression(
-          innerElementPtr, parStructType->getElementType(indexValue),
+          innerElementPtr,
+          parStructType->getElementType(static_cast<uint32_t>(indexValue)),
           propertyName, bExpr.get());
     }
     indexValue++;

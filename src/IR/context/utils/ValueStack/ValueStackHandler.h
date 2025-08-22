@@ -1,7 +1,28 @@
-#ifndef __FLOW_WING_VALUE_STACK_HANDLE
-#define __FLOW_WING_VALUE_STACK_HANDLE
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
+
+#pragma once
+
+#include "src/IR/constants/FlowWingIRConstants.h"
 #include "ValueStack.h"
+#include <stack>
 
 class ValueStackHandler {
   auto inline isType(const std::string type) -> bool {
@@ -71,6 +92,11 @@ public:
 
   auto inline isArrayType() -> bool { return isType("array"); }
 
+  auto inline isDynamicValueType() -> bool {
+    return isType(
+        FLOWWING::IR::CONSTANTS::DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+  }
+
   auto inline isDynamicType() -> bool { return isType("dynamic"); }
 
   auto inline isLLVMConstant() -> bool { return isType("constant"); }
@@ -86,5 +112,3 @@ public:
     return valueStack->getDynamicValue();
   }
 };
-
-#endif

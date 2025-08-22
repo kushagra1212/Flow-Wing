@@ -1,10 +1,40 @@
-#ifndef BRING_STATEMENT_SYNTAX_H
-#define BRING_STATEMENT_SYNTAX_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../SyntaxToken.h"
-#include "../../statements/StatementSyntax.h"
+#pragma once
 
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
+#include <memory>
+#include <vector>
+
+template <typename T> class SyntaxToken;
+template <typename T> class LiteralExpressionSyntax;
+class CompilationUnitSyntax;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
 class BringStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
   std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler;
@@ -33,7 +63,7 @@ public:
 
   const std::string &getAbsoluteFilePath() const;
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
@@ -45,7 +75,7 @@ public:
     _moduleName = moduleName;
   }
 
-  const bool getIsChoosyImportPtr();
+  bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
   std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
   const std::string &getRelativeFilePathPtr();
@@ -61,5 +91,3 @@ public:
 
   inline auto getModuleName() -> std::string { return _moduleName; }
 };
-
-#endif // BRING_STATEMENT_SYNTAX_H

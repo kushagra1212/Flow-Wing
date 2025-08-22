@@ -1,4 +1,34 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IndexExpressionBinder.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 #include <memory>
 
 std::unique_ptr<BoundExpression>
@@ -11,16 +41,17 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
       indexExpression->getIndexIdentifierExpressionRef()->getValue());
 
   if (!ctx->getRootRef()->tryLookupVariable(variableName)) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableName + " does not exist",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {variableName},
                    Utils::getSourceLocation(
                        indexExpression->getIndexIdentifierExpressionRef()
                            ->getTokenPtr()
-                           .get())));
+                           .get()),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableNotFound));
 
-    return std::move(
+    return (
         ExpressionBinderFactory::create(
             indexExpression->getIndexIdentifierExpressionRef()->getKind())
             ->bindExpression(
@@ -34,15 +65,23 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
       variable->getTypeExpression().get()->getSyntaxType() !=
           SyntaxKindUtils::SyntaxKind::StrKeyword) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableName + " is not a array",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       indexExpression->getIndexIdentifierExpressionRef()
-                           ->getTokenPtr()
-                           .get())));
+
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {variableName},
+        Utils::getSourceLocation(
+            indexExpression->getIndexIdentifierExpressionRef()
+                ->getTokenPtr()
+                .get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::IndexingNonArrayVariable));
+
+    return (
+        ExpressionBinderFactory::create(
+            indexExpression->getIndexIdentifierExpressionRef()->getKind())
+            ->bindExpression(
+                ctx, indexExpression->getIndexIdentifierExpressionRef().get()));
   }
+
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
       (BoundLiteralExpression<std::any> *)ExpressionBinderFactory::create(
           indexExpression->getIndexIdentifierExpressionRef()->getKind())
@@ -57,8 +96,8 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
     boundIndexExp->addBoundIndexExpression(
-        std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                      ->bindExpression(ctx, indexExp.get())));
+        (ExpressionBinderFactory::create(indexExp->getKind())
+             ->bindExpression(ctx, indexExp.get())));
   }
 
   if (indexExpression->isObject()) {
@@ -97,15 +136,15 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
         for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
           localBoundIndexExp->addBoundIndexExpression(
-              std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                            ->bindExpression(ctx, indexExp.get())));
+              ExpressionBinderFactory::create(indexExp->getKind())
+                  ->bindExpression(ctx, indexExp.get()));
         }
         boundVariableExpression->addDotExpression(
             std::move(localBoundIndexExp));
       } else {
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get())));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get())));
       }
     }
 

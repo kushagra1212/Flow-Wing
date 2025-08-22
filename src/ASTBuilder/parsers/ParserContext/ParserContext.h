@@ -1,12 +1,42 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #pragma once
 
-#include "../../../SourceTokenizer/SourceTokenizer.h"
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../../syntax/SyntaxToken.h"
-#include "../../CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/syntax/SyntaxToken.h"
+#include <any>
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
+
+class SourceTokenizer;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
+
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 class ParserContext {
 
@@ -38,11 +68,11 @@ public:
   //? Getters
   const std::string &getCurrentModuleName();
   FlowWing::DiagnosticHandler *getDiagnosticHandler();
-  const bool getIsInsideCallExpression() const;
-  const bool getIsInsideIndexExpression() const;
-  const bool getIsInsideContainerExpression() const;
-  const bool getIsInsideReturnStatement() const;
-  const int8_t getDependencyFileCount(const std::string &path);
+  bool getIsInsideCallExpression() const;
+  bool getIsInsideIndexExpression() const;
+  bool getIsInsideContainerExpression() const;
+  bool getIsInsideReturnStatement() const;
+  int8_t getDependencyFileCount(const std::string &path);
   const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getTokenListRef();
 
   //? Setters
@@ -53,6 +83,7 @@ public:
   void setIsInsideContainerExpression(const bool value);
   void setIsInsideReturnStatement(const bool value);
   void updateDependencyCount(const std::string &path, const int8_t count);
+  const std::unordered_map<std::string, int8_t> &getDependencyPathsMap();
 
 private:
   void handleDiagnosticsForBadToken(SyntaxToken<std::any> *token);

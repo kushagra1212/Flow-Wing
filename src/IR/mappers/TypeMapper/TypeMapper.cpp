@@ -1,12 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "TypeMapper.h"
-#include "../../context/CodeGenerationContext.h"
-#include <cstdint>
+#include "src/IR/context/CodeGenerationContext.h"
 #include <string>
+
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
                        llvm::Module *module,
                        CodeGenerationContext *codeGenerationContext)
-    : _context(context), _builder(builder), _module(module),
-      _codeGenerationContext(codeGenerationContext) {
+    : _context(context), _module(module),
+      _codeGenerationContext(codeGenerationContext), _builder(builder) {
   _typeMappings = {
       {(llvm::Type *)llvm::Type::getInt1Ty(*context),
        SyntaxKindUtils::SyntaxKind::BoolKeyword},
@@ -66,50 +85,50 @@ TypeMapper::mapLLVMTypeToCustomType(llvm::Type *type) const {
   }
 }
 
-const bool TypeMapper::isVoidType(llvm::Type *type) const {
+bool TypeMapper::isVoidType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::NthgKeyword;
 }
 
-const bool TypeMapper::isStringType(llvm::Type *type) const {
+bool TypeMapper::isStringType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::StrKeyword;
 }
 
-const bool TypeMapper::isNirastValue(llvm::Value *value) const {
-  return value ==
-         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
+bool TypeMapper::isNirastValue(llvm::Value *value) const {
+
+  return llvm::isa<llvm::ConstantPointerNull>(value);
 }
-const bool TypeMapper::isBoolType(llvm::Type *type) const {
+bool TypeMapper::isBoolType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::BoolKeyword;
 }
 
-const bool TypeMapper::isDoubleType(llvm::Type *type) const {
+bool TypeMapper::isDoubleType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::DeciKeyword;
 }
-const bool TypeMapper::isFloatType(llvm::Type *type) const {
+bool TypeMapper::isFloatType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::Deci32Keyword;
 }
 
-const bool TypeMapper::isInt32Type(llvm::Type *type) const {
+bool TypeMapper::isInt32Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::Int32Keyword;
 }
 
-const bool TypeMapper::isInt64Type(llvm::Type *type) const {
+bool TypeMapper::isInt64Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::Int64Keyword;
 }
 
-const bool TypeMapper::isInt8Type(llvm::Type *type) const {
+bool TypeMapper::isInt8Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::Int8Keyword;
 }
 
-const bool TypeMapper::isPtrType(llvm::Type *type) const {
+bool TypeMapper::isPtrType(llvm::Type *type) const {
   return type->isPointerTy();
 }
 
@@ -150,8 +169,9 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                                    ? structType->getName().str()
                                    : ".";
 
-      int64_t lastIndex = structName.find_last_of(".");
       //! This Might break
+
+      //  int64_t lastIndex = structName.find_last_of(".");
       // const std::string formatedStructName =
       //     "<" + structName.substr(0, structName.find_last_of(".")) + ">";
       // if (lastIndex > 0) {
@@ -174,7 +194,7 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       llvm::FunctionType *functionType = llvm::cast<llvm::FunctionType>(type);
 
       std::string text = "<Function (";
-      uint64_t parmsSize = functionType->getNumParams(), i = 0;
+      uint64_t parmsSize = functionType->getNumParams();
       text += " with " + std::to_string(parmsSize) + " parameters ";
 
       text += ")>";
@@ -247,7 +267,8 @@ llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
   case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
     break;
   case SyntaxKindUtils::SyntaxKind::NirastKeyword:
-    _retVal = llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
+    _retVal =
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
     break;
   default:
     break;
@@ -264,32 +285,29 @@ llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
   return getDefaultValue(kind);
 }
 
-const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
+bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
   return isBoolType(type) || isDoubleType(type) || isInt32Type(type) ||
          isStringType(type) || isFloatType(type) || isInt8Type(type) ||
          isInt64Type(type);
 }
 
-const bool TypeMapper::isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const {
+bool TypeMapper::isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const {
   return isPrimitiveType(mapCustomTypeToLLVMType(type));
 }
 
-const bool
-TypeMapper::isEquivalentType(llvm::Type *type,
-                             SyntaxKindUtils::SyntaxKind customType) const {
+bool TypeMapper::isEquivalentType(
+    llvm::Type *type, SyntaxKindUtils::SyntaxKind customType) const {
   return type == mapCustomTypeToLLVMType(customType);
 }
-const bool TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
-                                        llvm::Type *type) const {
+bool TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
+                                  llvm::Type *type) const {
   return isEquivalentType(type, customType);
 }
-const bool TypeMapper::isEquivalentType(llvm::Type *type1,
-                                        llvm::Type *type2) const {
+bool TypeMapper::isEquivalentType(llvm::Type *type1, llvm::Type *type2) const {
   return type1 == type2;
 }
-const bool
-TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
-                             SyntaxKindUtils::SyntaxKind type2) const {
+bool TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
+                                  SyntaxKindUtils::SyntaxKind type2) const {
   return type1 == type2;
 }
 // llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
@@ -320,36 +338,9 @@ uint64_t TypeMapper::getSizeOf(llvm::Type *type) {
   if (type == llvm::Type::getInt8PtrTy(*_context))
     return sizeof(int8_t);
 
-  if (llvm::isa<llvm::ArrayType>(type)) {
+  llvm::DataLayout *TD = new llvm::DataLayout(_module);
 
-    llvm::DataLayout *TD = new llvm::DataLayout(_module);
-
-    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-    return TD->getTypeAllocSize(arrayType);
-    llvm::Type *elementType = arrayType->getElementType();
-    llvm::Type *type = arrayType;
-    std::vector<uint64_t> sizes;
-    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
-      sizes.push_back(arrayType->getNumElements());
-      type = arrayType->getElementType();
-    }
-    uint64_t elementSize = getSizeOf(type);
-    uint64_t totalSize = elementSize;
-    for (const int &size : sizes) {
-      totalSize *= size;
-    }
-    return totalSize;
-  }
-
-  if (llvm::isa<llvm::StructType>(type)) {
-
-    llvm::DataLayout *TD = new llvm::DataLayout(_module);
-
-    llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
-    return TD->getTypeAllocSize(structType);
-  }
-
-  return 0;
+  return TD->getTypeAllocSize(type);
 }
 
 uint64_t TypeMapper::getSizeOf(SyntaxKindUtils::SyntaxKind type) {

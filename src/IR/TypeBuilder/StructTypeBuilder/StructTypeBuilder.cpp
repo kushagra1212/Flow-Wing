@@ -1,7 +1,26 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 // StructTypeBuilder.cpp
 #include "StructTypeBuilder.h"
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 StructTypeBuilder::StructTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)
@@ -26,9 +45,8 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
   return _memberTypesForDynamicTypes;
 }
 
-const uint64_t
-StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
-  int index = -1;
+uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
+  uint64_t index = std::numeric_limits<size_t>::max();
   for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
       index = i;
@@ -36,7 +54,7 @@ StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
     }
   }
 
-  if (index == -1) {
+  if (index == std::numeric_limits<size_t>::max()) {
     std::string typeUsedByUser =
         _codeGenerationContext->getMapper()->getLLVMTypeName(type);
 
@@ -49,14 +67,14 @@ StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
   return index;
 }
 
-const bool StructTypeBuilder::isDyn(llvm::Type *type) const {
+bool StructTypeBuilder::isDyn(llvm::Type *type) const {
   return type == this->_dynamicType;
 }
 
 llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
     llvm::Value *v, const std::string &variableName) const {
 
-  uint64_t index = -1;
+  uint64_t index;
 
   if (isGlobalVar(variableName)) {
     index = _codeGenerationContext->getAllocaChain()->getGlobalTypeIndex(
@@ -67,8 +85,8 @@ llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
   }
 
   llvm::Value *elementPtr =
-      _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
-                                                            v, index);
+      _codeGenerationContext->getBuilder()->CreateStructGEP(
+          this->_dynamicType, v, static_cast<uint32_t>(index));
 
   _codeGenerationContext->getValueStackHandler()->push(
       "", elementPtr, "dynamic", this->getMemberTypes()[index], v);
@@ -91,12 +109,12 @@ llvm::Value *StructTypeBuilder::setMemberValueOfDynVar(
   }
 
   llvm::Value *elementPtr =
-      _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
-                                                            v, index);
+      _codeGenerationContext->getBuilder()->CreateStructGEP(
+          this->_dynamicType, v, static_cast<uint32_t>(index));
 
   return _codeGenerationContext->getBuilder()->CreateStore(value, elementPtr);
 }
 
-const bool StructTypeBuilder::isGlobalVar(const std::string &varName) const {
+bool StructTypeBuilder::isGlobalVar(const std::string &varName) const {
   return varName.find(FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX) == 0;
 }

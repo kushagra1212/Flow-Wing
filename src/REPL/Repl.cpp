@@ -1,4 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "Repl.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/interpreter/Interpreter.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include <iostream>
+#include <mutex>
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   _diagnosticHandler = std::make_unique<FlowWing::DiagnosticHandler>();
@@ -84,7 +112,7 @@ void Repl::runWithStream(std::istream &inputStream,
         text = previousText;
         break;
       }
-      compilationUnit = std::move(parser->createCompilationUnit());
+      compilationUnit = (parser->createCompilationUnit());
 
       if (this->_diagnosticHandler->hasError(
               DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -134,9 +162,9 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          std::move(_previousGlobalScope), compilationUnit.get(),
-          this->_diagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(std::move(_previousGlobalScope),
+                                            compilationUnit.get(),
+                                            this->_diagnosticHandler.get()));
 
   const bool &hasSemanticError = this->_diagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
@@ -199,7 +227,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      (parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -213,9 +241,9 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          std::move(_previousGlobalScope), compilationUnit.get(),
-          currentDiagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(std::move(_previousGlobalScope),
+                                            compilationUnit.get(),
+                                            currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);

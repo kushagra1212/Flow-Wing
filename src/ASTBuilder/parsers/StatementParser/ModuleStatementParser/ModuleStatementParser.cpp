@@ -1,4 +1,33 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ModuleStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CallExpressionParser/CallExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/LiteralExpressionParserUtils/LiteralExpressionParserUtils.h"
+#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
+#include "src/ASTBuilder/parsers/StatementParser/ClassStatementParser/ClassStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/CustomTypeStatementParser/CustomTypeStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/FunctionDeclarationParser/FunctionDeclarationParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<StatementSyntax>
@@ -7,12 +36,12 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       std::make_unique<ModuleStatementSyntax>();
 
   moduleStatement->addModuleKeyword(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ModuleKeyword)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ModuleKeyword));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   moduleStatement->addOpenBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> modNameLitExp(
       static_cast<LiteralExpressionSyntax<std::any> *>(
@@ -23,7 +52,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
   moduleStatement->addModuleName(std::move(modNameLitExp));
 
   moduleStatement->addCloseBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
 
   ctx->getCodeFormatterRef()->appendNewLine();
 
@@ -41,7 +70,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
       moduleStatement->addStatement(
-          std::move(VariableParserUtils::parseSingleVariableDeclaration(ctx)));
+          VariableParserUtils::parseSingleVariableDeclaration(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -51,8 +80,8 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       ctx->setCurrentModuleName(
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
-      moduleStatement->addStatement(std::move(
-          std::make_unique<CustomTypeStatementParser>()->parseStatement(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<CustomTypeStatementParser>()->parseStatement(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -63,8 +92,8 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       ctx->setCurrentModuleName(
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
-      moduleStatement->addStatement(std::move(
-          std::make_unique<ClassStatementParser>()->parseStatement(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<ClassStatementParser>()->parseStatement(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -74,7 +103,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       std::unique_ptr<SyntaxToken<std::any>> functionKeyword = nullptr;
 
       functionKeyword =
-          (std::move(ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+          (ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
 
       std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration(
@@ -90,8 +119,14 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       break;
     }
     case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-      moduleStatement->addStatement(std::move(
-          std::make_unique<CallExpressionParser>()->parseExpression(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<CallExpressionParser>()->parseExpression(ctx));
+      break;
+    }
+
+    case SyntaxKindUtils::SyntaxKind::ModuleKeyword: {
+      moduleStatement->addStatement(
+          std::make_unique<ModuleStatementParser>()->parseStatement(ctx));
       break;
     }
     default: {
@@ -103,5 +138,5 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
     ctx->getCodeFormatterRef()->appendNewLine();
   }
 
-  return std::move(moduleStatement);
+  return moduleStatement;
 }

@@ -1,11 +1,28 @@
-#ifndef FOR_STATEMENT_SYNTAX_H
-#define FOR_STATEMENT_SYNTAX_H
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#pragma once
+
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <memory>
 
 class ForStatementSyntax : public StatementSyntax {
 private:
@@ -26,7 +43,7 @@ public:
   std::unique_ptr<ExpressionSyntax> getStepExpression();
 
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<BlockStatementSyntax> &getStatementRef();
@@ -34,5 +51,3 @@ public:
   std::unique_ptr<ExpressionSyntax> &getUpperBoundRef();
   std::unique_ptr<ExpressionSyntax> &getStepExpressionRef();
 };
-
-#endif // FOR_STATEMENT_SYNTAX_H

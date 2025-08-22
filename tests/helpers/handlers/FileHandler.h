@@ -1,6 +1,30 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #pragma once
 
-#include "../../Common.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/utils/FlowWingConfig.h"
+#include "src/utils/LogConfig.h"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 
 class FileHandler {
 
@@ -8,9 +32,7 @@ public:
   FileHandler() {
 
 #if defined(AOT_TEST_MODE)
-    buildFolder = "aot-compiler-build-for-test";
-#elif defined(JIT_TEST_MODE)
-    buildFolder = "jit-compiler-build-for-test";
+    compilerType = "aot";
 #endif
   }
 
@@ -35,62 +57,28 @@ public:
     }
   }
 
-  void initialize() {
-
-    std::string buildDir = "";
-#if defined(AOT_TEST_MODE)
-    buildDir = "../../aot-compiler/" + buildFolder;
-#elif defined(JIT_TEST_MODE)
-    buildDir = "../../jit-compiler/" + buildFolder;
-#endif
-
-    createDirectory(buildDir);
-
-    // Change to the build directory
-    std::filesystem::current_path(buildDir);
-
-    const std::string cmakeCommand = "cmake -G Ninja -DTESTS_ENABLED=OFF "
-                                     "-DCMAKE_BUILD_TYPE=Release .. > " +
-                                     FLOWWING::UTILS::CONSTANTS::NULL_DEVICE +
-                                     " 2>&1";
-
-    if (std::system(cmakeCommand.c_str()) != EXIT_SUCCESS) {
-      removeDirectory(buildDir);
-      createDirectory(buildDir);
-
-      // Change to the build directory
-      std::filesystem::current_path(buildDir);
-      if (std::system(cmakeCommand.c_str()) != EXIT_SUCCESS) {
-        std::cerr << "Failed to run cmake command" << std::endl;
-        return;
-      }
-    }
-
-    std::string ninjaCommand =
-        "ninja > " + FLOWWING::UTILS::CONSTANTS::NULL_DEVICE + " 2>&1";
-
-    if (std::system(ninjaCommand.c_str()) != EXIT_SUCCESS) {
-      std::cerr << "Failed to run ninja command" << std::endl;
-      return;
-    }
-    return;
+  std::string getCodeFilePath(const std::string &fileName) {
+    return (std::filesystem::path(TEST_SDK_PATH) / fileName).string();
   }
 
   void writeFile(const std::string &filename, const std::string &code) {
-    std::string moduleFilePath = currentPath.string() + "/" + filename;
-
-    std::ofstream exportFile(moduleFilePath);
+    std::ofstream exportFile(getCodeFilePath(filename));
     exportFile << code;
     exportFile.close();
   }
 
   std::string createBuildAndRunCmd(const std::string &fileName) {
-    return (currentPath.string() + "/../" + buildFolder +
-            "/FlowWing -O0 --F=" + currentPath.string() + "/" + fileName +
-            " && build/bin/" + fileName.substr(0, fileName.find_last_of('.')));
+
+    const std::string codeFilePath = getCodeFilePath(fileName);
+
+    std::string runCMD = "cd " + std::filesystem::path(PROJECT_DIR).string() +
+                         " && make run-" + compilerType +
+                         "-release SILENT=1 -s FILE=" + codeFilePath;
+
+    return runCMD;
   }
 
 private:
-  std::string buildFolder = "";
+  std::string compilerType = "jit";
   std::filesystem::path currentPath = std::filesystem::current_path();
 };

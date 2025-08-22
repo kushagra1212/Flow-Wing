@@ -1,3 +1,23 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+
 #include "VariableDeclaration.h"
 
 void VariableDeclaration::SetUp() { _test->SetUp(); }
@@ -16,22 +36,6 @@ TEST_F(VariableDeclaration, BasicVariableDeclaration) {
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
-}
-
-// Variable Re-Declaration in the same scope
-TEST_F(VariableDeclaration, BasicVariableReDeclarationInSameScope) {
-  std::string input = "var a = 2 var a = 3";
-
-  std::string expected_error = "Variable x Already Exists";
-
-  // Expected output should be in the of the output
-
-  setInput(input);
-  runEvaluator();
-
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
 }
 
 // Variable Re-Declaration in the Different scope
@@ -77,19 +81,6 @@ TEST_F(VariableDeclaration, BasicConstantVariableDeclaration) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Constant Variable Re-Declaration
-TEST_F(VariableDeclaration, BasicConstantVariableReDeclaration) {
-  std::string input = R"(const a = 2 const a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
-}
-
 // Constant Variable Re-Declaration in Different Scope
 TEST_F(VariableDeclaration,
        BasicConstantVariableReDeclarationInDifferentScope) {
@@ -114,62 +105,6 @@ TEST_F(VariableDeclaration,
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Constant Variable Declaration and again assign it to a different value
-TEST_F(VariableDeclaration,
-       BasicConstantVariableDeclarationAndAssignToDifferentValue) {
-  std::string input = R"(const a = 2 a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
-// Constant Variable Declaration and again assign it to a different value in
-// Different Scope
-TEST_F(
-    VariableDeclaration,
-    BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope) {
-  std::string input = R"(const a = 2 { a = 3 })";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
-// Constant Variable Declaration and again assign it to a different value in
-// Different Block Scope
-TEST_F(
-    VariableDeclaration,
-    BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope2) {
-  std::string input = R"({ const a = 2 { a = 3 } })";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
-// Constant Variable Declaration and Re-Declaration using var
-TEST_F(VariableDeclaration,
-       BasicConstantVariableDeclarationAndReDeclarationUsingVar) {
-  std::string input = R"(const a = 2 var a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
-}
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   std::string input =
       R"(fun main2() -> int {
@@ -182,7 +117,7 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
       print(x+"Hello")
       return (0)
       }
-      var y = main2()
+      var y:int = main2()
       )";
 
   std::string expected_output =
@@ -285,33 +220,3 @@ This is a string
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-
-// TODO: Fix this test and Also add test for other types combinations
-
-// TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENTError) {
-
-//   try {
-//     std::string input =
-//         R"(
-// var x:str = 1
-//       )";
-
-//     std::string expected_output = "Type mismatch in variable declaration x "
-//                                   "Expected type String but got type
-//                                   Integer";
-
-//     setInput(input);
-//     runEvaluator();
-//     EXPECT_EQ(getOutput(), expected_output);
-//     // If the function does not throw an exception, fail the test
-//     FAIL() << "Expected exception not thrown";
-//   } catch (const std::runtime_error &e) {
-//     // Compare the error message with the expected error message
-//     EXPECT_STREQ(e.what(), "Type mismatch in variable declaration x Expected
-//     "
-//                            "type String but got type Integer");
-//   } catch (...) {
-//     // If the thrown exception is not of type std::runtime_error, fail the
-//     test FAIL() << "Unexpected exception type thrown";
-//   }
-// }

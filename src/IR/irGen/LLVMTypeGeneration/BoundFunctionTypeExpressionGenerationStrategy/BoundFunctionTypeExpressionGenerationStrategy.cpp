@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BoundFunctionTypeExpressionGenerationStrategy.h"
 
 llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
@@ -8,7 +27,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
   BoundFunctionTypeExpression *bfT =
       static_cast<BoundFunctionTypeExpression *>(expression);
 
-  DEBUG_LOG("Function Type Expression: ");
+  DEBUG_LOG("Function Type Expression: %s", "");
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bfT->getLocation());
@@ -67,7 +86,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
     }
   }
 
-  for (int i = 0; i < bfT->getParameterTypes().size(); i++) {
+  for (size_t i = 0; i < bfT->getParameterTypes().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bfT->getParameterTypes()[i]->getLocation());
@@ -80,7 +99,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
 
     if (bfT->getParameterTypes()[i]->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      parmType = (_codeGenerationContext->getDynamicType()->get());
+      parmType = llvm::StructType::getTypeByName(
+          *_codeGenerationContext->getContext(),
+          DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
 
       _argType = llvm::PointerType::get(parmType, 0);
       argLLVMType = std::make_unique<LLVMType>(parmType);
@@ -110,7 +131,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
-      for (int64_t k = multiDimSize - 1; k >= 0; k--) {
+      for (size_t k = multiDimSize - 1; k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
                 arrayTypeExpression->getDimensions()[k].get());
@@ -121,7 +142,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
         }
 
         dimensions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
         parmType = llvm::ArrayType::get(parmType, dimensions[k]);
       }
@@ -222,7 +243,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
       llvm::Type *elementType =
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
-      returnType = llvm::PointerType::get(elementType, 0);
+      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+        returnType = llvm::PointerType::get(elementType, 0);
+      }
 
       FT = llvm::FunctionType::get(bfT->hasAsReturnType()
                                        ? elementType
@@ -261,9 +284,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
 
       llvm::Type *arrayType = elementType;
 
-      std::vector<uint64_t> returnDimentions(
+      std::vector<uint64_t> returnDimensions(
           boundArrayTypeExpression->getDimensions().size(), 0);
-      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+      for (size_t k = boundArrayTypeExpression->getDimensions().size() - 1;
            k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
@@ -274,10 +297,10 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
               "Array size must be a constant integer");
         }
 
-        returnDimentions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        returnDimensions[k] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
+        arrayType = llvm::ArrayType::get(arrayType, returnDimensions[k]);
       }
       llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
 
@@ -289,7 +312,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
                                    argTypes, false);
 
       _llvmReturnType = std::make_unique<LLVMArrayType>(
-          returnType, arrayType, elementType, returnDimentions,
+          returnType, arrayType, elementType, returnDimensions,
           boundArrayTypeExpression);
       _codeGenerationContext
           ->_functionLocalTypes[bfT->getVariableNameItBelongsTo()]

@@ -1,6 +1,25 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IfStatementGenerationStrategy.h"
 
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 IfStatementGenerationStrategy::IfStatementGenerationStrategy(
     CodeGenerationContext *context)
@@ -19,7 +38,16 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           ->createStrategy(ifStatement->getConditionPtr().get()->getKind())
           ->generateExpression(ifStatement->getConditionPtr().get());
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+
+    auto [valueStorage, typeTag] =
+        DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+            conditionValue, _codeGenerationContext, Builder);
+
+    conditionValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toBoolean(
+        valueStorage, _codeGenerationContext, Builder);
+
+  } else if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
             _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
       _codeGenerationContext->getLogger()->LogError(
@@ -29,13 +57,12 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
         llvm::Type::getInt8PtrTy(*TheContext), conditionValue));
-  }
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+  } else if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     conditionValue = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
   }
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       ifStatement->getLocation());
@@ -57,14 +84,14 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   std::vector<llvm::BasicBlock *> orIfBlock;
 
-  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+  for (size_t i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfBlock.push_back(llvm::BasicBlock::Create(
         *TheContext, "orIf" + std::to_string(i), function));
   }
 
   std::vector<llvm::BasicBlock *> orIfThenBlocks;
 
-  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+  for (size_t i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfThenBlocks.push_back(llvm::BasicBlock::Create(
         *TheContext, "orIfThen" + std::to_string(i), function));
   }
@@ -83,7 +110,7 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
                           thenBlock, elseBlock);
   }
 
-  for (int i = 0; i < orIfBlock.size(); i++) {
+  for (size_t i = 0; i < orIfBlock.size(); i++) {
     Builder->SetInsertPoint(orIfBlock[i]);
 
     BoundExpression *conditionExp =
@@ -97,8 +124,15 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     llvm::Value *orIfConditionValue =
         _expressionGenerationFactory->createStrategy(conditionExp->getKind())
             ->generateExpression(conditionExp);
+    if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
 
-    if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+      auto [valueStorage, typeTag] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              orIfConditionValue, _codeGenerationContext, Builder);
+
+      orIfConditionValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toBoolean(
+          valueStorage, _codeGenerationContext, Builder);
+    } else if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
       if (!_codeGenerationContext->isValidClassType(
               llvm::cast<llvm::StructType>(
                   _codeGenerationContext->getValueStackHandler()
@@ -107,10 +141,16 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
             "Using Objects in Or If Statement is not allowed");
         return nullptr;
       }
-      conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
+      orIfConditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
           llvm::Type::getInt8PtrTy(*TheContext), orIfConditionValue));
+    } else if (_codeGenerationContext->getValueStackHandler()
+                   ->isPrimaryType()) {
+      orIfConditionValue = Builder->CreateLoad(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+          _codeGenerationContext->getValueStackHandler()->getValue());
     }
 
+    _codeGenerationContext->getValueStackHandler()->popAll();
     if (orIfConditionValue == nullptr) {
 
       _codeGenerationContext->getLogger()->LogError(
@@ -135,29 +175,25 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   Builder->SetInsertPoint(thenBlock);
 
   BoundStatement *thenStat = ifStatement->getThenStatementPtr().get();
-  llvm::Value *thenValue =
-      _statementGenerationFactory->createStrategy(thenStat->getKind())
-          ->generateStatement(thenStat);
 
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    thenValue = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
-  }
+  _statementGenerationFactory->createStrategy(thenStat->getKind())
+      ->generateStatement(thenStat);
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   Builder->CreateBr(afterIfElse);
 
   // Or If Then Block
 
-  for (int i = 0; i < orIfThenBlocks.size(); i++) {
+  for (size_t i = 0; i < orIfThenBlocks.size(); i++) {
     Builder->SetInsertPoint(orIfThenBlocks[i]);
 
     BoundStatement *ofIfThenStat =
         ifStatement->getOrIfStatementsPtr()[i]->getThenStatementPtr().get();
-    llvm::Value *orIfThenValue =
-        _statementGenerationFactory->createStrategy(ofIfThenStat->getKind())
-            ->generateStatement(ofIfThenStat);
+
+    _statementGenerationFactory->createStrategy(ofIfThenStat->getKind())
+        ->generateStatement(ofIfThenStat);
+    _codeGenerationContext->getValueStackHandler()->popAll();
 
     Builder->CreateBr(afterIfElse);
   }
@@ -168,16 +204,10 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   BoundStatement *elseStat = ifStatement->getElseStatementPtr().get();
 
   if (elseStat) {
-    llvm::Value *elseValue =
-        _statementGenerationFactory->createStrategy(elseStat->getKind())
-            ->generateStatement(elseStat);
+    _statementGenerationFactory->createStrategy(elseStat->getKind())
+        ->generateStatement(elseStat);
 
-    if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-      elseValue = Builder->CreateLoad(
-          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-          _codeGenerationContext->getValueStackHandler()->getValue());
-      _codeGenerationContext->getValueStackHandler()->popAll();
-    }
+    _codeGenerationContext->getValueStackHandler()->popAll();
   }
 
   Builder->CreateBr(afterIfElse);

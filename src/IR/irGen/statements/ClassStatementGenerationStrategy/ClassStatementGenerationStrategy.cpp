@@ -1,13 +1,30 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "ClassStatementGenerationStrategy.h"
-
-#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 
 ClassStatementGenerationStrategy::ClassStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
-llvm::Value *
-ClassStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
+llvm::Value *ClassStatementGenerationStrategy::generateStatement(
+    [[maybe_unused]] BoundStatement *statement) {
 
   return nullptr;
 }
@@ -22,7 +39,8 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  DEBUG_LOG("Generating Class Type : " + boundClassStatement->getClassName());
+  DEBUG_LOG("Class Statement",
+            "Generating Class Type : " + boundClassStatement->getClassName());
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
@@ -47,8 +65,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
-       i++) {
+  for (size_t i = 0; i < boundClassStatement->getCustomTypesRef().size(); i++) {
     customTypeStatementGenerationStrategy->generateCustomType(
         boundClassStatement->getCustomTypesRef()[i].get());
 
@@ -70,7 +87,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
     classObject->addMemberVariableTypeName(typeName);
     {
-      size_t index = 0;
+      int64_t index = 0;
 
       for (auto &[boundLiteralExpression, bTE] :
            boundCustomTypeStatement->getKeyPairs()) {
@@ -78,8 +95,10 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
         const std::string key = typeName + "." + propertyName;
-        _codeGenerationContext->_typesMap[key] =
-            FlowWing::Type::TypeBuilder().setName(key).setIndex(index).build();
+        _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
+                                                     .setName(key)
+                                                     .setIndex((index))
+                                                     .build();
         classObject->addMemberVariableTypeName(key);
 
         index++;
@@ -100,8 +119,8 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   classObject->setElementIndex(
       boundClassStatement->getClassName() + "::vTableElement", 0);
 
-  for (int64_t i = 0;
-       i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
+  for (size_t i = 0; i < boundClassStatement->getAllMemberVariablesRef().size();
+       i++) {
     classElements.push_back(
         _typeGenerationFactory
             ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
@@ -128,7 +147,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
+  for (size_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());
@@ -178,7 +197,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  DEBUG_LOG("LLVM: Declaring Class: " + boundClassStatement->getClassName());
+  DEBUG_LOG("Class Statement",
+            "Declaring Class: " + boundClassStatement->getClassName());
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
@@ -202,8 +222,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
-       i++) {
+  for (size_t i = 0; i < boundClassStatement->getCustomTypesRef().size(); i++) {
     customTypeStatementGenerationStrategy->generateCustomType(
         boundClassStatement->getCustomTypesRef()[i].get());
 
@@ -225,7 +244,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
 
     classObject->addMemberVariableTypeName(typeName);
     {
-      size_t index = 0;
+      int64_t index = 0;
 
       for (auto &[boundLiteralExpression, bTE] :
            boundCustomTypeStatement->getKeyPairs()) {
@@ -233,8 +252,10 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
         const std::string key = typeName + "." + propertyName;
-        _codeGenerationContext->_typesMap[key] =
-            FlowWing::Type::TypeBuilder().setName(key).setIndex(index).build();
+        _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
+                                                     .setName(key)
+                                                     .setIndex((index))
+                                                     .build();
         classObject->addMemberVariableTypeName(key);
 
         index++;
@@ -255,8 +276,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
   classObject->setElementIndex(
       boundClassStatement->getClassName() + "::vTableElement", 0);
 
-  for (int64_t i = 0;
-       i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
+  for (size_t i = 0; i < boundClassStatement->getAllMemberVariablesRef().size();
+       i++) {
     classElements.push_back(
         _typeGenerationFactory
             ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
@@ -286,7 +307,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
+  for (size_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());

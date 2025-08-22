@@ -1,8 +1,34 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "AOTCompiler.h"
-#include "../../common/version.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/common/version.h"
+#include "src/external/include/argh.h"
+#include <signal.h>
+
+#ifdef TESTS_ENABLED
+#include <gtest/gtest.h>
+#endif
 
 AOTCompiler::AOTCompiler(std::string filePath,
-                         const bool &isFormattedCodeRequired)
+                         [[maybe_unused]] const bool &isFormattedCodeRequired)
     : Compiler(filePath) {}
 
 void AOTCompiler::link() {
@@ -23,7 +49,7 @@ void AOTCompiler::link() {
 
     std::string cmd = _commandManager->create();
 
-    LINKING_DEBUG_LOG(cmd);
+    LINKING_DEBUG_LOG("", cmd);
 
     int status = std::system(cmd.c_str());
 
@@ -49,12 +75,33 @@ void AOTCompiler::execute() { link(); }
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)
 
 void signalHandler(int signal) {
-  // Output information about the signal:
+  std::cerr << RED_TEXT << "Signal " << signal << " (";
 
-  std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
-            << ") received." << RESET << std::endl;
+// Provide a platform-specific way to get the signal's name.
+#if defined(_WIN32)
+  // On Windows, there is no direct equivalent to strsignal.
+  // We can provide descriptions for the most common signals.
+  switch (signal) {
+  case SIGSEGV:
+    std::cerr << "Segmentation fault";
+    break;
+  case SIGILL:
+    std::cerr << "Illegal instruction";
+    break;
+  case SIGFPE:
+    std::cerr << "Floating-point exception";
+    break;
+  default:
+    std::cerr << "Unknown signal";
+    break;
+  }
+#else
+  // On POSIX systems, strsignal is available.
+  std::cerr << strsignal(signal);
+#endif
 
-  exit(1); // Exit with a non-zero status to indicate an error.
+  std::cerr << ") received." << RESET << std::endl;
+  exit(1);
 }
 
 #endif
@@ -68,7 +115,7 @@ int main(int argc, char **argv) {
 }
 
 #elif AOT_MODE
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser _cmdl(argv);
 

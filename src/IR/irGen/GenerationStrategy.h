@@ -1,26 +1,53 @@
-#ifndef __FLOWWING_GENERATION_STRATEGY_H__
-#define __FLOWWING_GENERATION_STRATEGY_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../SemanticAnalyzer/BinderKindUtils.h"
-#include "../../SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../syntax/SyntaxKindUtils.h"
-#include "../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
-#include "../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
-#include "../LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
-#include "../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
-#include "../LLVMTypeConversion/LLVMValueConverter/LLVMValueConverter.h"
-#include "../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
-#include "../LLVMTypeConversion/TypeSpecificValueVisitor.h"
-#include "../context/CodeGenerationContext.h"
-#include "../strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
-#include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
-#include "../strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
-#include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
-#include "../strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
-#include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
-#include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
+#pragma once
+
 #include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
 #include "expressions/ExpressionGenerationFactory.h"
+#include "src/IR/LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
+#include "src/IR/LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
+#include "src/IR/LLVMTypeConversion/LLVMValueConverter/LLVMValueConverter.h"
+#include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/TypeSpecificValueVisitor.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/context/utils/TypeVerifier/TypeVerifier.h"
+#include "src/IR/strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/ClassBinaryOperationStrategy/ClassBinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/BoolUnaryOperationStrategy/BoolUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/ClassUnaryOperationStrategy/ClassUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/DoubleUnaryOperationStrategy/DoubleUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/FloatUnaryOperationStrategy/FloatUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/Int32UnaryOperationStrategy/Int32UnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/NirastUnaryOperationStrategy/NirastUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/StringUnaryOperationStrategy/StringUnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/syntax/SyntaxKindUtils.h"
 #include "statements/StatementGenerationFactory.h"
 
 class GenerationStrategy {
@@ -34,40 +61,54 @@ public:
         // Initialize the expression generation factory
 
         // Initialize the unary operation strategies
-        _unaryOperationStrategy(
-            std::make_unique<UnaryOperationStrategy>(context)),
-
-        // Initialize the binary operation strategies
+        _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
         _int32BinaryOperationStrategy(
             std::make_unique<Int32BinaryOperationStrategy>(context)),
         _boolBinaryOperationStrategy(
             std::make_unique<BoolBinaryOperationStrategy>(context)),
         _doubleBinaryOperationStrategy(
             std::make_unique<DoubleBinaryOperationStrategy>(context)),
-        _stringBinaryOperationStrategy(
-            std::make_unique<StringBinaryOperationStrategy>(context)),
         _floatBinaryOperationStrategy(
             std::make_unique<FloatBinaryOperationStrategy>(context)),
+        _stringBinaryOperationStrategy(
+            std::make_unique<StringBinaryOperationStrategy>(context)),
         _nirastBinaryOperationStrategy(
             std::make_unique<NirastBinaryOperationStrategy>(context)),
 
+        // Initialize the binary operation strategies
+        _classBinaryOperationStrategy(
+            std::make_unique<ClassBinaryOperationStrategy>(context)),
+        _int32UnaryOperationStrategy(
+            std::make_unique<Int32UnaryOperationStrategy>(context)),
+        _boolUnaryOperationStrategy(
+            std::make_unique<BoolUnaryOperationStrategy>(context)),
+        _doubleUnaryOperationStrategy(
+            std::make_unique<DoubleUnaryOperationStrategy>(context)),
+        _floatUnaryOperationStrategy(
+            std::make_unique<FloatUnaryOperationStrategy>(context)),
+        _stringUnaryOperationStrategy(
+            std::make_unique<StringUnaryOperationStrategy>(context)),
+
         // Initialize the type converters
+        _nirastUnaryOperationStrategy(
+            std::make_unique<NirastUnaryOperationStrategy>(context)),
+        _classUnaryOperationStrategy(
+            std::make_unique<ClassUnaryOperationStrategy>(context)),
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
-        _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
-        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
-        _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
+        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
+        _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
 
         // Initialize the value visitor
-        _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
+        _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
 
         _expressionGenerationFactory(
             std::make_unique<ExpressionGenerationFactory>(context)),
         _statementGenerationFactory(
             std::make_unique<StatementGenerationFactory>(context)),
         _typeGenerationFactory(
-            std::make_unique<LLVMTypeGenerationFactory>(context)){};
+            std::make_unique<LLVMTypeGenerationFactory>(context)) {};
   CodeGenerationContext *_codeGenerationContext;
 
   llvm::Module *TheModule = nullptr;
@@ -85,9 +126,16 @@ public:
   std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
   std::unique_ptr<NirastBinaryOperationStrategy> _nirastBinaryOperationStrategy;
+  std::unique_ptr<ClassBinaryOperationStrategy> _classBinaryOperationStrategy;
 
   // Unary Operation Strategy
-  std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;
+  std::unique_ptr<Int32UnaryOperationStrategy> _int32UnaryOperationStrategy;
+  std::unique_ptr<BoolUnaryOperationStrategy> _boolUnaryOperationStrategy;
+  std::unique_ptr<DoubleUnaryOperationStrategy> _doubleUnaryOperationStrategy;
+  std::unique_ptr<FloatUnaryOperationStrategy> _floatUnaryOperationStrategy;
+  std::unique_ptr<StringUnaryOperationStrategy> _stringUnaryOperationStrategy;
+  std::unique_ptr<NirastUnaryOperationStrategy> _nirastUnaryOperationStrategy;
+  std::unique_ptr<ClassUnaryOperationStrategy> _classUnaryOperationStrategy;
 
   // Convertors
 
@@ -104,5 +152,3 @@ public:
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
   std::unique_ptr<LLVMTypeGenerationFactory> _typeGenerationFactory;
 };
-
-#endif // __FLOWWING_GENERATION_STRATEGY_H__

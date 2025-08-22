@@ -1,0 +1,132 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 29,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "build-base",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": {
+        "TESTS_ENABLED": "OFF"
+      }
+    },
+    {
+      "name": "aot-debug",
+      "displayName": "AOT Debug",
+      "inherits": "build-base",
+      "binaryDir": "${sourceDir}/build/aot-debug",
+      "cacheVariables": {
+        "BUILD_AOT": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "aot-release",
+      "displayName": "AOT Release",
+      "inherits": "build-base",
+      "binaryDir": "${sourceDir}/build/aot-release",
+      "cacheVariables": {
+        "BUILD_AOT": "ON",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "test-aot",
+      "displayName": "Tests (AOT Mode)",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/test-aot",
+      "cacheVariables": {
+        "BUILD_AOT": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "TESTS_ENABLED": "ON"
+      }
+    },
+
+    {
+      "name": "jit-debug",
+      "displayName": "JIT Debug",
+      "inherits": "build-base",
+      "binaryDir": "${sourceDir}/build/jit-debug",
+      "cacheVariables": {
+        "BUILD_AOT": "OFF",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "jit-release",
+      "displayName": "JIT Release",
+      "inherits": "build-base",
+      "binaryDir": "${sourceDir}/build/jit-release",
+      "cacheVariables": {
+        "BUILD_AOT": "OFF",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "test-jit",
+      "displayName": "Tests (JIT Mode)",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/test-jit",
+      "cacheVariables": {
+        "BUILD_AOT": "OFF",
+        "CMAKE_BUILD_TYPE": "Release",
+        "TESTS_ENABLED": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "aot-release",
+      "configurePreset": "aot-release"
+    },
+    {
+      "name": "aot-debug",
+      "configurePreset": "aot-debug"
+    },
+    {
+      "name": "test-aot",
+      "configurePreset": "test-aot"
+    },
+    {
+      "name": "jit-release",
+      "configurePreset": "jit-release"
+    },
+    {
+      "name": "jit-debug",
+      "configurePreset": "jit-debug"
+    },
+    {
+      "name": "test-jit",
+      "configurePreset": "test-jit"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-jit",
+      "displayName": "Run JIT Tests (Dev Mode)",
+      "configurePreset": "test-jit",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      }
+    },
+    {
+      "name": "test-aot",
+      "displayName": "Run AOT Tests",
+      "configurePreset": "test-aot",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      }
+    }
+  ]
+}

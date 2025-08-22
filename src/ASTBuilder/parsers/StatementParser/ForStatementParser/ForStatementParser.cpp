@@ -1,10 +1,36 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ForStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ExpressionStatementParser/ExpressionStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/VariableDeclarationParser/VariableDeclarationParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<StatementSyntax>
 ForStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> keyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ForKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ForKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
   bool hadOpenParenthesis = false;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
@@ -15,26 +41,28 @@ ForStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<StatementSyntax> statementSyntax = nullptr;
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::VarKeyword) {
-    statementSyntax = std::move(
-        std::make_unique<VariableDeclarationParser>()->parseStatement(ctx));
+    std::unique_ptr<VariableDeclarationParser> varDecParser =
+        std::make_unique<VariableDeclarationParser>();
+    // varDecParser->setIsForStatement(true);
+    statementSyntax = varDecParser->parseStatement(ctx);
   } else {
-    statementSyntax = std::move(
-        std::make_unique<ExpressionStatementParser>()->parseStatement(ctx));
+    statementSyntax =
+        std::make_unique<ExpressionStatementParser>()->parseStatement(ctx);
   }
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<SyntaxToken<std::any>> toKeyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ToKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<ExpressionSyntax> upperBound =
-      std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      PrecedenceAwareExpressionParser::parse(ctx);
   std::unique_ptr<ExpressionSyntax> step = nullptr;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
-    step = std::move(PrecedenceAwareExpressionParser::parse(ctx));
+    step = PrecedenceAwareExpressionParser::parse(ctx);
   }
 
   if (hadOpenParenthesis) {

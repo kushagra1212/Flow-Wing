@@ -1,9 +1,27 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "DoubleBinaryOperationStrategy.h"
 
 DoubleBinaryOperationStrategy::DoubleBinaryOperationStrategy(
     CodeGenerationContext *context)
-    : BinaryOperationStrategy(context){};
+    : BinaryOperationStrategy(context) {};
 
 llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
@@ -15,7 +33,15 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
 llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
-  std::string errorMessage = "";
+
+  if (!OperationSupport::isSupported(OperationSupport::DoubleStrategyTag{},
+                                     binaryOperator)) {
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for decimal type ");
+    return nullptr;
+  }
+
   switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
@@ -31,8 +57,8 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     return Builder->CreateFMul(lhsValue, rhsValue);
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    llvm::Value *isZero = Builder->CreateFCmpOEQ(
-        rhsValue, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)));
+    // llvm::Value *isZero = Builder->CreateFCmpOEQ(
+    //     rhsValue, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)));
 
     // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
     // llvm::BasicBlock *ifBlock =
@@ -58,40 +84,6 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     // Builder->SetInsertPoint(elseBlock);
 
     return Builder->CreateFDiv(lhsValue, rhsValue);
-  }
-  case BinderKindUtils::BoundBinaryOperatorKind::Modulus: {
-
-    errorMessage = "Modulus is not supported for double type ";
-    break;
-  }
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd: {
-
-    errorMessage = "Bitwise And is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr: {
-
-    errorMessage = "Bitwise Or is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor: {
-
-    errorMessage = "Bitwise Xor is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd: {
-
-    errorMessage = "Logical And is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr: {
-
-    errorMessage = "Logical Or is not supported for double type ";
-    break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
@@ -125,11 +117,12 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
   }
 
   default: {
-    errorMessage = "Unsupported binary operator for double type";
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for decimal type ");
     break;
   }
   }
 
-  this->_codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

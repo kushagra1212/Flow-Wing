@@ -1,14 +1,33 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "CustomTypeStatementGenerationStrategy.h"
 
-#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 CustomTypeStatementGenerationStrategy::CustomTypeStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
 
 llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
-    BoundStatement *expression) {
+    [[maybe_unused]] BoundStatement *expression) {
   return nullptr;
 }
 
@@ -26,7 +45,7 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
       boundCustomTypeStatement->getLocation());
 
   std::vector<llvm::Type *> structElements = {};
-  size_t index = 0;
+  int64_t index = 0;
 
   const std::string KEY_PRIFIX =
       boundCustomTypeStatement->getTypeNameAsString();
@@ -45,18 +64,20 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
     _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
                                                  .setName(key)
                                                  .setType(type)
-                                                 .setIndex(index)
+                                                 .setIndex((index))
                                                  .build();
 
     index++;
   }
-  DEBUG_LOG("Declaring CustomType: " +
-            boundCustomTypeStatement->getTypeNameAsString());
+  DEBUG_LOG("CustomType Statement",
+            "Declaring CustomType: " +
+                boundCustomTypeStatement->getTypeNameAsString());
   llvm::StructType *structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
 
-  DEBUG_LOG("Declaring CustomType: " + structType->getStructName().str());
+  DEBUG_LOG("CustomType Statement",
+            "Declaring CustomType: " + structType->getStructName().str());
   _codeGenerationContext
       ->_typesMap[boundCustomTypeStatement->getTypeNameAsString()] =
       FlowWing::Type::TypeBuilder()

@@ -1,5 +1,24 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "VariableDeclarationStatementGenerationStrategy.h"
-#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 VariableDeclarationStatementGenerationStrategy::
     VariableDeclarationStatementGenerationStrategy(
@@ -7,12 +26,12 @@ VariableDeclarationStatementGenerationStrategy::
     : StatementGenerationStrategy(context) {}
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handleTypedPrimitiveLocalVariableDeclr(
+    handleTypedPrimitiveLocalVariableDeclaration(
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
 
-  CODEGEN_DEBUG_LOG("Var Type" + Utils::typeToString(variableType));
+  CODEGEN_DEBUG_LOG("Var Type ", Utils::typeToString(variableType));
 
   llvm::Type *llvmType =
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
@@ -29,42 +48,54 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 }
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                             llvm::Value *rhsValue) {
-  llvm::AllocaInst *variable =
-      Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                            nullptr, variableName.c_str());
+    handleDynamicValuePrimitiveLocalVariableDeclare(
+        const std::string &variableName, llvm::Value *rhsValue) {
+
+  llvm::StructType *dynamicValueStructType =
+      llvm::StructType::getTypeByName(*_codeGenerationContext->getContext(),
+                                      DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+
+  llvm::AllocaInst *dynamicValueVariableAddress = Builder->CreateAlloca(
+      dynamicValueStructType, nullptr, variableName.c_str());
+
+  dynamicValueVariableAddress->setAlignment(llvm::Align(8));
 
   _codeGenerationContext->getAllocaChain()->setPtr(
-      variableName,
-      {variable, _codeGenerationContext->getDynamicType()->get()});
+      variableName, {dynamicValueVariableAddress, dynamicValueStructType});
 
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      variable, rhsValue, rhsValue->getType(), variableName);
+  if (m_isLHSDynamicValue) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSDynamicValue(
+        dynamicValueVariableAddress, rhsValue, _codeGenerationContext, Builder);
 
+  } else {
+    DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+        dynamicValueVariableAddress, variableName, rhsValue,
+        _codeGenerationContext, Builder);
+  }
   return rhsValue;
 }
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handlePrimitiveLocalVariableDeclr(
+    handlePrimitiveLocalVariableDeclaration(
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
 
   // Handle Local Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
-    return handleTypedPrimitiveLocalVariableDeclr(variableName, variableType,
-                                                  rhsValue);
+    return handleTypedPrimitiveLocalVariableDeclaration(variableName,
+                                                        variableType, rhsValue);
   }
 
   // Handle Local Dynamic Typed Variable
-  return handleUnTypedPrimitiveLocalVariableDeclr(variableName, rhsValue);
+  return handleDynamicValuePrimitiveLocalVariableDeclare(variableName,
+                                                         rhsValue);
 }
 
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundVariableDeclaration *variableDeclaration) {
-
+  DEBUG_LOG("Generating Common Statement for Variable: ", _variableName);
   if (!canGenerateStatement(variableDeclaration)) {
     return nullptr;
   }
@@ -121,16 +152,21 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     return nullptr;
   }
 
+  assert(type == llvm::StructType::getTypeByName(
+                     *_codeGenerationContext->getContext(),
+                     DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE) &&
+         "Type is not a dynamic value type");
+
   _codeGenerationContext->getAllocaChain()->setPtr(_variableName, {ptr, type});
 
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      ptr, _rhsValue, _rhsValue->getType(), _variableName);
-
+  // _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+  //     ptr, _rhsValue, _rhsValue->getType(), _variableName);
+  handleDynamicValuePrimitiveLocalVariableDeclare(_variableName, _rhsValue);
   return _rhsValue;
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
-  CODEGEN_DEBUG_LOG("Declaring Variable: " + _variableName);
+  CODEGEN_DEBUG_LOG("Declaring Variable: ", _variableName);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =
@@ -150,6 +186,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
     return _isGlobal ? objDecGenStrat->declareGlobal(_variableDeclaration)
                      : objDecGenStrat->declareLocal(_variableDeclaration);
   }
+
   std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
@@ -177,7 +214,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
         _codeGenerationContext->getDynamicType()->get(), _variableName,
         _variableDeclaration->getMemoryKind());
 
-    ptrType = _codeGenerationContext->getDynamicType()->get();
+    ptrType = llvm::StructType::getTypeByName(
+        *_codeGenerationContext->getContext(),
+        DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
   }
 
   if (_variableDeclaration->getInitializerPtr().get() &&
@@ -190,19 +229,20 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
   }
 
   _variableDeclaration->setLLVMVariable({ptr, ptrType});
+
   return ptr;
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declareLocal(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement, BinderKindUtils::MemoryKind::Stack);
+  populateVariables(statement, BinderKindUtils::MemoryKind::Stack);
   _isGlobal = false;
   return this->declare();
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declareGlobal(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement, BinderKindUtils::MemoryKind::Global);
+  populateVariables(statement, BinderKindUtils::MemoryKind::Global);
   _isGlobal = true;
   return this->declare();
 }
@@ -231,7 +271,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement);
+  populateVariables(statement);
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
       _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
@@ -256,12 +296,31 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
 
     _rhsValue = literalExpressionGenerationStrategy->generateTypedExpression(
         initializerExp, _variableType);
+  } else if (initializerExp->getKind() ==
+                 BinderKindUtils::BoundNodeKind::BoundBracketedExpression &&
+             _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            ArrayInitializerNotAllowedForDynamicType,
+        {_variableName});
+    return false;
+  } else if (initializerExp->getKind() ==
+                 BinderKindUtils::BoundNodeKind::BoundObjectExpression &&
+             _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            ObjectInitializerNotAllowedForDynamicType,
+        {_variableName});
+    return false;
   } else {
 
     _rhsValue =
         _expressionGenerationFactory->createStrategy(initializerExp->getKind())
             ->generateExpression(initializerExp);
   }
+
+  m_isLHSDynamicValue =
+      _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
 
   if (!_rhsValue) {
     _codeGenerationContext->getLogger()->LogError(
@@ -285,9 +344,10 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   return true;
 }
 
-void VariableDeclarationStatementGenerationStrategy::populateLocalVariables(
+void VariableDeclarationStatementGenerationStrategy::populateVariables(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
 
+  DEBUG_LOG("Populating Variable: ", _variableName);
   _variableDeclaration = static_cast<BoundVariableDeclaration *>(statement);
 
   if (_variableDeclaration->getMemoryKind() ==
@@ -302,4 +362,5 @@ void VariableDeclarationStatementGenerationStrategy::populateLocalVariables(
 
   _variableType =
       _variableDeclaration->getTypeExpression().get()->getSyntaxType();
+  DEBUG_LOG("Populated Variable: ", _variableName);
 }

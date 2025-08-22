@@ -1,5 +1,30 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "SyntaxKindUtils.h"
+#include "src/syntax/SyntaxKindUtils.h"
+
+#include <algorithm>
+#include <climits>
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
+#include <string>
 
 bool SyntaxKindUtils::isInt32(const std::string &str) {
   try {
@@ -32,6 +57,70 @@ bool SyntaxKindUtils::isDouble(const std::string &str) {
   } catch (const std::exception &) {
     return false;
   }
+}
+
+bool SyntaxKindUtils::isValidInteger(const std::string &str) {
+  // An empty string is not a valid integer.
+  if (str.empty()) {
+    return false;
+  }
+
+  try {
+    size_t pos;
+    (void)std::stoll(str, &pos);
+
+    // To be a valid integer, the stoll function must consume the entire string.
+    // If pos is not equal to str.size(), it means there were trailing
+    // characters that are not part of the number (e.g., "123a" or "123.45").
+    return pos == str.size();
+  } catch (const std::exception &) {
+    // This will catch two main cases:
+    // 1. std::invalid_argument: The string is not a number (e.g., "abc").
+    // 2. std::out_of_range: The number is outside the range of long long.
+    return false;
+  }
+}
+
+bool SyntaxKindUtils::isNumberTooLarge(const std::string &str) {
+  if (str.empty()) {
+    return false;
+  }
+
+  // Step 1: Manually check if the string has a valid integer format.
+  // This prevents misinterpreting floats ("1.23") or other text ("--123") as
+  // "too large".
+  size_t start = 0;
+  if (str[0] == '+' || str[0] == '-') {
+    // If the string is just a sign, it's not a valid number.
+    if (str.length() == 1) {
+      return false;
+    }
+    start = 1;
+  }
+
+  for (size_t i = start; i < str.length(); ++i) {
+    if (!isdigit(str[i])) {
+      // The string contains non-digit characters, so it's not a pure integer.
+      return false;
+    }
+  }
+
+  // Step 2: Now that we know it's a well-formatted integer string,
+  // try to parse it and see if it's out of range.
+  try {
+    (void)std::stoll(str);
+  } catch (const std::out_of_range &) {
+    // The string represents a number, but it's too big or too small
+    // to fit in a long long. This is the exact case we want to catch.
+    return true;
+  } catch (...) {
+    // Catch any other unexpected exception (like std::invalid_argument, though
+    // our manual check should prevent this).
+    return false;
+  }
+
+  // If stoll succeeded without throwing an exception, the number fits.
+  return false;
 }
 
 const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {

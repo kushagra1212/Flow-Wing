@@ -1,4 +1,28 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "TernaryExpressionParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 
 std::unique_ptr<ExpressionSyntax>
 TernaryExpressionParser::parseExpression(ParserContext *ctx) {
@@ -8,22 +32,22 @@ TernaryExpressionParser::parseExpression(ParserContext *ctx) {
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addQuestionToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::QuestionToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::QuestionToken));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addTrueExpression(
-      std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+      PrecedenceAwareExpressionParser::parse(ctx));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addColonToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addFalseExpression(
-      std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+      PrecedenceAwareExpressionParser::parse(ctx));
 
-  return std::move(ternaryExpression);
+  return ternaryExpression;
 }

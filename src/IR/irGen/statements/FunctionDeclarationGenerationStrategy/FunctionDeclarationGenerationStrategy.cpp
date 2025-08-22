@@ -1,7 +1,34 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "FunctionDeclarationGenerationStrategy.h"
 
-#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
-#include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/utils/LogConfig.h"
+#include "llvm/Support/Debug.h"
 
 FunctionDeclarationGenerationStrategy::FunctionDeclarationGenerationStrategy(
     CodeGenerationContext *context)
@@ -29,7 +56,7 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
 llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     BoundStatement *statement, std::vector<llvm::Type *> classArgs,
-    std::string className) {
+    [[maybe_unused]] std::string className) {
   BoundFunctionDeclaration *fd =
       static_cast<BoundFunctionDeclaration *>(statement);
   const std::string FUNCTION_NAME = fd->getFunctionNameRef();
@@ -37,7 +64,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
 
-  DEBUG_LOG("Declaring Function: " + FUNCTION_NAME);
+  DEBUG_LOG("Function Declaration Statement",
+            "Declaring Function: ", FUNCTION_NAME);
 
   auto isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
 
@@ -101,7 +129,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   _codeGenerationContext->_functionTypes[FUNCTION_NAME]
       ->setOptionalParameterStartIndex(fd->getOptionalParameterStartIndex());
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         fd->getParametersRef()[i]->getLocation());
@@ -117,10 +145,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
     if (fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      parmType = (_codeGenerationContext->getDynamicType()->get());
+      parmType = llvm::StructType::getTypeByName(
+          *_codeGenerationContext->getContext(),
+          DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
 
       _argType = llvm::PointerType::get(parmType, 0);
-      argLLVMType = std::make_unique<LLVMType>(parmType);
+      argLLVMType = std::make_unique<LLVMDynamicType>(_argType, parmType);
       attributeTypes.push_back({argTypes.size(), parmType});
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -157,20 +187,22 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
-      for (int64_t k = multiDimSize - 1; k >= 0; k--) {
+      for (int64_t k = static_cast<int64_t>(multiDimSize) - 1; k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
-                arrayTypeExpression->getDimensions()[k].get());
+                arrayTypeExpression->getDimensions()[static_cast<size_t>(k)]
+                    .get());
 
         if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
           _codeGenerationContext->getLogger()->LogError(
               "Array size must be a constant integer");
         }
 
-        dimensions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        dimensions[static_cast<size_t>(k)] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        parmType = llvm::ArrayType::get(parmType, dimensions[k]);
+        parmType =
+            llvm::ArrayType::get(parmType, dimensions[static_cast<size_t>(k)]);
       }
 
       if (fd->getParametersRef()[i]->getHasAsKeyword()) {
@@ -288,7 +320,14 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       llvm::Type *elementType =
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
-      returnType = llvm::PointerType::get(elementType, 0);
+
+      CODEGEN_DEBUG_LOG("elementType", __FILE__, __LINE__, __FUNCTION__,
+                        "elementType: {}",
+                        SyntaxKindUtils::to_string(bTE->getSyntaxType()));
+
+      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+        returnType = llvm::PointerType::get(elementType, 0);
+      }
 
       FT = llvm::FunctionType::get(fd->hasAsReturnType()
                                        ? elementType
@@ -340,23 +379,28 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       llvm::Type *arrayType = elementType;
 
-      std::vector<uint64_t> returnDimentions(
+      std::vector<uint64_t> returnDimensions(
           boundArrayTypeExpression->getDimensions().size(), 0);
-      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+      for (int64_t k = static_cast<int64_t>(
+                           boundArrayTypeExpression->getDimensions().size()) -
+                       1;
            k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
-                boundArrayTypeExpression->getDimensions()[k].get());
+                boundArrayTypeExpression
+                    ->getDimensions()[static_cast<size_t>(k)]
+                    .get());
 
         if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
           _codeGenerationContext->getLogger()->LogError(
               "Array size must be a constant integer");
         }
 
-        returnDimentions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        returnDimensions[static_cast<size_t>(k)] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
+        arrayType = llvm::ArrayType::get(
+            arrayType, returnDimensions[static_cast<size_t>(k)]);
       }
       llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
 
@@ -372,13 +416,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME,
           std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
-                                          returnDimentions,
+                                          returnDimensions,
                                           boundArrayTypeExpression),
           fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
           arrayType, fd->hasAsReturnType());
-      for (int64_t k = 0; k < returnDimentions.size(); k++) {
-        returnInfo += std::to_string(returnDimentions[k]) + ":";
+      for (size_t k = 0; k < returnDimensions.size(); k++) {
+        returnInfo += std::to_string(returnDimensions[k]) + ":";
       }
 
       attributeTypes.push_back({argTypes.size(), arrayType});

@@ -1,3 +1,0 @@
-fun callMe() ->nthg {
-  print("Calling you !")
-}

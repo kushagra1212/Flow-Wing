@@ -1,11 +1,30 @@
-#ifndef __FLOW__WING__VARIABLE_H__
-#define __FLOW__WING__VARIABLE_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../TypeExpressionSyntax/TypeExpressionSyntax.h"
+#pragma once
+
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include <any>
+#include <string>
 
 class VariableExpressionSyntax : public ExpressionSyntax {
 public:
@@ -14,10 +33,9 @@ public:
       const bool isConstant,
       std::unique_ptr<TypeExpressionSyntax> variableTypeExpr);
 
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation
-  getSourceLocation() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   inline void
   addDotExpression(std::unique_ptr<ExpressionSyntax> dotExpression) {
@@ -51,7 +69,7 @@ public:
     _newKeyword = std::move(newKeyword);
   }
 
-  inline auto isConstant() const -> const bool & { return _isConstant; }
+  inline auto isConstant() const -> bool { return _isConstant; }
 
   inline auto getVariableName() const -> std::string {
     return std::any_cast<std::string>(
@@ -83,11 +101,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _selfKeyword;
   std::unique_ptr<TypeExpressionSyntax> _variableTypeExpr;
   std::vector<std::unique_ptr<ExpressionSyntax>> _dotExpressionList;
-
   std::unique_ptr<ExpressionSyntax> _moduleNameorCallExpression;
 
   bool _isConstant;
   bool _hasNewKeyword = false;
 };
-
-#endif // __FLOW__WING__VARIABLE_H__

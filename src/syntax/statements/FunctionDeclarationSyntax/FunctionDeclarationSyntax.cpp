@@ -1,4 +1,24 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "FunctionDeclarationSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 FunctionDeclarationSyntax::getFunctionKeyword() {
@@ -24,7 +44,7 @@ std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
   return std::move(_body);
 }
 
-const SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
@@ -51,8 +71,8 @@ FunctionDeclarationSyntax::getSourceLocation() const {
   if (_body)
     return _body->getSourceLocation();
 
-  for (const auto &expr : _returnTypeExpressionList)
-    return expr->getSourceLocation();
+  if (!_returnTypeExpressionList.empty())
+    return _returnTypeExpressionList[0]->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }
@@ -70,7 +90,7 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
     // if (_openParenthesisToken)
     //   _children.push_back(_openParenthesisToken.get());
 
-    for (int i = 0; i < _parameters.size(); i++) {
+    for (size_t i = 0; i < _parameters.size(); i++) {
       _children.push_back(_parameters[i].get());
 
       //? Not used

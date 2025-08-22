@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BoundGlobalScope.h"
 
 BoundGlobalScope::BoundGlobalScope(
@@ -5,11 +24,11 @@ BoundGlobalScope::BoundGlobalScope(
     std::unordered_map<std::string, std::any> variablesValues,
     FlowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
-    : variables(scope->variables), functions(scope->functions),
+    : previous(std::move(previous)), variables(scope->variables),
       customTypes(scope->customTypes), classes(scope->classes),
       modules(scope->modules), variablesValues(variablesValues),
-      globalStatement(std::move(statement)), previous(std::move(previous)),
-      _diagnosticHandler(diagnosticHandler) {}
+      functions(scope->functions), _diagnosticHandler(diagnosticHandler),
+      globalStatement(std::move(statement)) {}
 
 bool BoundGlobalScope::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {

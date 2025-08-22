@@ -1,4 +1,27 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "CompilerUtils.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/utils/PathUtils.h"
+#include "src/utils/Utils.h"
 #include <cstdlib>
 #include <memory>
 #include <stdexcept>
@@ -20,7 +43,6 @@ getMemoryBuffer(const std::string &filePath,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation()));
     throw std::runtime_error("Error reading bitcode file: " + filePath);
-    return nullptr;
   }
 }
 
@@ -47,29 +69,16 @@ getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
     return {};
   }
 
+  DEBUG_LOG("Found IR files: ", irFilesPath.size());
+
   return irFilesPath;
 }
 
 std::unique_ptr<llvm::Module>
-createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
-                             FlowWing::DiagnosticHandler *diagHandler) {
+createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
-  const std::string &filePath = LIB_BUILT_IN_MODULE_PATH;
-
-  LINKING_DEBUG_LOG(" [INFO]: LIB_BUILT_IN_MODULE_PATH " + filePath);
-
-#if defined(RELEASE)
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(createModuleFromBitcode(filePath, TheContext, diagHandler));
-
-#else
-  std::unique_ptr<llvm::Module> TheModule =
-      isValidLLFile(filePath) == EXIT_SUCCESS
-          ? std::move(createModuleFromIR(filePath, TheContext, diagHandler))
-          : std::move(
-                createModuleFromBitcode(filePath, TheContext, diagHandler));
-
-#endif
+      std::make_unique<llvm::Module>("FlowWing", *TheContext.get());
 
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -77,39 +86,27 @@ createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
 
 #if defined(__APPLE__)
   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-#elif defined(__linux__)
+#elif defined(__linux__) 
   TheModule->setTargetTriple(
       llvm::Triple::normalize(llvm::sys::getDefaultTargetTriple()));
+// #else
+//   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #endif
+
+
+DEBUG_LOG("Created LLVM Module with target triple: ",
+          TheModule->getTargetTriple());
 
   return TheModule;
 }
 
-const int8_t isValidLLFile(const std::string &filePath) {
-  if (filePath.length() <= 3) {
-    throw std::runtime_error(filePath + " is not an valid file path");
-    return EXIT_FAILURE;
-  }
-
-  if (Utils::hasFileExtenstion(filePath, "ll") == EXIT_SUCCESS) {
-    return EXIT_SUCCESS;
-  }
-
-  if (Utils::hasFileExtenstion(filePath, "bc") == EXIT_SUCCESS) {
-    return EXIT_FAILURE;
-  }
-
-  throw std::runtime_error(filePath + " is not an valid file path");
-  return EXIT_FAILURE;
-}
 
 std::unique_ptr<llvm::Module>
 getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
                 FlowWing::DiagnosticHandler *diagHandler) {
 
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(FlowWing::Compiler::createLLVMModuleFromCodeorIR(TheContext,
-                                                                 diagHandler));
+      (FlowWing::Compiler::createLLVMModule(TheContext));
 
   std::vector<std::string> filesPath = FlowWing::Compiler::getIRFilePaths(
       diagHandler,
@@ -123,7 +120,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
   for (const std::string &path : filesPath) {
     llvm::SMDiagnostic err;
 
-    LINKING_DEBUG_LOG(" [INFO]: Linking " + path);
+    LINKING_DEBUG_LOG(" [INFO]: Linking ", path);
 
     bool LinkResult = llvm::Linker::linkModules(
         *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
@@ -139,7 +136,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
     }
   }
 
-  LINKING_DEBUG_LOG(" [INFO]: Finished linking modules Done. ");
+  LINKING_DEBUG_LOG(" [INFO]: Finished linking modules Done. ", "");
 
   return TheModule;
 }
@@ -151,7 +148,7 @@ void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer =
       llvm::MemoryBuffer::getFile(archivePath);
 
-  LINKING_DEBUG_LOG(" [INFO]: Loading Archive: " + archivePath);
+  LINKING_DEBUG_LOG(" [INFO]: Loading Archive: ", archivePath);
 
   if (!buffer) {
     diagHandler->printDiagnostic(
@@ -183,7 +180,7 @@ void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
   executionEngine->addArchive(llvm::object::OwningBinary<llvm::object::Archive>(
       std::move(archivePtr), std::move(bufferPtr)));
 
-  LEXER_DEBUG_LOG(" [INFO]: Finished loading archive: " + archivePath);
+  LEXER_DEBUG_LOG(" [INFO]: Finished loading archive: ", archivePath);
 }
 
 std::unique_ptr<llvm::Module>
@@ -204,27 +201,6 @@ createModuleFromIR(const std::string &filePath,
   }
 
   return TheModule;
-}
-
-std::unique_ptr<llvm::Module>
-createModuleFromBitcode(const std::string &filePath,
-                        std::unique_ptr<llvm::LLVMContext> &TheContext,
-                        FlowWing::DiagnosticHandler *diagHandler) {
-
-  std::unique_ptr<llvm::MemoryBuffer> buffer =
-      std::move(getMemoryBuffer(filePath, diagHandler));
-
-  if (auto moduleOrErr =
-          llvm::parseBitcodeFile(buffer->getMemBufferRef(), *TheContext)) {
-    return std::move(*moduleOrErr);
-  } else {
-    diagHandler->printDiagnostic(
-        std::cerr, Diagnostic("Error reading bitcode file: " + filePath,
-                              DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
-    return nullptr;
-  }
 }
 
 void logNoErrorJSONIfAsked(const std::string &outputFilePath) {

@@ -1,4 +1,28 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ForStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 
 ForStatementSyntax::ForStatementSyntax(
     std::unique_ptr<StatementSyntax> initialization,
@@ -27,7 +51,7 @@ std::unique_ptr<StatementSyntax> ForStatementSyntax::getInitialization() {
   return std::move(this->_initialization);
 }
 
-const SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ForStatement;
 }
 
@@ -35,10 +59,10 @@ const std::vector<SyntaxNode *> &ForStatementSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
     _children.push_back(_initialization.get());
-    _children.push_back(_upperBound.get());
+    _children.emplace_back(_upperBound.get());
     if (_stepExpression)
-      _children.push_back(_stepExpression.get());
-    _children.push_back(_statement.get());
+      _children.emplace_back(_stepExpression.get());
+    _children.emplace_back(_statement.get());
   }
 
   return this->_children;

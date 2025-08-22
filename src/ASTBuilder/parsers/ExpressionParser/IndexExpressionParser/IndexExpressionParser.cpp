@@ -1,9 +1,40 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IndexExpressionParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
+#include <any>
 
 std::unique_ptr<ExpressionSyntax>
 IndexExpressionParser::parseExpression(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   ctx->setIsInsideIndexExpression(true);
 
@@ -17,7 +48,7 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
     ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
     indexExpression->addIndexExpression(
-        std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+        PrecedenceAwareExpressionParser::parse(ctx));
 
     ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
   }
@@ -43,13 +74,13 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
               SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
-        std::any value = localIdentifierToken->getValue();
+        std::any localValue = localIdentifierToken->getValue();
         std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
             std::make_unique<IndexExpressionSyntax>(
                 std::make_unique<LiteralExpressionSyntax<std::any>>(
-                    std::move(localIdentifierToken), value));
+                    std::move(localIdentifierToken), localValue));
 
         while (ctx->getKind() ==
                SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
@@ -57,7 +88,7 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
           ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
           localIndexExpression->addIndexExpression(
-              std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+              PrecedenceAwareExpressionParser::parse(ctx));
 
           ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
         }
@@ -65,12 +96,12 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
         variExp->addDotExpression(std::move(localIndexExpression));
       } else {
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-        std::any value = localIdentifierToken->getValue();
+            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+        std::any localValue = localIdentifierToken->getValue();
 
         variExp->addDotExpression(
             std::make_unique<LiteralExpressionSyntax<std::any>>(
-                std::move(localIdentifierToken), value));
+                std::move(localIdentifierToken), localValue));
       }
     }
     indexExpression->addVariableExpression(std::move(variExp));
@@ -79,11 +110,11 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     std::unique_ptr<ExpressionSyntax> right =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     ctx->setIsInsideIndexExpression(false);
     return std::make_unique<AssignmentExpressionSyntax>(
@@ -92,5 +123,5 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
 
   ctx->setIsInsideIndexExpression(false);
 
-  return std::move(indexExpression);
+  return indexExpression;
 }

@@ -1,6 +1,25 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ObjectExpressionGenerationStrategy.h"
 
-#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 
 ObjectExpressionGenerationStrategy::ObjectExpressionGenerationStrategy(
     CodeGenerationContext *context)
@@ -59,7 +78,6 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
   llvm::StructType *lhsStructType = nullptr;
-  std::cout << "Type name " << _typeName << std::endl;
   if (_typeName != "" && _codeGenerationContext->_classTypes.find(_typeName) !=
                              _codeGenerationContext->_classTypes.end()) {
 
@@ -113,9 +131,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
   std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
       std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory->createStrategy(expression->getKind())
-          ->generateExpression(expression);
+
+  _expressionGenerationFactory->createStrategy(expression->getKind())
+      ->generateExpression(expression);
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
 
@@ -241,10 +259,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       return nullptr;
     }
 
-    llvm::Value *rhs = nullptr;
-
-    llvm::Value *innerElementPtr =
-        Builder->CreateStructGEP(parStructType, variable, indexValue);
+    llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+        parStructType, variable, static_cast<uint32_t>(indexValue));
 
     _codeGenerationContext->getValueStackHandler()->popAll();
     if (propertiesMap[propertyName]->getSyntaxType() ==
@@ -283,7 +299,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
               _codeGenerationContext);
 
       assignmentEGS->handleAssignExpression(
-          innerElementPtr, parStructType->getElementType(index),
+          innerElementPtr,
+          parStructType->getElementType(static_cast<uint32_t>(index)),
           variable->getName().str() + "." + propertyName, bExpr.get());
     }
 
@@ -339,8 +356,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
     llvm::Value *variable, uint64_t indexValue, BoundTypeExpression *bExpr) {
   std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
 
-  llvm::Value *innerElementPtr =
-      Builder->CreateStructGEP(parStructType, variable, indexValue);
+  llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+      parStructType, variable, static_cast<uint32_t>(indexValue));
   if (bExpr->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
     BoundObjectTypeExpression *boundObjectTypeExpression =
         static_cast<BoundObjectTypeExpression *>(bExpr);
@@ -365,9 +382,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
   } else if (bExpr->getSyntaxType() ==
              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
 
-    llvm::ArrayType *arrayType =
-        llvm::cast<llvm::ArrayType>(parStructType->getElementType(indexValue));
-    llvm::Type *elementType = arrayType->getElementType();
+    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+        parStructType->getElementType(static_cast<uint32_t>(indexValue)));
     llvm::Type *type = arrayType;
 
     std::vector<uint64_t> sizes;
@@ -398,7 +414,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
     Builder->CreateStore(
         llvm::cast<llvm::Constant>(
             _codeGenerationContext->getMapper()->getDefaultValue(
-                parStructType->getElementType(indexValue))),
+                parStructType->getElementType(
+                    static_cast<uint32_t>(indexValue)))),
         innerElementPtr);
   }
 }
@@ -609,13 +626,17 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
        boundCustomTypeStatement->getKeyPairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
 
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        structType, variable, {Builder->getInt32(0), Builder->getInt32(index)});
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(structType, variable,
+                           {Builder->getInt32(0),
+                            Builder->getInt32(static_cast<uint32_t>(index))});
 
     llvm::Value *toValue = nullptr;
 
-    llvm::Value *fromElementPtr = Builder->CreateGEP(
-        structType, fromVar, {Builder->getInt32(0), Builder->getInt32(index)});
+    llvm::Value *fromElementPtr =
+        Builder->CreateGEP(structType, fromVar,
+                           {Builder->getInt32(0),
+                            Builder->getInt32(static_cast<uint32_t>(index))});
 
     if (bExpr->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
@@ -676,8 +697,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
       Builder->CreateStore(toValue, elementPtr);
 
     } else {
-      toValue = Builder->CreateLoad(structType->getElementType(index),
-                                    fromElementPtr);
+      toValue = Builder->CreateLoad(
+          structType->getElementType(static_cast<uint32_t>(index)),
+          fromElementPtr);
       Builder->CreateStore(toValue, elementPtr);
     }
 

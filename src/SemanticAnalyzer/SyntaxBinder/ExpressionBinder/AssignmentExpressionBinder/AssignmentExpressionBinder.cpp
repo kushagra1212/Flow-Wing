@@ -1,6 +1,31 @@
-#include "AssignmentExpressionBinder.h"
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../ExpressionBinderFactory.h"
+#include "AssignmentExpressionBinder.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
@@ -20,12 +45,12 @@ AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   } else {
 
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Invalid Assignment Expression",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   assignmentExpression->getLeftRef()->getSourceLocation()));
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {},
+                   assignmentExpression->getLeftRef()->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::InvalidAssignment));
 
-    return std::move(
+    return (
         ExpressionBinderFactory::create(
             assignmentExpression->getLeftRef()->getKind())
             ->bindExpression(ctx, assignmentExpression->getLeftRef().get()));
@@ -42,40 +67,42 @@ AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (!ctx->getRootRef()->tryLookupVariable(variable_str)) {
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Can Not Assign To Undeclared Variable " + variable_str,
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   assignmentExpression->getLeftRef()->getSourceLocation()));
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {variable_str},
+                   assignmentExpression->getLeftRef()->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                       InvalidAssignmentToUndeclaredVariable));
 
-    return std::move(boundIdentifierExpression);
+    return (boundIdentifierExpression);
   }
 
   if (ctx->getRootRef()->tryGetVariable(variable_str)->isConst()) {
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Can Not Assign To Constant Variable " + variable_str,
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   assignmentExpression->getLeftRef()->getSourceLocation()));
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {variable_str},
+                   assignmentExpression->getLeftRef()->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                       InvalidAssignmentToConstantVariable));
 
-    return std::move(boundIdentifierExpression);
+    return (boundIdentifierExpression);
   }
 
   if (assignmentExpression->getRightRef()) {
-    std::unique_ptr<BoundExpression> boundRight = std::move(
-        ExpressionBinderFactory::create(
-            assignmentExpression->getRightRef()->getKind())
-            ->bindExpression(ctx, assignmentExpression->getRightRef().get()));
+    std::unique_ptr<BoundExpression> boundRight =
+        (ExpressionBinderFactory::create(
+             assignmentExpression->getRightRef()->getKind())
+             ->bindExpression(ctx, assignmentExpression->getRightRef().get()));
 
     return std::make_unique<BoundAssignmentExpression>(
         assignmentExpression->getSourceLocation(),
         ctx->getRootRef()->tryGetVariable(variable_str),
         std::move(boundIdentifierExpression), op, std::move(boundRight),
-        assignmentExpression->getNeedDefaulInitilization());
+        assignmentExpression->getNeedDefaultInitialization());
   } else {
     return std::make_unique<BoundAssignmentExpression>(
         assignmentExpression->getSourceLocation(),
         ctx->getRootRef()->tryGetVariable(variable_str),
         std::move(boundIdentifierExpression), op, nullptr,
-        assignmentExpression->getNeedDefaulInitilization());
+        assignmentExpression->getNeedDefaultInitialization());
   }
 }

@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "VariableExpressionGenerationStrategy.h"
 
 VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
@@ -5,7 +24,7 @@ VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
     : ExpressionGenerationStrategy(context) {}
 
 llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
-    llvm::Value *variableValue, llvm::Value *v,
+    [[maybe_unused]] llvm::Value *variableValue, llvm::Value *v,
     const std::string &variableName) {
   return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
       v, variableName);
@@ -13,7 +32,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
 
 llvm::Value *VariableExpressionGenerationStrategy::getVariable(
     llvm::Value *v, llvm::Type *variableType, const std::string &variableName,
-    int64_t pos) {
+    size_t pos) {
 
   DEBUG_LOG("Variable Name", variableName);
 
@@ -43,26 +62,21 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
         "", v, "array", llvm::cast<llvm::ArrayType>(variableType));
     return v;
   }
+  llvm::StructType *dynamicValueType =
+      llvm::StructType::getTypeByName(*_codeGenerationContext->getContext(),
+                                      DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+  if (variableType == dynamicValueType) {
+    _codeGenerationContext->getValueStackHandler()->push(
+        variableName, v, DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE,
+        dynamicValueType);
 
-  if (_codeGenerationContext->getDynamicType()->isDyn(variableType)) {
-    return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-        v, variableName);
+    return v;
   }
 
   if (llvm::isa<llvm::StructType>(variableType)) {
 
     llvm::StructType *structType = llvm::cast<llvm::StructType>(variableType);
 
-    // if (_codeGenerationContext->_classTypes.find(
-    //         structType->getStructName().str()) !=
-    //     _codeGenerationContext->_classTypes.end()) {
-
-    //   _codeGenerationContext->getLogger()->LogError(
-    //       "Access member of Class " +
-    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
-    //       " using dot operator in variable " + variableName);
-    //   return nullptr;
-    // }
     _codeGenerationContext->getValueStackHandler()->push(variableName, v,
                                                          "struct", structType);
 
@@ -73,16 +87,6 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
     llvm::FunctionType *functionType =
         llvm::cast<llvm::FunctionType>(variableType);
 
-    // if (_codeGenerationContext->_classTypes.find(
-    //         structType->getStructName().str()) !=
-    //     _codeGenerationContext->_classTypes.end()) {
-
-    //   _codeGenerationContext->getLogger()->LogError(
-    //       "Access member of Class " +
-    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
-    //       " using dot operator in variable " + variableName);
-    //   return nullptr;
-    // }
     _codeGenerationContext->getValueStackHandler()->push(
         variableName, v, "function", functionType);
 
@@ -100,8 +104,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
 
 llvm::Value *
 VariableExpressionGenerationStrategy::getClassPtr(llvm::StructType *parObjType,
-                                                  int64_t pos, llvm::Value *v,
-                                                  int64_t finalPosition) {
+                                                  size_t pos, llvm::Value *v,
+                                                  size_t finalPosition) {
 
   std::string className =
       Utils::getActualTypeName(parObjType->getStructName().str()).c_str();
@@ -137,8 +141,8 @@ VariableExpressionGenerationStrategy::getClassPtr(llvm::StructType *parObjType,
 
     llvm::Value *ptr =
         Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), v);
-    llvm::Value *elementPtr =
-        Builder->CreateStructGEP(parObjType, ptr, elementIndex);
+    llvm::Value *elementPtr = Builder->CreateStructGEP(
+        parObjType, ptr, static_cast<uint32_t>(elementIndex));
 
     if (pos == finalPosition) {
 
@@ -172,7 +176,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == -1) {
+      if (atIndex == std::numeric_limits<size_t>::max()) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in variable expression Expected to be a member of "
@@ -181,8 +185,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
         return nullptr;
       }
 
-      llvm::Value *elementPtr =
-          Builder->CreateStructGEP(classType, cl.first, atIndex);
+      llvm::Value *elementPtr = Builder->CreateStructGEP(
+          classType, cl.first, static_cast<uint32_t>(atIndex));
       if (_variableExpression &&
           _variableExpression->getDotExpressionList().size() != 0) {
 
@@ -228,10 +232,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     return this->getGlobalVariableValue(
         variableName, TheModule->getGlobalVariable(variableName));
   }
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable " + variableName + " not found in variable expression ");
-  return nullptr;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
@@ -250,7 +250,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
           ->getValue());
   _variableName = variableName;
 
-  DEBUG_LOG("Variable Name ", variableName);
+  DEBUG_LOG("Local Variable Name ", variableName);
 
   return this->getVariableValue(variableName);
 }
@@ -379,7 +379,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       itsClass ? classObj->getKeyValue(dotPropertyName)
                : boundCustomTypeStatement->getKeyValue(dotPropertyName);
 
-  if (atIndex == -1) {
+  if (atIndex == std::numeric_limits<size_t>::max()) {
     _codeGenerationContext->getLogger()->LogError(
         "Property " + dotPropertyName + " does not exist in " +
         (listIndex == 0 ? (itsClass ? "class object " : "variable ")
@@ -390,7 +390,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
     return nullptr;
   }
 
-  llvm::Type *objElementType = parObjType->getElementType(atIndex);
+  llvm::Type *objElementType =
+      parObjType->getElementType(static_cast<uint32_t>(atIndex));
 
   if (isNested) {
     if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
@@ -415,8 +416,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       return logError();
   }
 
-  llvm::Value *innerElementPtr =
-      Builder->CreateStructGEP(parObjType, outerElementPtr, atIndex);
+  llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+      parObjType, outerElementPtr, static_cast<uint32_t>(atIndex));
 
   if (!isNested) {
 
@@ -454,11 +455,6 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
         _codeGenerationContext->getMapper()->getLLVMTypeName(objElementType) +
         " instead of a array element");
     return nullptr;
-
-    _codeGenerationContext->getValueStackHandler()->push("", innerElementPtr,
-                                                         "array", arrayType);
-
-    return innerElementPtr;
   }
 
   _codeGenerationContext->getValueStackHandler()->push(

@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "BlockStatementGenerationStrategy.h"
 
 BlockStatementGenerationStrategy::BlockStatementGenerationStrategy(
@@ -12,8 +31,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       blockStatement->getLocation());
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -25,8 +42,8 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
 
   std::vector<llvm::BasicBlock *> nestedBlocks, checkContinueBlocks,
       checkReturnBlocks;
-  int statementSize = blockStatement->getStatements().size();
-  int indexForStatements = 0;
+  size_t statementSize = blockStatement->getStatements().size();
+  size_t indexForStatements = 0;
 
   while (indexForStatements < statementSize) {
     llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
@@ -49,16 +66,14 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
     Builder->CreateBr(nestedBlocks[0]);
   }
 
-  for (int i = 0; i < statementSize; i++) {
+  for (size_t i = 0; i < statementSize; i++) {
     // i th nested block
 
     Builder->SetInsertPoint(nestedBlocks[i]);
 
-    llvm::Value *res =
-        _statementGenerationFactory
-            ->createStrategy(
-                blockStatement->getStatements()[i].get()->getKind())
-            ->generateStatement(blockStatement->getStatements()[i].get());
+    _statementGenerationFactory
+        ->createStrategy(blockStatement->getStatements()[i].get()->getKind())
+        ->generateStatement(blockStatement->getStatements()[i].get());
 
     Builder->CreateCondBr(
         _codeGenerationContext->isCountZero(
@@ -83,8 +98,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(afterNestedBlock);
 
-  // this->_NamedValuesStack.pop();
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
   return nullptr;
 }

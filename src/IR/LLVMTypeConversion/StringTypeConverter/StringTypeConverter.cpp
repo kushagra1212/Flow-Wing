@@ -1,16 +1,35 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "StringTypeConverter.h"
 
-#include "../GlobalTypeConverter/GStringTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/GlobalTypeConverter/GStringTypeConverter.h"
 
 StringTypeConverter::StringTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
   if (llvm::isa<llvm::PointerType>(value->getType())) {
     return value;
   }
 
-  if (auto globalString = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
+  if ([[maybe_unused]] auto _ = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);
 
@@ -47,9 +66,12 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
                                 {value});
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    std::unique_ptr<DoubleTypeConverter> doubleConverter =
+        std::make_unique<DoubleTypeConverter>(this->_codeGenerationContext);
+    llvm::Value *val = doubleConverter->convertExplicit(value);
     // Create an APFloat object with the double value
     return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
-                                {value});
+                                {val});
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     llvm::Value *str = _builder->CreateSelect(
@@ -89,7 +111,7 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
 }
 
 llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
-  if (auto globalString = llvm::isa<llvm::GlobalVariable>(value)) {
+  if ([[maybe_unused]] auto _ = llvm::isa<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);
 

@@ -1,12 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "IndexExpressionGenerationStrategy.h"
 
-#include "../VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 
 IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-const bool IndexExpressionGenerationStrategy::canGenerateExpression(
+bool IndexExpressionGenerationStrategy::canGenerateExpression(
     const std::string &variableName) {
 
   std::pair<llvm::Value *, llvm::Type *> var =
@@ -25,7 +44,7 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == -1) {
+      if (atIndex == std::numeric_limits<size_t>::max()) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in index expression Expected to be a member of "
@@ -34,8 +53,8 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
         return false;
       }
 
-      llvm::Value *elementPtr =
-          Builder->CreateStructGEP(classType, cl.first, atIndex);
+      llvm::Value *elementPtr = Builder->CreateStructGEP(
+          classType, cl.first, static_cast<uint32_t>(atIndex));
 
       _arrayType = llvm::cast<llvm::ArrayType>(elementType);
       _variable = elementPtr;
@@ -103,6 +122,20 @@ int8_t IndexExpressionGenerationStrategy::populateIndices() {
         _expressionGenerationFactory->createStrategy(index.get()->getKind())
             ->generateExpression(index.get());
 
+    if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+      llvm::Value *dynamicValue =
+          _codeGenerationContext->getValueStackHandler()->getValue();
+      auto [dynamicValuePtr, dynamicValueType] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              dynamicValue, _codeGenerationContext, Builder);
+
+      indexValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toInt32(
+          dynamicValuePtr, _codeGenerationContext, Builder);
+
+      indexValue = _int32TypeConverter->convertExplicit(indexValue);
+    }
+    _codeGenerationContext->getValueStackHandler()->pop();
+
     if (!_codeGenerationContext->getMapper()->isInt32Type(
             indexValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
@@ -155,8 +188,8 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->createArraySizesAndArrayElementType(
       sizes, _arrayElementType);
 
-  for (int i = 0; i < sizes.size(); i++) {
-    _actualSizes.push_back(Builder->getInt32(sizes[i]));
+  for (size_t i = 0; i < sizes.size(); i++) {
+    _actualSizes.push_back(Builder->getInt32(static_cast<uint32_t>(sizes[i])));
   }
 
   return this->handleArrayTypeIndexing();
@@ -235,15 +268,15 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
     return nullptr;
   }
 
-  int64_t n = _actualSizes.size();
+  size_t n = _actualSizes.size();
 
-  for (int64_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     this->verifyBounds(_indices[i], _actualSizes[i]);
   }
 
   std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     indexList.push_back(_indices[i]);
   }
 

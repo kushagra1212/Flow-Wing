@@ -1,16 +1,33 @@
-#ifndef __CONTAINER_STATEMENT_SYNTAX_H__
-#define __CONTAINER_STATEMENT_SYNTAX_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../utils/Utils.h"
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../StatementSyntax.h"
+#pragma once
+
+#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/utils/Utils.h"
 
 class ContainerStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<ExpressionSyntax> _containerExpression;
@@ -18,19 +35,21 @@ class ContainerStatementSyntax : public StatementSyntax {
 
   Utils::type _type;
 
- public:
+public:
   ContainerStatementSyntax() = default;
 
   // Overrides
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  auto setContainerExpression(
-      std::unique_ptr<ExpressionSyntax> containerExpression) -> void;
-  auto setIdentifierToken(
-      std::unique_ptr<SyntaxToken<std::any>> identifierToken) -> void;
+  auto
+  setContainerExpression(std::unique_ptr<ExpressionSyntax> containerExpression)
+      -> void;
+  auto
+  setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken)
+      -> void;
   auto setType(Utils::type type) -> void;
   auto addContainerSizeExpression(std::unique_ptr<ExpressionSyntax> item)
       -> void;
@@ -47,5 +66,3 @@ class ContainerStatementSyntax : public StatementSyntax {
 
   const Utils::type &getType() const;
 };
-
-#endif  // __CONTAINER_STATEMENT_SYNTAX_H__

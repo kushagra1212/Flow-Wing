@@ -1,7 +1,27 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 // ContainerTypeBuilder.cpp
 #include "ContainerTypeBuilder.h"
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include <cstdint>
 
 ContainerTypeBuilder::ContainerTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)
@@ -30,17 +50,16 @@ const std::vector<llvm::Type *> &ContainerTypeBuilder::getMemberTypes() const {
   return _body;
 }
 
-const uint64_t
-ContainerTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
-  int index = -1;
-  for (uint64_t i = 0; i < this->_body.size(); i++) {
+uint64_t ContainerTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
+  size_t index = std::numeric_limits<size_t>::max();
+  for (size_t i = 0; i < this->_body.size(); i++) {
     if (this->_body[i] == type) {
       index = i;
       break;
     }
   }
 
-  if (index == -1) {
+  if (index == std::numeric_limits<size_t>::max()) {
     std::string typeUsedByUser =
         _codeGenerationContext->getMapper()->getLLVMTypeName(type);
 

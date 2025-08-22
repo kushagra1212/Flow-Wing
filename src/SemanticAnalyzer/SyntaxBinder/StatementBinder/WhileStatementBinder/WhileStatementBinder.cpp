@@ -1,5 +1,30 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "WhileStatementBinder.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 WhileStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -11,14 +36,14 @@ WhileStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->getRootRef()->makeBreakableAndContinuable();
 
-  std::unique_ptr<BoundExpression> boundCondition = std::move(
-      ExpressionBinderFactory::create(
-          whileStatement->getConditionRef()->getKind())
-          ->bindExpression(ctx, whileStatement->getConditionRef().get()));
+  std::unique_ptr<BoundExpression> boundCondition =
+      (ExpressionBinderFactory::create(
+           whileStatement->getConditionRef()->getKind())
+           ->bindExpression(ctx, whileStatement->getConditionRef().get()));
 
-  std::unique_ptr<BoundStatement> boundBody = std::move(
-      StatementBinderFactory::create(whileStatement->getBodyRef()->getKind())
-          ->bindStatement(ctx, whileStatement->getBodyRef().get()));
+  std::unique_ptr<BoundStatement> boundBody =
+      (StatementBinderFactory::create(whileStatement->getBodyRef()->getKind())
+           ->bindStatement(ctx, whileStatement->getBodyRef().get()));
 
   ctx->removeScope();
 

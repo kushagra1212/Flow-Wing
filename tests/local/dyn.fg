@@ -1,0 +1,4 @@
+
+if(false) { print(5) }
+print(2+"")
+print("This is a test file for Flow-Wing project. It contains recent edits and should not suggest deleted code.")

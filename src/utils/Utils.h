@@ -1,23 +1,47 @@
-#ifndef UTILS_H
-#define UTILS_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#pragma once
+
+#include "src/external/include/json.hpp"
+#include "src/utils/Colors.h"
+#include <any>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
-#include <regex>
-#include <typeinfo>
+#include <string>
 
-#include "../SemanticAnalyzer/BinderKindUtils.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../SemanticAnalyzer/BoundNode.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
-#include "../common/Common.h"
-#include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
-#include "../syntax/CompilationUnitSyntax.h"
-#include "../syntax/MemberSyntax.h"
-#include "../syntax/SyntaxNode.h"
-#include "../syntax/expression/LiteralExpressionSyntax.h"
-#include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include "Macros.h"
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
+
+namespace DiagnosticUtils {
+struct SourceLocation;
+}
+
+using JSON = nlohmann::json;
+
+class SyntaxNode;
+class CompilationUnitSyntax;
+class BoundStatement;
+class BoundNode;
+template <typename T> class SyntaxToken;
 
 namespace Utils {
 enum type {
@@ -26,11 +50,13 @@ enum type {
   INT32,
   INT64,
   DECIMAL,
+  DECIMAL32,
   BOOL,
   STRING,
   NOTHING,
   ARRAY,
   OBJECT,
+  NIRAST,
   UNKNOWN,
 
   // Container Types
@@ -40,6 +66,7 @@ enum type {
   INT32_CONTAINER,
   INT64_CONTAINER,
   DECIMAL_CONTAINER,
+  DECIMAL32_CONTAINER,
   BOOL_CONTAINER,
   STRING_CONTAINER,
   UNKNOWN_CONTAINER,
@@ -68,9 +95,6 @@ void logJSON(JSON &jsonObject, std::string filePath);
 
 const std::string getFileName(const std::string &filePath);
 
-const std::string concatErrors(const std::vector<std::string> &errors,
-                               std::ostream &outputStream,
-                               bool isWarning = false);
 auto getStrongRandomString() -> std::string;
 std::string generateUniqueString();
 std::string getTypeString(const std::any &value);
@@ -81,14 +105,14 @@ std::string CE(const std::string &str);
 
 Utils::type toContainerType(Utils::type type);
 Utils::type toContainerElementType(Utils::type type);
-auto isContainerType(Utils::type type) -> const bool;
-auto isStaticTypedContainerType(Utils::type type) -> const bool;
-auto isDynamicTypedContainerType(Utils::type type) -> const bool;
-auto isStaticTypedPrimitiveType(Utils::type type) -> const bool;
-auto isDynamicTypedPrimitiveType(Utils::type type) -> const bool;
+auto isContainerType(Utils::type type) -> bool;
+auto isStaticTypedContainerType(Utils::type type) -> bool;
+auto isDynamicTypedContainerType(Utils::type type) -> bool;
+auto isStaticTypedPrimitiveType(Utils::type type) -> bool;
+auto isDynamicTypedPrimitiveType(Utils::type type) -> bool;
 
-auto isStaticTypedType(Utils::type type) -> const bool;
-auto isDynamicTypedType(Utils::type type) -> const bool;
+auto isStaticTypedType(Utils::type type) -> bool;
+auto isDynamicTypedType(Utils::type type) -> bool;
 
 auto getFileContent(const std::string &filePath) -> std::string;
 auto getSourceCodeFromFilePath(const std::string &filePath)
@@ -148,7 +172,6 @@ const std::string removeExtensionFromString(const std::string &filePath);
 DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 
 const std::string getNameExtension(const std::string &filePath);
-const std::string getRelativePath(const std::string &filePath);
 struct Variable {
   Utils::type type;
   std::any value;
@@ -167,11 +190,10 @@ struct Variable {
 inline auto hasFileExtenstion(const std::string &filePath,
                               const std::string &ext) -> int8_t {
   if (filePath.length() <= 3) {
-    throw std::runtime_error(filePath + " is not a valid file path");
     return EXIT_FAILURE;
   }
 
-  unsigned long lastPositionWithDot = filePath.find_last_of(".") + 1;
+  size_t lastPositionWithDot = filePath.find_last_of(".") + 1;
 
   if (filePath.substr(lastPositionWithDot,
                       filePath.length() - lastPositionWithDot) == ext) {
@@ -235,5 +257,3 @@ public:
 };
 
 } // namespace Utils
-
-#endif // UTILS_H

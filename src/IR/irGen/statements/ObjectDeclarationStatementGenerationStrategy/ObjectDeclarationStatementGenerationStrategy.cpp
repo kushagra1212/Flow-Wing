@@ -1,6 +1,26 @@
-#include "ObjectDeclarationStatementGenerationStrategy.h"
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "ObjectDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
+#include "src/utils/LogConfig.h"
 
 ObjectDeclarationStatementGenerationStrategy::
     ObjectDeclarationStatementGenerationStrategy(CodeGenerationContext *context)
@@ -35,10 +55,35 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
 
   llvm::Value *ptr = nullptr;
 
-  DEBUG_LOG("Declaring Object: " + structType->getStructName().str());
+  DEBUG_LOG("Object Declaration Statement",
+            "Declaring Object: " + structType->getStructName().str());
 
   if (_codeGenerationContext->isValidClassType(structType)) {
-    DEBUG_LOG("Declaring Class Object: ", _variableName);
+
+    bool isParentMultipleVariableDeclarationHasInitializer = false;
+
+    if (_variableDeclExpr->getParentMultipleVariableDeclaration() != nullptr) {
+      BoundMultipleVariableDeclaration *parentMultipleVariableDeclaration =
+          _variableDeclExpr->getParentMultipleVariableDeclaration();
+
+      if (parentMultipleVariableDeclaration->getVariableDeclarationListRef()
+                  .size() > 0 &&
+          parentMultipleVariableDeclaration->getVariableDeclarationListRef()[0]
+                  .get()
+                  ->getInitializerPtr() != nullptr) {
+        isParentMultipleVariableDeclarationHasInitializer = true;
+      }
+    }
+    TypeMapper *typeMapper = _codeGenerationContext->getMapper().get();
+
+    if (_variableDeclExpr->getInitializerPtr() == nullptr &&
+        !isParentMultipleVariableDeclarationHasInitializer) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Class " + typeMapper->getLLVMTypeName(structType) +
+          " is not initialized");
+      return nullptr;
+    }
+
     ptr = _codeGenerationContext->createMemoryGetPtr(
         llvm::PointerType::getUnqual(structType), _variableName,
         _isGlobal ? BinderKindUtils::MemoryKind::Global
@@ -73,7 +118,8 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
     }
   }
 
-  CODEGEN_DEBUG_LOG("Declared Object: " + _variableName);
+  CODEGEN_DEBUG_LOG("Object Declaration Statement",
+                    "Declared Object: " + _variableName);
   return nullptr;
 }
 

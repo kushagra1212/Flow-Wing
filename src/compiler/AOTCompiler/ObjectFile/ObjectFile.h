@@ -1,6 +1,29 @@
-#ifndef __EXECUTABLE_H__
-#define __EXECUTABLE_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
+#pragma once
+
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/utils/LogConfig.h"
+
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -65,9 +88,13 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
 // JIT
-#include "../../../common/Common.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
+
+#include "src/common/Common.h"
 
 using namespace llvm;
 using namespace llvm::sys;
@@ -82,7 +109,7 @@ public:
     auto TargetTriple = module.getTargetTriple();
 
     std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+    llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
 
     if (Error.size() > 0) {
       errs() << "Error looking up target: " << Error;
@@ -95,9 +122,10 @@ public:
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
     const std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + 
+        FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
-    DEBUG_LOG("Writing object file to: " + destPath);
+    DEBUG_LOG("Writing object file to: %s", destPath.c_str());
 
     std::error_code EC;
     raw_fd_ostream dest(destPath, EC, sys::fs::OF_None);
@@ -178,21 +206,16 @@ public:
     LLVMSetDataLayout(module, datalayout_str);
     LLVMDisposeMessage(datalayout_str);
 
-    llvm::sys::fs::create_directories(
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR);
-
-    llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
-
     std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
-    CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
+    CODEGEN_DEBUG_LOG("Creating object ", destPath.c_str());
 
     LLVMTargetMachineEmitToFile(machine, module, (char *)destPath.c_str(),
                                 LLVMObjectFile, &errors);
 
+    
+    
     LLVMDisposeMessage(errors);
   }
 };
-
-#endif

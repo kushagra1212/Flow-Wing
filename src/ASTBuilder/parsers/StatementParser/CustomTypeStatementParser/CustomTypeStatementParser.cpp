@@ -1,4 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "CustomTypeStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
+#include "src/utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<StatementSyntax>
 CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
@@ -7,7 +35,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     customTypeStatement->setExposeKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
   ctx->match(SyntaxKindUtils::SyntaxKind::TypeKeyword);
@@ -15,7 +43,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
 
   std::any val = "";
   std::unique_ptr<SyntaxToken<std::any>> typeToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::string MODULE_PREFIX = "";
@@ -35,7 +63,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
     typeToken->setValue(val);
     typeToken->setText(std::any_cast<std::string>(val));
   }
-  DEBUG_LOG("Declared Type: " + std::any_cast<std::string>(val));
+  DEBUG_LOG("Declared Type: %s", std::any_cast<std::string>(val).c_str());
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
       std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(typeToken),
                                                           val);
@@ -54,13 +82,13 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
         ctx->getCodeFormatterRef()->getIndentAmount());
 
     std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
-    std::any val = idenfierToken->getValue();
+    std::any localVal = idenfierToken->getValue();
 
     std::unique_ptr<LiteralExpressionSyntax<std::any>> idenfierExp =
         std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(idenfierToken), val);
+            std::move(idenfierToken), localVal);
 
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
@@ -89,5 +117,5 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->getIndentAmount());
 
   ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
-  return std::move(customTypeStatement);
+  return customTypeStatement;
 }

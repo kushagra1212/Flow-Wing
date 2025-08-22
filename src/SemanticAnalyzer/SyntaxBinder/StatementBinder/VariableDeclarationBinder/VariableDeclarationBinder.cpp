@@ -1,5 +1,32 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "VariableDeclarationBinder.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundStatement>
 VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -12,7 +39,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       variableDeclaration->getIdentifierRef()->getValue());
   bool isConst = false;
 
-  DEBUG_LOG("Declaring variable " + variable_str);
+  DEBUG_LOG("Declaring variable ", variable_str);
 
   if (variableDeclaration->getKeywordRef()) {
     isConst = variableDeclaration->getKeywordRef()->getKind() ==
@@ -52,7 +79,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       BoundObjectTypeExpression *objectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
 
-      DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
+      DEBUG_LOG("TNAME ", objectTypeExpression->getTypeName());
 
       //! This Handles when the Type is Class Type in that Case Since we are
       //! only receiving class Name not the type along with Module name e.g A
@@ -75,7 +102,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       if (boundClassStatement) {
         _className = boundClassStatement->getClassName();
       }
-      DEBUG_LOG("CN " + _className);
+      DEBUG_LOG("CN ", _className);
     }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
@@ -86,21 +113,20 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (variableDeclaration->getInitializerRef()) {
     std::unique_ptr<BoundExpression> boundInitializerExpression =
-        std::move(ExpressionBinderFactory::create(
-                      variableDeclaration->getInitializerRef()->getKind())
-                      ->bindExpression(
-                          ctx, variableDeclaration->getInitializerRef().get()));
+        (ExpressionBinderFactory::create(
+             variableDeclaration->getInitializerRef()->getKind())
+             ->bindExpression(ctx,
+                              variableDeclaration->getInitializerRef().get()));
 
     variable->setInitializer(std::move(boundInitializerExpression));
   }
 
   if (!ctx->getRootRef()->tryDeclareVariable(variable_str, variable.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variable_str + " Already Exists",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       variableDeclaration->getIdentifierRef().get())));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {variable_str},
+        Utils::getSourceLocation(variableDeclaration->getIdentifierRef().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableAlreadyDeclared));
   }
 
   return std::move(variable);

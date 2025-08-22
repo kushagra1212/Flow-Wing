@@ -1,14 +1,36 @@
-#ifndef TYPEMAPPER_H
-#define TYPEMAPPER_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
+#pragma once
+
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../constants/FlowWingIRConstants.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/common/Common.h"
+#include "src/utils/Utils.h"
 using namespace FLOWWING::IR::CONSTANTS;
 class CodeGenerationContext;
 class TypeMapper {
@@ -37,25 +59,25 @@ public:
   }
 
   inline auto restoreBuilder() { _builder = _PreviousBuilder; }
-  const bool isVoidType(llvm::Type *type) const;
-  const bool isStringType(llvm::Type *type) const;
-  const bool isNirastValue(llvm::Value *value) const;
-  const bool isBoolType(llvm::Type *type) const;
-  const bool isDoubleType(llvm::Type *type) const;
-  const bool isFloatType(llvm::Type *type) const;
-  const bool isInt32Type(llvm::Type *type) const;
-  const bool isInt8Type(llvm::Type *type) const;
-  const bool isInt64Type(llvm::Type *type) const;
-  const bool isPtrType(llvm::Type *type) const;
-  const bool isPrimitiveType(llvm::Type *type) const;
-  const bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;
-  const bool isEquivalentType(llvm::Type *type,
-                              SyntaxKindUtils::SyntaxKind customType) const;
-  const bool isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
-                              llvm::Type *type) const;
-  const bool isEquivalentType(llvm::Type *type1, llvm::Type *type2) const;
-  const bool isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
-                              SyntaxKindUtils::SyntaxKind type2) const;
+  bool isVoidType(llvm::Type *type) const;
+  bool isStringType(llvm::Type *type) const;
+  bool isNirastValue(llvm::Value *value) const;
+  bool isBoolType(llvm::Type *type) const;
+  bool isDoubleType(llvm::Type *type) const;
+  bool isFloatType(llvm::Type *type) const;
+  bool isInt32Type(llvm::Type *type) const;
+  bool isInt8Type(llvm::Type *type) const;
+  bool isInt64Type(llvm::Type *type) const;
+  bool isPtrType(llvm::Type *type) const;
+  bool isPrimitiveType(llvm::Type *type) const;
+  bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;
+  bool isEquivalentType(llvm::Type *type,
+                        SyntaxKindUtils::SyntaxKind customType) const;
+  bool isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
+                        llvm::Type *type) const;
+  bool isEquivalentType(llvm::Type *type1, llvm::Type *type2) const;
+  bool isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
+                        SyntaxKindUtils::SyntaxKind type2) const;
 
   llvm::Value *getDefaultValue(SyntaxKindUtils::SyntaxKind type);
   llvm::Value *getDefaultValue(llvm::Type *type);
@@ -65,9 +87,7 @@ public:
   uint64_t getSizeOf(llvm::Type *type);
 
   std::string getLLVMTypeName(const std::vector<llvm::Type *> &types,
-                              bool withColor = true) const;
-  std::string getLLVMTypeName(llvm::Type *type, bool withColor = true) const;
+                              bool withColor = false) const;
+  std::string getLLVMTypeName(llvm::Type *type, bool withColor = false) const;
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;
 };
-
-#endif // TYPEMAPPER_H

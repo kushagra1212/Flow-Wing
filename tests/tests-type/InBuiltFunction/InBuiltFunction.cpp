@@ -1,3 +1,23 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+
 #include "InBuiltFunction.h"
 
 void InBuiltFunction::SetUp() { _test->SetUp(); }
@@ -323,6 +343,46 @@ TEST_F(InBuiltFunction, BasicStringToDoubleUndefinedBehaviour) {
   std::string input = R"(print(Decimal("wwws")))";
 
   std::string expected_output = "0.00000000000000";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithInt) {
+  std::string input = R"(print(Int32(String(2))))";
+
+  std::string expected_output = "2";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithIntUndefinedBehaviour) {
+  std::string input = R"(print(Int32(String("wwws"))))";
+
+  std::string expected_output = "0";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithDouble) {
+  std::string input = R"(print(Int32(String("2.3"))))";
+
+  std::string expected_output = "2";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithDoubleUndefinedBehaviour) {
+  std::string input = R"(print(Int32(String("2.3"))))";
+
+  std::string expected_output = "2";
 
   setInput(input);
   runEvaluator();

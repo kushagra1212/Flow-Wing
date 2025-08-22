@@ -1,6 +1,33 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "ClassStatementBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/MemberBinder/FunctionDeclarationBinder/FunctionDeclarationBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/VariableDeclarationBinder/VariableDeclarationBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -38,12 +65,13 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
         ctx->getRootRef()->tryGetClass(parentClassName);
 
     if (!parentClassStat) {
-      ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Parent Class '" + parentClassName + "' Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     classStatement->getParentClassNameIdentifierRef()
-                         ->getSourceLocation()));
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {parentClassName, boundClassStat->getClassName()},
+          classStatement->getParentClassNameIdentifierRef()
+              ->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ParentClassNotFound));
 
       return std::move(boundClassStat);
     }
@@ -72,8 +100,8 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     // cusType->setTypeNameString(typeName);
 
     boundClassStat->addCustomType(
-        std::move(StatementBinderFactory::create(cusType->getKind())
-                      ->bindStatement(ctx, cusType.get())));
+        (StatementBinderFactory::create(cusType->getKind())
+             ->bindStatement(ctx, cusType.get())));
   }
 
   std::unordered_map<std::string, int> varMemberMap;
@@ -107,7 +135,13 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->insertScope();
 
-  ctx->getRootRef()->tryDeclareClass(boundClassStat.get());
+  if (!ctx->getRootRef()->tryDeclareClass(boundClassStat.get())) {
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+  }
 
   auto funBinder = std::make_unique<FunctionDeclarationBinder>();
 
@@ -120,8 +154,7 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     funBinder->setPrefix(className +
                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX);
 
-    boundClassStat->addMemberFunction(
-        std::move(funBinder->bindMember(ctx, fun.get())));
+    boundClassStat->addMemberFunction((funBinder->bindMember(ctx, fun.get())));
   }
 
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
@@ -130,18 +163,30 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     funBinder->setPrefix(className +
                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX);
 
-    boundClassStat->addMemberFunction(
-        std::move(funBinder->bindMember(ctx, fun.get())));
+    boundClassStat->addMemberFunction((funBinder->bindMember(ctx, fun.get())));
   }
 
   ctx->removeScope();
 
   ctx->removeScope();
 
-  if (CURRENT_MODULE_NAME != "")
-    ctx->getRootRef()->tryDeclareClassGlobal(boundClassStat.get());
-  else
-    ctx->getRootRef()->tryDeclareClass(boundClassStat.get());
+  if (CURRENT_MODULE_NAME != "") {
+    if (!ctx->getRootRef()->tryDeclareClassGlobal(boundClassStat.get())) {
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+    }
+  } else {
+    if (!ctx->getRootRef()->tryDeclareClass(boundClassStat.get())) {
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+    }
+  }
 
   return std::move(boundClassStat);
 }

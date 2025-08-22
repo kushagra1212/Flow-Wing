@@ -1,4 +1,31 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "CharacterTokenReader.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Utils.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 CharacterTokenReader::readToken(SourceTokenizer &lexer) {
@@ -15,8 +42,8 @@ CharacterTokenReader::readToken(SourceTokenizer &lexer) {
       lexer.advancePosition();
       text += lexer.currentChar();
       switch (lexer.currentChar()) {
-      case '"':
-        valueText += '"';
+      case '\'':
+        valueText += '\'';
         break;
       case '\\':
         valueText += '\\';
@@ -63,9 +90,10 @@ CharacterTokenReader::unTerminatedCharacterToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Unterminated Character Literal", DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(unTerminatedSyntaxToken.get())));
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Lexical, {},
+      Utils::getSourceLocation(unTerminatedSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedSingleQuote));
 
   return (unTerminatedSyntaxToken);
 }
@@ -82,11 +110,13 @@ CharacterTokenReader::badEscapeSequenceToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Bad Character Escape Sequence: \\" +
-          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
       DiagnosticUtils::DiagnosticLevel::Error,
       DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(badSyntaxToken.get())));
+      {
+          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
+      },
+      Utils::getSourceLocation(badSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterEscapeSequence));
 
   return (badSyntaxToken);
 }

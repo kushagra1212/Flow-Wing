@@ -1,3 +1,22 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "FlowWingIRConstants.h"
 #include <string>
 
@@ -23,21 +42,40 @@ const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 #if defined(__linux__)
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
-#else
+#elif defined(__APPLE__)
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
+#else
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 #endif
 
 #if defined(_WIN32)
 const std::string TEMP_BIN_DIR = "build\\bin\\";
 const std::string TEMP_OBJECT_FILES_DIR = "build\\objects\\";
 const std::string OBJECT_FILE_EXTENSION = ".obj";
-const std::string TEMP_BC_FILES_DIR = "\\flowwing\\bc\\";
+const std::string TEMP_BC_FILES_DIR = "flowwing\\bc\\";
 #else
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";
 const std::string OBJECT_FILE_EXTENSION = ".o";
 const std::string TEMP_BC_FILES_DIR = "temp/bc/";
 #endif
+
+namespace DYNAMIC_VALUE {
+namespace TYPE {
+
+const std::string TYPE_INT8 = "FG_TYPE_INT8";
+const std::string TYPE_INT32 = "FG_TYPE_INT32";
+const std::string TYPE_INT64 = "FG_TYPE_INT64";
+const std::string TYPE_FLOAT32 = "FG_TYPE_FLOAT32";
+const std::string TYPE_FLOAT64 = "FG_TYPE_FLOAT64";
+const std::string TYPE_STRING = "FG_TYPE_STRING";
+const std::string TYPE_BOOLEAN = "FG_TYPE_BOOLEAN";
+const std::string TYPE_NIRAST = "FG_TYPE_NIRAST";
+
+const std::string DYNAMIC_VALUE_TYPE = "FG_DYNAMIC_VALUE_TYPE";
+
+} // namespace TYPE
+} // namespace DYNAMIC_VALUE
 namespace INNERS {
 namespace FUNCTIONS {
 

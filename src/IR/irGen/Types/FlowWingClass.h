@@ -1,12 +1,35 @@
-#ifndef __FLOWING_CLASS_H__
-#define __FLOWING_CLASS_H__
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
+#pragma once
+
+#include "LLVMType/LLVMArrayType/LLVMArrayType.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
+#include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
-
-#include "../../../SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
-#include "LLVMType/LLVMArrayType/LLVMArrayType.h"
-#include "llvm/IR/Module.h"
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class FlowWingClass {
 private:
@@ -39,6 +62,7 @@ private:
 public:
   FlowWingClass(std::string className, BoundClassStatement *boundClassStatement)
       : _className(className), _boundClassStatement(boundClassStatement) {}
+  ~FlowWingClass() = default;
   inline auto setClassType(llvm::StructType *type) { _classType = type; }
   inline auto getClassType() -> llvm::StructType * { return _classType; }
   inline auto setElementIndex(std::string key, uint64_t index) {
@@ -95,7 +119,8 @@ public:
   inline auto getElement(std::string key)
       -> std::tuple<llvm::Type *, uint64_t, std::string, llvm::StructType *> {
     uint64_t index = _classElementsIndexMap[key];
-    llvm::Type *elementType = _classType->getElementType(index);
+    llvm::Type *elementType =
+        _classType->getElementType(static_cast<unsigned int>(index));
     std::string elementName = "primitive";
 
     if (llvm::isa<llvm::StructType>(elementType)) {
@@ -158,14 +183,15 @@ public:
       llvm::Function *f = TheModule->getFunction(fName);
 
       llvm::Value *vTableElementPtr = builder->CreateStructGEP(
-          _vTableType, vTablePtr, std::get<1>(element.second));
+          _vTableType, vTablePtr,
+          static_cast<unsigned int>(std::get<1>(element.second)));
 
       builder->CreateStore(f, vTableElementPtr);
     }
   }
 
   inline auto getFunctionPtr(llvm::IRBuilder<> *builder,
-                             llvm::Module *TheModule,
+                             [[maybe_unused]] llvm::Module *_,
                              llvm::LLVMContext *context,
                              std::string functionName, llvm::Value *ptr)
       -> llvm::Value * {
@@ -177,11 +203,13 @@ public:
       return nullptr;
     }
 
-    uint64_t index = std::get<1>(_vTableElementsMap[fName]);
+    uint64_t index =
+        static_cast<uint64_t>(std::get<1>(_vTableElementsMap[fName]));
 
     return builder->CreateLoad(
         llvm::PointerType::getInt8PtrTy(*context),
-        builder->CreateStructGEP(_vTableType, vTablePtr, index));
+        builder->CreateStructGEP(_vTableType, vTablePtr,
+                                 static_cast<unsigned int>(index)));
   }
 
   inline auto isChildOf(std::string className) -> bool {
@@ -221,8 +249,6 @@ public:
   }
 
   inline auto addMemberVariableTypeName(std::string name) -> void {
-    _memberVariablesTypeNameMap.insert({name, 1});
+    _memberVariablesTypeNameMap.insert({name, static_cast<int8_t>(1)});
   }
 };
-
-#endif

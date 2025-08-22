@@ -1,8 +1,28 @@
-#ifndef FLOWWING_OBJECT_TYPE_CHAIN_H
-#define FLOWWING_OBJECT_TYPE_CHAIN_H
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#include "../../../../common/Common.h"
-#include "../CustomTypeStatementTable/CustomTypeStatementTable.h"
+#pragma once
+
+#include "src/IR/handlers/CustomTypeStatement/CustomTypeStatementTable/CustomTypeStatementTable.h"
+#include "src/common/Common.h"
+#include <memory>
+#include <stack>
 
 class CustomTypeStatementChain {
 private:
@@ -23,5 +43,3 @@ public:
 
   void setGlobalExpr(const std::string &name, BoundCustomTypeStatement *value);
 };
-
-#endif // FLOWWING_OBJECT_TYPE_CHAIN_H

@@ -1,0 +1,47 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 14,
+    "patch": 0
+  },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../../.fw_dependencies/build",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../../.fw_dependencies/install"
+      }
+    },
+    {
+      "name": "deps-install-debug",
+      "inherits": "base",
+      "displayName": "Install Dependencies (Debug)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "deps-install-release",
+      "inherits": "base",
+      "displayName": "Install Dependencies (Release)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "deps-install-release",
+      "configurePreset": "deps-install-release"
+    },
+    {
+      "name": "deps-install-debug",
+      "configurePreset": "deps-install-debug"
+    }
+  ]
+}

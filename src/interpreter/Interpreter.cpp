@@ -1,4 +1,33 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "Interpreter.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/utils/BuiltInFunction/BuiltInFunction.h"
+#include <iostream>
 
 Interpreter::Interpreter(BoundGlobalScope *globalScope,
                          FlowWing::DiagnosticHandler *diagnosticHandler) {
@@ -531,7 +560,7 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
   try {
     return this->binaryExpressionEvaluator<std::any>(binaryExpression, left_any,
                                                      right_any);
-  } catch (const std::exception &e) {
+  } catch ([[maybe_unused]] const std::exception &e) {
     this->_interpreterUtils->logError(
         "Unexpected Binary Expression " +
         std::to_string(left_any.type().hash_code()) + " " +
@@ -585,7 +614,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
       }
       return nullptr;
     }
-    return nullptr;
   } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::String) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
@@ -656,13 +684,13 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
 
   std::string var_value = std::any_cast<std::string>(value);
 
-  if (index_value < 0 || index_value >= var_value.length()) {
+  if (index_value < 0 || index_value >= static_cast<int>(var_value.length())) {
     this->_interpreterUtils->logError("Index out of bound");
     return nullptr;
   }
 
   std::string result = "";
-  result += var_value[index_value];
+  result += var_value[static_cast<size_t>(index_value)];
   return result;
 }
 
@@ -733,7 +761,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
       this->return_type_stack.push({returnTypeExpression->getSyntaxType(), 0});
 
-      for (int i = 0; i < arguments_size; i++) {
+      for (size_t i = 0; i < arguments_size; i++) {
         std::any value = this->evaluate<std::any>(
             callExpression->getArgumentsRef()[i].get());
 
@@ -790,8 +818,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 std::any
 Interpreter::unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,
                                       std::any operand) {
-  BinderKindUtils::BoundUnaryOperatorKind op =
-      unaryExpression->getOperatorPtr();
+  BinderKindUtils::BoundUnaryOperatorKind op = unaryExpression->getOperator();
   if (operand.type() == typeid(int)) {
     return this->_interpreterUtils
         ->getResultFromUnaryExpressionEvaluatorHandlerForInt(
@@ -842,9 +869,4 @@ T Interpreter::binaryExpressionEvaluator(
         binaryExpression);
   }
 
-  this->_interpreterUtils->logError(
-      "Unexpected operand type" + std::to_string(left.type().hash_code()) +
-      " " + std::to_string(right.type().hash_code()) + " for binary operator");
-
-  return nullptr;
 }

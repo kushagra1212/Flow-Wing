@@ -1,15 +1,35 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2025 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "FillExpressionGenerationStrategy.h"
 
-#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
     llvm::Type *elementType, const std::string &containerName)
     : ExpressionGenerationStrategy(context), _actualSizes(actualSizes),
       _elementType(elementType), _containerName(containerName) {
-  _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
-                               std::multiplies<uint64_t>());
+  _totalSize =
+      std::accumulate(_actualSizes.begin(), _actualSizes.end(),
+                      static_cast<uint64_t>(1), std::multiplies<uint64_t>());
 }
 
 llvm::Value *FillExpressionGenerationStrategy::generateExpression(
@@ -98,8 +118,8 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
     return nullptr;
 
   if (index < (_actualSizes.size())) {
-    for (int64_t i = 0; i < _actualSizes[index]; i++) {
-      indices.push_back(Builder->getInt32(i));
+    for (size_t i = 0; i < _actualSizes[index]; i++) {
+      indices.push_back(Builder->getInt32(static_cast<uint32_t>(i)));
       createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices,
                            index + 1);
       indices.pop_back();
@@ -148,7 +168,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   if (llvm::isa<llvm::ConstantInt>(sizeToFillVal)) {
     llvm::ConstantInt *c = llvm::cast<llvm::ConstantInt>(sizeToFillVal);
 
-    _sizeToFillInt = c->getSExtValue();
+    _sizeToFillInt = c->getZExtValue();
 
     if (_sizeToFillInt > _totalSize || _sizeToFillInt < 0) {
       _codeGenerationContext->getLogger()->LogError(
@@ -199,8 +219,11 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
           ->createStrategy(_fillExpression->getElementToFillRef()->getKind())
           ->generateExpression(_fillExpression->getElementToFillRef().get());
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
-      llvm::isa<llvm::StructType>(_elementType)) {
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+    _isElementToFillDynamicValue = 1;
+    _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+             llvm::isa<llvm::StructType>(_elementType)) {
     _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
     _elementToFillType =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
@@ -217,7 +240,8 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (_elementType && _elementType != _elementToFill->getType()) {
+  if (_elementType && _elementType != _elementToFill->getType() &&
+      !_isElementToFillDynamicValue) {
     std::string elementTypeName =
         _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
 
@@ -253,7 +277,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
           std::make_unique<AssignmentExpressionGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int i = 0; i < _actualSizes.size(); i++) {
+  for (size_t i = 0; i < _actualSizes.size(); i++) {
     std::vector<llvm::BasicBlock *> blocks = {
         llvm::BasicBlock::Create(*TheContext,
                                  "FillExpr.loopStart-" + std::to_string(i),
@@ -291,7 +315,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
 
   Builder->CreateBr(loopBlocks[0][0]);
 
-  for (int i = 0; i < _actualSizes.size(); i++) {
+  for (size_t i = 0; i < _actualSizes.size(); i++) {
     // start
     Builder->SetInsertPoint(loopBlocks[i][0]);
     Builder->CreateStore(Builder->getInt32(0), indices[i]);
@@ -302,11 +326,12 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
     llvm::Value *currentIndex =
         Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
     llvm::Value *isLessThan = Builder->CreateICmpSLT(
-        currentIndex, Builder->getInt32(_actualSizes[i]));
+        currentIndex,
+        Builder->getInt32(static_cast<uint32_t>(_actualSizes[i])));
     //?------Comparison Count Increment------
     llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
         Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
-        Builder->getInt32(sizeToFillVal));
+        Builder->getInt32(static_cast<uint32_t>(sizeToFillVal)));
     //?
 
     llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);
@@ -318,7 +343,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
     if (i == _actualSizes.size() - 1) {
       std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-      for (int j = 0; j < _actualSizes.size(); j++) {
+      for (size_t j = 0; j < _actualSizes.size(); j++) {
         indexList.push_back(
             Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
       }
@@ -349,8 +374,16 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
         objExpGenStrategy->generateVariable(elementPtr,
                                             _elementType->getStructName().str(),
                                             _elementToFill, _isGlobal);
-      } else
-        Builder->CreateStore(elementToFill, elementPtr);
+      } else {
+
+        if (_isElementToFillDynamicValue) {
+          DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSVariable(
+              elementPtr, _elementType, elementToFill, _codeGenerationContext,
+              Builder);
+        } else {
+          Builder->CreateStore(elementToFill, elementPtr);
+        }
+      }
 
       llvm::Value *_currentIndex =
           Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
