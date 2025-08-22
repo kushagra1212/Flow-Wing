@@ -205,7 +205,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17 lld-17 ninja-build ccache automake autoconf libtool wget
 
       - name: Restore Dependencies from Cache
         id: cache-deps
