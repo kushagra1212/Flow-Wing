@@ -18,49 +18,64 @@
  */
 
 #include "TernaryExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 
-SyntaxKindUtils::SyntaxKind TernaryExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::TernaryExpression;
+namespace flow_wing {
+namespace syntax {
+
+TernaryExpressionSyntax::TernaryExpressionSyntax(
+    std::unique_ptr<ExpressionSyntax> condition_expression,
+    const SyntaxToken *question_token,
+    std::unique_ptr<ExpressionSyntax> true_expression,
+    const SyntaxToken *colon_token,
+    std::unique_ptr<ExpressionSyntax> false_expression)
+    : ExpressionSyntax(condition_expression->getSourceLocation()),
+      m_condition_expression(std::move(condition_expression)),
+      m_question_token(question_token),
+      m_true_expression(std::move(true_expression)), m_colon_token(colon_token),
+      m_false_expression(std::move(false_expression)) {}
+
+syntax::NodeKind TernaryExpressionSyntax::getKind() const {
+  return NodeKind::kTernaryExpression;
 }
 
-const std::vector<SyntaxNode *> &TernaryExpressionSyntax::getChildren() {
-  if (_children.empty()) {
-    if (_conditionExpression)
-      _children.emplace_back(_conditionExpression.get());
+void TernaryExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-    if (_questionToken)
-      _children.emplace_back(_questionToken.get());
+const std::unique_ptr<ExpressionSyntax> &
+TernaryExpressionSyntax::getConditionExpression() const {
+  return m_condition_expression;
+}
+const SyntaxToken *TernaryExpressionSyntax::getQuestionToken() const {
+  return m_question_token;
+}
+const std::unique_ptr<ExpressionSyntax> &
+TernaryExpressionSyntax::getTrueExpression() const {
+  return m_true_expression;
+}
 
-    if (_trueExpression)
-      _children.emplace_back(_trueExpression.get());
+const std::unique_ptr<ExpressionSyntax> &
+TernaryExpressionSyntax::getFalseExpression() const {
+  return m_false_expression;
+}
 
-    if (_colonToken)
-      _children.emplace_back(_colonToken.get());
-
-    if (_falseExpression)
-      _children.emplace_back(_falseExpression.get());
+const std::vector<const SyntaxNode *> &
+TernaryExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_condition_expression.get()),
+          static_cast<const SyntaxNode *>(m_question_token),
+          static_cast<const SyntaxNode *>(m_true_expression.get()),
+          static_cast<const SyntaxNode *>(m_colon_token),
+          static_cast<const SyntaxNode *>(m_false_expression.get())}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
   }
-  return _children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-TernaryExpressionSyntax::getSourceLocation() const {
-  if (_conditionExpression)
-    return _conditionExpression->getSourceLocation();
-
-  if (_questionToken)
-    return _questionToken->getSourceLocation();
-
-  if (_trueExpression)
-    return _trueExpression->getSourceLocation();
-
-  if (_colonToken)
-    return _colonToken->getSourceLocation();
-
-  if (_falseExpression)
-    return _falseExpression->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

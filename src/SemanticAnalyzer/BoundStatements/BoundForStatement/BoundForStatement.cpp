@@ -18,69 +18,24 @@
  */
 
 
-#include "BoundForStatement.h"
+#include "BoundForStatement.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundForStatement::BoundForStatement(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundStatement> initialization,
-    std::unique_ptr<BoundExpression> upperBound,
-    std::unique_ptr<BoundExpression> boundStepExpression,
-    std::unique_ptr<BoundStatement> statement)
-    : BoundSourceLocation(location) {
-  this->_initialization = std::move(initialization);
-  this->_upperBound = std::move(upperBound);
-  this->_boundStepExpression = std::move(boundStepExpression);
-  this->_statement = std::move(statement);
+    std::unique_ptr<BoundStatement> variable_declaration,
+    std::unique_ptr<BoundExpression> assignment_expression,
+    std::unique_ptr<BoundExpression> upper_bound,
+    std::unique_ptr<BoundExpression> step, std::unique_ptr<BoundStatement> body,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location),
+      m_variable_declaration(std::move(variable_declaration)),
+      m_assignment_expression(std::move(assignment_expression)),
+      m_upper_bound(std::move(upper_bound)), m_step(std::move(step)),
+      m_body(std::move(body)) {}
 
-  this->_children.push_back(this->_initialization.get());
-  this->_children.push_back(this->_upperBound.get());
+NodeKind BoundForStatement::getKind() const { return NodeKind::kForStatement; }
 
-  if (this->_boundStepExpression != nullptr)
-    this->_children.push_back(this->_boundStepExpression.get());
-  this->_children.push_back(this->_statement.get());
-}
-
-std::unique_ptr<BoundStatement> BoundForStatement::getInitialization() {
-
-  return std::move(this->_initialization);
-}
-
-std::unique_ptr<BoundStatement> BoundForStatement::getStatement() {
-
-  return std::move(this->_statement);
-}
-
-std::unique_ptr<BoundExpression> BoundForStatement::getUpperBound() {
-
-  return std::move(this->_upperBound);
-}
-
-std::unique_ptr<BoundExpression> BoundForStatement::getStepExpression() {
-
-  return std::move(this->_boundStepExpression);
-}
-BinderKindUtils::BoundNodeKind BoundForStatement::getKind() const {
-
-  return BinderKindUtils::BoundNodeKind::ForStatement;
-}
-
-std::vector<BoundNode *> BoundForStatement::getChildren() {
-
-  return this->_children;
-}
-
-std::unique_ptr<BoundStatement> &BoundForStatement::getInitializationPtr() {
-  return this->_initialization;
-}
-
-std::unique_ptr<BoundStatement> &BoundForStatement::getStatementPtr() {
-  return this->_statement;
-}
-
-std::unique_ptr<BoundExpression> &BoundForStatement::getUpperBoundPtr() {
-  return this->_upperBound;
-}
-
-std::unique_ptr<BoundExpression> &BoundForStatement::getStepExpressionPtr() {
-  return this->_boundStepExpression;
-}
+} // namespace binding
+} // namespace flow_wing

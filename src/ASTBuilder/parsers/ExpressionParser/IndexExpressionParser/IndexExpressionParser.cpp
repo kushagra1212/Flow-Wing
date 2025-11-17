@@ -17,111 +17,42 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "IndexExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IndexExpressionParser/IndexExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/DimensionClauseExpressionParser/DimensionClauseExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
-#include <any>
+#include <cassert>
 
-std::unique_ptr<ExpressionSyntax>
-IndexExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+namespace flow_wing {
+namespace parser {
 
-  ctx->setIsInsideIndexExpression(true);
+IndexExpressionParser::IndexExpressionParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  std::any value = identifierToken->getValue();
-  std::unique_ptr<IndexExpressionSyntax> indexExpression =
-      std::make_unique<IndexExpressionSyntax>(
-          std::make_unique<LiteralExpressionSyntax<std::any>>(
-              std::move(identifierToken), value));
+std::unique_ptr<syntax::ExpressionSyntax> IndexExpressionParser::parsePostfix(
+    std::unique_ptr<syntax::ExpressionSyntax> identifier_expression) {
 
-  while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+  auto dimension_clause_expressions =
+      std::vector<std::unique_ptr<syntax::ExpressionSyntax>>();
 
-    indexExpression->addIndexExpression(
-        PrecedenceAwareExpressionParser::parse(ctx));
+  while (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOpenBracketToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
+    dimension_clause_expressions.push_back(
+        std::make_unique<parser::DimensionClauseExpressionParser>(m_ctx)
+            ->parse()); // [2]
   }
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
-    std::unique_ptr<TypeExpressionSyntax> typeExpression =
-        std::make_unique<TypeExpressionSyntax>(
-            std::make_unique<SyntaxToken<std::any>>(
-                ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
-                SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
-                "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
-
-    std::unique_ptr<VariableExpressionSyntax> variExp =
-        std::make_unique<VariableExpressionSyntax>(
-            std::make_unique<LiteralExpressionSyntax<std::any>>(nullptr, value),
-            false, std::move(typeExpression));
-
-    while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
-      ctx->match(SyntaxKindUtils::SyntaxKind::DotToken);
-
-      if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken &&
-          ctx->peek(1)->getKind() ==
-              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
-        std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
-
-        std::any localValue = localIdentifierToken->getValue();
-        std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
-            std::make_unique<IndexExpressionSyntax>(
-                std::make_unique<LiteralExpressionSyntax<std::any>>(
-                    std::move(localIdentifierToken), localValue));
-
-        while (ctx->getKind() ==
-               SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
-          ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
-
-          localIndexExpression->addIndexExpression(
-              PrecedenceAwareExpressionParser::parse(ctx));
-
-          ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-        }
-
-        variExp->addDotExpression(std::move(localIndexExpression));
-      } else {
-        std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
-        std::any localValue = localIdentifierToken->getValue();
-
-        variExp->addDotExpression(
-            std::make_unique<LiteralExpressionSyntax<std::any>>(
-                std::move(localIdentifierToken), localValue));
-      }
-    }
-    indexExpression->addVariableExpression(std::move(variExp));
-  }
-
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-
-    std::unique_ptr<ExpressionSyntax> right =
-        PrecedenceAwareExpressionParser::parse(ctx);
-
-    ctx->setIsInsideIndexExpression(false);
-    return std::make_unique<AssignmentExpressionSyntax>(
-        std::move(indexExpression), operatorToken->getKind(), std::move(right));
-  }
-
-  ctx->setIsInsideIndexExpression(false);
-
-  return indexExpression;
+  return std::make_unique<syntax::IndexExpressionSyntax>(
+      std::move(identifier_expression),
+      std::move(
+          dimension_clause_expressions)); // identifier[2] or identifier[2][3]
 }
+
+std::unique_ptr<syntax::ExpressionSyntax> IndexExpressionParser::parse() {
+  assert(false && "IndexExpressionParser::parse() is not implemented");
+  return nullptr;
+}
+
+} // namespace parser
+} // namespace flow_wing

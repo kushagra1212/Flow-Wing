@@ -19,53 +19,41 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/expression/DimensionClauseExpressionSyntax/DimensionClauseExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <memory>
 
-class ArrayTypeExpressionSyntax : public TypeExpressionSyntax {
-private:
-  std::vector<std::unique_ptr<ExpressionSyntax>> _dimensions;
-  std::unique_ptr<SyntaxToken<std::any>> _elementType;
-  std::unique_ptr<TypeExpressionSyntax> _nonTrivialElementType;
-  bool _isTrivial = false;
+namespace flow_wing {
+namespace syntax {
 
+class ArrayTypeExpressionSyntax : public ExpressionSyntax {
 public:
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  ArrayTypeExpressionSyntax(
+      std::unique_ptr<ExpressionSyntax> underlying_type,
+      std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> dimensions);
 
-  ArrayTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
-
-  // Setters
-  inline void setElementType(std::unique_ptr<SyntaxToken<std::any>> type) {
-    _isTrivial = true;
-    _elementType = std::move(type);
-  }
-
-  inline void
-  setNonTrivialElementType(std::unique_ptr<TypeExpressionSyntax> type) {
-    _nonTrivialElementType = std::move(type);
-  }
-
-  inline void addDimension(std::unique_ptr<ExpressionSyntax> dimension) {
-    _dimensions.push_back(std::move(dimension));
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  inline auto getDimensions() const
-      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
-    return _dimensions;
+  const std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> &
+  getDimensions() const {
+    return m_dimensions;
   }
 
-  inline auto getElementTypeRef()
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _elementType;
+  const std::unique_ptr<ExpressionSyntax> &getUnderlyingType() const {
+    return m_underlying_type;
   }
 
-  inline auto getNonTrivialElementTypeRef()
-      -> const std::unique_ptr<TypeExpressionSyntax> & {
-    return _nonTrivialElementType;
-  }
+private:
+  std::unique_ptr<ExpressionSyntax> m_underlying_type;
+  std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> m_dimensions;
 
-  inline bool isTrivial() const { return _isTrivial; }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

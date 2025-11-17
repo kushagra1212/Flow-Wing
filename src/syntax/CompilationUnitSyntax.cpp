@@ -18,39 +18,38 @@
  */
 
 #include "CompilationUnitSyntax.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
-SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
-  return SyntaxKindUtils::SyntaxKind::CompilationUnit;
+namespace flow_wing {
+namespace syntax {
+
+CompilationUnitSyntax::CompilationUnitSyntax(
+    std::vector<std::unique_ptr<StatementSyntax>> global_statements,
+    const SyntaxToken *end_of_file_token)
+    : m_global_statements(std::move(global_statements)),
+      m_end_of_file_token(end_of_file_token) {}
+
+NodeKind CompilationUnitSyntax::getKind() const {
+  return NodeKind::kCompilationUnit;
 }
 
-std::vector<std::unique_ptr<MemberSyntax>> &
-CompilationUnitSyntax::getMembers() {
-  return this->_members;
+void CompilationUnitSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-void CompilationUnitSyntax::addMember(std::unique_ptr<MemberSyntax> member) {
-  this->_members.push_back(std::move(member));
-}
-
-void CompilationUnitSyntax::setEndOfFileToken(
-    std::unique_ptr<SyntaxToken<std::any>> endOfFileToken) {
-  this->_endOfFileToken = std::move(endOfFileToken);
-}
-
-const std::vector<SyntaxNode *> &CompilationUnitSyntax::getChildren() {
-  if (this->_children.empty()) {
-    // Add Children
-    for (const auto &member : this->_members) {
-      _children.emplace_back((SyntaxNode *)(member.get()));
+const std::vector<const SyntaxNode *> &
+CompilationUnitSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &global_statement : m_global_statements) {
+      if (global_statement)
+        m_children.emplace_back(global_statement.get());
     }
-    _children.emplace_back(this->_endOfFileToken.get());
+    if (m_end_of_file_token)
+      m_children.emplace_back(m_end_of_file_token);
   }
-  return this->_children;
+  return m_children;
 }
 
-const std::unique_ptr<SyntaxToken<std::any>> &
-CompilationUnitSyntax::getEndOfFileTokenRef() {
-  return this->_endOfFileToken;
-}
+} // namespace syntax
+} // namespace flow_wing

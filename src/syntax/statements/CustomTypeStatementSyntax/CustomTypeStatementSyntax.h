@@ -19,65 +19,42 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/AttributeExpressionSyntax/AttributeExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/expression/FieldDeclarationSyntax/FieldDeclarationSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
+
 class CustomTypeStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _typeName;
-  std::vector<std::unique_ptr<AttributeExpressionSyntax>> _key_type_pairs;
-  std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
 
 public:
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  CustomTypeStatementSyntax(
+      const SyntaxToken *type_keyword,
+      std::unique_ptr<ExpressionSyntax> type_name,
+      const SyntaxToken *equals_token, const SyntaxToken *open_brace_token,
+      std::vector<std::unique_ptr<FieldDeclarationSyntax>> field_declarations,
+      const SyntaxToken *close_brace_token);
 
-  /*
-     Setters
-  */
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto
-  setTypeName(std::unique_ptr<LiteralExpressionSyntax<std::any>> typeName)
-      -> void {
-    this->_typeName = std::move(typeName);
-  }
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getTypeName() const;
+  const std::vector<std::unique_ptr<FieldDeclarationSyntax>> &
+  getFieldDeclarations() const;
 
-  inline auto
-  addKeyTypePair(std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
-                 std::unique_ptr<TypeExpressionSyntax> type) -> void {
-    std::unique_ptr<AttributeExpressionSyntax> key_type_pair =
-        std::make_unique<AttributeExpressionSyntax>();
+private:
+  const SyntaxToken *m_type_keyword;
+  std::unique_ptr<ExpressionSyntax> m_type_name;
+  const SyntaxToken *m_equals_token;
+  const SyntaxToken *m_open_brace_token;
+  std::vector<std::unique_ptr<FieldDeclarationSyntax>> m_field_declarations;
+  const SyntaxToken *m_close_brace_token;
 
-    key_type_pair->setAttribute(std::move(key), std::move(type));
-
-    this->_key_type_pairs.push_back(std::move(key_type_pair));
-  }
-
-  inline auto
-  setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword)
-      -> void {
-    this->_exposeKeyword = std::move(exposeKeyword);
-  }
-
-  /*
-    Getters
-  */
-
-  inline auto getTypeNameRef()
-      -> const std::unique_ptr<LiteralExpressionSyntax<std::any>> & {
-    return this->_typeName;
-  }
-
-  inline auto getKeyTypePairsRef()
-      -> const std::vector<std::unique_ptr<AttributeExpressionSyntax>> & {
-    return this->_key_type_pairs;
-  }
-
-  inline auto isExposed() const -> bool {
-    return this->_exposeKeyword != nullptr;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

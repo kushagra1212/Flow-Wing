@@ -18,32 +18,29 @@
  */
 
 
-#include "BoundSwitchStatement.h"
+#include "BoundSwitchStatement.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+
+namespace flow_wing {
+namespace binding {
 
 BoundSwitchStatement::BoundSwitchStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::unique_ptr<BoundExpression> switch_condition_expression,
+    std::unique_ptr<BoundStatement> default_case_statement,
+    std::vector<std::unique_ptr<BoundExpression>> case_expressions,
+    std::vector<std::unique_ptr<BoundStatement>> case_statements,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location),
+      m_switch_condition_expression(std::move(switch_condition_expression)),
+      m_default_case_statement(std::move(default_case_statement)),
+      m_case_expressions(std::move(case_expressions)),
+      m_case_statements(std::move(case_statements)) {}
 
-/*
-  Overrides
-*/
-
-BinderKindUtils::BoundNodeKind BoundSwitchStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundSwitchStatement;
+NodeKind BoundSwitchStatement::getKind() const {
+  return NodeKind::kSwitchStatement;
 }
 
-std::vector<BoundNode *> BoundSwitchStatement::getChildren() {
-  if (_children.empty()) {
-    if (_switchExpression)
-      _children.emplace_back(_switchExpression.get());
-
-    for (auto &item : _boundCaseStatements) {
-      _children.emplace_back(item.get());
-    }
-
-    if (_defaultCaseStatement)
-      _children.emplace_back(_defaultCaseStatement.get());
-  }
-
-  return _children;
-}
+} // namespace binding
+} // namespace flow_wing

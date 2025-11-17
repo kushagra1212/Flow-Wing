@@ -21,8 +21,22 @@
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 
+namespace flow_wing {
+
+namespace syntax {
+class SyntaxToken;
+} // namespace syntax
+
+namespace parser {
+
 class IdentifierExpressionParser : public ExpressionParser {
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit IdentifierExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

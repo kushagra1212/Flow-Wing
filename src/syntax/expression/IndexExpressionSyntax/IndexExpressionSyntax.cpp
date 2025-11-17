@@ -18,41 +18,50 @@
  */
 
 #include "IndexExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+
+namespace flow_wing {
+namespace syntax {
 
 IndexExpressionSyntax::IndexExpressionSyntax(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression)
-    : _identifierExpression(std::move(identifierExpression)) {}
+    std::unique_ptr<ExpressionSyntax> left_expression,
+    std::vector<std::unique_ptr<ExpressionSyntax>> dimension_clause_expressions)
+    : m_left_expression(std::move(left_expression)),
+      m_dimension_clause_expressions(std::move(dimension_clause_expressions)) {}
 
-std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-IndexExpressionSyntax::getIndexIdentifierExpressionRef() {
-  return this->_identifierExpression;
+NodeKind IndexExpressionSyntax::getKind() const {
+  return NodeKind::kIndexExpression;
 }
 
-SyntaxKindUtils::SyntaxKind IndexExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::IndexExpression;
+void IndexExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
-const std::vector<SyntaxNode *> &IndexExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
 
-  if (_selfKeyword)
-    _children.emplace_back(_selfKeyword.get());
+const std::unique_ptr<ExpressionSyntax> &
+IndexExpressionSyntax::getLeftExpression() const {
+  return m_left_expression;
+}
 
-  _children.emplace_back(this->_identifierExpression.get());
+const std::vector<std::unique_ptr<ExpressionSyntax>> &
+IndexExpressionSyntax::getDimensionClauseExpressions() const {
+  return m_dimension_clause_expressions;
+}
 
-  for (const auto &item : this->_indexExpressions) {
-    _children.emplace_back(item.get());
+const std::vector<const SyntaxNode *> &
+IndexExpressionSyntax::getChildren() const {
+
+  if (m_children.empty()) {
+
+    if (m_left_expression)
+      m_children.emplace_back(this->m_left_expression.get());
+
+    for (const auto &item : this->m_dimension_clause_expressions) {
+      if (item)
+        m_children.emplace_back(item.get());
+    }
   }
-  if (_variableExpression) {
-    _children.emplace_back(_variableExpression.get());
-  }
-  return _children;
+  return m_children;
 }
-const DiagnosticUtils::SourceLocation
-IndexExpressionSyntax::getSourceLocation() const {
-  return this->_identifierExpression->getSourceLocation();
-}
+} // namespace syntax
+
+} // namespace flow_wing

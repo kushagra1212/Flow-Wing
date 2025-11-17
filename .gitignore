@@ -2,7 +2,6 @@
 .DS_Store
 build/
 test-build/
-debug/
 new-test.txt
 .cache/
 **/jit-compiler*/**build*/

@@ -19,104 +19,106 @@
 
 #include "CharacterTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
+namespace flow_wing {
+namespace lexer {
 
-std::unique_ptr<SyntaxToken<std::any>>
+std::unique_ptr<syntax::SyntaxToken>
 CharacterTokenReader::readToken(SourceTokenizer &lexer) {
-  const size_t &start = lexer.position();
-  lexer.advancePosition();
-  std::string text = "", valueText = "";
-  while (!lexer.isEOLorEOF() && lexer.currentChar() != '\'') {
-    if (lexer.currentChar() == '\0') {
-      return unTerminatedCharacterToken(lexer, start);
-    }
+  const size_t &start_pos = lexer.position();
+  std::string text = "";
+  char value_char = '\0';
+  text += lexer.currentChar();
+  lexer.advancePosition(); // consume the '
 
-    if (lexer.currentChar() == '\\') {
-      text += lexer.currentChar();
-      lexer.advancePosition();
-      text += lexer.currentChar();
-      switch (lexer.currentChar()) {
-      case '\'':
-        valueText += '\'';
-        break;
-      case '\\':
-        valueText += '\\';
-        break;
-      case 'n':
-        valueText += '\n';
-        break;
-      case 'r':
-        valueText += '\r';
-        break;
-      case 't':
-        valueText += '\t';
-        break;
-      default: {
-        return badEscapeSequenceToken(lexer, start);
-      }
-      }
-    } else {
-      text += lexer.currentChar();
-      valueText += lexer.currentChar();
+  if (lexer.isEOLorEOF()) {
+    return unTerminatedCharacterToken(lexer, text, start_pos);
+  }
+
+  if (lexer.currentChar() == '\\') {
+    text += lexer.currentChar();
+    lexer.advancePosition();
+    text += lexer.currentChar();
+    switch (lexer.currentChar()) {
+    case '\'':
+      value_char = '\'';
+      break;
+    case '\\':
+      value_char = '\\';
+      break;
+    case 'n':
+      value_char = '\n';
+      break;
+    case 'r':
+      value_char = '\r';
+      break;
+    case 't':
+      value_char = '\t';
+      break;
+    case '0':
+      value_char = '\0';
+      break;
+      break;
+    default: {
+      return badEscapeSequenceToken(lexer, std::string(1, lexer.currentChar()),
+                                    start_pos);
+    }
     }
     lexer.advancePosition();
+  } else {
+    text += lexer.currentChar();
+    value_char = lexer.currentChar();
+    lexer.advancePosition();
   }
+
+  text += lexer.currentChar();
   if (lexer.currentChar() != '\'') {
-    return unTerminatedCharacterToken(lexer, start);
+    return unTerminatedCharacterToken(lexer, text, start_pos);
   }
 
   lexer.advancePosition();
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::CharacterToken, start, '\'' + text + '\'',
-      valueText);
+
+  return std::make_unique<syntax::SyntaxToken>(
+      TokenKind::kCharacterLiteralToken, text, value_char,
+      diagnostic::SourceLocation(lexer.lineNumber(), start_pos, text.length()));
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
+std::unique_ptr<syntax::SyntaxToken>
 CharacterTokenReader::unTerminatedCharacterToken(SourceTokenizer &lexer,
-                                                 const size_t &start) {
-  std::unique_ptr<SyntaxToken<std::any>> unTerminatedSyntaxToken =
-      std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::BadToken, start,
-          lexer.getLine(lexer.lineNumber())
-              .substr(start, lexer.position() - start),
-          0);
+                                                 const std::string &text,
+                                                 const size_t &start_pos) {
 
-  lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical, {},
-      Utils::getSourceLocation(unTerminatedSyntaxToken.get()),
-      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedSingleQuote));
+  std::unique_ptr<syntax::SyntaxToken> un_terminated_syntax_token =
+      std::make_unique<syntax::SyntaxToken>(
+          TokenKind::kBadToken, text, std::any(),
+          diagnostic::SourceLocation(lexer.lineNumber(), start_pos,
+                                     text.size()));
 
-  return (unTerminatedSyntaxToken);
+  lexer.reportError(
+      flow_wing::diagnostic::DiagnosticCode::kUnterminatedSingleQuote, {},
+      un_terminated_syntax_token->getSourceLocation());
+
+  return un_terminated_syntax_token;
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
+std::unique_ptr<syntax::SyntaxToken>
 CharacterTokenReader::badEscapeSequenceToken(SourceTokenizer &lexer,
-                                             const size_t &start) {
-  std::unique_ptr<SyntaxToken<std::any>> badSyntaxToken =
-      std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::BadToken, start,
-          lexer.getLine(lexer.lineNumber())
-              .substr(start, lexer.position() - start),
-          0);
+                                             const std::string &text,
+                                             const size_t &start_pos) {
 
-  lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical,
-      {
-          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
-      },
-      Utils::getSourceLocation(badSyntaxToken.get()),
-      FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterEscapeSequence));
+  std::unique_ptr<syntax::SyntaxToken> bad_syntax_token =
+      std::make_unique<syntax::SyntaxToken>(
+          TokenKind::kBadToken, text, std::any(),
+          diagnostic::SourceLocation(lexer.lineNumber(), start_pos,
+                                     text.size()));
 
-  return (badSyntaxToken);
+  lexer.reportError(
+      flow_wing::diagnostic::DiagnosticCode::kBadCharacterEscapeSequence,
+      {lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1)},
+      bad_syntax_token->getSourceLocation());
+
+  return bad_syntax_token;
 }
+} // namespace lexer
+} // namespace flow_wing

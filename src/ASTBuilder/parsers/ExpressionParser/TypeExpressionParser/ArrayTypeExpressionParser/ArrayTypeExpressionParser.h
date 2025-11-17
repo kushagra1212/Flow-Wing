@@ -20,8 +20,28 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include <memory>
+
+namespace flow_wing {
+
+namespace syntax {
+class ExpressionSyntax;
+} // namespace syntax
+namespace parser {
+
+class ParserContext;
 class ArrayTypeExpressionParser : public ExpressionParser {
+
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit ArrayTypeExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+  std::unique_ptr<syntax::ExpressionSyntax>
+  parsePostfix(std::unique_ptr<syntax::ExpressionSyntax> underlying_type);
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

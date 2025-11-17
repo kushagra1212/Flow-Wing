@@ -20,44 +20,22 @@
 
 #include "BoundVariableDeclaration.h"
 
+namespace flow_wing {
+namespace binding {
+
 BoundVariableDeclaration::BoundVariableDeclaration(
-    const DiagnosticUtils::SourceLocation &location,
-    const std::string &variableName, bool isConst, bool isExposed)
-    : BoundSourceLocation(location), _variableName(variableName),
-      _isConst(isConst), _isExposed(isExposed) {}
+    std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundDeclarationStatement(location), m_symbols(symbols) {}
 
-std::unique_ptr<BoundExpression> BoundVariableDeclaration::getInitializer() {
-  return std::move(_initializer);
+NodeKind BoundVariableDeclaration::getKind() const {
+  return NodeKind::kVariableDeclaration;
 }
 
-BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
-  return BinderKindUtils::BoundNodeKind::VariableDeclaration;
+const std::vector<std::shared_ptr<analysis::Symbol>> &
+BoundVariableDeclaration::getSymbols() const {
+  return m_symbols;
 }
 
-BinderKindUtils::MemoryKind BoundVariableDeclaration::getMemoryKind() const {
-  return _memoryKind;
-};
-
-bool BoundVariableDeclaration::isConst() const { return _isConst; }
-
-std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
-  if (_children.empty()) {
-    if (_typeExp)
-      _children.push_back(this->_typeExp.get());
-    if (_identifier)
-      _children.push_back(this->_identifier.get());
-    if (_initializer)
-      _children.push_back(this->_initializer.get());
-  }
-
-  return this->_children;
-}
-
-std::unique_ptr<BoundExpression> &
-BoundVariableDeclaration::getInitializerPtr() {
-  return this->_initializer;
-}
-
-const std::string &BoundVariableDeclaration::getVariableName() const {
-  return _variableName;
-}
+} // namespace binding
+} // namespace flow_wing

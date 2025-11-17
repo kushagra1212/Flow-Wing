@@ -20,22 +20,27 @@
 #pragma once
 
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
-#include <memory>
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken;
+class SyntaxToken;
+
 class BreakStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _breakKeyword;
 
 public:
-  BreakStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> breakKeyword);
+  BreakStatementSyntax(const SyntaxToken *break_keyword);
 
-  std::unique_ptr<SyntaxToken<std::any>> getBreakKeyword();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Getters
 
-  std::unique_ptr<SyntaxToken<std::any>> &getBreakKeywordPtr();
+private:
+  const SyntaxToken *m_break_keyword;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

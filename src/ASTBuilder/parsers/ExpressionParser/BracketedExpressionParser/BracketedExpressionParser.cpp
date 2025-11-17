@@ -18,31 +18,74 @@
  */
 
 #include "BracketedExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/ContainerExpressionParser/ContainerExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/FillExpressionParser/FillExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
-#include <memory>
+#include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 
-std::unique_ptr<ExpressionSyntax>
-BracketedExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<BracketedExpressionSyntax> bracketedExpression =
-      std::make_unique<BracketedExpressionSyntax>();
+namespace flow_wing {
+namespace parser {
 
-  if (ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword
+BracketedExpressionParser::BracketedExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-      || ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword) {
+std::unique_ptr<syntax::ExpressionSyntax> BracketedExpressionParser::parse() {
 
-    bracketedExpression->setExpression(
-        std::make_unique<FillExpressionParser>()->parseExpression(ctx));
+  auto open_bracket_token =
+      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // [
 
-  } else {
-    bracketedExpression->setExpression(
-        std::make_unique<ContainerExpressionParser>()->parseExpression(ctx));
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCloseBracketToken) {
+    auto close_bracket_token =
+        m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
+
+    return std::make_unique<syntax::ContainerExpressionSyntax>(
+        open_bracket_token, close_bracket_token);
   }
 
-  return bracketedExpression;
+  auto elements = std::vector<std::unique_ptr<syntax::ExpressionSyntax>>();
+  auto comma_tokens = std::vector<const syntax::SyntaxToken *>();
+  size_t index = 0;
+
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBracketToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+
+    if (index > 0) {
+      comma_tokens.emplace_back(
+          m_ctx->match(lexer::TokenKind::kCommaToken)); // .
+    }
+
+    auto value_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 2
+
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kFillKeyword) {
+
+      auto fill_token = m_ctx->match(lexer::TokenKind::kFillKeyword); // fill
+
+      auto fill_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 5
+
+      auto close_bracket_token =
+          m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
+
+      return std::make_unique<syntax::FillExpressionSyntax>(
+          open_bracket_token, std::move(value_expression), fill_token,
+          std::move(fill_expression), close_bracket_token); // [2 fill 5]
+
+    } else {
+      elements.push_back(
+          std::move(value_expression)); // 2 or 5 or "Hello" or 1.0
+    }
+    index++;
+  }
+
+  auto close_bracket_token =
+      m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
+
+  return std::make_unique<syntax::ContainerExpressionSyntax>(
+      open_bracket_token, std::move(elements), comma_tokens,
+      close_bracket_token); // [2, 5, "Hello", 1.0]
 }
+
+} // namespace parser
+} // namespace flow_wing

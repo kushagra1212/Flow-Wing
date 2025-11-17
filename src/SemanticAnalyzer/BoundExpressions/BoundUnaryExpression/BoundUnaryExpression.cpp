@@ -17,46 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "BoundUnaryExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+
+#include "BoundUnaryExpression.hpp"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+
+namespace flow_wing {
+namespace binding {
 
 BoundUnaryExpression::BoundUnaryExpression(
+    lexer::TokenKind operator_token_kind,
+    std::unique_ptr<BoundExpression> expression,
+    std::shared_ptr<types::Type> type,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_expression(std::move(expression)),
+      m_type(type), m_operator_token_kind(operator_token_kind) {}
 
-    const DiagnosticUtils::SourceLocation &location,
-    BinderKindUtils::BoundUnaryOperatorKind op,
-    std::unique_ptr<BoundExpression> operand)
-    : BoundExpression(location) {
-  this->_op = op;
-  this->_operand = std::move(operand);
-
-  this->_children.push_back(this->_operand.get());
+NodeKind BoundUnaryExpression::getKind() const {
+  return NodeKind::kUnaryExpression;
 }
 
-const std::type_info &BoundUnaryExpression::getType() {
-  return this->_operand->getType();
+std::shared_ptr<types::Type> BoundUnaryExpression::getType() const {
+  return m_type;
 }
 
-BinderKindUtils::BoundNodeKind BoundUnaryExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::UnaryExpression;
+const std::unique_ptr<BoundExpression> &BoundUnaryExpression::getExpression() {
+  return m_expression;
 }
 
-std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
-  return this->_children;
+lexer::TokenKind BoundUnaryExpression::getOperatorTokenKind() {
+  return m_operator_token_kind;
 }
 
-std::unique_ptr<BoundExpression> &BoundUnaryExpression::getOperandPtr() {
-  return this->_operand;
-}
-
-BinderKindUtils::BoundUnaryOperatorKind &BoundUnaryExpression::getOperator() {
-  return this->_op;
-}
-
-llvm::AllocaInst *BoundUnaryExpression::getDynamicValueVariableAddress() {
-  return this->_dynamicValueVariableAddress;
-}
-
-void BoundUnaryExpression::setDynamicValueVariableAddress(
-    llvm::AllocaInst *dynamicValueVariableAddress) {
-  this->_dynamicValueVariableAddress = dynamicValueVariableAddress;
-}
+} // namespace binding
+} // namespace flow_wing

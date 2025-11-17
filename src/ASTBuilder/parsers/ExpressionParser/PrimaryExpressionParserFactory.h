@@ -19,16 +19,21 @@
 
 #pragma once
 
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include <memory>
+
+namespace flow_wing {
+
+namespace parser {
+
+class ParserContext;
 
 class ExpressionParser;
 
-namespace SyntaxKindUtils {
-enum SyntaxKind : int;
-}
-
 class PrimaryExpressionParserFactory {
 public:
-  static std::unique_ptr<ExpressionParser>
-  createPrimaryExpressionParser(const SyntaxKindUtils::SyntaxKind &kind);
+  static std::unique_ptr<parser::ExpressionParser>
+  create(ParserContext *ctx, const lexer::TokenKind &kind);
 };
+} // namespace parser
+} // namespace flow_wing

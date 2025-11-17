@@ -18,41 +18,36 @@
  */
 
 #include "ArrayTypeExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+namespace flow_wing {
+namespace syntax {
 
 ArrayTypeExpressionSyntax::ArrayTypeExpressionSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> type)
-    : TypeExpressionSyntax(std::move(type)) {}
+    std::unique_ptr<ExpressionSyntax> underlying_type,
+    std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> dimensions)
+    : m_underlying_type(std::move(underlying_type)),
+      m_dimensions(std::move(dimensions)) {}
 
-const std::vector<SyntaxNode *> &ArrayTypeExpressionSyntax::getChildren() {
-  if (this->_children.empty()) {
-    if (_nonTrivialElementType)
-      _children.push_back(this->_nonTrivialElementType.get());
-    if (_elementType)
-      _children.push_back(this->_elementType.get());
-    for (auto &dimension : this->_dimensions) {
-      this->_children.push_back(dimension.get());
+void ArrayTypeExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
+
+const std::vector<const SyntaxNode *> &
+ArrayTypeExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_underlying_type)
+      m_children.push_back(m_underlying_type.get());
+    for (auto &dimension : m_dimensions) {
+      m_children.push_back(dimension.get());
     }
   }
 
-  return this->_children;
+  return m_children;
 }
 
-SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::ArrayTypeExpression;
+NodeKind ArrayTypeExpressionSyntax::getKind() const {
+  return NodeKind::kArrayTypeExpression;
 }
-const DiagnosticUtils::SourceLocation
-ArrayTypeExpressionSyntax::getSourceLocation() const {
-  if (_elementType)
-    return this->_elementType->getSourceLocation();
-  if (_nonTrivialElementType)
-    return this->_nonTrivialElementType->getSourceLocation();
 
-  for (auto &dimension : this->_dimensions) {
-    if (dimension)
-      return dimension->getSourceLocation();
-  }
-
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

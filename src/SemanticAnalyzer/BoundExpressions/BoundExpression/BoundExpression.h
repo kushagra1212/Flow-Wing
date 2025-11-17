@@ -19,17 +19,35 @@
 
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundNode.h"
-#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include <typeinfo>
+#include "src/SemanticAnalyzer/BoundNode.hpp"
+#include <vector>
 
-class BoundExpression : public BoundNode, public BoundSourceLocation {
+namespace flow_wing {
+namespace types {
+class Type;
+} // namespace types
+
+namespace analysis {
+class Symbol;
+} // namespace analysis
+
+namespace binding {
+class BoundExpression : public BoundNode {
 public:
-  inline BoundExpression(DiagnosticUtils::SourceLocation location)
-      : BoundSourceLocation(location) {};
-
-  virtual const std::type_info &getType() = 0;
-
   virtual ~BoundExpression() = default;
+
+  virtual std::shared_ptr<types::Type> getType() const { return nullptr; }
+  virtual std::vector<std::shared_ptr<types::Type>> getMultipleTypes() const {
+    return {};
+  }
+  virtual bool isMultipleType() const { return false; }
+
+protected:
+  explicit BoundExpression(
+      const flow_wing::diagnostic::SourceLocation &location)
+      : BoundNode(location) {}
+
+  BoundExpression() = default;
 };
+} // namespace binding
+} // namespace flow_wing

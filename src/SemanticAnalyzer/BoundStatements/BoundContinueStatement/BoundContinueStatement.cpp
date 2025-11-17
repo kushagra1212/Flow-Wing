@@ -18,16 +18,18 @@
  */
 
 
-#include "BoundContinueStatement.h"
+#include "BoundContinueStatement.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundContinueStatement::BoundContinueStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location) {}
 
-BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ContinueStatement;
+NodeKind BoundContinueStatement::getKind() const {
+  return NodeKind::kContinueStatement;
 }
 
-std::vector<BoundNode *> BoundContinueStatement::getChildren() {
-  return this->_children;
-}
+} // namespace binding
+} // namespace flow_wing

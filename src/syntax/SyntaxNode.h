@@ -19,29 +19,42 @@
 
 #pragma once
 
-#include <string>
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/NodeKind/NodeKind.h"
+#include <optional>
 #include <vector>
 
-namespace DiagnosticUtils {
-struct SourceLocation;
+namespace flow_wing {
+
+namespace visitor {
+class ASTVisitor;
 }
 
-namespace SyntaxKindUtils {
-enum SyntaxKind : int;
-}
+namespace syntax {
 
 class SyntaxNode {
+
 public:
-  size_t lineNumber;
-  size_t columnNumber;
-  size_t length;
-  std::string absoluteFilePath;
-  std::vector<SyntaxNode *> _children;
-
   virtual ~SyntaxNode() = default;
-  virtual SyntaxKindUtils::SyntaxKind getKind() const = 0;
+  virtual NodeKind getKind() const = 0;
+  virtual const std::vector<const SyntaxNode *> &getChildren() const = 0;
+  virtual void accept(visitor::ASTVisitor *visitor) = 0;
+  virtual const flow_wing::diagnostic::SourceLocation &
+  getSourceLocation() const;
 
-  virtual const std::vector<SyntaxNode *> &getChildren() = 0;
+protected:
+  SyntaxNode(const flow_wing::diagnostic::SourceLocation &source_location)
+      : m_source_location(source_location) {}
 
-  virtual const DiagnosticUtils::SourceLocation getSourceLocation() const = 0;
+  SyntaxNode() = default;
+
+  static diagnostic::SourceLocation
+  determineSpan(const std::vector<const SyntaxNode *> &nodes);
+
+  mutable std::optional<flow_wing::diagnostic::SourceLocation>
+      m_source_location;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

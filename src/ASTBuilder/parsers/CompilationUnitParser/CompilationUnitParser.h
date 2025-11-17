@@ -19,16 +19,31 @@
 
 #pragma once
 
-#include "src/syntax/CompilationUnitSyntax.h"
 #include <memory>
+
+namespace flow_wing {
+
+namespace syntax {
+class CompilationUnitSyntax;
+class StatementSyntax;
+} // namespace syntax
+
+namespace parser {
 
 class ParserContext;
 
 class CompilationUnitParser {
 
 public:
-  std::unique_ptr<CompilationUnitSyntax>
-  parseCompilationUnit(ParserContext *ctx);
+  CompilationUnitParser(ParserContext *ctx);
 
-  std::unique_ptr<MemberSyntax> parseMember(ParserContext *ctx);
+  std::unique_ptr<syntax::CompilationUnitSyntax> parse();
+
+private:
+  ParserContext *m_ctx;
+
+  std::unique_ptr<syntax::StatementSyntax> parseStatement();
 };
+} // namespace parser
+
+} // namespace flow_wing

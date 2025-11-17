@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class ObjectAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -49,6 +48,8 @@ public:
                             llvm::Value *variable,
                             llvm::StructType *parStructType,
                             std::string lhsVarName);
+
+  auto getSafeCustomType(const std::string &typeName) -> decltype(auto);
 
 private:
   BoundAssignmentExpression *_assignmentExp = nullptr;

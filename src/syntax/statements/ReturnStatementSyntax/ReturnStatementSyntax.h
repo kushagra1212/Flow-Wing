@@ -19,51 +19,33 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
-#include <memory>
-#include <vector>
+namespace flow_wing {
+namespace syntax {
 
-class ExpressionSyntax;
-template <typename T> class SyntaxToken;
+class SyntaxToken;
 
 class ReturnStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _returnKeyword;
-  std::vector<std::unique_ptr<ExpressionSyntax>> _expressionList;
 
 public:
-  ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword);
+  ReturnStatementSyntax(const SyntaxToken *return_keyword,
+                        const SyntaxToken *colon_token,
+                        std::unique_ptr<ExpressionSyntax> return_expression);
 
-  /*
-    Overrides
-  */
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getReturnExpression() const;
 
-  const std::vector<SyntaxNode *> &getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_return_keyword;
+  const SyntaxToken *m_colon_token;
+  std::unique_ptr<ExpressionSyntax> m_return_expression;
 
-  /*
-    Setters
-  */
-  inline auto addReturnExpression(std::unique_ptr<ExpressionSyntax> expression)
-      -> void {
-    _expressionList.push_back(std::move(expression));
-  }
-
-  /*
-    Getters
-  */
-
-  inline auto getReturnExpressionListRef() const
-      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
-    return _expressionList;
-  }
-
-  inline auto getReturnKeywordRef() const
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _returnKeyword;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

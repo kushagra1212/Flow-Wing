@@ -18,35 +18,23 @@
  */
 
 #include "ASTBuilder.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/CompilationUnitParser/CompilationUnitParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/syntax/SyntaxToken.h"
+#include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/syntax/CompilationUnitSyntax.h"
 
-ASTBuilder::ASTBuilder(
-    const std::vector<std::string> &sourceCode,
-    FlowWing::DiagnosticHandler *diagnosticHandler,
-    const std::unordered_map<std::string, int8_t> &dependencyPathsMap)
-    : _parserCtx(std::make_unique<ParserContext>(diagnosticHandler,
-                                                 dependencyPathsMap)),
-      _lexer(std::make_unique<SourceTokenizer>(sourceCode, diagnosticHandler)) {
+namespace flow_wing {
 
-  _parserCtx->buildTokenList(_lexer.get());
+namespace parser {
+
+ASTBuilder::ASTBuilder(CompilationContext &context)
+    : m_parser_ctx(std::make_unique<ParserContext>(context)) {}
+
+ASTBuilder::~ASTBuilder() = default;
+
+std::unique_ptr<syntax::CompilationUnitSyntax> ASTBuilder::create() {
+  return std::make_unique<CompilationUnitParser>(m_parser_ctx.get())->parse();
 }
 
-ASTBuilder::~ASTBuilder() { _lexer.reset(); }
-
-std::unique_ptr<CompilationUnitSyntax> ASTBuilder::createCompilationUnit() {
-  return std::make_unique<CompilationUnitParser>()->parseCompilationUnit(
-      _parserCtx.get());
-}
-
-const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
-ASTBuilder::getTokenListRef() {
-  return _parserCtx->getTokenListRef();
-}
-
-const std::string &ASTBuilder::getFormattedSourceCode() {
-  return _parserCtx->getCodeFormatterRef()->getFormattedSourceCode();
-}
+} // namespace parser
+} // namespace flow_wing

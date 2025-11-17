@@ -17,12 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #pragma once
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 
+namespace flow_wing {
+
+namespace syntax {
+class ExpressionSyntax;
+} // namespace syntax
+
+namespace parser {
+
 class BracketedExpressionParser : public ExpressionParser {
+
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit BracketedExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+
+} // namespace parser
+} // namespace flow_wing

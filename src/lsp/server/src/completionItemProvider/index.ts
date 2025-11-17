@@ -10,7 +10,6 @@ import {
   getArrayType,
   getFileFullPath,
   getImportedFileUri,
-  getModulePath,
   getUnique,
   SuggestHandler,
   userDefinedKeywordsFilter,

@@ -18,32 +18,40 @@
  */
 
 #pragma once
-#include "src/syntax/MemberSyntax.h"
+
+#include "src/syntax/NodeKind/NodeKind.h"
+#include "src/syntax/SyntaxNode.h"
 #include "src/syntax/SyntaxToken.h"
-#include <any>
-#include <memory>
-namespace SyntaxKindUtils {
-enum SyntaxKind : int;
-}
+#include "src/syntax/statements/StatementSyntax.h"
+#include <vector>
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken;
-class SyntaxNode;
+enum class NodeKind : int;
 
-class CompilationUnitSyntax {
-private:
-  std::vector<std::unique_ptr<MemberSyntax>> _members;
-  std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
-  std::vector<SyntaxNode *> _children;
+class CompilationUnitSyntax : public SyntaxNode {
 
 public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  CompilationUnitSyntax(
+      std::vector<std::unique_ptr<StatementSyntax>> global_statements,
+      const SyntaxToken *end_of_file_token);
 
-  std::vector<std::unique_ptr<MemberSyntax>> &getMembers();
+  // Overrides
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  NodeKind getKind() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  void addMember(std::unique_ptr<MemberSyntax> member);
-  void setEndOfFileToken(std::unique_ptr<SyntaxToken<std::any>> endOfFileToken);
+  // Getters
+  const std::vector<std::unique_ptr<StatementSyntax>> &getStatements() const {
+    return m_global_statements;
+  }
 
-  const std::vector<SyntaxNode *> &getChildren();
+private:
+  std::vector<std::unique_ptr<StatementSyntax>> m_global_statements;
+  const SyntaxToken *m_end_of_file_token = nullptr;
 
-  const std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

@@ -19,11 +19,13 @@
 
 #include "WhiteSpaceTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/SyntaxToken.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+std::unique_ptr<syntax::SyntaxToken>
 WhiteSpaceTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
 
@@ -31,7 +33,10 @@ WhiteSpaceTokenReader::readToken(SourceTokenizer &lexer) {
     lexer.advancePosition();
   }
 
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::WhitespaceToken, start, "", 0);
+  return std::make_unique<syntax::SyntaxToken>(
+      TokenKind::kWhitespaceToken, "", std::any(),
+      diagnostic::SourceLocation(lexer.lineNumber(), start, 0));
 }
+
+} // namespace lexer
+} // namespace flow_wing

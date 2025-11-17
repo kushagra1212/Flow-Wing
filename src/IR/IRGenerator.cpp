@@ -18,6 +18,7 @@
  */
 
 #include "IRGenerator.h"
+#include "src/utils/LogConfig.h"
 #include <string>
 
 IRGenerator::IRGenerator(
@@ -278,8 +279,9 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
           ->getClassType();
 
   if (!classType) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Class " + boundClassStatement->getClassName() + " not found");
+    CODEGEN_DEBUG_LOG("Class not found: %s",
+                      boundClassStatement->getClassName().c_str());
+    assert(false && "Class not found");
     return;
   }
   _codeGenerationContext->setCurrentClassName(

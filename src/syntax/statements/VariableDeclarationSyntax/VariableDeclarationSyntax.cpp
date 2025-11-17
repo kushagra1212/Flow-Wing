@@ -17,58 +17,78 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "VariableDeclarationSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
 
-SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::VariableDeclaration;
+namespace flow_wing {
+namespace syntax {
+
+VariableDeclarationSyntax::VariableDeclarationSyntax(
+    const SyntaxToken *const_keyword_token,
+    const SyntaxToken *var_keyword_token,
+    std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> declarators,
+    std::vector<const SyntaxToken *> comma_tokens,
+    std::unique_ptr<ExpressionSyntax> initializer_expression)
+    : m_const_keyword_token(const_keyword_token),
+      m_var_keyword_token(var_keyword_token),
+      m_declarators(std::move(declarators)),
+      m_comma_tokens(std::move(comma_tokens)),
+      m_initializer_expression(std::move(initializer_expression)) {}
+
+NodeKind VariableDeclarationSyntax::getKind() const {
+  return NodeKind::kVariableDeclaration;
 }
 
-const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
-  if (_children.size())
-    return this->_children;
+void VariableDeclarationSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-  if (_exposeKeyword)
-    _children.push_back(_exposeKeyword.get());
+// getters
 
-  if (_inout_keyword)
-    _children.push_back(_inout_keyword.get());
+const std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> &
+VariableDeclarationSyntax::getDeclarators() const {
+  return m_declarators;
+}
 
-  if (_keyword)
-    _children.push_back(_keyword.get());
+const std::unique_ptr<ExpressionSyntax> &
+VariableDeclarationSyntax::getInitializerExpression() const {
+  return m_initializer_expression;
+}
 
-  if (_identifier)
-    _children.push_back(_identifier.get());
+// boolean queries
 
-  if (_asKeyword)
-    _children.push_back(_asKeyword.get());
+bool VariableDeclarationSyntax::hasConstKeyword() const {
+  return m_const_keyword_token != nullptr;
+}
 
-  if (_typeExpr)
-    _children.push_back(_typeExpr.get());
+const std::vector<const SyntaxNode *> &
+VariableDeclarationSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &child :
+         {static_cast<const SyntaxNode *>(m_const_keyword_token),
+          static_cast<const SyntaxNode *>(m_var_keyword_token)}) {
+      if (child) {
+        m_children.push_back(child);
+      }
+    }
 
-  if (_newKeyword)
-    _children.push_back(_newKeyword.get());
+    const size_t size = std::max(m_declarators.size(), m_comma_tokens.size());
+    for (size_t i = 0; i < size; i++) {
+      if (i < m_declarators.size() && m_declarators[i]) {
+        m_children.push_back(m_declarators[i].get());
+      }
+      if (i < m_comma_tokens.size() && m_comma_tokens[i]) {
+        m_children.push_back(m_comma_tokens[i]);
+      }
+    }
 
-  if (_initializer) {
-    _children.push_back(_initializer.get());
+    if (m_initializer_expression)
+      m_children.push_back(m_initializer_expression.get());
   }
-
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-VariableDeclarationSyntax::getSourceLocation() const {
-  if (_exposeKeyword)
-    return this->_exposeKeyword->getSourceLocation();
-  if (_keyword)
-    return this->_keyword->getSourceLocation();
-  if (_identifier)
-    return this->_identifier->getSourceLocation();
-  if (_asKeyword)
-    return this->_asKeyword->getSourceLocation();
-  if (_typeExpr)
-    return this->_typeExpr->getSourceLocation();
-  if (_initializer)
-    return this->_initializer->getSourceLocation();
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

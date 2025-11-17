@@ -18,28 +18,34 @@
  */
 
 #pragma once
-#include <string>
 
-namespace DiagnosticUtils {
+#include <cstddef>
+
+namespace flow_wing {
+namespace diagnostic {
+
+struct SourcePoint {
+  size_t line_number = 0;
+  size_t column_number = 0;
+};
+
 struct SourceLocation {
 public:
-  size_t lineNumber;
-  size_t columnNumber;
-  size_t length;
-  std::string absoluteFilePath;
+  SourcePoint m_start;
+  SourcePoint m_end;
 
-  SourceLocation() {
-    this->lineNumber = 0;
-    this->columnNumber = 0;
-    this->absoluteFilePath = "";
-  }
+  SourceLocation() = default;
 
-  SourceLocation(size_t lineNumber, size_t columnNumber, size_t length,
-                 std::string absoluteFilePath) {
-    this->lineNumber = lineNumber;
-    this->columnNumber = columnNumber;
-    this->length = length;
-    this->absoluteFilePath = absoluteFilePath;
+  SourceLocation(size_t line, size_t column, size_t length)
+      : m_start{line, column}, m_end{line, column + length} {}
+
+  SourceLocation(SourcePoint start_point, SourcePoint end_point)
+      : m_start(start_point), m_end(end_point) {}
+
+  static SourceLocation span(const SourceLocation &start,
+                             const SourceLocation &end) {
+    return SourceLocation(start.m_start, end.m_end);
   }
 };
-} // namespace DiagnosticUtils
+} // namespace diagnostic
+} // namespace flow_wing

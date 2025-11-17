@@ -17,74 +17,78 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "ForStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+
+namespace flow_wing {
+namespace syntax {
 
 ForStatementSyntax::ForStatementSyntax(
-    std::unique_ptr<StatementSyntax> initialization,
-    std::unique_ptr<ExpressionSyntax> upperBound,
-    std::unique_ptr<BlockStatementSyntax> statement,
-    std::unique_ptr<ExpressionSyntax> stepExpression) {
-  this->_initialization = std::move(initialization);
-  this->_upperBound = std::move(upperBound);
-  this->_statement = std::move(statement);
-  this->_stepExpression = std::move(stepExpression);
+    const SyntaxToken *for_keyword, const SyntaxToken *open_parenthesis_token,
+    std::unique_ptr<StatementSyntax> variable_declaration,
+    std::unique_ptr<ExpressionSyntax> assignment_expression,
+    const SyntaxToken *to_keyword,
+    std::unique_ptr<ExpressionSyntax> upper_bound,
+    const SyntaxToken *step_colon_token, std::unique_ptr<ExpressionSyntax> step,
+    const SyntaxToken *close_parenthesis_token,
+    std::unique_ptr<StatementSyntax> body)
+    : m_for_keyword(for_keyword),
+      m_open_parenthesis_token(open_parenthesis_token),
+      m_variable_declaration(std::move(variable_declaration)),
+      m_assignment_expression(std::move(assignment_expression)),
+      m_to_keyword(to_keyword), m_upper_bound(std::move(upper_bound)),
+      m_step_colon_token(step_colon_token), m_step(std::move(step)),
+      m_close_parenthesis_token(close_parenthesis_token),
+      m_body(std::move(body)) {}
+
+NodeKind ForStatementSyntax::getKind() const { return NodeKind::kForStatement; }
+
+void ForStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<BlockStatementSyntax> ForStatementSyntax::getStatement() {
-  return std::move(this->_statement);
+const std::unique_ptr<StatementSyntax> &
+ForStatementSyntax::getVariableDeclaration() const {
+  return m_variable_declaration;
+}
+const std::unique_ptr<ExpressionSyntax> &
+ForStatementSyntax::getAssignmentExpression() const {
+  return m_assignment_expression;
+}
+const std::unique_ptr<ExpressionSyntax> &
+ForStatementSyntax::getUpperBound() const {
+  return m_upper_bound;
+}
+const std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getStep() const {
+  return m_step;
 }
 
-std::unique_ptr<ExpressionSyntax> ForStatementSyntax::getUpperBound() {
-  return std::move(this->_upperBound);
+const std::unique_ptr<StatementSyntax> &ForStatementSyntax::getBody() const {
+  return m_body;
 }
 
-std::unique_ptr<ExpressionSyntax> ForStatementSyntax::getStepExpression() {
-  return std::move(this->_stepExpression);
-}
+const std::vector<const SyntaxNode *> &ForStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
 
-std::unique_ptr<StatementSyntax> ForStatementSyntax::getInitialization() {
-  return std::move(this->_initialization);
-}
-
-SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ForStatement;
-}
-
-const std::vector<SyntaxNode *> &ForStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    _children.push_back(_initialization.get());
-    _children.emplace_back(_upperBound.get());
-    if (_stepExpression)
-      _children.emplace_back(_stepExpression.get());
-    _children.emplace_back(_statement.get());
+    for (const auto &node :
+         {static_cast<const SyntaxNode *>(m_for_keyword),
+          static_cast<const SyntaxNode *>(m_open_parenthesis_token),
+          static_cast<const SyntaxNode *>(m_variable_declaration.get()),
+          static_cast<const SyntaxNode *>(m_assignment_expression.get()),
+          static_cast<const SyntaxNode *>(m_to_keyword),
+          static_cast<const SyntaxNode *>(m_upper_bound.get()),
+          static_cast<const SyntaxNode *>(m_step_colon_token),
+          static_cast<const SyntaxNode *>(m_step.get()),
+          static_cast<const SyntaxNode *>(m_close_parenthesis_token),
+          static_cast<const SyntaxNode *>(m_body.get())}) {
+      if (node)
+        m_children.push_back(node);
+    }
   }
-
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-ForStatementSyntax::getSourceLocation() const {
-  return this->_initialization->getSourceLocation();
-}
-
-std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementRef() {
-  return this->_statement;
-}
-
-std::unique_ptr<StatementSyntax> &ForStatementSyntax::getInitializationRef() {
-  return this->_initialization;
-}
-
-std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getUpperBoundRef() {
-  return this->_upperBound;
-}
-
-std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getStepExpressionRef() {
-  return this->_stepExpression;
-}
+} // namespace syntax
+} // namespace flow_wing

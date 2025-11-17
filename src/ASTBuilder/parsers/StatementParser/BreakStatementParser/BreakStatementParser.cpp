@@ -18,14 +18,20 @@
  */
 
 #include "BreakStatementParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-BreakStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> breakKeyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::BreakKeyword);
-  return std::make_unique<BreakStatementSyntax>(std::move(breakKeyword));
+BreakStatementParser::BreakStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
+
+std::unique_ptr<syntax::StatementSyntax> BreakStatementParser::parse() {
+
+  auto break_keyword = m_ctx->match(lexer::TokenKind::kBreakKeyword);
+
+  return std::make_unique<syntax::BreakStatementSyntax>(break_keyword);
 }
+} // namespace parser
+} // namespace flow_wing

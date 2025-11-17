@@ -21,11 +21,20 @@
 
 #include <memory>
 
-class ParserContext;
+namespace flow_wing {
+
+namespace syntax {
+
 class ExpressionSyntax;
+}
+namespace parser {
+
+class ParserContext;
 class PrecedenceAwareExpressionParser {
 
 public:
-  static std::unique_ptr<ExpressionSyntax> parse(ParserContext *ctx,
-                                                 int parentPrecedence = 0);
+  static std::unique_ptr<syntax::ExpressionSyntax>
+  parse(ParserContext *ctx, int parent_precedence = 0);
 };
+} // namespace parser
+} // namespace flow_wing

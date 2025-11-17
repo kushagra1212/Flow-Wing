@@ -16,38 +16,39 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 #include "TernaryExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
+#include <cassert>
 
-std::unique_ptr<ExpressionSyntax>
-TernaryExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<TernaryExpressionSyntax> ternaryExpression =
-      std::make_unique<TernaryExpressionSyntax>();
+namespace flow_wing {
+namespace parser {
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+TernaryExpressionParser::TernaryExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  ternaryExpression->addQuestionToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::QuestionToken));
+std::unique_ptr<syntax::ExpressionSyntax> TernaryExpressionParser::parsePostfix(
+    std::unique_ptr<syntax::ExpressionSyntax> condition_expression,
+    const syntax::SyntaxToken *question_token) {
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto true_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 2
 
-  ternaryExpression->addTrueExpression(
-      PrecedenceAwareExpressionParser::parse(ctx));
+  auto colon_token = m_ctx->match(lexer::TokenKind::kColonToken); // :
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto false_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 3
 
-  ternaryExpression->addColonToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken));
-
-  ctx->getCodeFormatterRef()->appendWithSpace();
-
-  ternaryExpression->addFalseExpression(
-      PrecedenceAwareExpressionParser::parse(ctx));
-
-  return ternaryExpression;
+  return std::make_unique<syntax::TernaryExpressionSyntax>(
+      std::move(condition_expression), question_token,
+      std::move(true_expression), colon_token, std::move(false_expression));
 }
+
+std::unique_ptr<syntax::ExpressionSyntax> TernaryExpressionParser::parse() {
+  assert(false && "TernaryExpressionParser::parse() is not implemented");
+  return nullptr;
+}
+
+} // namespace parser
+} // namespace flow_wing

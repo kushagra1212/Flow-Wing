@@ -21,14 +21,17 @@
 
 #include <memory>
 
-class StatementParser;
+namespace flow_wing {
 
-namespace SyntaxKindUtils {
-enum SyntaxKind : int;
-}
+namespace parser {
+
+class StatementParser;
+class ParserContext;
 
 class StatementParserFactory {
 public:
-  static std::unique_ptr<StatementParser>
-  createStatementParser(const SyntaxKindUtils::SyntaxKind &kind);
+  static std::unique_ptr<StatementParser> create(ParserContext &context);
 };
+
+} // namespace parser
+} // namespace flow_wing

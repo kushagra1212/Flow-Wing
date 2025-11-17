@@ -17,52 +17,47 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BoundCallExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/types/FunctionType/FunctionType.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundCallExpression::BoundCallExpression(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundExpression(location) {}
+    analysis::FunctionSymbol *symbol,
+    std::vector<std::unique_ptr<BoundExpression>> arguments,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_symbol(symbol),
+      m_arguments(std::move(arguments)) {}
 
-void BoundCallExpression::addArgument(
-    std::unique_ptr<BoundExpression> argument) {
-  _argumentPtrList.push_back(argument.get());
-  _arguments.push_back(std::move(argument));
+NodeKind BoundCallExpression::getKind() const {
+  return NodeKind::kCallExpression;
 }
 
-const std::vector<std::unique_ptr<BoundExpression>> &
-BoundCallExpression::getArgumentsRef() const {
-  return _arguments;
+std::shared_ptr<types::Type> BoundCallExpression::getType() const {
+  return static_cast<types::FunctionType *>(m_symbol->getType().get())
+      ->getReturnTypes()[0]
+      ->type;
 }
 
-const std::type_info &BoundCallExpression::getType() {
-  return _callerIdentifier->getType();
+bool BoundCallExpression::isMultipleType() const {
+  return static_cast<types::FunctionType *>(m_symbol->getType().get())
+             ->getReturnTypes()
+             .size() > 1;
 }
 
-BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::CallExpression;
-}
-
-std::vector<BoundNode *> BoundCallExpression::getChildren() {
-  if (_callerIdentifier != nullptr) {
-    this->_children.push_back(_callerIdentifier.get());
-    for (auto &argument : _arguments) {
-      this->_children.push_back(argument.get());
-    }
-    return _children;
+std::vector<std::shared_ptr<types::Type>>
+BoundCallExpression::getMultipleTypes() const {
+  std::vector<std::shared_ptr<types::Type>> types;
+  for (const auto &return_type :
+       static_cast<types::FunctionType *>(m_symbol->getType().get())
+           ->getReturnTypes()) {
+    types.push_back(return_type->type);
   }
-
-  return _children;
+  return types;
 }
 
-std::unique_ptr<BoundLiteralExpression<std::any>> &
-BoundCallExpression::getCallerIdentifierPtr() {
-  return _callerIdentifier;
-}
-
-void BoundCallExpression::setCallerIdentifier(
-    std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier) {
-  _callerIdentifier = std::move(callerIdentifier);
-  _callerName = std::any_cast<std::string>(_callerIdentifier->getValue());
-}
+} // namespace binding
+} // namespace flow_wing

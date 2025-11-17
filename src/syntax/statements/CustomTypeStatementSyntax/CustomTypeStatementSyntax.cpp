@@ -17,36 +17,68 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "CustomTypeStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
 
-/*
-    OVERRIDES
+namespace flow_wing {
+namespace syntax {
 
-*/
+CustomTypeStatementSyntax::CustomTypeStatementSyntax(
+    const SyntaxToken *type_keyword,
+    std::unique_ptr<ExpressionSyntax> type_name,
+    const SyntaxToken *equals_token, const SyntaxToken *open_brace_token,
+    std::vector<std::unique_ptr<FieldDeclarationSyntax>> field_declarations,
+    const SyntaxToken *close_brace_token)
+    : m_type_keyword(type_keyword), m_type_name(std::move(type_name)),
+      m_equals_token(equals_token), m_open_brace_token(open_brace_token),
+      m_field_declarations(std::move(field_declarations)),
+      m_close_brace_token(close_brace_token) {}
 
-SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::CustomTypeStatement;
+NodeKind CustomTypeStatementSyntax::getKind() const {
+  return NodeKind::kCustomTypeStatement;
 }
 
-const std::vector<SyntaxNode *> &CustomTypeStatementSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
+void CustomTypeStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-  if (this->_exposeKeyword)
-    _children.push_back(this->_exposeKeyword.get());
+const std::unique_ptr<ExpressionSyntax> &
+CustomTypeStatementSyntax::getTypeName() const {
+  return m_type_name;
+}
 
-  _children.push_back(this->_typeName.get());
+const std::vector<std::unique_ptr<FieldDeclarationSyntax>> &
+CustomTypeStatementSyntax::getFieldDeclarations() const {
+  return m_field_declarations;
+}
 
-  for (const auto &keyTypePair : this->_key_type_pairs) {
-    _children.push_back(keyTypePair.get());
+const std::vector<const SyntaxNode *> &
+CustomTypeStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+
+    for (const auto &child :
+         {static_cast<const SyntaxNode *>(m_type_keyword),
+          static_cast<const SyntaxNode *>(m_type_name.get()),
+          static_cast<const SyntaxNode *>(m_equals_token),
+          static_cast<const SyntaxNode *>(m_open_brace_token)}) {
+      if (child)
+        m_children.push_back(static_cast<const SyntaxNode *>(child));
+    }
+
+    for (const auto &field_declaration : m_field_declarations) {
+      if (field_declaration)
+        m_children.push_back(
+            static_cast<const SyntaxNode *>(field_declaration.get()));
+    }
+
+    if (m_close_brace_token)
+      m_children.push_back(
+          static_cast<const SyntaxNode *>(m_close_brace_token));
   }
-
-  return _children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-CustomTypeStatementSyntax::getSourceLocation() const {
-  return this->_typeName->getSourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

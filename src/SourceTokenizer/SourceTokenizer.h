@@ -19,53 +19,60 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
-#include <any>
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <string>
 #include <vector>
+
+namespace flow_wing {
+namespace syntax {
+class SyntaxToken;
+
+}
+namespace lexer {
 
 class TokenReader;
 class TokenReaderFactory;
-template <typename T> class SyntaxToken;
-
-namespace FlowWing {
-class DiagnosticHandler;
-}
 
 class SourceTokenizer {
-  const char _END_OF_FILE = '\r';
-  const char _END_OF_LINE = '\1';
-  size_t _lineNumber;
-  size_t _position;
-  size_t _textSize = 0;
-
-  std::vector<std::string> _sourceCode;
-  FlowWing::DiagnosticHandler *_diagnosticHandler;
-
 public:
-  std::unique_ptr<SyntaxToken<std::any>> nextToken();
-  SourceTokenizer(const std::vector<std::string> &sourceCode,
-                  FlowWing::DiagnosticHandler *diagnosticHandler);
+  SourceTokenizer(flow_wing::CompilationContext &context);
+  std::unique_ptr<syntax::SyntaxToken> nextToken();
 
   char currentChar() const;
   void advancePosition();
   void advanceLine();
   char peek(const int64_t &offset) const;
 
+  // Error Reporting
+  void
+  reportError(flow_wing::diagnostic::DiagnosticCode code,
+              const std::vector<flow_wing::diagnostic::DiagnosticArg> &args,
+              const flow_wing::diagnostic::SourceLocation &location);
+
+  // Getters
+  const std::string &getLine(const size_t &lineNumber) const {
+    return m_context.getSourceLines()[lineNumber];
+  }
+
+  size_t position() const { return m_position; }
+  size_t lineNumber() const { return m_line_number; }
+
+  // Checkers
   bool isEOLorEOF() const { return isEOL() || isEOF(); }
-  bool isEOF() const { return currentChar() == _END_OF_FILE; }
-  bool isEOL() const { return currentChar() == _END_OF_LINE; }
+  bool isEOF() const { return currentChar() == kEndOfFile; }
+  bool isEOL() const { return currentChar() == kEndOfLine; }
 
-  const std::string getLine(const size_t &lineNumber) const {
-    return _sourceCode[lineNumber];
-  }
+private:
+  std::unique_ptr<syntax::SyntaxToken> nextRawToken();
 
-  size_t position() const { return _position; }
-  size_t lineNumber() const { return _lineNumber; }
-  FlowWing::DiagnosticHandler *diagnosticHandler() {
-    return _diagnosticHandler;
-  }
+  const char kEndOfFile = '\0';
+  const char kEndOfLine = '\n';
+  size_t m_line_number;
+  size_t m_position;
+  flow_wing::CompilationContext &m_context;
 };
+
+} // namespace lexer
+} // namespace flow_wing

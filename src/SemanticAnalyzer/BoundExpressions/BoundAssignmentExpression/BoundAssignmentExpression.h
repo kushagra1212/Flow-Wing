@@ -20,39 +20,31 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+
+namespace flow_wing {
+namespace binding {
 
 class BoundAssignmentExpression : public BoundExpression {
-private:
-  BinderKindUtils::BoundBinaryOperatorKind _op;
-  std::unique_ptr<BoundExpression> _left;
-  std::unique_ptr<BoundExpression> _right;
-  BoundVariableDeclaration *_variable;
-  bool _needDefaultInitialization;
 
 public:
-  BoundAssignmentExpression(const DiagnosticUtils::SourceLocation &location,
-                            BoundVariableDeclaration *variable,
-                            std::unique_ptr<BoundExpression> left,
-                            BinderKindUtils::BoundBinaryOperatorKind op,
-                            std::unique_ptr<BoundExpression> right,
-                            bool needDefaultInitialization = false);
+  BoundAssignmentExpression(
+      std::vector<std::unique_ptr<BoundExpression>> left,
+      std::vector<std::unique_ptr<BoundExpression>> right,
+      bool is_full_re_assignment,
+      const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundAssignmentExpression() = default;
 
-  BinderKindUtils::BoundBinaryOperatorKind getOperator();
+  // Overrides
+  NodeKind getKind() const override;
 
-  const std::type_info &getType() override;
+  // Getters
+  std::shared_ptr<types::Type> getType() const override;
+  bool isMultiTargetAssignment() const;
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
-
-  std::vector<BoundNode *> getChildren() override;
-
-  std::unique_ptr<BoundExpression> &getLeftPtr();
-
-  std::unique_ptr<BoundExpression> &getRightPtr();
-
-  BoundVariableDeclaration *getVariable();
-
-  inline bool getNeedDefaultInitialization() {
-    return _needDefaultInitialization;
-  }
+private:
+  std::vector<std::unique_ptr<BoundExpression>> m_left;
+  std::vector<std::unique_ptr<BoundExpression>> m_right;
+  [[maybe_unused]] bool m_is_full_re_assignment;
 };
+} // namespace binding
+} // namespace flow_wing

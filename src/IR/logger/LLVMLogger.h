@@ -44,11 +44,11 @@ public:
   void logLLVMError(llvm::Error E);
   void logLLVMWarning(llvm::Error E);
 
-  //[[deprecated("Use logError(Diagnostic) instead")]]
+  // [[deprecated("Use logError(DiagnosticCode) instead")]]
   void LogError(const std::string &errorMessage,
                 const DiagnosticUtils::SourceLocation &location);
 
-  //[[deprecated("Use logError(Diagnostic) instead")]]
+  // [[deprecated("Use logError(DiagnosticCode) instead")]]
   void LogError(const std::string &errorMessage);
 
   void logError(const FLOW_WING::DIAGNOSTIC::DiagnosticCode code,

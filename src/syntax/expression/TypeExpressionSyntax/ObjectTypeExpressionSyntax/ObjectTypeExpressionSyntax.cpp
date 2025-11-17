@@ -18,26 +18,37 @@
  */
 
 #include "ObjectTypeExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxNode.h"
+namespace flow_wing {
+namespace syntax {
 
 ObjectTypeExpressionSyntax::ObjectTypeExpressionSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> type)
-    : TypeExpressionSyntax(std::move(type)) {}
+    std::unique_ptr<IdentifierExpressionSyntax> object_identifier_expression)
+    : m_object_identifier_expression(std::move(object_identifier_expression)) {}
 
-SyntaxKindUtils::SyntaxKind ObjectTypeExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ObjectTypeExpression;
+NodeKind ObjectTypeExpressionSyntax::getKind() const {
+  return NodeKind::kObjectTypeExpression;
 }
 
-const std::vector<SyntaxNode *> &ObjectTypeExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
-
-  _children.push_back(_objectTypeIdentifier.get());
-  return _children;
+void ObjectTypeExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const DiagnosticUtils::SourceLocation
-ObjectTypeExpressionSyntax::getSourceLocation() const {
-  return this->_objectTypeIdentifier->getSourceLocation();
+const std::unique_ptr<IdentifierExpressionSyntax> &
+ObjectTypeExpressionSyntax::getObjectIdentifier() const {
+  return m_object_identifier_expression;
 }
+
+const std::vector<const SyntaxNode *> &
+ObjectTypeExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_object_identifier_expression)
+      m_children.push_back(static_cast<const SyntaxNode *>(
+          m_object_identifier_expression.get()));
+  }
+  return m_children;
+}
+
+} // namespace syntax
+} // namespace flow_wing

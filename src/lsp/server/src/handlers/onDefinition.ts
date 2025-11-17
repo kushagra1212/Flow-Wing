@@ -11,7 +11,6 @@ import {
   createRange,
   getFileFullPath,
   getImportedFileUri,
-  getModulePath,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import { fileUtils } from "../utils/fileUtils";

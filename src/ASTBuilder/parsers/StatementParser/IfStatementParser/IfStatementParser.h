@@ -20,8 +20,19 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include <memory>
+namespace flow_wing {
+namespace parser {
+
 class IfStatementParser : public StatementParser {
 
 public:
-  std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+  explicit IfStatementParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::StatementSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

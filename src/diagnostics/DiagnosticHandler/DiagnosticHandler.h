@@ -28,7 +28,7 @@
 
 class Diagnostic;
 
-namespace FlowWing {
+namespace flow_wing {
 class DiagnosticHandler {
 private:
   std::vector<Diagnostic> diagnostics;
@@ -59,9 +59,9 @@ public:
   void logJSONifAsked(const std::string &outputFilePath,
                       const Diagnostic &diagnostic);
 
-  bool hasError(DiagnosticUtils::DiagnosticLevel) const;
+  bool hasError(diagnostic ::DiagnosticLevel) const;
 
-  bool hasError(DiagnosticUtils::DiagnosticType) const;
+  bool hasError(diagnostic ::DiagnosticType) const;
 
   void updatePreviousLineCount(const size_t count);
 
@@ -81,4 +81,4 @@ public:
     return this->_outputFilePath;
   }
 };
-} // namespace FlowWing
+} // namespace flow_wing

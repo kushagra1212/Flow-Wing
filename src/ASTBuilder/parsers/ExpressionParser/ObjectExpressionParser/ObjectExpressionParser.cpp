@@ -17,62 +17,58 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "ObjectExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
+#include "src/syntax/expression/ObjectMemberSyntax/ObjectMemberSyntax.h"
 
-std::unique_ptr<ExpressionSyntax>
-ObjectExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<ObjectExpressionSyntax> objES =
-      std::make_unique<ObjectExpressionSyntax>();
-  objES->setOpenBraceToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
-  ctx->getCodeFormatterRef()->appendNewLine();
+namespace flow_wing {
+namespace parser {
 
-  ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
+ObjectExpressionParser::ObjectExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
-         ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+std::unique_ptr<syntax::ExpressionSyntax> ObjectExpressionParser::parse() {
+  auto open_brace_token = m_ctx->match(lexer::TokenKind::kOpenBraceToken); // {
 
-    ctx->getCodeFormatterRef()->append(
-        ctx->getCodeFormatterRef()->getIndentAmount());
+  size_t count = 0;
 
-    std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
-        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+  auto members = std::vector<std::unique_ptr<syntax::ObjectMemberSyntax>>();
+  auto comma_tokens = std::vector<const syntax::SyntaxToken *>();
 
-    std::any val = idenfierToken->getValue();
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> idenfierExp =
-        std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(idenfierToken), val);
-
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-
-    std::unique_ptr<ExpressionSyntax> expression =
-        PrecedenceAwareExpressionParser::parse(ctx);
-
-    objES->addAttribute(std::move(idenfierExp), std::move(expression));
-
-    if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
-      ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-      ctx->getCodeFormatterRef()->appendNewLine();
+    if (count > 0) {
+      comma_tokens.push_back(m_ctx->match(lexer::TokenKind::kCommaToken)); // ,
     }
+
+    auto identifier_expression =
+        PrecedenceAwareExpressionParser::parse(m_ctx); // identifier
+
+    auto colon_token = m_ctx->match(lexer::TokenKind::kColonToken); // :
+
+    auto value_expression =
+        PrecedenceAwareExpressionParser::parse(m_ctx); // 2 or "hello"
+
+    auto object_member_expression =
+        std::make_unique<syntax::ObjectMemberSyntax>(
+            std::move(identifier_expression), colon_token,
+            std::move(value_expression)); // key: value
+
+    count++;
   }
-  ctx->getCodeFormatterRef()->appendNewLine();
 
-  ctx->getCodeFormatterRef()->setIndentAmount(
-      ctx->getCodeFormatterRef()->getIndentAmount().substr(
-          0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
-                 (sizeof(TAB_SPACE) - 1)));
+  auto close_brace_token =
+      m_ctx->match(lexer::TokenKind::kCloseBraceToken); // }
 
-  ctx->getCodeFormatterRef()->append(
-      ctx->getCodeFormatterRef()->getIndentAmount());
-
-  objES->setCloseBraceToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
-
-  return objES;
+  return std::make_unique<syntax::ObjectExpressionSyntax>(
+      std::move(open_brace_token), std::move(members), comma_tokens,
+      std::move(close_brace_token));
+  // { key1: 2, key2: "hello", ... }
 }
+
+} // namespace parser
+} // namespace flow_wing

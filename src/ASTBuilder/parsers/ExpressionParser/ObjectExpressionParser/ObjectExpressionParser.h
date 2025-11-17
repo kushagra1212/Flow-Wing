@@ -20,13 +20,22 @@
 
 #pragma once
 
-#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+
+namespace flow_wing {
+
+namespace parser {
 
 class ObjectExpressionParser : public ExpressionParser {
+
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit ObjectExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+
+} // namespace parser
+} // namespace flow_wing

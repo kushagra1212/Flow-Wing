@@ -19,39 +19,34 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace syntax {
 
-#include <any>
-#include <memory>
-
-class ExpressionSyntax;
-class BlockStatementSyntax;
-
-template <typename T> class SyntaxToken;
+class SyntaxToken;
 
 class WhileStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;
-  std::unique_ptr<ExpressionSyntax> _condition;
-  std::unique_ptr<BlockStatementSyntax> _body;
 
 public:
-  WhileStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
+  WhileStatementSyntax(const SyntaxToken *while_keyword,
                        std::unique_ptr<ExpressionSyntax> condition,
-                       std::unique_ptr<BlockStatementSyntax> body);
+                       std::unique_ptr<StatementSyntax> statement);
 
-  std::unique_ptr<SyntaxToken<std::any>> getWhileKeyword();
-  std::unique_ptr<ExpressionSyntax> getCondition();
-  std::unique_ptr<BlockStatementSyntax> getBody();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getCondition() const;
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_while_keyword;
+  std::unique_ptr<ExpressionSyntax> m_condition;
+  std::unique_ptr<StatementSyntax> m_statement;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordRef();
-  std::unique_ptr<ExpressionSyntax> &getConditionRef();
-  std::unique_ptr<BlockStatementSyntax> &getBodyRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

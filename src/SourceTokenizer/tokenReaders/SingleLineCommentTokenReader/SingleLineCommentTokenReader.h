@@ -20,9 +20,16 @@
 #pragma once
 
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
+
+namespace flow_wing {
+namespace lexer {
+
 class SingleLineCommentTokenReader : public TokenReader {
 
 public:
-  std::unique_ptr<SyntaxToken<std::any>>
+  std::unique_ptr<syntax::SyntaxToken>
   readToken(SourceTokenizer &lexer) override;
 };
+} // namespace lexer
+
+} // namespace flow_wing

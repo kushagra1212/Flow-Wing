@@ -18,44 +18,38 @@
  */
 
 #include "BracketedExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 
-/*
-    OVERIDES
-*/
+namespace flow_wing {
+namespace syntax {
 
-SyntaxKindUtils::SyntaxKind BracketedExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::BracketedExpression;
+BracketedExpressionSyntax::BracketedExpressionSyntax(
+    std::unique_ptr<ExpressionSyntax> expression)
+    : m_expression(std::move(expression)) {}
+
+// Overrides
+
+NodeKind BracketedExpressionSyntax::getKind() const {
+  return NodeKind::kBracketedExpression;
 }
 
-const std::vector<SyntaxNode *> &BracketedExpressionSyntax::getChildren() {
-  if (_children.empty()) {
-    _children.push_back(_expression.get());
+void BracketedExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
+
+const std::vector<const SyntaxNode *> &
+BracketedExpressionSyntax::getChildren() const {
+
+  if (m_children.empty()) {
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_expression.get())}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
   }
-
-  return _children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-BracketedExpressionSyntax::getSourceLocation() const {
-  return _expression->getSourceLocation();
-}
-
-/*
-    SETTERS
-*/
-
-auto BracketedExpressionSyntax::setExpression(
-    std::unique_ptr<ExpressionSyntax> expression) -> void {
-  _expression = std::move(expression);
-}
-
-/*
-    GETTERS
-*/
-
-auto BracketedExpressionSyntax::getExpressionRef() const
-    -> const std::unique_ptr<ExpressionSyntax> & {
-  return _expression;
-}
+} // namespace syntax
+} // namespace flow_wing

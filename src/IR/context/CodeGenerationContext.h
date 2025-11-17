@@ -243,8 +243,8 @@ public:
     const bool isClassType =
         this->_classTypes.find(pureType) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {
-      this->getLogger()->LogError("Type " + pureType +
-                                  " is not defined in this scope");
+      // this->getLogger()->LogError("Type " + pureType +
+      //                             " is not defined in this scope");
 
       return FlowWing::Type();
     }

@@ -19,14 +19,15 @@
 
 #include "SingleLineCommentTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+std::unique_ptr<syntax::SyntaxToken>
 SingleLineCommentTokenReader::readToken(SourceTokenizer &lexer) {
   std::string text = "";
-  const size_t &lineN = lexer.lineNumber();
+  const size_t &line_number = lexer.lineNumber();
   const size_t &pos = lexer.position() + 1;
   text += lexer.currentChar();
   lexer.advancePosition(); // skip /
@@ -38,7 +39,9 @@ SingleLineCommentTokenReader::readToken(SourceTokenizer &lexer) {
     lexer.advancePosition();
   }
 
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lineN,
-      SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);
+  return std::make_unique<syntax::SyntaxToken>(
+      lexer::TokenKind::kSingleLineCommentToken, text, std::any(),
+      diagnostic::SourceLocation(line_number, pos, text.size()));
 }
+} // namespace lexer
+} // namespace flow_wing

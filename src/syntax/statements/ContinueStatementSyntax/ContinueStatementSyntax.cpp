@@ -17,40 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "ContinueStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
+namespace flow_wing {
+namespace syntax {
+
 ContinueStatementSyntax::ContinueStatementSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> continueKeyword) {
-  this->_continueKeyword = std::move(continueKeyword);
+    const SyntaxToken *continue_keyword)
+    : m_continue_keyword(continue_keyword) {}
+
+NodeKind ContinueStatementSyntax::getKind() const {
+  return NodeKind::kContinueStatement;
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-ContinueStatementSyntax::getContinueKeyword() {
-  return std::move(_continueKeyword);
+void ContinueStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::vector<SyntaxNode *> &ContinueStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    _children.push_back(_continueKeyword.get());
+const std::vector<const SyntaxNode *> &
+ContinueStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_continue_keyword)
+      m_children.push_back(m_continue_keyword);
   }
-
-  return this->_children;
+  return m_children;
 }
 
-SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ContinueStatement;
-}
-
-const DiagnosticUtils::SourceLocation
-ContinueStatementSyntax::getSourceLocation() const {
-  return _continueKeyword->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-ContinueStatementSyntax::getContinueKeywordPtr() {
-  return _continueKeyword;
-}
+} // namespace syntax
+} // namespace flow_wing

@@ -18,16 +18,18 @@
  */
 
 
-#include "BoundBreakStatement.h"
+#include "BoundBreakStatement.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundBreakStatement::BoundBreakStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location) {}
 
-BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BreakStatement;
+NodeKind BoundBreakStatement::getKind() const {
+  return NodeKind::kBreakStatement;
 }
 
-std::vector<BoundNode *> BoundBreakStatement::getChildren() {
-  return this->_children;
-}
+} // namespace binding
+} // namespace flow_wing

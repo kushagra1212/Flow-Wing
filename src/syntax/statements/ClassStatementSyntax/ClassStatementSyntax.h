@@ -20,116 +20,49 @@
 #pragma once
 
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
-#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include <memory>
+
+namespace flow_wing {
+
+namespace syntax {
 
 class ClassStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _classKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _extendsKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _classNameIdentifier;
-  std::unique_ptr<SyntaxToken<std::any>> _parentClassNameIdentifier;
-  std::unique_ptr<SyntaxToken<std::any>> _classOpenBraceToken;
-  std::unique_ptr<SyntaxToken<std::any>> _classCloseBraceToken;
-  std::vector<std::unique_ptr<VariableDeclarationSyntax>> _classDataMembers;
-  std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _classMemberFunctions;
-  std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
 
 public:
-  ClassStatementSyntax();
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  ClassStatementSyntax(
+      const SyntaxToken *class_keyword_token,
+      std::unique_ptr<ExpressionSyntax> class_name_identifier_expr,
+      const SyntaxToken *extends_keyword_token,
+      std::unique_ptr<ExpressionSyntax> parent_class_identifier_expr,
+      const SyntaxToken *open_brace_token,
+      std::vector<std::unique_ptr<StatementSyntax>> class_member_statements,
+      const SyntaxToken *close_brace_token);
 
-  inline auto
-  setClassKeyword(std::unique_ptr<SyntaxToken<std::any>> classKeyword) -> void {
-    _classKeyword = std::move(classKeyword);
-  }
-  inline auto
-  setClassNameIdentifier(std::unique_ptr<SyntaxToken<std::any>> classNameIden)
-      -> void {
-    _classNameIdentifier = std::move(classNameIden);
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto setParentClassNameIdentifier(
-      std::unique_ptr<SyntaxToken<std::any>> parentClassNameIden) -> void {
-    _parentClassNameIdentifier = std::move(parentClassNameIden);
-  }
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getClassNameIdentifierExpr() const;
+  const std::unique_ptr<ExpressionSyntax> &getParentClassIdentifierExpr() const;
+  const std::vector<std::unique_ptr<StatementSyntax>> &
+  getClassMemberStatements() const;
 
-  inline auto setClassOpenBraceToken(
-      std::unique_ptr<SyntaxToken<std::any>> classOpenBraceToken) -> void {
-    _classOpenBraceToken = std::move(classOpenBraceToken);
-  }
+private:
+  const SyntaxToken *m_class_keyword_token;
+  std::unique_ptr<ExpressionSyntax> m_class_name_identifier_expr;
+  const SyntaxToken *m_extends_keyword_token;
+  std::unique_ptr<ExpressionSyntax> m_parent_class_identifier_expr;
+  const SyntaxToken *m_open_brace_token;
+  std::vector<std::unique_ptr<StatementSyntax>> m_class_member_statements;
+  const SyntaxToken *m_close_brace_token;
 
-  inline auto setClassCloseBraceToken(
-      std::unique_ptr<SyntaxToken<std::any>> classCloseBraceToken) -> void {
-    _classCloseBraceToken = std::move(classCloseBraceToken);
-  }
-
-  inline auto
-  setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword)
-      -> void {
-    _exposeKeyword = std::move(exposeKeyword);
-  }
-
-  inline auto
-  setExtendsKeyword(std::unique_ptr<SyntaxToken<std::any>> extendsKeyword)
-      -> void {
-    _extendsKeyword = std::move(extendsKeyword);
-  }
-
-  inline auto
-  addClassDataMember(std::unique_ptr<VariableDeclarationSyntax> member)
-      -> void {
-    _classDataMembers.push_back(std::move(member));
-  }
-
-  inline auto addCustomTypeStatement(
-      std::unique_ptr<CustomTypeStatementSyntax> customTypeStatement) -> void {
-    _customTypeStatements.push_back(std::move(customTypeStatement));
-  }
-
-  inline auto
-  addClassMemberFunction(std::unique_ptr<FunctionDeclarationSyntax> function)
-      -> void {
-    _classMemberFunctions.push_back(std::move(function));
-  }
-
-  inline auto getClassNameIdentifierRef()
-      -> std::unique_ptr<SyntaxToken<std::any>> & {
-    return _classNameIdentifier;
-  }
-
-  inline auto getParentClassNameIdentifierRef()
-      -> std::unique_ptr<SyntaxToken<std::any>> & {
-    return _parentClassNameIdentifier;
-  }
-
-  inline auto getExtendsKeywordRef()
-      -> std::unique_ptr<SyntaxToken<std::any>> & {
-    return _extendsKeyword;
-  }
-
-  inline auto getDataMembersRef()
-      -> std::vector<std::unique_ptr<VariableDeclarationSyntax>> & {
-    return _classDataMembers;
-  }
-
-  inline auto getClassMemberFunctionsRef()
-      -> std::vector<std::unique_ptr<FunctionDeclarationSyntax>> & {
-    return _classMemberFunctions;
-  }
-
-  inline auto getExposeKeywordRef()
-      -> std::unique_ptr<SyntaxToken<std::any>> & {
-    return _exposeKeyword;
-  }
-
-  inline auto getCustomTypeStatementsRef()
-      -> std::vector<std::unique_ptr<CustomTypeStatementSyntax>> & {
-    return _customTypeStatements;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

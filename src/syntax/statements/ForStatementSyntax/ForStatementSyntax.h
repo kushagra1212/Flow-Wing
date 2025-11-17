@@ -20,34 +20,50 @@
 #pragma once
 
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <memory>
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
 
 class ForStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<StatementSyntax> _initialization;
-  std::unique_ptr<BlockStatementSyntax> _statement;
-  std::unique_ptr<ExpressionSyntax> _upperBound;
-  std::unique_ptr<ExpressionSyntax> _stepExpression;
 
 public:
-  ForStatementSyntax(std::unique_ptr<StatementSyntax> initialization,
-                     std::unique_ptr<ExpressionSyntax> upperBound,
-                     std::unique_ptr<BlockStatementSyntax> statement,
-                     std::unique_ptr<ExpressionSyntax> stepExpression);
+  ForStatementSyntax(const SyntaxToken *for_keyword,
+                     const SyntaxToken *open_parenthesis_token,
+                     std::unique_ptr<StatementSyntax> variable_declaration,
+                     std::unique_ptr<ExpressionSyntax> assignment_expression,
+                     const SyntaxToken *to_keyword,
+                     std::unique_ptr<ExpressionSyntax> upper_bound,
+                     const SyntaxToken *step_colon_token,
+                     std::unique_ptr<ExpressionSyntax> step,
+                     const SyntaxToken *close_parenthesis_token,
+                     std::unique_ptr<StatementSyntax> body);
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  std::unique_ptr<BlockStatementSyntax> getStatement();
-  std::unique_ptr<StatementSyntax> getInitialization();
-  std::unique_ptr<ExpressionSyntax> getUpperBound();
-  std::unique_ptr<ExpressionSyntax> getStepExpression();
+  // Getters
+  const std::unique_ptr<StatementSyntax> &getVariableDeclaration() const;
+  const std::unique_ptr<ExpressionSyntax> &getAssignmentExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getUpperBound() const;
+  const std::unique_ptr<ExpressionSyntax> &getStep() const;
+  const std::unique_ptr<StatementSyntax> &getBody() const;
 
-  const std::vector<SyntaxNode *> &getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_for_keyword;
+  const SyntaxToken *m_open_parenthesis_token;
+  std::unique_ptr<StatementSyntax> m_variable_declaration;
+  std::unique_ptr<ExpressionSyntax> m_assignment_expression;
+  const SyntaxToken *m_to_keyword;
+  std::unique_ptr<ExpressionSyntax> m_upper_bound;
+  const SyntaxToken *m_step_colon_token;
+  std::unique_ptr<ExpressionSyntax> m_step;
+  const SyntaxToken *m_close_parenthesis_token;
+  std::unique_ptr<StatementSyntax> m_body;
 
-  std::unique_ptr<BlockStatementSyntax> &getStatementRef();
-  std::unique_ptr<StatementSyntax> &getInitializationRef();
-  std::unique_ptr<ExpressionSyntax> &getUpperBoundRef();
-  std::unique_ptr<ExpressionSyntax> &getStepExpressionRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

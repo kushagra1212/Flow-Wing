@@ -21,29 +21,33 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include <any>
 #include <memory>
 
+namespace flow_wing {
+namespace syntax {
+
 class BinaryExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<ExpressionSyntax> _left;
-  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
-  std::unique_ptr<ExpressionSyntax> _right;
 
 public:
   BinaryExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
-                         std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+                         const SyntaxToken *operator_token,
                          std::unique_ptr<ExpressionSyntax> right);
 
-  std::unique_ptr<ExpressionSyntax> getLeft();
-  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
-  std::unique_ptr<ExpressionSyntax> getRight();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const SyntaxToken *getOperatorToken() const;
+  const std::unique_ptr<ExpressionSyntax> &getLeft() const;
+  const std::unique_ptr<ExpressionSyntax> &getRight() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  std::unique_ptr<ExpressionSyntax> m_left;
+  const SyntaxToken *m_operator_token;
+  std::unique_ptr<ExpressionSyntax> m_right;
 
-  std::unique_ptr<ExpressionSyntax> &getLeftRef();
-  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
-  std::unique_ptr<ExpressionSyntax> &getRightRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

@@ -177,10 +177,10 @@ llvm::Value *assignRHSValueToLHSDynamicValue(
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, float64AsInt64, {1}, "insertedDataValue");
   } else {
-    context->getLogger()->LogError(
-        "Unsupported type for assignment: " +
-        _typeMapper->getLLVMTypeName(
-            _typeMapper->mapLLVMTypeToCustomType(rhsValue->getType())));
+    context->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            CanNotAssignNonDynamicSupertypeToDynamicVariable,
+        {_typeMapper->getLLVMTypeName(rhsValue->getType())});
     return nullptr;
   }
 

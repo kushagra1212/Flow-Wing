@@ -1,0 +1,52 @@
+#pragma once
+
+#include "src/compiler/diagnostics/DiagnosticCode.h"
+#include <cstdint>
+#include <vector>
+
+namespace flow_wing {
+
+namespace analysis {
+class TypeResolver;
+} // namespace analysis
+
+class CompilationContext;
+
+namespace diagnostic {
+enum class DiagnosticCode : int16_t;
+struct SourceLocation;
+} // namespace diagnostic
+
+namespace analysis {
+class ScopedSymbolTable;
+} // namespace analysis
+
+namespace binding {
+
+class BinderContext {
+public:
+  BinderContext(CompilationContext &context);
+  ~BinderContext();
+
+  //? Error Reporting
+  void
+  reportError(flow_wing::diagnostic::DiagnosticCode code,
+              const std::vector<flow_wing::diagnostic::DiagnosticArg> &args,
+              const flow_wing::diagnostic::SourceLocation &location);
+
+  // Setters
+  void
+  switchSymbolTable(std::shared_ptr<analysis::ScopedSymbolTable> symbol_table);
+
+  // Getters
+  const CompilationContext &getCompilationContext() const;
+  const std::shared_ptr<analysis::ScopedSymbolTable> &getSymbolTable() const;
+  const std::unique_ptr<analysis::TypeResolver> &getTypeResolver() const;
+
+private:
+  CompilationContext &m_context;
+  std::unique_ptr<analysis::TypeResolver> m_type_resolver;
+  std::shared_ptr<analysis::ScopedSymbolTable> m_symbol_table;
+};
+} // namespace binding
+} // namespace flow_wing

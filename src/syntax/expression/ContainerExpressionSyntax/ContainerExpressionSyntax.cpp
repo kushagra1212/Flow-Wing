@@ -18,59 +18,58 @@
  */
 
 #include "ContainerExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 
-/*
-  OVERRIDES
-*/
+namespace flow_wing {
+namespace syntax {
 
-SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ContainerExpression;
+ContainerExpressionSyntax::ContainerExpressionSyntax(
+    const syntax::SyntaxToken *open_bracket,
+    std::vector<std::unique_ptr<ExpressionSyntax>> elements,
+    std::vector<const syntax::SyntaxToken *> comma_tokens,
+    const syntax::SyntaxToken *close_bracket)
+    : m_open_bracket(open_bracket), m_elements(std::move(elements)),
+      m_comma_tokens(comma_tokens), m_close_bracket(close_bracket) {}
+
+ContainerExpressionSyntax::ContainerExpressionSyntax(
+    const syntax::SyntaxToken *open_bracket,
+    const syntax::SyntaxToken *close_bracket)
+    : m_open_bracket(open_bracket), m_close_bracket(close_bracket) {}
+
+NodeKind ContainerExpressionSyntax::getKind() const {
+  return NodeKind::kContainerExpression;
 }
 
-const std::vector<SyntaxNode *> &ContainerExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
-
-  if (_openBracket)
-    _children.push_back(_openBracket.get());
-
-  for (auto &element : this->_elements)
-    _children.push_back(element.get());
-
-  if (_closeBracket)
-    _children.push_back(_closeBracket.get());
-  return _children;
+void ContainerExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const DiagnosticUtils::SourceLocation
-ContainerExpressionSyntax::getSourceLocation() const {
-  if (this->_elements.size() == 0) {
-    if (_openBracket)
-      return _openBracket->getSourceLocation();
+const std::vector<const SyntaxNode *> &
+ContainerExpressionSyntax::getChildren() const {
 
-    if (_closeBracket)
-      return _closeBracket->getSourceLocation();
+  if (m_children.empty()) {
+
+    if (m_open_bracket) {
+      m_children.push_back(m_open_bracket);
+    }
+
+    size_t size = std::max(m_elements.size(), m_comma_tokens.size());
+
+    for (size_t i = 0; i < size; i++) {
+      if (i < m_elements.size() && m_elements[i]) {
+        m_children.push_back(m_elements[i].get());
+      }
+      if (i < m_comma_tokens.size() && m_comma_tokens[i]) {
+        m_children.push_back(m_comma_tokens[i]);
+      }
+    }
+
+    if (m_close_bracket) {
+      m_children.push_back(m_close_bracket);
+    }
   }
-
-  return this->_elements[0]->getSourceLocation();
+  return m_children;
 }
 
-/*
-  SETTERS
-*/
-
-auto ContainerExpressionSyntax::setElement(
-    std::unique_ptr<ExpressionSyntax> element) -> void {
-  this->_elements.push_back(std::move(element));
-}
-
-/*
-  GETTERS
-*/
-
-auto ContainerExpressionSyntax::getElementsRef() const
-    -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
-  return this->_elements;
-}
+} // namespace syntax
+} // namespace flow_wing

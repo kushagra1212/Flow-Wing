@@ -19,6 +19,7 @@
 
 #include "ObjectAssignmentExpressionGenerationStrategy.h"
 
+#include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 
 ObjectAssignmentExpressionGenerationStrategy::
@@ -34,6 +35,28 @@ llvm::Value *
 ObjectAssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   return this->generateExpression(expression);
+}
+
+auto ObjectAssignmentExpressionGenerationStrategy::getSafeCustomType(
+    const std::string &typeName) -> decltype(auto) {
+  auto fgType = _codeGenerationContext->getFlowWingType(typeName);
+
+  auto customType = fgType.getCustomType();
+
+  if (customType == nullptr) {
+    if (typeName == DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE) {
+      _codeGenerationContext->getLogger()->logError(
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              CanNotAssignObjectToDynamicType,
+          {});
+    } else {
+      _codeGenerationContext->getLogger()->logError(
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::CustomTypeNotFound,
+          {(typeName)});
+    }
+  }
+
+  return customType;
 }
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
@@ -68,9 +91,13 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
     processKeyTypePairs(
         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs());
   } else {
-    processKeyTypePairs(_codeGenerationContext->getFlowWingType(typeName)
-                            .getCustomType()
-                            ->getKeyPairs());
+    auto customType = getSafeCustomType(typeName);
+
+    if (customType == nullptr) {
+      return nullptr;
+    }
+
+    processKeyTypePairs(customType->getKeyPairs());
   }
 
   return nullptr;
@@ -102,8 +129,12 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
       index++;
     }
   } else {
-    BoundCustomTypeStatement *boundCustomTypeStatement =
-        _codeGenerationContext->getFlowWingType(typeName).getCustomType();
+    auto boundCustomTypeStatement = getSafeCustomType(typeName);
+
+    if (boundCustomTypeStatement == nullptr) {
+      return nullptr;
+    }
+
     for (const auto &[bLitExpr, bExpr] :
          boundCustomTypeStatement->getKeyPairs()) {
       std::string propertyName =

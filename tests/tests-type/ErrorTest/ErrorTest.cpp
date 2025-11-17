@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ErrorTest.h"
 #include "../../../src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
@@ -1061,4 +1060,37 @@ print(s)
   )");
 
   EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedTemplateStringLiteral);
+}
+
+TEST_F(ErrorTest, CanNotAssignObjectToDynamicType) {
+  IE(R"(
+var x = 2
+print(x, "\n")
+x = {
+  y: 2
+} 
+print(x, "\n")
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::CanNotAssignObjectToDynamicType);
+}
+
+TEST_F(ErrorTest, CanNotAssignNonDynamicSupertypeToDynamicVariable) {
+  IE(R"(
+var x = 2
+print(x, "\n")
+type T = {
+  y: int
+}
+var j: T = {
+  y: 2
+}
+x = j 
+print(x, "\n")
+
+  )");
+
+  EXPECT_ERROR_CODE(
+      DiagnosticCode::CanNotAssignNonDynamicSupertypeToDynamicVariable);
 }

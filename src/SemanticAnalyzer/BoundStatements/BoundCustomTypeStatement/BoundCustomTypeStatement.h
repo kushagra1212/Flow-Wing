@@ -17,82 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
-#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundDeclarationStatement.hpp"
 
-class BoundCustomTypeStatement : public BoundStatement,
-                                 public BoundSourceLocation {
-  std::unique_ptr<BoundLiteralExpression<std::any>> _typeName;
-  std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
-                        std::unique_ptr<BoundTypeExpression>>>
-      _key_type_pairs;
-  bool _isExposed;
+namespace flow_wing {
+
+namespace binding {
+
+class BoundExpression;
+
+class BoundCustomTypeStatement : public BoundDeclarationStatement {
 
 public:
-  BoundCustomTypeStatement(const DiagnosticUtils::SourceLocation &location,
-                           bool isExposed);
+  BoundCustomTypeStatement(
+      std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+      const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundCustomTypeStatement() = default;
 
-  /*
-    Setters
-  */
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<std::shared_ptr<analysis::Symbol>> &
+  getSymbols() const override;
 
-  inline auto
-  setTypeName(std::unique_ptr<BoundLiteralExpression<std::any>> typeName)
-      -> void {
-    this->_typeName = std::move(typeName);
-  }
-
-  inline auto
-  addKeyTypePair(std::unique_ptr<BoundLiteralExpression<std::any>> key,
-                 std::unique_ptr<BoundTypeExpression> type) -> void {
-    this->_key_type_pairs.push_back(
-        std::make_pair(std::move(key), std::move(type)));
-  }
-
-  inline auto setTypeNameAsString(std::string typeName) -> void {
-    this->_typeName->setValue(typeName);
-  }
-
-  /*
-    Getters
-  */
-
-  inline auto getTypeName()
-      -> const std::unique_ptr<BoundLiteralExpression<std::any>> & {
-    return this->_typeName;
-  }
-  inline auto getTypeNameAsString() -> const std::string {
-    return std::any_cast<std::string>(this->_typeName->getValue());
-  }
-
-  inline auto getKeyPairs() -> const
-      std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
-                            std::unique_ptr<BoundTypeExpression>>> & {
-    return this->_key_type_pairs;
-  }
-
-  inline auto getKeyValue(std::string key)
-      -> std::tuple<BoundLiteralExpression<std::any> *, BoundTypeExpression *,
-                    uint64_t> {
-    uint64_t index = 0;
-    for (auto &pair : this->_key_type_pairs) {
-      if (std::any_cast<std::string>(pair.first->getValue()) == key) {
-        return {pair.first.get(), pair.second.get(), index};
-      }
-      index++;
-    }
-
-    return {nullptr, nullptr, -1};
-  }
-
-  inline auto isExposed() -> bool { return this->_isExposed; }
-
-public:
-  BinderKindUtils::BoundNodeKind getKind() const override;
-  std::vector<BoundNode *> getChildren() override;
+private:
+  std::vector<std::shared_ptr<analysis::Symbol>> m_symbols;
 };
+} // namespace binding
+} // namespace flow_wing

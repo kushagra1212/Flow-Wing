@@ -17,11 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
-#include "src/SemanticAnalyzer/BoundNode.h"
+
+#include "src/SemanticAnalyzer/BoundNode.hpp"
+
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+namespace flow_wing {
+
+namespace binding {
 class BoundStatement : public BoundNode {
 public:
   virtual ~BoundStatement() = default;
+
+protected:
+  explicit BoundStatement(const flow_wing::diagnostic::SourceLocation &location)
+      : BoundNode(location) {}
+
+  BoundStatement() = default;
 };
+} // namespace binding
+} // namespace flow_wing

@@ -18,64 +18,46 @@
  */
 
 #include "ParenthesizedExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
+namespace flow_wing {
+namespace syntax {
+
 ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+    const SyntaxToken *open_parenthesis_token,
     std::unique_ptr<ExpressionSyntax> expression,
-    std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken) {
-  this->_openParenthesisToken = std::move(openParenthesisToken);
-  this->_expression = std::move(expression);
-  this->_closeParenthesisToken = std::move(closeParenthesisToken);
+    const SyntaxToken *close_parenthesis_token)
+    : m_open_parenthesis_token(open_parenthesis_token),
+      m_expression(std::move(expression)),
+      m_close_parenthesis_token(std::move(close_parenthesis_token)) {}
+
+// Overrides
+
+syntax::NodeKind ParenthesizedExpressionSyntax::getKind() const {
+  return NodeKind::kParenthesizedExpression;
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
-  return std::move(this->_openParenthesisToken);
+void ParenthesizedExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<ExpressionSyntax>
-ParenthesizedExpressionSyntax::getExpression() {
-  return std::move(this->_expression);
-}
-
-std::unique_ptr<SyntaxToken<std::any>>
-ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
-  return std::move(this->_closeParenthesisToken);
-}
-
-SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
-}
-const std::vector<SyntaxNode *> &ParenthesizedExpressionSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    this->_children.emplace_back(_openParenthesisToken.get());
-    this->_children.emplace_back(_expression.get());
-    this->_children.emplace_back(_closeParenthesisToken.get());
+const std::vector<const SyntaxNode *> &
+ParenthesizedExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &child :
+         {static_cast<const SyntaxNode *>(m_open_parenthesis_token),
+          static_cast<const SyntaxNode *>(m_expression.get()),
+          static_cast<const SyntaxNode *>(m_close_parenthesis_token)}) {
+      if (child) {
+        m_children.push_back(child);
+      }
+    }
   }
 
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-ParenthesizedExpressionSyntax::getSourceLocation() const {
-  return this->_openParenthesisToken->getSourceLocation();
-}
+} // namespace syntax
 
-std::unique_ptr<SyntaxToken<std::any>> &
-ParenthesizedExpressionSyntax::getOpenParenthesisTokenRef() {
-  return this->_openParenthesisToken;
-}
-
-std::unique_ptr<ExpressionSyntax> &
-ParenthesizedExpressionSyntax::getExpressionRef() {
-  return this->_expression;
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-ParenthesizedExpressionSyntax::getCloseParenthesisTokenRef() {
-  return this->_closeParenthesisToken;
-}
+} // namespace flow_wing

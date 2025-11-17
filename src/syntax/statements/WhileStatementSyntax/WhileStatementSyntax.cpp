@@ -17,62 +17,51 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "WhileStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+
+namespace flow_wing {
+namespace syntax {
 
 WhileStatementSyntax::WhileStatementSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
+    const SyntaxToken *while_keyword,
     std::unique_ptr<ExpressionSyntax> condition,
-    std::unique_ptr<BlockStatementSyntax> body) {
-  this->_whileKeyword = std::move(whileKeyword);
-  this->_condition = std::move(condition);
-  this->_body = std::move(body);
+    std::unique_ptr<StatementSyntax> statement)
+    : m_while_keyword(while_keyword), m_condition(std::move(condition)),
+      m_statement(std::move(statement)) {}
+
+NodeKind WhileStatementSyntax::getKind() const {
+  return NodeKind::kWhileStatement;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> WhileStatementSyntax::getWhileKeyword() {
-  return std::move(_whileKeyword);
+void WhileStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<ExpressionSyntax> WhileStatementSyntax::getCondition() {
-  return std::move(_condition);
+const std::unique_ptr<ExpressionSyntax> &
+WhileStatementSyntax::getCondition() const {
+  return m_condition;
+}
+const std::unique_ptr<StatementSyntax> &
+WhileStatementSyntax::getStatement() const {
+  return m_statement;
 }
 
-std::unique_ptr<BlockStatementSyntax> WhileStatementSyntax::getBody() {
-  return std::move(_body);
-}
-
-SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::WhileStatement;
-}
-
-const std::vector<SyntaxNode *> &WhileStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    _children.push_back(_whileKeyword.get());
-    _children.push_back(_condition.get());
-    _children.push_back(_body.get());
+const std::vector<const SyntaxNode *> &
+WhileStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &node :
+         {static_cast<const SyntaxNode *>(m_while_keyword),
+          static_cast<const SyntaxNode *>(m_condition.get()),
+          static_cast<const SyntaxNode *>(m_statement.get())}) {
+      if (node)
+        m_children.push_back(node);
+    }
   }
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-WhileStatementSyntax::getSourceLocation() const {
-  return this->_whileKeyword->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-WhileStatementSyntax::getWhileKeywordRef() {
-  return this->_whileKeyword;
-}
-
-std::unique_ptr<ExpressionSyntax> &WhileStatementSyntax::getConditionRef() {
-  return this->_condition;
-}
-
-std::unique_ptr<BlockStatementSyntax> &WhileStatementSyntax::getBodyRef() {
-  return this->_body;
-}
+} // namespace syntax
+} // namespace flow_wing

@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-using namespace FlowWing;
+using namespace flow_wing;
 
 DiagnosticHandler::DiagnosticHandler(std::string filePath,
                                      DiagnosticHandler *parent)
@@ -163,8 +163,8 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
 
   std::string message = diagnostic.getMessage();
-  std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
-  std::string type = DiagnosticUtils::toString(diagnostic.getType());
+  std::string level = diagnostic::toString(diagnostic.getLevel());
+  std::string type = diagnostic::toString(diagnostic.getType());
   std::string lineNumber = std::to_string(diagnostic.getLocation().lineNumber +
                                           1 - previousLineCount);
   std::string columnNumber =
@@ -173,11 +173,11 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   std::string logString = "";
   std::string fileName = "";
   std::string fileOut = "";
-  if (diagnostic.getType() == DiagnosticUtils::DiagnosticType::Linker) {
+  if (diagnostic.getType() == diagnostic::DiagnosticType::kLinker) {
     line = "";
   } else {
 
-    logString = diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
+    logString = diagnostic.getLevel() != diagnostic::DiagnosticLevel::kInfo
                     ? getErrorProducingSnippet(
                           static_cast<size_t>(std::stoi(lineNumber)),
                           static_cast<size_t>(std::stoi(columnNumber)))
@@ -187,7 +187,7 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     fileName += "File: ----> ";
     fileName += BOLD_BLUE_TEXT;
     const std::string FILEPATH =
-        (diagnostic.getLocation().absoluteFilePath != ""
+        (diagnostic.getLocation().absolute_file_path != ""
              ? diagnostic.getLocation().absoluteFilePath
              : this->_filePath);
     fileName += this->getFileName(FILEPATH);
@@ -200,22 +200,20 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   }
 
   logString += "\n";
-  logString +=
-      (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error
-           ? BOLD_RED_TEXT
-       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Warning
-           ? BOLD_YELLOW_TEXT
-       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info
-           ? BOLD_GREEN_TEXT
-           : BOLD_BLUE_TEXT);
+  logString += (diagnostic.getLevel() == diagnostic::DiagnosticLevel::kError
+                    ? BOLD_RED_TEXT
+                : diagnostic.getLevel() == diagnostic::DiagnosticLevel::kWarning
+                    ? BOLD_YELLOW_TEXT
+                : diagnostic.getLevel() == diagnostic::DiagnosticLevel::kInfo
+                    ? BOLD_GREEN_TEXT
+                    : BOLD_BLUE_TEXT);
 
   logString +=
       "[" + level + "] : " + BOLD_YELLOW_TEXT + line +
-      (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error
-           ? RED_TEXT
-       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Warning
+      (diagnostic.getLevel() == diagnostic::DiagnosticLevel::kError ? RED_TEXT
+       : diagnostic.getLevel() == diagnostic::DiagnosticLevel::kWarning
            ? YELLOW_TEXT
-       : diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info
+       : diagnostic.getLevel() == diagnostic::DiagnosticLevel::kInfo
            ? GREEN_TEXT
            : BLUE_TEXT) +
       BOLD_WHITE_TEXT + " \"" + message + "\"" + RESET + "\n\n";
@@ -254,14 +252,13 @@ void DiagnosticHandler::logJSONifAsked(const std::string &outputFilePath,
                                        const Diagnostic &diagnostic) {
   if (Utils::getExtension(outputFilePath) == ".json") {
     JSON errorObject = {
-        {"level", DiagnosticUtils::toString(diagnostic.getLevel())},
-        {"error",
-         diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error},
+        {"level", diagnostic::toString(diagnostic.getLevel())},
+        {"error", diagnostic.getLevel() == diagnostic::DiagnosticLevel::kError},
         {"message", (diagnostic.getMessage())},
-        {"type", DiagnosticUtils::toString(diagnostic.getType())},
+        {"type", diagnostic::toString(diagnostic.getType())},
         {"location",
          {
-             {"line", diagnostic.getLocation().lineNumber + 1},
+             {"line", diagnostic.getLocation().line_number + 1},
              {"column", diagnostic.getLocation().columnNumber + 1},
              {"length", diagnostic.getLocation().length},
          }}};
@@ -279,7 +276,7 @@ void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
   outputStream << getLogString(diagnostic);
 }
 
-bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticLevel level) const {
+bool DiagnosticHandler::hasError(diagnostic::DiagnosticLevel level) const {
   bool hasError = std::any_of(diagnostics.begin(), diagnostics.end(),
                               [level](const Diagnostic &diagnostic) {
                                 return diagnostic.getLevel() == level;
@@ -292,13 +289,13 @@ bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticLevel level) const {
   return hasError;
 }
 
-bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticType type) const {
-  bool hasError = std::any_of(
-      diagnostics.begin(), diagnostics.end(),
-      [type](const Diagnostic &diagnostic) {
-        return diagnostic.getType() == type &&
-               diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error;
-      });
+bool DiagnosticHandler::hasError(diagnostic::DiagnosticType type) const {
+  bool hasError = std::any_of(diagnostics.begin(), diagnostics.end(),
+                              [type](const Diagnostic &diagnostic) {
+                                return diagnostic.getType() == type &&
+                                       diagnostic.getLevel() ==
+                                           diagnostic::DiagnosticLevel::kError;
+                              });
 
   if (parent != nullptr) {
     return parent->hasError(type) || hasError;

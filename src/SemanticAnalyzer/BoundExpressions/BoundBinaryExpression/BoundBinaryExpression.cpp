@@ -17,61 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BoundBinaryExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundBinaryExpression::BoundBinaryExpression(
-    const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundExpression> left,
-    BinderKindUtils::BoundBinaryOperatorKind op,
-    std::unique_ptr<BoundExpression> right)
-    : BoundExpression(location) {
-  this->_op = op;
+    std::shared_ptr<BoundBinaryOperator> binary_operator,
+    std::unique_ptr<BoundExpression> right,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_left(std::move(left)),
+      m_binary_operator(binary_operator), m_right(std::move(right)) {}
 
-  this->_left = std::move(left);
-  this->_right = std::move(right);
-
-  // TODO:
-
-  _children.push_back(_left.get());
-  _children.push_back(_right.get());
+NodeKind BoundBinaryExpression::getKind() const {
+  return NodeKind::kBinaryExpression;
 }
 
-const std::type_info &BoundBinaryExpression::getType() {
-  return typeid(BoundBinaryExpression);
+std::shared_ptr<types::Type> BoundBinaryExpression::getType() const {
+  return m_binary_operator->getResultType();
 }
 
-BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {
-  return _op;
-}
-
-std::unique_ptr<BoundExpression> BoundBinaryExpression::getLeft() {
-  return std::move(_left);
-}
-
-std::unique_ptr<BoundExpression> BoundBinaryExpression::getRight() {
-  return std::move(_right);
-}
-BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BinaryExpression;
-}
-std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
-  return _children;
-}
-
-std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeftPtr() {
-  return _left;
-}
-
-std::unique_ptr<BoundExpression> &BoundBinaryExpression::getRightPtr() {
-  return _right;
-}
-
-llvm::AllocaInst *BoundBinaryExpression::getDynamicValueVariableAddress() {
-  return _dynamicValueVariableAddress;
-}
-
-void BoundBinaryExpression::setDynamicValueVariableAddress(
-    llvm::AllocaInst *dynamicValueVariableAddress) {
-  _dynamicValueVariableAddress = dynamicValueVariableAddress;
-}
+} // namespace binding
+} // namespace flow_wing

@@ -19,46 +19,38 @@
 
 #pragma once
 
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/SyntaxNode.h"
+#include <any>
 
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken : public SyntaxNode {
-private:
-  SyntaxKindUtils::SyntaxKind kind;
-  std::string text;
-  T value;
+class SyntaxToken : public SyntaxNode {
 
 public:
-  SyntaxToken(const std::string &absoluteFilePath, const size_t &lineNumber,
-              const SyntaxKindUtils::SyntaxKind &kind,
-              const size_t &columnNumber, const std::string &text,
-              const T &value);
+  SyntaxToken(
+      const lexer::TokenKind kind, const std::string &text,
+      const std::any value,
+      const flow_wing::diagnostic::SourceLocation &source_location,
+      std::vector<std::unique_ptr<syntax::SyntaxToken>> leading_tokens = {});
 
-  const size_t &getColumnNumber();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  const size_t &getLineNumber();
+  // Getters
+  const std::string &getText() const { return m_text; }
+  const std::any &getValue() const { return m_value; }
+  const lexer::TokenKind &getTokenKind() const { return m_token_kind; }
 
-  const std::string &getAbsoluteFilePath() const;
-
-  const std::string &getText();
-
-  const T &getValue();
-
-  std::string getKindText();
-
-  int getUnaryOperatorPrecedence();
-
-  int getBinaryOperatorPrecedence();
-
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  const std::vector<SyntaxNode *> &getChildren() override;
-
-  inline auto setText(const std::string newText) -> void {
-    this->text = newText;
-  }
-  inline auto setValue(const T &newValue) -> void { this->value = newValue; }
+private:
+  lexer::TokenKind m_token_kind;
+  std::string m_text;
+  std::any m_value;
+  std::vector<std::unique_ptr<syntax::SyntaxToken>> m_leading_tokens;
 };
+
+} // namespace syntax
+} // namespace flow_wing

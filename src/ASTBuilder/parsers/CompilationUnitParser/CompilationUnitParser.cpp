@@ -18,67 +18,41 @@
  */
 
 #include "CompilationUnitParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/ASTBuilder/parsers/StatementParser/FunctionDeclarationParser/FunctionDeclarationParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/GlobalStatementParser/GlobalStatementParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/ExposeStatementParser/ExposeStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include <memory>
 
-std::unique_ptr<MemberSyntax>
-CompilationUnitParser::parseMember(ParserContext *ctx) {
-  SyntaxKindUtils::SyntaxKind currentKind = ctx->getKind();
+namespace flow_wing {
+namespace parser {
 
-  if (currentKind == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-    currentKind = ctx->peek(1)->getKind();
+CompilationUnitParser::CompilationUnitParser(ParserContext *ctx) : m_ctx(ctx) {}
+
+std::unique_ptr<syntax::StatementSyntax>
+CompilationUnitParser::parseStatement() {
+
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kExposeKeyword) {
+    return std::make_unique<ExposeStatementParser>(m_ctx)->parse();
   }
 
-  if (currentKind == SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
-    ctx->getCodeFormatterRef()->appendNewLine();
-
-    std::unique_ptr<SyntaxToken<std::any>> exposedKeyword = nullptr,
-                                           functionKeyword = nullptr;
-    if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-      exposedKeyword = ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword);
-
-      ctx->getCodeFormatterRef()->appendWithSpace();
-    }
-
-    functionKeyword =
-        (ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword));
-    ctx->getCodeFormatterRef()->appendWithSpace();
-
-    std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration(
-        static_cast<FunctionDeclarationSyntax *>(
-            std::make_unique<FunctionDeclarationParser>()
-                ->parseStatement(ctx)
-                .release()));
-
-    functionDeclaration->setExposedKeyword(std::move(exposedKeyword));
-    functionDeclaration->setFunctionKeyword(std::move(functionKeyword));
-    functionDeclaration->setIsMemberFunction(false);
-
-    return functionDeclaration;
-  }
-
-  return std::make_unique<GlobalStatementParser>()->parseStatement(ctx);
+  return StatementParserFactory::create(*m_ctx)->parse();
 }
 
-std::unique_ptr<CompilationUnitSyntax>
-CompilationUnitParser::parseCompilationUnit(ParserContext *ctx) {
-  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::make_unique<CompilationUnitSyntax>();
+std::unique_ptr<syntax::CompilationUnitSyntax> CompilationUnitParser::parse() {
 
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+  auto global_statements =
+      std::vector<std::unique_ptr<syntax::StatementSyntax>>();
 
-    compilationUnit->addMember(parseMember(ctx));
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+    global_statements.emplace_back(parseStatement());
   }
 
-  std::unique_ptr<SyntaxToken<std::any>> endOfFileToken =
-      ctx->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-
-  compilationUnit->setEndOfFileToken(std::move(endOfFileToken));
-
-  return compilationUnit;
+  return std::make_unique<syntax::CompilationUnitSyntax>(
+      std::move(global_statements),
+      m_ctx->match(lexer::TokenKind::kEndOfFileToken));
 }
+} // namespace parser
+
+} // namespace flow_wing

@@ -17,16 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+namespace flow_wing {
+
+namespace syntax {
+class ExpressionSyntax;
+class IdentifierExpressionSyntax;
+} // namespace syntax
+namespace parser {
+
+class ParserContext;
 
 class ObjectTypeExpressionParser : public ExpressionParser {
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit ObjectTypeExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax>
+  parsePostfix(std::unique_ptr<syntax::IdentifierExpressionSyntax>
+                   identifier_expression);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+
+} // namespace parser
+} // namespace flow_wing

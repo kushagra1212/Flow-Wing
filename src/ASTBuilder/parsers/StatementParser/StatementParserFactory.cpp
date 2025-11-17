@@ -17,55 +17,71 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementParserFactory.h"
 
 #include "BlockStatementParser/BlockStatementParser.h"
-#include "BreakStatementParser/BreakStatementParser.h"
-#include "BringStatementParser/BringStatementParser.h"
-#include "ClassStatementParser/ClassStatementParser.h"
-#include "ContinueStatementParser/ContinueStatementParser.h"
-#include "CustomTypeStatementParser/CustomTypeStatementParser.h"
-#include "ExpressionStatementParser/ExpressionStatementParser.h"
-#include "ForStatementParser/ForStatementParser.h"
-#include "IfStatementParser/IfStatementParser.h"
-#include "ModuleStatementParser/ModuleStatementParser.h"
-#include "ReturnStatementParser/ReturnStatementParser.h"
-#include "SwitchStatementParser/SwitchStatementParser.h"
 #include "VariableDeclarationParser/VariableDeclarationParser.h"
-#include "WhileStatementParser/WhileStatementParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/BreakStatementParser/BreakStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/BringStatementParser/BringStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ClassStatementParser/ClassStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ContinueStatementParser/ContinueStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/CustomTypeStatementParser/CustomTypeStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ForStatementParser/ForStatementParser.h"
 
-std::unique_ptr<StatementParser> StatementParserFactory::createStatementParser(
-    const SyntaxKindUtils::SyntaxKind &kind) {
-  switch (kind) {
-  case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
-    return std::make_unique<BlockStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::VarKeyword:
-  case SyntaxKindUtils::SyntaxKind::ConstKeyword:
-    return std::make_unique<VariableDeclarationParser>();
-  case SyntaxKindUtils::SyntaxKind::IfKeyword:
-    return std::make_unique<IfStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::WhileKeyword:
-    return std::make_unique<WhileStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::ForKeyword:
-    return std::make_unique<ForStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
-    return std::make_unique<BreakStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
-    return std::make_unique<ContinueStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
-    return std::make_unique<ReturnStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::BringKeyword:
-    return std::make_unique<BringStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::TypeKeyword:
-    return std::make_unique<CustomTypeStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::ClassKeyword:
-    return std::make_unique<ClassStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::ModuleKeyword:
-    return std::make_unique<ModuleStatementParser>();
-  case SyntaxKindUtils::SyntaxKind::SwitchKeyword:
-    return std::make_unique<SwitchStatementParser>();
+#include "src/ASTBuilder/parsers/StatementParser/FunctionStatementParser/FunctionStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/IfStatementParser/IfStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ModuleStatementParser/ModuleStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ReturnStatementParser/ReturnStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/SwitchStatementParser/SwitchStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/WhileStatementParser/WhileStatementParser.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include <cassert>
+
+namespace flow_wing {
+
+namespace parser {
+
+std::unique_ptr<StatementParser>
+StatementParserFactory::create(ParserContext &context) {
+
+  switch (context.getCurrentTokenKind()) {
+  case lexer::TokenKind::kOpenBraceToken:
+    return std::make_unique<BlockStatementParser>(&context);
+  case lexer::TokenKind::kVarKeyword:
+  case lexer::TokenKind::kConstKeyword:
+    return std::make_unique<VariableDeclarationParser>(&context);
+  case lexer::TokenKind::kIfKeyword:
+    return std::make_unique<IfStatementParser>(&context);
+  case lexer::TokenKind::kWhileKeyword:
+    return std::make_unique<WhileStatementParser>(&context);
+  case lexer::TokenKind::kForKeyword:
+    return std::make_unique<ForStatementParser>(&context);
+  case lexer::TokenKind::kBreakKeyword:
+    return std::make_unique<BreakStatementParser>(&context);
+  case lexer::TokenKind::kContinueKeyword:
+    return std::make_unique<ContinueStatementParser>(&context);
+  case lexer::TokenKind::kReturnKeyword:
+    return std::make_unique<ReturnStatementParser>(&context);
+  case lexer::TokenKind::kBringKeyword:
+    return std::make_unique<BringStatementParser>(&context);
+  case lexer::TokenKind::kTypeKeyword:
+    return std::make_unique<CustomTypeStatementParser>(&context);
+  case lexer::TokenKind::kClassKeyword:
+    return std::make_unique<ClassStatementParser>(&context);
+  case lexer::TokenKind::kModuleKeyword:
+    return std::make_unique<ModuleStatementParser>(&context);
+  case lexer::TokenKind::kSwitchKeyword:
+    return std::make_unique<SwitchStatementParser>(&context);
+  case lexer::TokenKind::kFunctionKeyword:
+    return std::make_unique<FunctionStatementParser>(&context);
   default:
-    return std::make_unique<ExpressionStatementParser>();
+    assert(false && "Unexpected token kind for StatementParserFactory");
+    return nullptr;
   }
 }
+
+} // namespace parser
+
+} // namespace flow_wing

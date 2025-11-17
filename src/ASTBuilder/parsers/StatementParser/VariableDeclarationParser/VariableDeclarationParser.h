@@ -17,23 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
-#include "src/ASTBuilder/parsers/StatementParser/MultipleVariableDeclarationParser/MultipleVariableDeclarationParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+
+namespace flow_wing {
+namespace parser {
 
 class VariableDeclarationParser : public StatementParser {
 
 public:
-  std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+  explicit VariableDeclarationParser(ParserContext *ctx);
 
-  void setIsForStatement(bool isForStatement);
+  std::unique_ptr<syntax::StatementSyntax> parse() override;
 
 private:
-  bool m_isForStatement = false;
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

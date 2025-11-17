@@ -18,21 +18,20 @@
  */
 
 
-#include "BoundReturnStatement.h"
+#include "BoundReturnStatement.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundReturnStatement::BoundReturnStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::vector<std::unique_ptr<BoundExpression>> return_expressions,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location),
+      m_return_expressions(std::move(return_expressions)) {}
 
-BinderKindUtils::BoundNodeKind BoundReturnStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ReturnStatement;
+NodeKind BoundReturnStatement::getKind() const {
+  return NodeKind::kReturnStatement;
 }
-std::vector<BoundNode *> BoundReturnStatement::getChildren() {
-  if (this->_children.empty()) {
-    for (auto &expr : this->_returnExpressionList) {
-      this->_children.push_back(expr.get());
-    }
-  }
 
-  return this->_children;
-}
+} // namespace binding
+} // namespace flow_wing

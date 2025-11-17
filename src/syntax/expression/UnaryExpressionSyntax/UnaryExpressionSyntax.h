@@ -21,24 +21,32 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include <any>
 #include <memory>
 
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
 
 class UnaryExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
-  std::unique_ptr<ExpressionSyntax> _operand;
 
 public:
-  UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-                        std::unique_ptr<ExpressionSyntax> operand);
+  UnaryExpressionSyntax(const SyntaxToken *operator_token,
+                        std::unique_ptr<ExpressionSyntax> expression);
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
-  std::unique_ptr<ExpressionSyntax> &getOperandRef();
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getExpression() const;
+  lexer::TokenKind getOperatorTokenKind() const;
+
+private:
+  const SyntaxToken *m_operator_token;
+  std::unique_ptr<ExpressionSyntax> m_expression;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

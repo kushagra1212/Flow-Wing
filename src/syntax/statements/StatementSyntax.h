@@ -18,7 +18,21 @@
  */
 
 #pragma once
-#include "src/syntax/SyntaxNode.h"
-;
 
-class StatementSyntax : public SyntaxNode {};
+#include "src/syntax/SyntaxNode.h"
+
+namespace flow_wing {
+namespace syntax {
+class StatementSyntax : public SyntaxNode {
+public:
+  virtual ~StatementSyntax() = default;
+
+protected:
+  explicit StatementSyntax(
+      const flow_wing::diagnostic::SourceLocation &location)
+      : SyntaxNode(location) {}
+
+  StatementSyntax() = default;
+};
+} // namespace syntax
+} // namespace flow_wing

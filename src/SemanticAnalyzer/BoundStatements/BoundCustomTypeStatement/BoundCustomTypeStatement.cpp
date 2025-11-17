@@ -19,26 +19,25 @@
 
 
 #include "BoundCustomTypeStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundDeclarationStatement.hpp"
+#include "src/common/Symbol/Symbol.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundCustomTypeStatement::BoundCustomTypeStatement(
-    const DiagnosticUtils::SourceLocation &location, bool isExposed)
-    : BoundSourceLocation(location), _isExposed(isExposed) {}
+    std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundDeclarationStatement(location), m_symbols(symbols) {}
 
-BinderKindUtils::BoundNodeKind BoundCustomTypeStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::CustomTypeStatement;
+NodeKind BoundCustomTypeStatement::getKind() const {
+  return NodeKind::kCustomTypeStatement;
 }
 
-std::vector<BoundNode *> BoundCustomTypeStatement::getChildren() {
-  if (_children.size() > 0) {
-    return _children;
-  }
-
-  _children.push_back(_typeName.get());
-
-  for (auto &keyTypePair : _key_type_pairs) {
-    _children.push_back(keyTypePair.first.get());
-    _children.push_back(keyTypePair.second.get());
-  }
-
-  return _children;
+const std::vector<std::shared_ptr<analysis::Symbol>> &
+BoundCustomTypeStatement::getSymbols() const {
+  return m_symbols;
 }
+
+} // namespace binding
+} // namespace flow_wing

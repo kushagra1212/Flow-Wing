@@ -17,15 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+
+namespace flow_wing {
+namespace parser {
 
 class BreakStatementParser : public StatementParser {
 
 public:
-  std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+  explicit BreakStatementParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::StatementSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

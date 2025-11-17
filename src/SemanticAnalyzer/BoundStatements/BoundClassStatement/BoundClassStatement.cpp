@@ -18,29 +18,21 @@
  */
 
 
-#include "BoundClassStatement.h"
+#include "BoundClassStatement.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundClassStatement::BoundClassStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::shared_ptr<analysis::Symbol> class_symbol,
+    std::vector<std::unique_ptr<BoundStatement>> class_member_statements,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_class_symbol(std::move(class_symbol)),
+      m_class_member_statements(std::move(class_member_statements)) {}
 
-BinderKindUtils::BoundNodeKind BoundClassStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ClassStatement;
+NodeKind BoundClassStatement::getKind() const {
+  return NodeKind::kClassStatement;
 }
 
-std::vector<BoundNode *> BoundClassStatement::getChildren() {
-  if (this->_children.empty()) {
-
-    for (auto &m : _customTypes) {
-      _children.push_back(m.get());
-    }
-
-    for (auto &m : _memberVariables) {
-      _children.push_back(m.get());
-    }
-    for (auto &m : _memberFunctions) {
-      _children.push_back(m.get());
-    }
-  }
-  return this->_children;
-}
+} // namespace binding
+} // namespace flow_wing

@@ -20,47 +20,29 @@
 
 #include "BoundAssignmentExpression.h"
 
+namespace flow_wing {
+namespace binding {
+
 BoundAssignmentExpression::BoundAssignmentExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    BoundVariableDeclaration *variable, std::unique_ptr<BoundExpression> left,
-    BinderKindUtils::BoundBinaryOperatorKind op,
-    std::unique_ptr<BoundExpression> right, bool needDefaultInitialization)
-    : BoundExpression(location), _op(op), _left(std::move(left)),
-      _right(std::move(right)), _variable(std::move(variable)),
-      _needDefaultInitialization(needDefaultInitialization) {}
+    std::vector<std::unique_ptr<BoundExpression>> left,
+    std::vector<std::unique_ptr<BoundExpression>> right,
+    bool is_full_re_assignment,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_left(std::move(left)),
+      m_right(std::move(right)),
+      m_is_full_re_assignment(is_full_re_assignment) {}
 
-const std::type_info &BoundAssignmentExpression::getType() {
-  return typeid(BoundAssignmentExpression);
+NodeKind BoundAssignmentExpression::getKind() const {
+  return NodeKind::kAssignmentExpression;
 }
 
-BinderKindUtils::BoundBinaryOperatorKind
-BoundAssignmentExpression::getOperator() {
-  return _op;
+bool BoundAssignmentExpression::isMultiTargetAssignment() const {
+  return m_left.size() > 1;
 }
 
-BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::AssignmentExpression;
+std::shared_ptr<types::Type> BoundAssignmentExpression::getType() const {
+  return m_left[0]->getType();
 }
 
-std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
-  if (_children.size() == 0) {
-    if (_left)
-      _children.push_back(_left.get());
-    if (_right)
-      _children.push_back(_right.get());
-  }
-
-  return _children;
-}
-
-std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getLeftPtr() {
-  return this->_left;
-}
-
-std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getRightPtr() {
-  return this->_right;
-}
-
-BoundVariableDeclaration *BoundAssignmentExpression::getVariable() {
-  return _variable;
-}
+} // namespace binding
+} // namespace flow_wing

@@ -18,101 +18,64 @@
  */
 
 #include "CallExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+
+namespace flow_wing {
+namespace syntax {
 
 CallExpressionSyntax::CallExpressionSyntax(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifier) {
-  this->_identifier = std::move(identifier);
+    std::unique_ptr<ExpressionSyntax> identifier,
+    const syntax::SyntaxToken *open_parenthesis_token,
+    std::unique_ptr<ExpressionSyntax> argument_expression,
+    const syntax::SyntaxToken *close_parenthesis_token)
+    : m_identifier(std::move(identifier)),
+      m_open_parenthesis_token(open_parenthesis_token),
+      m_argument_expression(std::move(argument_expression)),
+      m_close_parenthesis_token(close_parenthesis_token) {}
+
+NodeKind CallExpressionSyntax::getKind() const {
+  return NodeKind::kCallExpression;
 }
 
-std::unique_ptr<LiteralExpressionSyntax<std::any>>
-CallExpressionSyntax::getIdentifier() {
-  return std::move(_identifier);
+void CallExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-CallExpressionSyntax::getOpenParenthesisToken() {
-  return std::move(_openParenthesisToken);
+const std::unique_ptr<ExpressionSyntax> &
+CallExpressionSyntax::getIdentifier() const {
+  return m_identifier;
 }
 
-std::vector<std::unique_ptr<ExpressionSyntax>> &
-CallExpressionSyntax::getArguments() {
-  return _arguments;
-}
-std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
-CallExpressionSyntax::getSeparators() {
-  return _separators;
+const std::unique_ptr<ExpressionSyntax> &
+CallExpressionSyntax::getArgumentExpression() const {
+  return m_argument_expression;
 }
 
-void CallExpressionSyntax::setOpenParenthesisToken(
-    std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken) {
-  this->_openParenthesisToken = std::move(openParenthesisToken);
-}
+const std::vector<const SyntaxNode *> &
+CallExpressionSyntax::getChildren() const {
 
-void CallExpressionSyntax::addArgument(
-    std::unique_ptr<ExpressionSyntax> argument) {
-  this->_arguments.push_back(std::move(argument));
-}
+  if (m_children.empty()) {
 
-void CallExpressionSyntax::addSeparator(
-    std::unique_ptr<SyntaxToken<std::any>> separator) {
-  this->_separators.push_back(std::move(separator));
-}
-
-void CallExpressionSyntax::setCloseParenthesisToken(
-    std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken) {
-  this->_closeParenthesisToken = std::move(closeParenthesisToken);
-}
-
-std::unique_ptr<SyntaxToken<std::any>>
-CallExpressionSyntax::getCloseParenthesisToken() {
-  return std::move(_closeParenthesisToken);
-}
-
-SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::CallExpression;
-}
-
-const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
-  if (this->_children.size() == 0) {
-
-    if (this->_newKeyword) {
-      this->_children.emplace_back(_newKeyword.get());
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_identifier.get()),
+          static_cast<const SyntaxNode *>(m_open_parenthesis_token)}) {
+      if (node) {
+        m_children.push_back(node);
+      }
     }
-    this->_children.emplace_back(_identifier.get());
 
-    //? Not used
-    // this->_children.push_back(_openParenthesisToken.get());
-
-    for (size_t i = 0; i < _arguments.size(); i++) {
-      this->_children.emplace_back(_arguments[i].get());
-      //? Not used
-      // if (i < _separators.size()) {
-      //   this->_children.push_back(_separators[i].get());
-      // }
+    if (m_argument_expression) {
+      m_children.push_back(m_argument_expression.get());
     }
-    //? Not used
-    // this->_children.push_back(_closeParenthesisToken.get());
+
+    if (m_close_parenthesis_token) {
+      m_children.push_back(m_close_parenthesis_token);
+    }
   }
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-CallExpressionSyntax::getSourceLocation() const {
-  return this->_identifier->getSourceLocation();
-}
-
-std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-CallExpressionSyntax::getIdentifierPtr() {
-  return _identifier;
-}
-std::unique_ptr<SyntaxToken<std::any>> &
-CallExpressionSyntax::getOpenParenthesisTokenPtr() {
-  return _openParenthesisToken;
-}
-std::unique_ptr<SyntaxToken<std::any>> &
-CallExpressionSyntax::getCloseParenthesisTokenPtr() {
-  return _closeParenthesisToken;
-}
+} // namespace syntax
+} // namespace flow_wing

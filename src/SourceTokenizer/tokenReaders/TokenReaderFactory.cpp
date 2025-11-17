@@ -33,12 +33,15 @@
 #include "WhiteSpaceTokenReader/WhiteSpaceTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
 
+namespace flow_wing {
+namespace lexer {
+
 std::unique_ptr<TokenReader>
 TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
   if (lexer.isEOF())
     return std::make_unique<EndOfFileTokenReader>();
 
-  if (lexer.isEOL() || lexer.currentChar() == '\n')
+  if (lexer.isEOL())
     return std::make_unique<EndOfLineTokenReader>();
 
   if (isspace(lexer.currentChar()))
@@ -67,3 +70,6 @@ TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
 
   return std::make_unique<SymbolTokenReader>();
 }
+
+} // namespace lexer
+} // namespace flow_wing

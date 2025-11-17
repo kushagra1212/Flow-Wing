@@ -17,35 +17,47 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BoundTernaryExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include <cstdlib>
+#include <iostream>
+
+namespace flow_wing {
+namespace binding {
 
 BoundTernaryExpression::BoundTernaryExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundExpression> conditionExpression,
-    std::unique_ptr<BoundExpression> trueExpression,
-    std::unique_ptr<BoundExpression> falseExpression)
+    std::unique_ptr<BoundExpression> condition_expression,
+    std::unique_ptr<BoundExpression> true_expression,
+    std::unique_ptr<BoundExpression> false_expression,
+    const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location),
-      _conditionExpression(std::move(conditionExpression)),
-      _trueExpression(std::move(trueExpression)),
-      _falseExpression(std::move(falseExpression)) {}
+      m_conditionExpression(std::move(condition_expression)),
+      m_trueExpression(std::move(true_expression)),
+      m_falseExpression(std::move(false_expression)) {}
 
-const std::type_info &BoundTernaryExpression::getType() { return typeid(void); }
-
-BinderKindUtils::BoundNodeKind BoundTernaryExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundTernaryExpression;
+NodeKind BoundTernaryExpression::getKind() const {
+  return NodeKind::kTernaryExpression;
 }
 
-std::vector<BoundNode *> BoundTernaryExpression::getChildren() {
-  std::vector<BoundNode *> children;
-  if (_children.empty()) {
-    if (_conditionExpression)
-      children.emplace_back(_conditionExpression.get());
-    if (_trueExpression)
-      children.emplace_back(_trueExpression.get());
-    if (_falseExpression)
-      children.emplace_back(_falseExpression.get());
-  }
-
-  return children;
+std::shared_ptr<types::Type> BoundTernaryExpression::getType() const {
+  return m_trueExpression->getType();
 }
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getConditionExpression() {
+
+  return std::move(m_conditionExpression);
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getTrueExpression() {
+  return std::move(m_trueExpression);
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getFalseExpression() {
+  return std::move(m_falseExpression);
+}
+
+} // namespace binding
+} // namespace flow_wing

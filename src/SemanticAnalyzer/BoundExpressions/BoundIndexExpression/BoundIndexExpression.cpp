@@ -17,37 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BoundIndexExpression.h"
+#include "src/common/Symbol/Symbol.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundIndexExpression::BoundIndexExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression)
-    : BoundExpression(location),
-      _boundIdentifierExpression(std::move(boundIdentifierExpression)) {}
+    std::shared_ptr<types::Type> type,
+    std::vector<std::unique_ptr<BoundExpression>> index_expressions,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_type(type),
+      m_index_expressions(std::move(index_expressions)) {}
 
-const std::type_info &BoundIndexExpression::getType() {
-  return _boundIdentifierExpression->getType();
+NodeKind BoundIndexExpression::getKind() const {
+  return NodeKind::kIndexExpression;
 }
 
-BinderKindUtils::BoundNodeKind BoundIndexExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::IndexExpression;
+std::shared_ptr<types::Type> BoundIndexExpression::getType() const {
+  return m_type;
 }
 
-std::vector<BoundNode *> BoundIndexExpression::getChildren() {
-  if (_children.size() == 0) {
-    _children.push_back(_boundIdentifierExpression.get());
-    for (const auto &item : _boundIndexExpressions) {
-      _children.push_back(item.get());
-    }
-    if (_variableExpression) {
-      _children.push_back(_variableExpression.get());
-    }
-  }
-
-  return _children;
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundIndexExpression::getIndexExpressions() const {
+  return m_index_expressions;
 }
 
-std::unique_ptr<BoundLiteralExpression<std::any>> &
-BoundIndexExpression::getBoundIdentifierExpression() {
-  return _boundIdentifierExpression;
-}
+} // namespace binding
+} // namespace flow_wing

@@ -20,22 +20,31 @@
 #include "ParenthesizedExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
+namespace flow_wing {
 
-std::unique_ptr<ExpressionSyntax>
-ParenthesizedExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> left =
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+namespace parser {
 
-  std::unique_ptr<ExpressionSyntax> expression =
-      PrecedenceAwareExpressionParser::parse(ctx);
+ParenthesizedExpressionParser::ParenthesizedExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  std::unique_ptr<SyntaxToken<std::any>> right =
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+std::unique_ptr<syntax::ExpressionSyntax>
+ParenthesizedExpressionParser::parse() {
+  auto open_parenthesis_token =
+      m_ctx->match(lexer::TokenKind::kOpenParenthesisToken); // (
 
-  return std::make_unique<ParenthesizedExpressionSyntax>(
-      std::move(left), std::move(expression), std::move(right));
+  auto expression =
+      PrecedenceAwareExpressionParser::parse(m_ctx); // 2 * 5 or call_1() * 5
+
+  auto close_parenthesis_token =
+      m_ctx->match(lexer::TokenKind::kCloseParenthesisToken); // )
+
+  return std::make_unique<syntax::ParenthesizedExpressionSyntax>(
+      open_parenthesis_token, std::move(expression), close_parenthesis_token);
+  // (2 * 5)
 }
+
+} // namespace parser
+
+} // namespace flow_wing

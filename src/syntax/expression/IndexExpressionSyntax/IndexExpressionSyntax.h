@@ -19,63 +19,36 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include <any>
 #include <memory>
-#include <vector>
 
-template <typename T> class LiteralExpressionSyntax;
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
 
 class IndexExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
-  std::vector<std::unique_ptr<ExpressionSyntax>> _indexExpressions;
-  std::unique_ptr<ExpressionSyntax> _variableExpression;
-  std::unique_ptr<SyntaxToken<std::any>> _selfKeyword;
-  bool _isObject = false;
 
 public:
-  IndexExpressionSyntax(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression);
+  IndexExpressionSyntax(std::unique_ptr<ExpressionSyntax> left_expression,
+                        std::vector<std::unique_ptr<ExpressionSyntax>>
+                            dimension_clause_expressions);
 
-  inline auto addIndexExpression(std::unique_ptr<ExpressionSyntax> item)
-      -> void {
-    this->_indexExpressions.push_back(std::move(item));
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto
-  addVariableExpression(std::unique_ptr<ExpressionSyntax> variableExpression)
-      -> void {
-    _isObject = true;
-    _variableExpression = std::move(variableExpression);
-  }
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getLeftExpression() const;
+  const std::vector<std::unique_ptr<ExpressionSyntax>> &
+  getDimensionClauseExpressions() const;
 
-  inline auto setSelfKeyword(std::unique_ptr<SyntaxToken<std::any>> selfKeyword)
-      -> void {
-    _selfKeyword = std::move(selfKeyword);
-  }
+private:
+  std::unique_ptr<ExpressionSyntax> m_left_expression;
+  std::vector<std::unique_ptr<ExpressionSyntax>> m_dimension_clause_expressions;
 
-  inline auto getIndexExpressionsRef() const
-      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
-    return this->_indexExpressions;
-  }
-
-  inline auto getVariableExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _variableExpression;
-  }
-
-  inline auto getIsSelf() -> bool { return _selfKeyword != nullptr; }
-
-  inline auto isObject() const -> bool { return _isObject; }
-
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-  getIndexIdentifierExpressionRef();
-
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

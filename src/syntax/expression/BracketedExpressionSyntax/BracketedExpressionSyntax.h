@@ -19,22 +19,33 @@
 
 #pragma once
 
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
 
+namespace flow_wing {
+namespace syntax {
+
 class BracketedExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<ExpressionSyntax> _expression;
 
 public:
-  // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  BracketedExpressionSyntax(std::unique_ptr<ExpressionSyntax> expression);
 
-  // Setters
-  auto setExpression(std::unique_ptr<ExpressionSyntax> expression) -> void;
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  auto getExpressionRef() const -> const std::unique_ptr<ExpressionSyntax> &;
+  const std::unique_ptr<ExpressionSyntax> &getExpression() const {
+    return m_expression;
+  }
+
+private:
+  std::unique_ptr<ExpressionSyntax> m_expression;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

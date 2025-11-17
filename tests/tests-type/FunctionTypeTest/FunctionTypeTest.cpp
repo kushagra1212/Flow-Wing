@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionTypeTest.h"
 
 void FunctionTypeTest::SetUp() { _test->SetUp(); }
 
 void FunctionTypeTest::TearDown() { _test->TearDown(); }
+
+// TODO(tests): `as` test cases for function type
 
 TEST_F(FunctionTypeTest, BasicTest) {
   I(R"(

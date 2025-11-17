@@ -36,7 +36,7 @@ class Type {
   std::string name;
   llvm::Type *type;
   int64_t index = -1;
-  BoundCustomTypeStatement *customType;
+  BoundCustomTypeStatement *customType = nullptr;
 
 public:
   Type() = default;

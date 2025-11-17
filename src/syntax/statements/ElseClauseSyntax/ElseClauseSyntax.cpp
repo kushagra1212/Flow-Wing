@@ -17,47 +17,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "ElseClauseSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
 
-ElseClauseSyntax::ElseClauseSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
-    std::unique_ptr<BlockStatementSyntax> statement) {
-  this->_elseKeyword = std::move(elseKeyword);
-  this->_statement = std::move(statement);
+namespace flow_wing {
+namespace syntax {
+
+ElseClauseSyntax::ElseClauseSyntax(const SyntaxToken *else_keyword,
+                                   std::unique_ptr<StatementSyntax> statement)
+    : m_else_keyword(else_keyword), m_statement(std::move(statement)) {}
+
+NodeKind ElseClauseSyntax::getKind() const { return NodeKind::kElseClause; }
+
+void ElseClauseSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<SyntaxToken<std::any>> ElseClauseSyntax::getElseKeyword() {
-  return std::move(_elseKeyword);
-}
-
-std::unique_ptr<BlockStatementSyntax> ElseClauseSyntax::getStatement() {
-  return std::move(_statement);
-}
-
-SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ElseClause;
-}
-
-const std::vector<SyntaxNode *> &ElseClauseSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-
-    _children.push_back(_elseKeyword.get());
-    _children.push_back(_statement.get());
+const std::vector<const SyntaxNode *> &ElseClauseSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &node :
+         {static_cast<const SyntaxNode *>(m_else_keyword),
+          static_cast<const SyntaxNode *>(m_statement.get())}) {
+      if (node)
+        m_children.push_back(node);
+    }
   }
-
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-ElseClauseSyntax::getSourceLocation() const {
-  return this->_elseKeyword->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordRef() {
-  return this->_elseKeyword;
-}
-std::unique_ptr<BlockStatementSyntax> &ElseClauseSyntax::getStatementRef() {
-  return this->_statement;
-}
+} // namespace syntax
+} // namespace flow_wing

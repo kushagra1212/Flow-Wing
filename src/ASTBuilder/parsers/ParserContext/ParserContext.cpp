@@ -18,229 +18,72 @@
  */
 
 #include "ParserContext.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
-#include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
+#include "src/compiler/diagnostics/DiagnosticFactory.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
+#include <cstddef>
+namespace flow_wing {
+namespace parser {
 
-ParserContext::ParserContext(
-    FlowWing::DiagnosticHandler *diagnosticHandler,
-    const std::unordered_map<std::string, int8_t> &dependencyPathsMap)
-    : _diagnosticHandler(diagnosticHandler),
-      _codeFormatter(std::make_unique<CodeFormatter>(this)),
-      _dependencyPathsMap(dependencyPathsMap) {}
+ParserContext::ParserContext(CompilationContext &context)
+    : m_context(context) {}
 
-ParserContext::~ParserContext() {
-  for (auto &token : _tokens) {
-    token.reset();
+const syntax::SyntaxToken *ParserContext::peek(const int &offset) {
+  size_t index = m_position + static_cast<size_t>(offset);
+  const size_t tokens_size = m_context.getTokens().size();
+  if (index >= tokens_size) {
+    return m_context.getTokens()[tokens_size - 1].get();
   }
-  _tokens.clear();
+  return m_context.getTokens()[index].get();
 }
 
-/*
-  ////?  __START__ Syntax Token Methods ////
-*/
+const syntax::SyntaxToken *ParserContext::getCurrent() { return peek(0); }
 
-SyntaxToken<std::any> *ParserContext::peek(const int &offset) {
-  size_t index = _position + static_cast<size_t>(offset);
-  if (index >= _tokens.size()) {
-    return _tokens[_tokens.size() - 1].get();
+const syntax::SyntaxToken *ParserContext::nextToken() {
+  auto token = getCurrent();
+  if (m_position != m_context.getTokens().size()) {
+    m_position++;
   }
-  return _tokens[index].get();
+  return token;
 }
 
-SyntaxToken<std::any> *ParserContext::getCurrent() { return peek(0); }
-
-std::unique_ptr<SyntaxToken<std::any>> ParserContext::nextToken() {
-  if (_position == _tokens.size()) {
-    return std::unique_ptr<SyntaxToken<std::any>>(
-        _tokens[_tokens.size() - 1].release());
-  } else {
-    return std::unique_ptr<SyntaxToken<std::any>>(
-        _tokens[_position++].release());
-  }
+lexer::TokenKind ParserContext::getCurrentTokenKind() {
+  return getCurrent()->getTokenKind();
 }
 
-SyntaxKindUtils::SyntaxKind ParserContext::getKind() {
-  while (getCurrent()->getKind() == SyntaxKindUtils::CommentStatement) {
+void ParserContext::reportError(
+    flow_wing::diagnostic::DiagnosticCode code,
+    const std::vector<flow_wing::diagnostic::DiagnosticArg> &args,
+    const flow_wing::diagnostic::SourceLocation &location) {
 
-    if (getCurrent()->getText().find_first_of(NEW_LINE) == 0) {
+  m_context.getDiagnostics()->report(
+      flow_wing::diagnostic::DiagnosticFactory::create(
+          code, args, location, flow_wing::diagnostic::DiagnosticLevel::kError,
+          flow_wing::diagnostic::DiagnosticType::kSyntactic));
+}
 
-      getCurrent()->setText(NEW_LINE + _codeFormatter->getIndentAmount() +
-                            getCurrent()->getText().substr(
-                                1, getCurrent()->getText().length() - 1));
+const syntax::SyntaxToken *ParserContext::match(const lexer::TokenKind &kind) {
 
-    } else {
+  const auto current_token_kind = getCurrentTokenKind();
 
-      getCurrent()->setText(_codeFormatter->getIndentAmount() +
-                            getCurrent()->getText());
-    }
-
-    _codeFormatter->append(getCurrent()->getText());
-
-    nextToken();
+  if (current_token_kind != kind) {
+    reportError(flow_wing::diagnostic::DiagnosticCode::kUnexpectedToken,
+                {lexer::toString(current_token_kind), lexer::toString(kind)},
+                getCurrent()->getSourceLocation());
   }
 
-  return getCurrent()->getKind();
+  return nextToken();
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-ParserContext::match(const SyntaxKindUtils::SyntaxKind &kind) {
-
-  _codeFormatter->append(getCurrent()->getText());
-
-  if (getKind() == kind) {
-    return nextToken();
+const syntax::SyntaxToken *
+ParserContext::matchIf(const lexer::TokenKind &kind) {
+  if (getCurrentTokenKind() == kind) {
+    return match(kind);
   }
-  _diagnosticHandler->addDiagnostic(Diagnostic(
-      DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Syntactic,
-      {SyntaxKindUtils::to_string(getKind()), SyntaxKindUtils::to_string(kind)},
-      Utils::getSourceLocation(getCurrent()),
-      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
-  if (getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    return nextToken();
-  } else {
-
-    return std::make_unique<SyntaxToken<std::any>>(
-        getCurrent()->getAbsoluteFilePath(), getCurrent()->getLineNumber(),
-        SyntaxKindUtils::SyntaxKind::BadToken, getCurrent()->getColumnNumber(),
-        getCurrent()->getText(), getCurrent()->getValue());
-  }
+  return nullptr;
 }
 
-/*
-  ////?  __END__ Syntax Token Methods ////
-*/
-
-//? Code Formatter Methods
-
-const std::unique_ptr<CodeFormatter> &ParserContext::getCodeFormatterRef() {
-  return _codeFormatter;
-}
-
-//? Parser Methods
-
-//? Getters
-
-const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
-ParserContext::getTokenListRef() {
-  return _tokens;
-}
-
-const std::string &ParserContext::getCurrentModuleName() {
-  return _currentModuleName;
-}
-
-FlowWing::DiagnosticHandler *ParserContext::getDiagnosticHandler() {
-  return _diagnosticHandler;
-}
-
-bool ParserContext::getIsInsideCallExpression() const {
-  return _isInsideCallExpression;
-}
-bool ParserContext::getIsInsideIndexExpression() const {
-  return _isInsideIndexExpression;
-}
-bool ParserContext::getIsInsideContainerExpression() const {
-  return _isInsideContainerExpression;
-}
-bool ParserContext::getIsInsideReturnStatement() const {
-  return _isInsideReturnStatement;
-}
-
-int8_t ParserContext::getDependencyFileCount(const std::string &path) {
-  return _dependencyPathsMap[path];
-}
-
-//? Setters
-
-void ParserContext::setCurrentModuleName(const std::string &name) {
-  _currentModuleName = name;
-}
-
-void ParserContext::setIsInsideCallExpression(const bool value) {
-  _isInsideCallExpression = value;
-}
-
-void ParserContext::setIsInsideIndexExpression(const bool value) {
-  _isInsideIndexExpression = value;
-}
-
-void ParserContext::setIsInsideContainerExpression(const bool value) {
-  _isInsideContainerExpression = value;
-}
-
-void ParserContext::setIsInsideReturnStatement(const bool value) {
-  _isInsideReturnStatement = value;
-}
-
-void ParserContext::updateDependencyCount(const std::string &path,
-                                          const int8_t count) {
-  _dependencyPathsMap[path] += count;
-}
-
-const std::unordered_map<std::string, int8_t> &
-ParserContext::getDependencyPathsMap() {
-  return _dependencyPathsMap;
-}
-
-//? Builder Methods
-
-void ParserContext::buildTokenList(SourceTokenizer *lexer) {
-  SyntaxKindUtils::SyntaxKind _kind =
-      SyntaxKindUtils::SyntaxKind::EndOfFileToken;
-  bool isEncounteredEndOfLineBefore = false;
-
-  do {
-    std::unique_ptr<SyntaxToken<std::any>> token = lexer->nextToken();
-    _kind = token->getKind();
-
-    handleDiagnosticsForBadToken(token.get());
-    handleFormatCommentToken(token.get(), isEncounteredEndOfLineBefore);
-
-    if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
-        _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
-      this->_tokens.emplace_back(std::move(token));
-    } else {
-      token.reset();
-    }
-
-  } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
-    (defined(DEBUG) && defined(AOT_MODE))
-
-  Utils::prettyPrint(this->_tokens);
-
-#endif
-}
-
-void ParserContext::handleDiagnosticsForBadToken(SyntaxToken<std::any> *token) {
-  if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
-    this->_diagnosticHandler->addDiagnostic(
-        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Syntactic,
-                   {token->getText()}, Utils::getSourceLocation(token),
-                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedCharacter));
-  }
-}
-void ParserContext::handleFormatCommentToken(
-    SyntaxToken<std::any> *token, bool &isEncounteredEndOfLineBefore) {
-  if (token->getKind() == SyntaxKindUtils::SyntaxKind::CommentStatement) {
-    if (isEncounteredEndOfLineBefore)
-      token->setText(NEW_LINE + token->getText());
-    else
-      token->setText(TWO_SPACES + token->getText());
-  }
-
-  if (token->getKind() == SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
-    isEncounteredEndOfLineBefore = true;
-  } else if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken) {
-    isEncounteredEndOfLineBefore = false;
-  }
-}
+} // namespace parser
+} // namespace flow_wing

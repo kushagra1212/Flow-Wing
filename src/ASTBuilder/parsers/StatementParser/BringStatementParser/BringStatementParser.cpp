@@ -18,185 +18,62 @@
  */
 
 #include "BringStatementParser.h"
-#include "src/ASTBuilder/ASTBuilder.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
-#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
-#include "src/syntax/CompilationUnitSyntax.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
-#include "src/utils/PathUtils.h"
-#include "src/utils/Utils.h"
+#include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-BringStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::BringKeyword);
-  ctx->getCodeFormatterRef()->appendWithSpace();
-  std::unique_ptr<BringStatementSyntax> bringStatement =
-      std::make_unique<BringStatementSyntax>();
+BringStatementParser::BringStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  bringStatement->addBringKeyword(std::move(bringKeyword));
+std::unique_ptr<syntax::StatementSyntax> BringStatementParser::parse() {
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBraceToken) {
-    bringStatement->addOpenBraceToken(
-        ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
-    while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
-      std::unique_ptr<SyntaxToken<std::any>> identifier =
-          ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
-      std::string importExpName = identifier->getText();
-      bringStatement->addExpression(
-          std::make_unique<LiteralExpressionSyntax<std::any>>(
-              std::move(identifier), importExpName));
+  auto bring_keyword_token =
+      m_ctx->match(lexer::TokenKind::kBringKeyword); // bring
 
-      if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
-        ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-        ctx->getCodeFormatterRef()->appendWithSpace();
-      }
+  auto open_brace_token =
+      m_ctx->matchIf(lexer::TokenKind::kOpenBraceToken); // {
 
-      if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-        ctx->getDiagnosticHandler()->addDiagnostic(
-            Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
-                       {SyntaxKindUtils::to_string(ctx->getKind()),
-                        SyntaxKindUtils::to_string(
-                            SyntaxKindUtils::SyntaxKind::CloseBraceToken)},
-                       Utils::getSourceLocation(ctx->getCurrent()),
-                       FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
-        return bringStatement;
-      }
-    }
-    ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-  }
+  auto identifier_expressions =
+      std::vector<std::unique_ptr<syntax::ExpressionSyntax>>();
+  auto comma_tokens = std::vector<const syntax::SyntaxToken *>();
 
-  if (bringStatement->getIsChoosyImportPtr()) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::FromKeyword);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-  }
-  bool isModule = false;
-  std::unique_ptr<SyntaxToken<std::any>> stringToken = nullptr;
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-    stringToken = ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
-  } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::StringToken) {
-    stringToken = ctx->match(SyntaxKindUtils::SyntaxKind::StringToken);
-  } else if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::StringToken) {
-    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Syntactic,
-        {SyntaxKindUtils::to_string(ctx->getKind()),
-         SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StringToken)},
-        Utils::getSourceLocation(ctx->getCurrent()),
-        FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
-    return bringStatement;
-  }
+  const syntax::SyntaxToken *close_brace_token = nullptr,
+                            *from_keyword_token = nullptr;
 
-  std::string relativeFilePath = "";
+  if (open_brace_token) {
+    size_t count = 0;
+    while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
+           m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+      if (count)
+        comma_tokens.push_back(
+            m_ctx->match(lexer::TokenKind::kCommaToken)); // ,
 
-  if (stringToken->getValue().type() == typeid(std::string)) {
-    relativeFilePath = std::any_cast<std::string>(stringToken->getValue());
+      auto identifier_expression =
+          std::make_unique<IdentifierExpressionParser>(m_ctx)
+              ->parse(); // identifier_expression
 
-    if (relativeFilePath.find(".fg") == std::string::npos) {
-
-      isModule = true;
-      const std::string currentDirPath =
-          std::filesystem::path(
-              ctx->getDiagnosticHandler()->getAbsoluteFilePath())
-              .parent_path()
-              .string();
-
-      bringStatement->setModuleName(relativeFilePath);
-
-      std::filesystem::path modulesPath = FlowWing::PathUtils::getModulesPath();
-
-      CODEGEN_DEBUG_LOG("modulesPath", modulesPath);
-
-      std::string moduleFilePath =
-          Utils::findFile(modulesPath.string(), relativeFilePath + "-module.fg")
-              .string();
-
-      if (moduleFilePath.empty()) {
-        moduleFilePath =
-            Utils::findFile(currentDirPath, relativeFilePath + "-module.fg")
-                .string();
-      }
-
-      if (moduleFilePath.empty()) {
-        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-            DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Syntactic, {relativeFilePath},
-            Utils::getSourceLocation(stringToken.get()),
-            FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleNotFound));
-
-        return bringStatement;
-      }
-
-      DEBUG_LOG("Module File Path: %s", moduleFilePath.c_str());
-      relativeFilePath =
-          std::filesystem::relative(moduleFilePath, currentDirPath).string();
-      stringToken->setValue((relativeFilePath));
-    }
-    // appendNewLine();
-  }
-  bringStatement->setIsModuleImport(isModule);
-
-  bringStatement->addPathToken(std::move(stringToken));
-
-  bringStatement->setRelativeFilePath(relativeFilePath);
-
-  std::string absoluteFilePath =
-      std::filesystem::path(ctx->getDiagnosticHandler()->getAbsoluteFilePath())
-          .parent_path()
-          .string() +
-      "/" + relativeFilePath;
-
-  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler =
-      std::make_unique<FlowWing::DiagnosticHandler>(absoluteFilePath);
-
-  PARSER_DEBUG_LOG(
-      "%d", std::to_string(ctx->getDependencyFileCount(absoluteFilePath)));
-  if (ctx->getDependencyFileCount(absoluteFilePath) == 1) {
-    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Syntactic, {absoluteFilePath},
-        Utils::getSourceLocation(ctx->getCurrent()),
-        FLOW_WING::DIAGNOSTIC::DiagnosticCode::CircularReference));
-
-    SyntaxKindUtils::SyntaxKind currentKind = ctx->getKind();
-
-    if (currentKind == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-      currentKind = ctx->peek(1)->getKind();
+      identifier_expressions.push_back(std::move(identifier_expression));
     }
 
-    return StatementParserFactory::createStatementParser(currentKind)
-        ->parseStatement(ctx);
+    close_brace_token = m_ctx->match(lexer::TokenKind::kCloseBraceToken); // }
+
+    from_keyword_token = m_ctx->matchIf(lexer::TokenKind::kFromKeyword); // from
   }
 
-  ctx->updateDependencyCount(absoluteFilePath, 1);
+  auto string_literal_expression =
+      std::make_unique<syntax::StringLiteralExpressionSyntax>(
+          m_ctx->match(lexer::TokenKind::kStringLiteralToken)); // "file.fg" or
+  // "moduleName-module.fg" or
+  // "moduleName"
 
-  bringStatement->setAbsoluteFilePath(absoluteFilePath);
-
-  ctx->getDiagnosticHandler()->addParentDiagnostics(diagnosticHandler.get());
-  bringStatement->setDiagnosticHandler(std::move(diagnosticHandler));
-
-  std::unique_ptr<ASTBuilder> parser = std::make_unique<ASTBuilder>(
-      Utils::readLines(absoluteFilePath),
-      bringStatement->getDiagnosticHandlerPtr().get(),
-      ctx->getDependencyPathsMap());
-
-  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      parser->createCompilationUnit();
-
-  bringStatement->setCompilationUnit(std::move(compilationUnit));
-
-  ctx->updateDependencyCount(absoluteFilePath, -1);
-
-  return bringStatement;
+  return std::make_unique<syntax::BringStatementSyntax>(
+      bring_keyword_token, open_brace_token, std::move(identifier_expressions),
+      close_brace_token, from_keyword_token,
+      std::move(string_literal_expression));
 }
+} // namespace parser
+} // namespace flow_wing

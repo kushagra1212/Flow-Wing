@@ -21,12 +21,20 @@
 
 #include <memory>
 
+namespace flow_wing {
+namespace syntax {
 class StatementSyntax;
+} // namespace syntax
+
+namespace parser {
+
 class ParserContext;
 
 class StatementParser {
 public:
   virtual ~StatementParser() = default;
-  virtual std::unique_ptr<StatementSyntax>
-  parseStatement(ParserContext *ctx) = 0;
+
+  virtual std::unique_ptr<syntax::StatementSyntax> parse() = 0;
 };
+} // namespace parser
+} // namespace flow_wing

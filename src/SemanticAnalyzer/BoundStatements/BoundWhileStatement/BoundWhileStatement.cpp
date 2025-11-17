@@ -18,40 +18,24 @@
  */
 
 
-#include "BoundWhileStatement.h"
+#include "BoundWhileStatement.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+
+namespace flow_wing {
+namespace binding {
 
 BoundWhileStatement::BoundWhileStatement(
-
-    const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundExpression> condition,
-    std::unique_ptr<BoundStatement> body)
-    : BoundSourceLocation(location), _condition(std::move(condition)),
-      _body(std::move(body)) {
+    std::unique_ptr<BoundStatement> statement,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_condition(std::move(condition)),
+      m_statement(std::move(statement)) {}
 
-  this->_children.push_back(this->_condition.get());
-  this->_children.push_back(this->_body.get());
+BoundWhileStatement::~BoundWhileStatement() = default;
+
+NodeKind BoundWhileStatement::getKind() const {
+  return NodeKind::kWhileStatement;
 }
 
-std::unique_ptr<BoundExpression> BoundWhileStatement::getCondition() {
-  return std::move(_condition);
-}
-
-std::unique_ptr<BoundStatement> BoundWhileStatement::getBody() {
-  return std::move(_body);
-}
-
-BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() const {
-
-  return BinderKindUtils::BoundNodeKind::WhileStatement;
-}
-
-std::vector<BoundNode *> BoundWhileStatement::getChildren() {
-  return this->_children;
-}
-
-std::unique_ptr<BoundExpression> &BoundWhileStatement::getConditionPtr() {
-  return this->_condition;
-}
-std::unique_ptr<BoundStatement> &BoundWhileStatement::getBodyPtr() {
-  return this->_body;
-}
+} // namespace binding
+} // namespace flow_wing

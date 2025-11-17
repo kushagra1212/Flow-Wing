@@ -18,94 +18,44 @@
  */
 
 #pragma once
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
+
+#include "src/syntax/expression/DeclaratorExpressionSyntax/DeclaratorExpressionSyntax.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include "src/utils/Utils.h"
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
 
 class VariableDeclarationSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _keyword;
-  std::unique_ptr<SyntaxToken<std::any>> _inout_keyword;
-  std::unique_ptr<SyntaxToken<std::any>> _identifier;
-  std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
-  std::unique_ptr<ExpressionSyntax> _initializer;
-  std::unique_ptr<TypeExpressionSyntax> _typeExpr;
-  bool _hasNewKeyword = false;
 
 public:
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  VariableDeclarationSyntax(
+      const SyntaxToken *const_keyword_token,
+      const SyntaxToken *var_keyword_token,
+      std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> declarators,
+      std::vector<const SyntaxToken *> comma_tokens,
+      std::unique_ptr<ExpressionSyntax> initializer_expression);
 
-  // Setters
-  inline void setKeyword(std::unique_ptr<SyntaxToken<std::any>> keyword) {
-    _keyword = std::move(keyword);
-  }
-
-  inline void setIdentifier(std::unique_ptr<SyntaxToken<std::any>> identifier) {
-    _identifier = std::move(identifier);
-  }
-
-  inline void setInitializer(std::unique_ptr<ExpressionSyntax> initializer) {
-    _initializer = std::move(initializer);
-  }
-
-  inline void setTypeExpr(std::unique_ptr<TypeExpressionSyntax> typeExpr) {
-    _typeExpr = std::move(typeExpr);
-  }
-
-  inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword) {
-    _asKeyword = std::move(asKeyword);
-  }
-
-  inline auto
-  setInoutKeyword(std::unique_ptr<SyntaxToken<std::any>> inoutKeyword) -> void {
-    _inout_keyword = std::move(inoutKeyword);
-  }
-  inline void
-  setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword) {
-    _exposeKeyword = std::move(exposeKeyword);
-  }
-
-  inline void setNewKeyword(std::unique_ptr<SyntaxToken<std::any>> newkeyword) {
-    _hasNewKeyword = true;
-    _newKeyword = std::move(newkeyword);
-  }
-
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
   // Getters
-  inline auto getIdentifierRef()
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _identifier;
-  }
+  const std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> &
+  getDeclarators() const;
+  const std::unique_ptr<ExpressionSyntax> &getInitializerExpression() const;
 
-  inline auto getInoutKeywordRef()
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _inout_keyword;
-  }
+  // Helpers
+  bool hasConstKeyword() const;
 
-  inline auto getKeywordRef()
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _keyword;
-  }
+private:
+  const SyntaxToken *m_const_keyword_token, *m_var_keyword_token;
+  std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> m_declarators;
+  std::vector<const SyntaxToken *> m_comma_tokens;
+  std::unique_ptr<ExpressionSyntax> m_initializer_expression;
 
-  inline auto getTypeRef() -> const std::unique_ptr<TypeExpressionSyntax> & {
-    return _typeExpr;
-  }
-
-  inline auto getAsKeywordRef()
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _asKeyword;
-  }
-
-  inline auto getInitializerRef() -> std::unique_ptr<ExpressionSyntax> & {
-    return _initializer;
-  }
-  inline auto getHasNewKeyWord() -> bool & { return _hasNewKeyword; }
-
-  inline auto isExposed() -> bool { return _exposeKeyword != nullptr; }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

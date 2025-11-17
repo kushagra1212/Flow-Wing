@@ -19,8 +19,23 @@
 
 #pragma once
 
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/syntax/SyntaxNode.h"
+
+namespace flow_wing {
+namespace syntax {
+
 class ExpressionSyntax : public SyntaxNode {
 public:
   virtual ~ExpressionSyntax() = default;
+
+protected:
+  explicit ExpressionSyntax(
+      const flow_wing::diagnostic::SourceLocation &location)
+      : SyntaxNode(location) {}
+
+  ExpressionSyntax() = default;
 };
+
+} // namespace syntax
+} // namespace flow_wing

@@ -18,56 +18,34 @@
  */
 
 #include "BlockStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
 
-std::unique_ptr<StatementSyntax>
-BlockStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<BlockStatementSyntax> blockStatement =
-      std::make_unique<BlockStatementSyntax>();
+namespace flow_wing {
+namespace parser {
 
-  std::unique_ptr<SyntaxToken<std::any>> openBraceToken =
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
-  ctx->getCodeFormatterRef()->appendNewLine();
+BlockStatementParser::BlockStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  blockStatement->setOpenBraceToken(std::move(openBraceToken));
+std::unique_ptr<syntax::StatementSyntax> BlockStatementParser::parse() {
 
-  std::vector<std::unique_ptr<StatementSyntax>> statements;
-  ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
+  auto open_brace_token = m_ctx->match(lexer::TokenKind::kOpenBraceToken); //  {
 
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
-         ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+  auto statements = std::vector<std::unique_ptr<syntax::StatementSyntax>>();
 
-    ctx->getCodeFormatterRef()->append(
-        ctx->getCodeFormatterRef()->getIndentAmount());
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    SyntaxKindUtils::SyntaxKind currentKind = ctx->getKind();
-
-    if (currentKind == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-      currentKind = ctx->peek(1)->getKind();
-    }
-
-    blockStatement->addStatement(
-        StatementParserFactory::createStatementParser(currentKind)
-            ->parseStatement(ctx));
-
-    ctx->getCodeFormatterRef()->appendNewLine();
+    statements.push_back(StatementParserFactory::create(*m_ctx)->parse());
   }
-  ctx->getCodeFormatterRef()->setIndentAmount(
-      ctx->getCodeFormatterRef()->getIndentAmount().substr(
-          0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
-                 (sizeof(TAB_SPACE) - 1)));
 
-  ctx->getCodeFormatterRef()->append(
-      ctx->getCodeFormatterRef()->getIndentAmount());
+  auto close_brace_token =
+      m_ctx->match(lexer::TokenKind::kCloseBraceToken); //  }
 
-  std::unique_ptr<SyntaxToken<std::any>> closeBraceToken =
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
-
-  blockStatement->setCloseBraceToken(std::move(closeBraceToken));
-
-  return blockStatement;
+  return std::make_unique<syntax::BlockStatementSyntax>(
+      open_brace_token, std::move(statements),
+      close_brace_token); // { statements }
 }
+} // namespace parser
+} // namespace flow_wing
