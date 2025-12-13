@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TokenJson.hpp"
 #include "src/syntax/SyntaxToken.h"
 
@@ -30,7 +29,7 @@ nlohmann::json TokenJson::toJson(
   for (const auto &token : tokens) {
     token_array.push_back(toJsonToken(token.get()));
   }
-  return {{"tokens", token_array}};
+  return token_array;
 }
 
 nlohmann::json
@@ -48,7 +47,7 @@ TokenJson::toJsonRange(const flow_wing::diagnostic::SourceLocation &location) {
 
 nlohmann::json
 TokenJson::toJsonSourcePoint(const flow_wing::diagnostic::SourcePoint &point) {
-  return {{"line", point.line_number}, {"column", point.column_number}};
+  return {point.line_number, point.column_number};
 }
 
 } // namespace flow_wing::compiler::serializer

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundWhileStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 namespace flow_wing {
@@ -35,6 +35,10 @@ BoundWhileStatement::~BoundWhileStatement() = default;
 
 NodeKind BoundWhileStatement::getKind() const {
   return NodeKind::kWhileStatement;
+}
+
+void BoundWhileStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 } // namespace binding

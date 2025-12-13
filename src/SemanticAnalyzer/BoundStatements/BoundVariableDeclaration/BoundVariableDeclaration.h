@@ -40,7 +40,7 @@ public:
 
   // Overrides
   NodeKind getKind() const override;
-
+  void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
   const std::vector<std::shared_ptr<analysis::Symbol>> &
   getSymbols() const override;

@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 #include <string>
 
@@ -50,14 +48,9 @@ enum class NodeKind : int {
   kNirastExpression,
   kFillExpression,
   kBracketedExpression,
-  kAttributeExpression,
-  kMultipleAssignmentExpression,
-  kCommaExpression,
   kNewExpression,
   kTernaryExpression,
   kObjectMemberExpression,
-  kVariableExpression,
-  kArrayVariableExpression,
   kInt32TypeExpression,
   kInt64TypeExpression,
   kDeci32TypeExpression,
@@ -79,6 +72,7 @@ enum class NodeKind : int {
   kFieldDeclarationExpression,
   kParameterExpression,
   kFunctionReturnTypeExpression,
+  kErrorExpression,
 
   // --- Statements ---
   kCompilationUnit,

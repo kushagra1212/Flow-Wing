@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundSwitchStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
-
 namespace flow_wing {
 namespace binding {
 
@@ -37,6 +36,10 @@ BoundSwitchStatement::BoundSwitchStatement(
       m_default_case_statement(std::move(default_case_statement)),
       m_case_expressions(std::move(case_expressions)),
       m_case_statements(std::move(case_statements)) {}
+
+void BoundSwitchStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
+}
 
 NodeKind BoundSwitchStatement::getKind() const {
   return NodeKind::kSwitchStatement;

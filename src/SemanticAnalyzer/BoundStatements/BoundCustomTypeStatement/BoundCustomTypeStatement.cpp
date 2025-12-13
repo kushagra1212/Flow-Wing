@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundCustomTypeStatement.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundDeclarationStatement.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 
@@ -32,6 +32,10 @@ BoundCustomTypeStatement::BoundCustomTypeStatement(
 
 NodeKind BoundCustomTypeStatement::getKind() const {
   return NodeKind::kCustomTypeStatement;
+}
+
+void BoundCustomTypeStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 const std::vector<std::shared_ptr<analysis::Symbol>> &

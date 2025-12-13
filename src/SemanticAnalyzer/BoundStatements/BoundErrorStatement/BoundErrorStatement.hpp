@@ -31,6 +31,7 @@ public:
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 };
 } // namespace binding
 } // namespace flow_wing

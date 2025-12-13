@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/common/types/Type.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 
@@ -55,5 +54,25 @@ bool Type::isDynamic() const {
 }
 
 bool Type::isPrimitive() const { return m_kind == TypeKind::kPrimitive; }
+
+std::string Type::toString(TypeKind kind) {
+  switch (kind) {
+  case TypeKind::kPrimitive:
+    return "Primitive";
+  case TypeKind::kFunction:
+    return "Function";
+  case TypeKind::kObject:
+    return "Object";
+  case TypeKind::kModule:
+    return "Module";
+  case TypeKind::kArray:
+    return "Array";
+  case TypeKind::kClass:
+    return "Class";
+  case TypeKind::kError:
+    return "Error";
+  }
+  return "Unknown";
+}
 } // namespace types
 } // namespace flow_wing

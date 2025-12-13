@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundAssignmentExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
@@ -34,6 +34,10 @@ BoundAssignmentExpression::BoundAssignmentExpression(
 
 NodeKind BoundAssignmentExpression::getKind() const {
   return NodeKind::kAssignmentExpression;
+}
+
+void BoundAssignmentExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 bool BoundAssignmentExpression::isMultiTargetAssignment() const {

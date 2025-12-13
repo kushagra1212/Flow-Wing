@@ -17,23 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/utils/LogConfig.h"
 #include <sstream>
-
 namespace flow_wing {
 namespace types {
 
 FunctionType::FunctionType(
     std::vector<std::shared_ptr<ParameterType>> parameters,
     std::vector<std::shared_ptr<ReturnType>> return_types,
-    size_t default_value_start_index, bool is_variadic)
+    size_t default_value_start_index, bool is_variadic, bool is_external)
     : Type(buildFunctionName(parameters, return_types), TypeKind::kFunction),
       m_parameters(std::move(parameters)),
       m_return_types(std::move(return_types)),
       m_default_value_start_index(default_value_start_index),
-      m_is_variadic(is_variadic) {}
+      m_is_variadic(is_variadic), m_is_external(is_external) {
+  BINDER_DEBUG_LOG("Creating FunctionType: " + getName(), "FunctionType",
+                   is_variadic, "function type: " + getName(),
+                   "is variadic: " + std::to_string(is_variadic));
+}
 
 bool FunctionType::operator==(const Type &other) const {
   if (other.getKind() != TypeKind::kFunction) {
@@ -87,5 +89,32 @@ std::string FunctionType::buildFunctionName(
   return ss.str();
 }
 
+std::string toString(ValueKind value_kind) {
+  switch (value_kind) {
+  case ValueKind::kByValue:
+    return "ByValue";
+  case ValueKind::kByReference:
+    return "ByReference";
+  }
+  return "Unknown";
+}
+std::string toString(TypeConvention type_convention) {
+  switch (type_convention) {
+  case TypeConvention::kFlowWing:
+    return "FlowWing";
+  case TypeConvention::kC:
+    return "C";
+  }
+  return "Unknown";
+}
+std::string toString(Constness constness) {
+  switch (constness) {
+  case Constness::kConst:
+    return "Const";
+  case Constness::kMutable:
+    return "Mutable";
+  }
+  return "Unknown";
+}
 } // namespace types
 } // namespace flow_wing

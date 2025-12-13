@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/syntax/expression/ExpressionSyntax.h"
 namespace flow_wing {
 
 namespace syntax {
@@ -64,8 +65,9 @@ class OrIfStatementSyntax;
 class ReturnStatementSyntax;
 class SwitchStatementSyntax;
 class WhileStatementSyntax;
-
+class ExpressionStatementSyntax;
 class SyntaxToken;
+class ErrorExpressionSyntax;
 } // namespace syntax
 
 namespace visitor {
@@ -106,6 +108,7 @@ public:
   virtual void visit(syntax::TemplateStringLiteralExpressionSyntax *node) = 0;
   virtual void visit(syntax::TernaryExpressionSyntax *node) = 0;
   virtual void visit(syntax::BinaryExpressionSyntax *node) = 0;
+  virtual void visit(syntax::ErrorExpressionSyntax *node) = 0;
 
   // --- Type Expressions ---
   virtual void visit(syntax::ArrayTypeExpressionSyntax *node) = 0;
@@ -143,6 +146,7 @@ public:
   virtual void visit(syntax::SwitchStatementSyntax *node) = 0;
   virtual void visit(syntax::VariableDeclarationSyntax *node) = 0;
   virtual void visit(syntax::WhileStatementSyntax *node) = 0;
+  virtual void visit(syntax::ExpressionStatementSyntax *node) = 0;
 };
 
 } // namespace visitor

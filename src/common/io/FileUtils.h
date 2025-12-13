@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include <fstream>
@@ -65,6 +63,27 @@ public:
     return readLinesFromStream(ss);
   }
 };
+
+static inline std::vector<std::string>
+getFiles(const std::string &directory_path, const std::string &extension,
+         bool recursive = true) {
+  std::vector<std::string> files = std::vector<std::string>();
+
+  for (const auto &entry :
+       std::filesystem::directory_iterator(directory_path)) {
+    if (entry.path().extension() == extension) {
+      files.push_back(entry.path().string());
+    }
+
+    if (entry.is_directory() && recursive) {
+      std::vector<std::string> subFiles =
+          getFiles(entry.path().string(), extension, recursive);
+      files.insert(files.end(), subFiles.begin(), subFiles.end());
+    }
+  }
+
+  return files;
+}
 
 } // namespace io
 } // namespace flow_wing

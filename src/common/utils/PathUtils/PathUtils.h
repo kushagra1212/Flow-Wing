@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include <string>
@@ -37,7 +35,7 @@ struct PathUtils {
 
   // Extracts the filename without its extension.
   // Example: "/path/to/file.txt" -> "file"
-  static std::string getFileNameWithoutExtension(const std::string &file_path);
+  static std::string removeExtension(const std::string &file_path);
 
   // Extracts the extension from a file path, including the dot.
   // Example: "/path/to/file.txt" -> ".txt"

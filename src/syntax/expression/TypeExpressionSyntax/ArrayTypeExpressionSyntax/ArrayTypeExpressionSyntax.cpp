@@ -32,6 +32,16 @@ void ArrayTypeExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
+const std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> &
+ArrayTypeExpressionSyntax::getDimensions() const {
+  return m_dimensions;
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+ArrayTypeExpressionSyntax::getUnderlyingType() const {
+  return m_underlying_type;
+}
+
 const std::vector<const SyntaxNode *> &
 ArrayTypeExpressionSyntax::getChildren() const {
   if (m_children.empty()) {

@@ -43,6 +43,8 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
+  const std::unique_ptr<ExpressionSyntax> &getSizeToFillExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getElementExpression() const;
 
 private:
   const syntax::SyntaxToken *m_open_bracket;

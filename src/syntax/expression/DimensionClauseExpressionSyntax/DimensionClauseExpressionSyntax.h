@@ -39,9 +39,9 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  const std::unique_ptr<ExpressionSyntax> &getSizeLiteral() const {
-    return m_size_literal;
-  }
+  const SyntaxToken *getOpenBracket() const;
+  const SyntaxToken *getCloseBracket() const;
+  const std::unique_ptr<ExpressionSyntax> &getSizeLiteral() const;
 
 private:
   const SyntaxToken *m_open_bracket;

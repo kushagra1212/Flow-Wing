@@ -27,13 +27,14 @@ namespace binding {
 class BoundTemplateStringLiteralExpression : public BoundExpression {
 
 public:
-  BoundTemplateStringLiteralExpression(std::string string_value,
-                                       std::shared_ptr<types::Type> type);
+  BoundTemplateStringLiteralExpression(
+      std::string string_value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundTemplateStringLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
-
+  void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
   const std::string &getValue() const;
   std::shared_ptr<types::Type> getType() const override;

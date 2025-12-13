@@ -17,16 +17,38 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Symbol.hpp"
 #include "src/common/types/Type.hpp"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 namespace analysis {
 
 Symbol::Symbol(std::string name, SymbolKind kind,
                std::shared_ptr<types::Type> type)
-    : m_name(std::move(name)), m_kind(kind), m_type(std::move(type)) {}
+    : m_name(std::move(name)), m_kind(kind), m_type(std::move(type)) {
+  BINDER_DEBUG_LOG("Creating Symbol: " + getName(), "Symbol", toString(kind));
+}
+
+std::string Symbol::toString(SymbolKind kind) {
+  switch (kind) {
+  case SymbolKind::kVariable:
+    return "Variable";
+  case SymbolKind::kFunction:
+    return "Function";
+  case SymbolKind::kParameter:
+    return "Parameter";
+  case SymbolKind::kType:
+    return "Type";
+  case SymbolKind::kModule:
+    return "Module";
+  case SymbolKind::kObject:
+    return "Object";
+  case SymbolKind::kClass:
+    return "Class";
+  }
+  return "Unknown";
+}
 
 // Setters
 

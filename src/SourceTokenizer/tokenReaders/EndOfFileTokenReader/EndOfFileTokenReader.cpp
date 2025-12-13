@@ -20,6 +20,7 @@
 #include "EndOfFileTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
 #include "src/syntax/SyntaxToken.h"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 namespace lexer {

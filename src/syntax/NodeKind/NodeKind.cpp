@@ -33,11 +33,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kNirastExpression, "NirastExpression"},
       {NodeKind::kFillExpression, "FillExpression"},
       {NodeKind::kBracketedExpression, "BracketedExpression"},
-      {NodeKind::kAttributeExpression, "AttributeExpression"},
-      {NodeKind::kMultipleAssignmentExpression, "MultipleAssignmentExpression"},
       {NodeKind::kTernaryExpression, "TernaryExpression"},
-      {NodeKind::kVariableExpression, "VariableExpression"},
-      {NodeKind::kArrayVariableExpression, "ArrayVariableExpression"},
       {NodeKind::kInt32TypeExpression, "Int32TypeExpression"},
       {NodeKind::kInt64TypeExpression, "Int64TypeExpression"},
       {NodeKind::kDeci32TypeExpression, "Deci32TypeExpression"},
@@ -54,7 +50,6 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kDimensionClauseExpression, "DimensionClauseExpression"},
       {NodeKind::kModuleAccessExpression, "ModuleAccessExpression"},
       {NodeKind::kModuleAccessTypeExpression, "ModuleAccessTypeExpression"},
-      {NodeKind::kCommaExpression, "CommaExpression"},
       {NodeKind::kNewExpression, "NewExpression"},
       {NodeKind::kObjectMemberExpression, "ObjectMemberExpression"},
       {NodeKind::kMemberAccessExpression, "MemberAccessExpression"},
@@ -62,6 +57,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kFieldDeclarationExpression, "FieldDeclarationExpression"},
       {NodeKind::kParameterExpression, "ParameterExpression"},
       {NodeKind::kFunctionReturnTypeExpression, "FunctionReturnTypeExpression"},
+      {NodeKind::kErrorExpression, "ErrorExpression"},
 
       // Statements
       {NodeKind::kCompilationUnit, "CompilationUnit"},

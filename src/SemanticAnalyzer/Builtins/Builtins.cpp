@@ -17,11 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 
 namespace flow_wing {
 namespace analysis {
@@ -71,13 +75,38 @@ void Builtins::createBuiltinFunction(
     bool is_variadic) {
 
   auto function_type = std::make_shared<types::FunctionType>(
-      std::move(params), std::move(return_types), is_variadic);
+      std::move(params), std::move(return_types), (size_t)-1, is_variadic,
+      true);
 
-  auto function_symbol =
-      std::make_shared<Symbol>(name, SymbolKind::kFunction, function_type);
+  auto function_symbol = std::make_shared<FunctionSymbol>(name, function_type);
 
   m_all_symbols.push_back(function_symbol);
   m_functions_symbols_map[name].push_back(function_symbol);
+}
+
+void Builtins::createInternalFunction(
+    const std::string &name, std::vector<std::shared_ptr<types::Type>> params,
+    std::vector<std::shared_ptr<types::Type>> returns, bool is_variadic) {
+
+  std::vector<std::shared_ptr<types::ParameterType>> param_types;
+  for (const auto &param : params) {
+    param_types.push_back(std::make_shared<types::ParameterType>(
+        param, types::ValueKind::kByValue, types::TypeConvention::kC));
+  }
+
+  std::vector<std::shared_ptr<types::ReturnType>> return_types;
+  for (const auto &ret : returns) {
+    return_types.push_back(
+        std::make_shared<types::ReturnType>(ret, types::TypeConvention::kC));
+  }
+
+  auto function_type = std::make_shared<types::FunctionType>(
+      std::move(param_types), std::move(return_types), (size_t)-1, is_variadic,
+      true);
+
+  auto function_symbol = std::make_shared<FunctionSymbol>(name, function_type);
+
+  m_all_symbols.push_back(function_symbol);
 }
 
 void Builtins::createBuiltinFunctionOverloads(
@@ -92,10 +121,10 @@ void Builtins::createBuiltinFunctionOverloads(
 
   createBuiltinFunction(name, std::move(params),
                         {std::make_shared<types::ReturnType>(return_type)},
-                        true);
+                        false);
 }
 
-bool Builtins::initialize() {
+bool Builtins::initialize(binding::BinderContext *context) {
 
   m_int8_type_instance = createBuiltinType("int8");
   m_int32_type_instance = createBuiltinType("int");
@@ -110,13 +139,17 @@ bool Builtins::initialize() {
 
   createBuiltinFunction(
       "print", {},
-      {std::make_shared<types::ReturnType>(Builtins::m_nthg_type_instance)},
+      {std::make_shared<types::ReturnType>(Builtins::m_nthg_type_instance,
+                                           types::TypeConvention::kC)},
       true);
 
   createBuiltinFunction(
       "input",
-      {{std::make_shared<types::ParameterType>(Builtins::m_str_type_instance)}},
-      {std::make_shared<types::ReturnType>(Builtins::m_str_type_instance)},
+      {{std::make_shared<types::ParameterType>(Builtins::m_str_type_instance,
+                                               types::ValueKind::kByValue,
+                                               types::TypeConvention::kC)}},
+      {std::make_shared<types::ReturnType>(Builtins::m_str_type_instance,
+                                           types::TypeConvention::kC)},
       false);
 
   // --- Int32 Conversion Overloads ---
@@ -215,7 +248,113 @@ bool Builtins::initialize() {
   createBuiltinFunctionOverloads("String", Builtins::m_deci_type_instance,
                                  Builtins::m_str_type_instance);
 
+  // Internal Functions
+  initializeInternalFunctions();
+
+  for (const auto &symbol : m_all_symbols) {
+    context->getSymbolTable()->define(symbol);
+  }
+
   return true;
+}
+
+void Builtins::initializeInternalFunctions() {
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kPrintf_fn),
+                         {Builtins::m_str_type_instance},
+                         {Builtins::m_nthg_type_instance}, true);
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kConcat_strings_fn),
+      {
+          Builtins::m_str_type_instance,
+          Builtins::m_str_type_instance,
+      },
+      {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kString_length_fn),
+      {
+          Builtins::m_str_type_instance,
+      },
+      {Builtins::m_int32_type_instance});
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kItos_fn),
+                         {Builtins::m_int32_type_instance},
+                         {Builtins::m_str_type_instance});
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kDtos_fn),
+                         {Builtins::m_deci_type_instance},
+                         {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(
+          ir_gen::constants::functions::kGet_malloc_ptr_of_string_constant_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(
+          ir_gen::constants::functions::kGet_malloc_ptr_of_int_constant_fn),
+      {Builtins::m_int32_type_instance}, {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kCompare_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_int32_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kLess_than_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_bool_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kLess_than_or_equal_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_bool_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kGreater_than_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_bool_type_instance});
+
+  createInternalFunction(
+      std::string(
+          ir_gen::constants::functions::kGreater_than_or_equal_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_bool_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kEqual_strings_fn),
+      {Builtins::m_str_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_bool_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kGet_input_fn), {},
+      {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kString_to_int_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_int32_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kString_to_long_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_int64_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kString_to_double_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_deci_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kRaise_exception_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_nthg_type_instance});
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kMalloc_fn),
+                         {Builtins::m_int64_type_instance},
+                         {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kGC_malloc_fn),
+      {Builtins::m_int64_type_instance}, {Builtins::m_str_type_instance});
 }
 
 bool Builtins::isBuiltInFunction(const std::string &name) {

@@ -56,6 +56,10 @@ AssignmentExpressionSyntax::getRight() const {
   return m_right;
 }
 
+const SyntaxToken *AssignmentExpressionSyntax::getOperatorToken() const {
+  return m_operator_token;
+}
+
 const std::vector<const SyntaxNode *> &
 AssignmentExpressionSyntax::getChildren() const {
   if (m_children.empty()) {

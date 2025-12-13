@@ -19,6 +19,7 @@
 
 #include "PrimaryExpressionParserFactory.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/BracketedExpressionParser/BracketedExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ErrorExpressionParser/ErrorExpressionParser.hpp"
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/LiteralExpressionParser/LiteralExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/NirastExpressionParser/NirastExpressionParser.h"
@@ -26,6 +27,7 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/ParenthesizedExpressionParser/ParenthesizedExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/SyntaxToken.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -65,8 +67,7 @@ PrimaryExpressionParserFactory::create(ParserContext *ctx,
   }
 
   default:
-    assert(false && "Unexpected token kind for PrimaryExpressionParserFactory");
-    return nullptr;
+    return std::make_unique<ErrorExpressionParser>(ctx);
   }
 }
 

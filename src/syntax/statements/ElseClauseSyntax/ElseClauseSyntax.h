@@ -36,6 +36,7 @@ public:
   const std::vector<const SyntaxNode *> &getChildren() const override;
   void accept(visitor::ASTVisitor *visitor) override;
   // Getters
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
 
 private:
   const SyntaxToken *m_else_keyword;

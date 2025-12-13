@@ -44,6 +44,7 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
+  const std::vector<std::unique_ptr<ExpressionSyntax>> &getElements() const;
 
 private:
   const syntax::SyntaxToken *m_open_bracket;

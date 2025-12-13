@@ -2,6 +2,7 @@
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/utils/LogConfig.h"
 #include <memory>
 
 namespace flow_wing {
@@ -14,7 +15,10 @@ public:
       std::string name, std::shared_ptr<types::Type> type,
       std::unique_ptr<binding::BoundExpression> default_value_expression)
       : Symbol(std::move(name), SymbolKind::kParameter, std::move(type)),
-        m_default_value_expression(std::move(default_value_expression)) {}
+        m_default_value_expression(std::move(default_value_expression)) {
+    BINDER_DEBUG_LOG("Creating ParameterSymbol: " + getName(),
+                     "ParameterSymbol");
+  }
 
   ~ParameterSymbol() = default;
 

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundUnaryExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 
 namespace flow_wing {
@@ -34,6 +34,10 @@ BoundUnaryExpression::BoundUnaryExpression(
 
 NodeKind BoundUnaryExpression::getKind() const {
   return NodeKind::kUnaryExpression;
+}
+
+void BoundUnaryExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundUnaryExpression::getType() const {

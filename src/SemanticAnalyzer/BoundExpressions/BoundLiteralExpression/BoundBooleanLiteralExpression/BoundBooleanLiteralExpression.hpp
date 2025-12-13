@@ -27,11 +27,14 @@ namespace binding {
 class BoundBooleanLiteralExpression : public BoundExpression {
 
 public:
-  BoundBooleanLiteralExpression(bool value, std::shared_ptr<types::Type> type);
+  BoundBooleanLiteralExpression(
+      bool value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundBooleanLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   const bool &getValue() const;

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundIndexExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 
 namespace flow_wing {
@@ -33,6 +33,10 @@ BoundIndexExpression::BoundIndexExpression(
 
 NodeKind BoundIndexExpression::getKind() const {
   return NodeKind::kIndexExpression;
+}
+
+void BoundIndexExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundIndexExpression::getType() const {

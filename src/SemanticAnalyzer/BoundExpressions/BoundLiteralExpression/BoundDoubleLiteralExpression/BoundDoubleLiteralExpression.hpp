@@ -27,12 +27,14 @@ namespace binding {
 class BoundDoubleLiteralExpression : public BoundExpression {
 
 public:
-  BoundDoubleLiteralExpression(double double_value,
-                               std::shared_ptr<types::Type> type);
+  BoundDoubleLiteralExpression(
+      double double_value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundDoubleLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   const double &getValue() const;

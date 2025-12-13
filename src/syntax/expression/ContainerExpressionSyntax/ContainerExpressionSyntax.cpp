@@ -44,6 +44,11 @@ void ContainerExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
+const std::vector<std::unique_ptr<ExpressionSyntax>> &
+ContainerExpressionSyntax::getElements() const {
+  return m_elements;
+}
+
 const std::vector<const SyntaxNode *> &
 ContainerExpressionSyntax::getChildren() const {
 

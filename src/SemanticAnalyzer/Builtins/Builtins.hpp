@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
@@ -8,7 +9,9 @@
 #include <vector>
 
 namespace flow_wing {
-
+namespace binding {
+class BinderContext;
+} // namespace binding
 namespace analysis {
 
 // This class is the single source of truth for all built-in language
@@ -27,7 +30,8 @@ public:
   static std::shared_ptr<types::Type> m_nthg_type_instance;
   static std::shared_ptr<types::Type> m_dynamic_type_instance;
 
-  static bool initialize();
+  static bool initialize(binding::BinderContext *context);
+  static void initializeInternalFunctions();
 
   // Helper to get all symbols at once for easy registration
   static const std::vector<std::shared_ptr<Symbol>> &getAll();
@@ -42,6 +46,11 @@ private:
       std::vector<std::shared_ptr<types::ParameterType>> params,
       std::vector<std::shared_ptr<types::ReturnType>> return_types,
       bool is_variadic = false);
+  static void
+  createInternalFunction(const std::string &name,
+                         std::vector<std::shared_ptr<types::Type>> params,
+                         std::vector<std::shared_ptr<types::Type>> returns,
+                         bool is_variadic = false);
 
   static void
   createBuiltinFunctionOverloads(const std::string &name,

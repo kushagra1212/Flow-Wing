@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ObjectMemberSyntax.h"
 #include "src/ASTVisitor/ASTVisitor.hpp"
 
@@ -38,6 +37,16 @@ NodeKind ObjectMemberSyntax::getKind() const {
 
 void ObjectMemberSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+ObjectMemberSyntax::getIdentifierExpression() const {
+  return m_identifier_expression;
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+ObjectMemberSyntax::getValueExpression() const {
+  return m_value_expression;
 }
 
 const std::vector<const SyntaxNode *> &ObjectMemberSyntax::getChildren() const {

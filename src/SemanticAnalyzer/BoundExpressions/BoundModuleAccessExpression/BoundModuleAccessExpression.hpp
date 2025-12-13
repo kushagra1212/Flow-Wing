@@ -36,7 +36,7 @@ public:
   // Overrides
   NodeKind getKind() const override;
   std::shared_ptr<types::Type> getType() const override;
-
+  void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
   analysis::Symbol *getSymbol() const;
   const std::unique_ptr<BoundExpression> &getMemberAccessExpression() const;

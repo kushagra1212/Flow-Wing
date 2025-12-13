@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ModuleStatementSyntax.h"
 #include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
@@ -46,6 +45,16 @@ NodeKind ModuleStatementSyntax::getKind() const {
 
 void ModuleStatementSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+ModuleStatementSyntax::getModuleNameExpression() const {
+  return m_module_name_identifier_expression;
+}
+
+const std::vector<std::unique_ptr<StatementSyntax>> &
+ModuleStatementSyntax::getModuleMemberStatements() const {
+  return m_module_statements;
 }
 
 const std::vector<const SyntaxNode *> &

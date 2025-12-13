@@ -49,8 +49,13 @@ public:
   bool hasDefaultValueExpression() const;
 
   // Getters
-  const std::unique_ptr<ExpressionSyntax> &getTypeExpression() const;
+  const SyntaxToken *getInoutKeyword() const;
+  const SyntaxToken *getConstKeyword() const;
   const std::unique_ptr<ExpressionSyntax> &getIdentifierExpression() const;
+  const SyntaxToken *getColonToken() const;
+  const SyntaxToken *getAsKeyword() const;
+  const std::unique_ptr<ExpressionSyntax> &getTypeExpression() const;
+  const SyntaxToken *getEqualsToken() const;
   const std::unique_ptr<ExpressionSyntax> &getDefaultValueExpression() const;
 
   // Boolean queries

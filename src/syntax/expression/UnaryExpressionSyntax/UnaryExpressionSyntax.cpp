@@ -43,6 +43,10 @@ UnaryExpressionSyntax::getExpression() const {
   return m_expression;
 }
 
+const SyntaxToken *UnaryExpressionSyntax::getOperatorToken() const {
+  return m_operator_token;
+}
+
 lexer::TokenKind UnaryExpressionSyntax::getOperatorTokenKind() const {
   return m_operator_token->getTokenKind();
 }

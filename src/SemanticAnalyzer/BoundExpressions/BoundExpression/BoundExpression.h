@@ -20,12 +20,17 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundNode.hpp"
+#include <memory>
 #include <vector>
 
 namespace flow_wing {
 namespace types {
 class Type;
 } // namespace types
+
+namespace visitor {
+class BoundTreeVisitor;
+} // namespace visitor
 
 namespace analysis {
 class Symbol;
@@ -36,11 +41,10 @@ class BoundExpression : public BoundNode {
 public:
   virtual ~BoundExpression() = default;
 
-  virtual std::shared_ptr<types::Type> getType() const { return nullptr; }
-  virtual std::vector<std::shared_ptr<types::Type>> getMultipleTypes() const {
-    return {};
-  }
-  virtual bool isMultipleType() const { return false; }
+  virtual std::shared_ptr<types::Type> getType() const;
+  virtual std::vector<std::shared_ptr<types::Type>> getMultipleTypes() const;
+  virtual bool isMultipleType() const;
+  virtual void accept(visitor::BoundTreeVisitor *visitor) = 0;
 
 protected:
   explicit BoundExpression(

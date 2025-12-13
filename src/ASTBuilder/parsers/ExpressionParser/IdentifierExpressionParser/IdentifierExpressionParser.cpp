@@ -28,6 +28,7 @@ IdentifierExpressionParser::IdentifierExpressionParser(ParserContext *ctx)
     : m_ctx(ctx) {}
 
 std::unique_ptr<syntax::ExpressionSyntax> IdentifierExpressionParser::parse() {
+
   return std::make_unique<syntax::IdentifierExpressionSyntax>(
       m_ctx->match(lexer::TokenKind::kIdentifierToken)); // identifier
 }

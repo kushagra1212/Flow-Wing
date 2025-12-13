@@ -17,9 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
 #include "src/common/utils/PathUtils/PathUtils.h"
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
@@ -65,6 +65,12 @@ public:
     return m_bound_tree;
   }
 
+  const std::string &getLLVMIr() const { return m_llvm_ir; }
+
+  ir_gen::LLVMBackendContext *getBackendContext() const {
+    return m_llvm_backend_context.get();
+  }
+
   // Setters
   void setSourceLines(const std::vector<std::string> &source_lines) {
     m_source_lines = std::move(source_lines);
@@ -78,6 +84,11 @@ public:
   void setBoundTree(std::unique_ptr<binding::BoundCompilationUnit> bound_tree) {
     m_bound_tree = std::move(bound_tree);
   }
+  void setLLVMIr(const std::string &llvm_ir) { m_llvm_ir = llvm_ir; }
+  void setBackendContext(
+      std::unique_ptr<ir_gen::LLVMBackendContext> llvm_backend_context) {
+    m_llvm_backend_context = std::move(llvm_backend_context);
+  }
 
 private:
   const CompilerOptions m_options;
@@ -87,5 +98,7 @@ private:
   std::vector<std::unique_ptr<syntax::SyntaxToken>> m_tokens;
   std::unique_ptr<syntax::CompilationUnitSyntax> m_ast;
   std::unique_ptr<binding::BoundCompilationUnit> m_bound_tree;
+  std::string m_llvm_ir;
+  std::unique_ptr<ir_gen::LLVMBackendContext> m_llvm_backend_context = nullptr;
 };
 } // namespace flow_wing

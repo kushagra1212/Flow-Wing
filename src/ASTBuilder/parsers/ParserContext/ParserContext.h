@@ -53,6 +53,7 @@ public:
   const syntax::SyntaxToken *matchIf(const lexer::TokenKind &kind);
   const syntax::SyntaxToken *peek(const int &offset);
   lexer::TokenKind getCurrentTokenKind();
+  const syntax::SyntaxToken *getCurrent();
   const syntax::SyntaxToken *nextToken();
 
   //? Error Reporting
@@ -62,8 +63,6 @@ public:
               const flow_wing::diagnostic::SourceLocation &location);
 
 private:
-  const syntax::SyntaxToken *getCurrent();
-
   CompilationContext &m_context;
   size_t m_position = 0;
 };

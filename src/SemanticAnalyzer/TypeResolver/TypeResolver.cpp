@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -300,7 +299,7 @@ std::shared_ptr<types::Type> TypeResolver::resolveFunctionType(
   }
 
   return std::make_shared<types::FunctionType>(parameter_types, return_types,
-                                               false);
+                                               -1, false);
 }
 
 } // namespace analysis

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundTernaryExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -37,6 +37,10 @@ BoundTernaryExpression::BoundTernaryExpression(
 
 NodeKind BoundTernaryExpression::getKind() const {
   return NodeKind::kTernaryExpression;
+}
+
+void BoundTernaryExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundTernaryExpression::getType() const {

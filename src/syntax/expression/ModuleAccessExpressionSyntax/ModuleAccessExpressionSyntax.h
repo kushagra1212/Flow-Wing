@@ -41,12 +41,8 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  const std::unique_ptr<ExpressionSyntax> &getModuleNameExpression() const {
-    return m_module_name_expression;
-  }
-  const std::unique_ptr<ExpressionSyntax> &getMemberAccessExpression() const {
-    return m_member_access_expression;
-  }
+  const std::unique_ptr<ExpressionSyntax> &getModuleNameExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getMemberAccessExpression() const;
 
 private:
   std::unique_ptr<ExpressionSyntax> m_module_name_expression;

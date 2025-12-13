@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundVariableDeclaration.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
@@ -35,6 +35,10 @@ NodeKind BoundVariableDeclaration::getKind() const {
 const std::vector<std::shared_ptr<analysis::Symbol>> &
 BoundVariableDeclaration::getSymbols() const {
   return m_symbols;
+}
+
+void BoundVariableDeclaration::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 } // namespace binding

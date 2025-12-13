@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include "IDiagnosticFormatter.h"
@@ -41,13 +39,14 @@ private:
 
   std::string getNoteSnippet(const diagnostic::Diagnostic &diagnostic) const;
   std::string getHelpSnippet(const diagnostic::Diagnostic &diagnostic) const;
-  std::string getFileSnippet(const diagnostic::Diagnostic &diagnostic) const;
+  std::string getFileSnippet(const diagnostic::Diagnostic &diagnostic,
+                             const CompilationContext &context) const;
   std::string getMessageSnippet(const diagnostic::Diagnostic &diagnostic) const;
   std::string getErrorCodeSnippet(const Diagnostic &diagnostic,
                                   const CompilationContext &context) const;
 
-  std::string
-  getLocationSnippet(const diagnostic::Diagnostic &diagnostic) const;
+  std::string getLocationSnippet(const diagnostic::Diagnostic &diagnostic,
+                                 const CompilationContext &context) const;
   bool skipSnippet(const diagnostic::Diagnostic &diagnostic) const;
 
   std::string getFileName(const std::string &file_path) const;

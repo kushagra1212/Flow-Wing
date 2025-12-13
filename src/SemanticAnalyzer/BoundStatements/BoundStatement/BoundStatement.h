@@ -30,6 +30,7 @@ namespace binding {
 class BoundStatement : public BoundNode {
 public:
   virtual ~BoundStatement() = default;
+  virtual void accept(visitor::BoundTreeVisitor *visitor) = 0;
 
 protected:
   explicit BoundStatement(const flow_wing::diagnostic::SourceLocation &location)

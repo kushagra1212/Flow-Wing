@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "PathUtils.h"
 #include <filesystem>
 
@@ -34,8 +32,7 @@ std::string PathUtils::getFileName(const std::string &file_path) {
   return std::filesystem::path(file_path).filename().string();
 }
 
-std::string
-PathUtils::getFileNameWithoutExtension(const std::string &file_path) {
+std::string PathUtils::removeExtension(const std::string &file_path) {
   return std::filesystem::path(file_path).stem().string();
 }
 

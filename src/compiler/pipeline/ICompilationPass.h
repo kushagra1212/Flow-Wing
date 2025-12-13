@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include <string>
@@ -33,6 +32,7 @@ namespace pipeline {
 enum class ReturnStatus {
   kSuccess,
   kFailure,
+  kCompletedWithErrors,
 };
 
 class ICompilationPass {

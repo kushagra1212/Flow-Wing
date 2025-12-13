@@ -27,12 +27,14 @@ namespace binding {
 class BoundCharacterLiteralExpression : public BoundExpression {
 
 public:
-  BoundCharacterLiteralExpression(char char_value,
-                                  std::shared_ptr<types::Type> type);
+  BoundCharacterLiteralExpression(
+      char char_value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundCharacterLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   const char &getValue() const;

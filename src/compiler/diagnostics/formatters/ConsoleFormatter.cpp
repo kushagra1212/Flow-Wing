@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ConsoleFormatter.h"
 #include "src/common/cli/CliColors.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/diagnostics/DiagnosticFormatUtils.h"
 #include "src/compiler/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include <sstream>
 
 namespace flow_wing {
@@ -35,8 +34,8 @@ std::string ConsoleFormatter::format(const Diagnostic &diagnostic,
   std::stringstream ss;
 
   ss << getMessageSnippet(diagnostic);
-  ss << getLocationSnippet(diagnostic);
-  ss << getFileSnippet(diagnostic);
+  ss << getLocationSnippet(diagnostic, context);
+  ss << getFileSnippet(diagnostic, context);
   ss << getErrorCodeSnippet(diagnostic, context);
   ss << getNoteSnippet(diagnostic);
   ss << getHelpSnippet(diagnostic);
@@ -97,7 +96,8 @@ ConsoleFormatter::getHelpSnippet(const Diagnostic &diagnostic) const {
 }
 
 std::string
-ConsoleFormatter::getFileSnippet(const Diagnostic &diagnostic) const {
+ConsoleFormatter::getFileSnippet(const Diagnostic &diagnostic,
+                                 const CompilationContext &context) const {
 
   if (skipSnippet(diagnostic)) {
     return "";
@@ -105,10 +105,8 @@ ConsoleFormatter::getFileSnippet(const Diagnostic &diagnostic) const {
 
   std::stringstream snippet;
   snippet << CLEAR_COLOR << "\n"
-          << YELLOW_TEXT << "File: ----> "
-          << WHITE_TEXT
-          // TODO(kushagra): Add file name
-
+          << YELLOW_TEXT << "File: ----> " << WHITE_TEXT
+          << getFileName(context.getAbsoluteSourceFilePath()) << WHITE_TEXT
           << "\n\n"
           << CLEAR_COLOR;
   return snippet.str();
@@ -136,7 +134,8 @@ ConsoleFormatter::getMessageSnippet(const Diagnostic &diagnostic) const {
 }
 
 std::string
-ConsoleFormatter::getLocationSnippet(const Diagnostic &diagnostic) const {
+ConsoleFormatter::getLocationSnippet(const Diagnostic &diagnostic,
+                                     const CompilationContext &context) const {
 
   if (skipSnippet(diagnostic)) {
     return "";
@@ -144,10 +143,8 @@ ConsoleFormatter::getLocationSnippet(const Diagnostic &diagnostic) const {
 
   std::stringstream snippet;
   snippet << CLEAR_COLOR << "\n"
-          << YELLOW_TEXT << "Location: ----> "
-          << GREEN_TEXT
-          // TODO(kushagra): Add file name
-          << CLEAR_COLOR;
+          << YELLOW_TEXT << "Location: ----> " << GREEN_TEXT
+          << context.getAbsoluteSourceFilePath() << CLEAR_COLOR;
   return snippet.str();
 }
 
@@ -156,53 +153,51 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
                                       const CompilationContext &context) const {
   std::string snippet = "\n";
   const std::vector<std::string> &lines = context.getSourceLines();
-  const size_t lineNumber = diagnostic.getLocation().m_start.line_number;
-  const size_t columnNumber = diagnostic.getLocation().m_start.column_number;
-  size_t lineCount = lines.size();
-  size_t currentLineNumber = 1;
+  size_t line_count = lines.size();
+  auto start = diagnostic.getLocation().m_start;
+  auto end = diagnostic.getLocation().m_end;
+  const size_t delta_length = 4;
 
-  auto errorMarker = [&]() {
-    std::string marker = "";
-    marker += GREEN_TEXT;
-    marker += BOLD_TEXT;
-    for (size_t i = 0; i < columnNumber; i++) {
-      marker += " ";
-    }
-    marker += "\n";
-    marker += "   ";
-    for (size_t i = 0; i < columnNumber; i++) {
-      if (i == columnNumber - 1) {
-        marker += "^";
-      } else {
-        marker += "~";
-      }
-    }
-    marker += RESET;
-    marker += "\n";
-    return marker;
-  };
+  size_t start_line =
+      start.line_number > delta_length ? start.line_number - delta_length : 0;
+  size_t end_line = end.line_number + delta_length > line_count
+                        ? line_count
+                        : end.line_number + delta_length;
 
-  while (currentLineNumber <= lineCount) {
-    if (currentLineNumber <= lineNumber + 4 &&
-        currentLineNumber >= lineNumber - 4) {
-      snippet += YELLOW_TEXT + std::to_string(currentLineNumber) + "| " + RESET;
-      if (currentLineNumber <= lineNumber && currentLineNumber >= lineNumber) {
+  DEBUG_LOG("start_line: ", start.line_number, ":", start.column_number);
+  DEBUG_LOG("end_line: ", end.line_number, ":", end.column_number);
+
+  for (size_t line_number = start_line; line_number <= end_line;
+       line_number++) {
+    snippet += YELLOW_TEXT + std::to_string(line_number) + "| " + RESET;
+
+    size_t column_count = lines[line_number].size();
+
+    std::string arrow = GREEN_TEXT;
+    arrow += "  ";
+
+    for (size_t column_number = 0; column_number < column_count;
+         column_number++) {
+
+      SourcePoint point(line_number, column_number);
+
+      if (point >= start && point <= end) {
         snippet += RED_TEXT;
-        snippet += BOLD_TEXT;
+        arrow += "^";
       } else {
         snippet += RESET;
+        arrow += " ";
       }
-      snippet += lines[static_cast<size_t>(currentLineNumber) - 1] + "\n";
-      snippet += RESET;
-      if (lineNumber == currentLineNumber) {
 
-        snippet += errorMarker();
-      }
+      snippet += lines[line_number][column_number];
     }
-    currentLineNumber++;
-  }
-  if (lineNumber == currentLineNumber && snippet != "\n") {
-    snippet += errorMarker();
+
+    if (arrow.find("^") != std::string::npos) {
+      snippet += "\n" + arrow;
+    }
+
+    snippet += RESET;
+    snippet += "\n";
   }
   return snippet;
 }

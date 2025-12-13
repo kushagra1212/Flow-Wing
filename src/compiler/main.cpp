@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/common/cli/CommandLineParser/CommandLineParser.h"

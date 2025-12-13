@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-#include "TokenJsonDumperPass.h"
+#include "TokenJsonDumperPass.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/Serialization/Tokens/TokenJson.hpp"
+#include "src/external/include/json.hpp"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -36,8 +35,13 @@ std::string TokenJsonDumperPass::getName() const { return "Token Json Dumper"; }
 
 ReturnStatus TokenJsonDumperPass::run(CompilationContext &context) {
 
-  auto tokens_json =
-      flow_wing::compiler::serializer::TokenJson::toJson(context.getTokens());
+  nlohmann::json tokens_json = {
+      {"stage", "tokenization"},
+      {"generatedAt",
+       std::chrono::system_clock::now().time_since_epoch().count()},
+      {"source", context.getAbsoluteSourceFilePath()},
+      {"tokens", flow_wing::compiler::serializer::TokenJson::toJson(
+                     context.getTokens())}};
 
   const int8_t kDumpIndent = 1;
 

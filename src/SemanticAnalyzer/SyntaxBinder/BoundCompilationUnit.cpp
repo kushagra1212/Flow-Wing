@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundCompilationUnit.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 
@@ -27,13 +27,29 @@ namespace binding {
 
 BoundCompilationUnit::BoundCompilationUnit(
     std::vector<std::unique_ptr<BoundStatement>> statements,
-    const flow_wing::diagnostic::SourceLocation &location)
-    : BoundNode(location), m_statements(std::move(statements)) {}
+    const flow_wing::diagnostic::SourceLocation &location,
+    std::shared_ptr<analysis::ScopedSymbolTable> symbol_table)
+    : BoundNode(location), m_statements(std::move(statements)),
+      m_symbol_table(std::move(symbol_table)) {}
 
 BoundCompilationUnit::~BoundCompilationUnit() = default;
 
 NodeKind BoundCompilationUnit::getKind() const {
   return NodeKind::kCompilationUnit;
+}
+
+const std::shared_ptr<analysis::ScopedSymbolTable> &
+BoundCompilationUnit::getSymbolTable() const {
+  return m_symbol_table;
+}
+
+void BoundCompilationUnit::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
+}
+
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundCompilationUnit::getStatements() const {
+  return m_statements;
 }
 
 } // namespace binding

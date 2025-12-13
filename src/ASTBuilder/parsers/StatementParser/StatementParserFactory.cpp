@@ -27,6 +27,7 @@
 #include "src/ASTBuilder/parsers/StatementParser/ClassStatementParser/ClassStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/ContinueStatementParser/ContinueStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/CustomTypeStatementParser/CustomTypeStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ExpressionStatementParser/ExpressionStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/ForStatementParser/ForStatementParser.h"
 
 #include "src/ASTBuilder/parsers/StatementParser/FunctionStatementParser/FunctionStatementParser.h"
@@ -37,6 +38,8 @@
 #include "src/ASTBuilder/parsers/StatementParser/SwitchStatementParser/SwitchStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/WhileStatementParser/WhileStatementParser.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/NodeKind/NodeKind.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -77,8 +80,7 @@ StatementParserFactory::create(ParserContext &context) {
   case lexer::TokenKind::kFunctionKeyword:
     return std::make_unique<FunctionStatementParser>(&context);
   default:
-    assert(false && "Unexpected token kind for StatementParserFactory");
-    return nullptr;
+    return std::make_unique<ExpressionStatementParser>(&context);
   }
 }
 

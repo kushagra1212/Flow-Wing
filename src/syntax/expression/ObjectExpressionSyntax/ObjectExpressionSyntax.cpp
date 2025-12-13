@@ -41,6 +41,11 @@ void ObjectExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
+const std::vector<std::unique_ptr<ObjectMemberSyntax>> &
+ObjectExpressionSyntax::getMembers() const {
+  return m_members;
+}
+
 const std::vector<const SyntaxNode *> &
 ObjectExpressionSyntax::getChildren() const {
   if (m_children.empty()) {

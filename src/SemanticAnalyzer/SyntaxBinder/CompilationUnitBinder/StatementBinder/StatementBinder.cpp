@@ -17,14 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "src/syntax/statements/ExposeStatementSyntax/ExposeStatementSyntax.h"
+#include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.hpp"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -54,8 +55,8 @@ StatementBinder::bind(syntax::StatementSyntax *statement) {
         static_cast<syntax::ExposeStatementSyntax *>(statement));
 
   default:
-    assert(false && "Unexpected statement kind for StatementBinder");
-    return nullptr;
+    return bindExpressionStatement(
+        static_cast<syntax::ExpressionStatementSyntax *>(statement));
   }
 }
 } // namespace binding

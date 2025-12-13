@@ -39,6 +39,17 @@ void DimensionClauseExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
+const SyntaxToken *DimensionClauseExpressionSyntax::getOpenBracket() const {
+  return m_open_bracket;
+}
+const SyntaxToken *DimensionClauseExpressionSyntax::getCloseBracket() const {
+  return m_close_bracket;
+}
+const std::unique_ptr<ExpressionSyntax> &
+DimensionClauseExpressionSyntax::getSizeLiteral() const {
+  return m_size_literal;
+}
+
 const std::vector<const SyntaxNode *> &
 DimensionClauseExpressionSyntax::getChildren() const {
   if (m_children.empty()) {

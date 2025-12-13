@@ -42,11 +42,11 @@ file(GLOB_RECURSE SEMANTIC_ANALYZER_SOURCES "${MAIN_SRC_DIR}/SemanticAnalyzer/**
 file(GLOB_RECURSE SYNTAX_SOURCE_FILES "${MAIN_SRC_DIR}/syntax/**.cpp")
 file(GLOB_RECURSE COMMON_SOURCES "${MAIN_SRC_DIR}/common/**.cpp")
 file(GLOB_RECURSE SERIALIZATION_SOURCES "${MAIN_SRC_DIR}/compiler/serialization/**.cpp")
-
-# Correctly glob for compiler sources
+file(GLOB_RECURSE IR_GEN_SOURCES "${MAIN_SRC_DIR}/IRGen/**.cpp")
 file(GLOB_RECURSE COMPILER_PIPELINE_SOURCES "${MAIN_SRC_DIR}/compiler/pipeline/**.cpp")
 file(GLOB_RECURSE COMPILER_DIAGNOSTICS_SOURCES "${MAIN_SRC_DIR}/compiler/diagnostics/**.cpp")
 file(GLOB_RECURSE COMPILER_OPTIONS_SOURCES "${MAIN_SRC_DIR}/compiler/CompilerOptions/**.cpp")
+file(GLOB_RECURSE LINKER_SOURCES "${MAIN_SRC_DIR}/compiler/Linker/**.cpp")
 
 set(COMPILER_SOURCES
     "${MAIN_SRC_DIR}/compiler/main.cpp"
@@ -54,6 +54,8 @@ set(COMPILER_SOURCES
     ${COMPILER_DIAGNOSTICS_SOURCES}
     ${COMPILER_OPTIONS_SOURCES}
     ${SERIALIZATION_SOURCES}
+    ${IR_GEN_SOURCES}
+    ${LINKER_SOURCES}
 )
 
 list(APPEND EXECUTABLE_SOURCES

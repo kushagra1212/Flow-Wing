@@ -38,6 +38,8 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
+  const std::unique_ptr<ExpressionSyntax> &getIdentifierExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getValueExpression() const;
 
 private:
   std::unique_ptr<ExpressionSyntax> m_identifier_expression;

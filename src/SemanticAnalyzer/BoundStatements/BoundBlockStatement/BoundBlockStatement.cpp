@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBlockStatement.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
@@ -30,6 +30,10 @@ BoundBlockStatement::BoundBlockStatement(
 
 NodeKind BoundBlockStatement::getKind() const {
   return NodeKind::kBlockStatement;
+}
+
+void BoundBlockStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 const std::vector<std::unique_ptr<BoundStatement>> &

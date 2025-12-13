@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
@@ -34,6 +33,7 @@
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
 #include "src/syntax/expression/IntegerLiteralExpressionSyntax/IntegerLiteralExpressionSyntax.h"
+#include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
 #include <cassert>
@@ -55,7 +55,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
           ? analysis::Builtins::m_int32_type_instance
           : analysis::Builtins::m_int64_type_instance;
 
-  return std::make_unique<BoundIntegerLiteralExpression>(value, type);
+  return std::make_unique<BoundIntegerLiteralExpression>(
+      value, type, expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -65,7 +66,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "expression is null");
 
   return std::make_unique<BoundDoubleLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_deci_type_instance);
+      expression->getValue(), analysis::Builtins::m_deci_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -75,7 +77,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "expression is null");
 
   return std::make_unique<BoundFloatLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_deci32_type_instance);
+      expression->getValue(), analysis::Builtins::m_deci32_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -84,7 +87,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "LiteralExpressionBinder::bind: expression is null");
 
   return std::make_unique<BoundCharacterLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_int8_type_instance);
+      expression->getValue(), analysis::Builtins::m_int8_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -94,7 +98,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "expression is null");
 
   return std::make_unique<BoundStringLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_str_type_instance);
+      expression->getValue(), analysis::Builtins::m_str_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -103,7 +108,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "LiteralExpressionBinder::bind: expression is null");
 
   return std::make_unique<BoundTemplateStringLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_str_type_instance);
+      expression->getValue(), analysis::Builtins::m_str_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -112,7 +118,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "LiteralExpressionBinder::bind: expression is null");
 
   return std::make_unique<BoundBooleanLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_bool_type_instance);
+      expression->getValue(), analysis::Builtins::m_bool_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
@@ -121,7 +128,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "LiteralExpressionBinder::bind: expression is null");
 
   return std::make_unique<BoundNirastLiteralExpression>(
-      analysis::Builtins::m_nirast_type_instance);
+      analysis::Builtins::m_nirast_type_instance,
+      expression->getSourceLocation());
 }
 } // namespace binding
 } // namespace flow_wing

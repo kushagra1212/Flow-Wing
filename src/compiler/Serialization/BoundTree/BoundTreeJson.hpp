@@ -1,0 +1,103 @@
+// TokenJsonSerializer.h
+#pragma once
+
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/external/include/json.hpp"
+#include <memory>
+
+namespace flow_wing::compiler::serializer {
+
+class BoundTreeJson : public visitor::BoundTreeVisitor {
+public:
+  nlohmann::json toJson(
+      const std::unique_ptr<binding::BoundCompilationUnit> &bound_tree) const;
+
+  nlohmann::json
+  toJsonSourcePoint(const flow_wing::diagnostic::SourcePoint &point);
+
+  nlohmann::json
+  toJsonRange(const flow_wing::diagnostic::SourceLocation &location);
+
+private:
+  nlohmann::json m_bound_tree_json;
+  nlohmann::json m_symbols_json;
+  nlohmann::json m_types_json;
+  nlohmann::json
+      m_last_node_json; // The result of the most recently visited node
+
+  std::unordered_map<const void *, size_t> m_ptr_to_id_map;
+  size_t m_next_id = 1;
+
+  void visit(binding::BoundCompilationUnit *compilation_unit) override;
+  void visit(binding::BoundBlockStatement *block_statement) override;
+  void visit(binding::BoundExposeStatement *expose_statement) override;
+  void visit(binding::BoundCustomTypeStatement *custom_type_statement) override;
+  void visit(binding::BoundVariableDeclaration *variable_declaration) override;
+  void visit(binding::BoundFunctionStatement *variable_declaration) override;
+  void visit(binding::BoundIfStatement *variable_declaration) override;
+  void visit(binding::BoundWhileStatement *variable_declaration) override;
+  void visit(binding::BoundForStatement *variable_declaration) override;
+  void visit(binding::BoundBreakStatement *variable_declaration) override;
+  void visit(binding::BoundContinueStatement *variable_declaration) override;
+  void visit(binding::BoundReturnStatement *variable_declaration) override;
+  void visit(binding::BoundSwitchStatement *variable_declaration) override;
+  void visit(binding::BoundClassStatement *variable_declaration) override;
+  void visit(binding::BoundIdentifierExpression *variable_declaration) override;
+  void visit(binding::BoundIndexExpression *variable_declaration) override;
+  void
+  visit(binding::BoundIntegerLiteralExpression *variable_declaration) override;
+  void
+  visit(binding::BoundDoubleLiteralExpression *variable_declaration) override;
+  void
+  visit(binding::BoundFloatLiteralExpression *variable_declaration) override;
+  void visit(
+      binding::BoundCharacterLiteralExpression *variable_declaration) override;
+  void
+  visit(binding::BoundStringLiteralExpression *variable_declaration) override;
+  void
+  visit(binding::BoundBooleanLiteralExpression *variable_declaration) override;
+  void visit(binding::BoundTemplateStringLiteralExpression
+                 *variable_declaration) override;
+  void
+  visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
+  void visit(binding::BoundErrorStatement *variable_declaration) override;
+  void visit(binding::BoundErrorExpression *variable_declaration) override;
+  void
+  visit(binding::BoundModuleAccessExpression *variable_declaration) override;
+  void visit(binding::BoundCallExpression *variable_declaration) override;
+  void
+  visit(binding::BoundMemberAccessExpression *variable_declaration) override;
+  void visit(binding::BoundTernaryExpression *variable_declaration) override;
+  void visit(binding::BoundNewExpression *variable_declaration) override;
+  void visit(binding::BoundUnaryExpression *variable_declaration) override;
+  void visit(binding::BoundBinaryExpression *variable_declaration) override;
+  void visit(binding::BoundAssignmentExpression *variable_declaration) override;
+  void visit(binding::BoundExpressionStatement *variable_declaration) override;
+
+  // Symbols
+  std::string visit(const analysis::FunctionSymbol *function_symbol);
+  std::string visit(const analysis::ParameterSymbol *parameter_symbol);
+
+  // types
+  std::string visit(const types::FunctionType *type);
+  std::string visit(const types::ParameterType *type);
+  std::string visit(const types::ReturnType *type);
+  std::string visit(const types::Type *type);
+
+  // Utility functions
+  std::string getShortId(const void *ptr);
+
+  // Serialization
+  template <typename T>
+  void serializeChild(const std::unique_ptr<T> &node, nlohmann::json &parent,
+                      const std::string &key);
+
+  template <typename T>
+  void serializeArray(const std::vector<std::unique_ptr<T>> &nodes,
+                      nlohmann::json &parent, const std::string &key);
+};
+
+} // namespace flow_wing::compiler::serializer

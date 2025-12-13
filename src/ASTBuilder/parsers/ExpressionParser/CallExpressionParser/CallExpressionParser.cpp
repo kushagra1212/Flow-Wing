@@ -36,7 +36,11 @@ std::unique_ptr<syntax::ExpressionSyntax> CallExpressionParser::parsePostfix(
 
   std::unique_ptr<syntax::ExpressionSyntax> argument_expression = nullptr;
 
-  argument_expression = PrecedenceAwareExpressionParser::parse(m_ctx);
+  if (m_ctx->getCurrentTokenKind() !=
+      lexer::TokenKind::kCloseParenthesisToken) {
+
+    argument_expression = PrecedenceAwareExpressionParser::parse(m_ctx);
+  }
 
   auto close_parenthesis_token =
       m_ctx->match(lexer::TokenKind::kCloseParenthesisToken); // )

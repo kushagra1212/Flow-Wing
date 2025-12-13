@@ -31,6 +31,7 @@ public:
   const std::string &getName() const;
   std::shared_ptr<types::Type> getType() const;
   bool isExposed() const;
+  static std::string toString(SymbolKind kind);
 
 private:
   std::string m_name;

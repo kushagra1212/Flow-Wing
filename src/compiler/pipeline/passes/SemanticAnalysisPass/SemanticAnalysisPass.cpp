@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "SemanticAnalysisPass.hpp"
 #include "src/ASTBuilder/ASTBuilder.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
@@ -27,6 +25,7 @@
 #include "src/SemanticAnalyzer/SyntaxBinder/Binder/Binder.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 
@@ -39,10 +38,19 @@ std::string SemanticAnalysisPass::getName() const {
 
 ReturnStatus SemanticAnalysisPass::run(CompilationContext &context) {
 
+  auto &diagnostics = context.getDiagnostics();
+  if (diagnostics->hasError(diagnostic::DiagnosticType::kLexical) ||
+      diagnostics->hasError(diagnostic::DiagnosticType::kSyntactic)) {
+
+    PARSER_DEBUG_LOG("Semantic Analysis failed due to previous syntax errors.",
+                     "SemanticAnalysisPass");
+    return ReturnStatus::kFailure;
+  }
+
   binding::BinderContext binder_context(context);
   analysis::DeclarationAnalyzer decl_analyzer(binder_context);
 
-  flow_wing::analysis::Builtins::initialize();
+  flow_wing::analysis::Builtins::initialize(&binder_context);
 
   decl_analyzer.analyze();
 

@@ -42,6 +42,8 @@ public:
   virtual bool isDynamic() const;
   virtual bool isPrimitive() const;
 
+  static std::string toString(TypeKind kind);
+
 private:
   std::string m_name;
   TypeKind m_kind;

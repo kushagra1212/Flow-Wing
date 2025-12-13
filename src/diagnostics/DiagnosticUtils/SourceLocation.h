@@ -27,6 +27,22 @@ namespace diagnostic {
 struct SourcePoint {
   size_t line_number = 0;
   size_t column_number = 0;
+
+  SourcePoint() = default;
+  SourcePoint(size_t line, size_t column)
+      : line_number(line), column_number(column) {}
+
+  bool operator<=(const SourcePoint &other) const {
+    return line_number < other.line_number ||
+           (line_number == other.line_number &&
+            column_number <= other.column_number);
+  }
+
+  bool operator>=(const SourcePoint &other) const {
+    return line_number > other.line_number ||
+           (line_number == other.line_number &&
+            column_number >= other.column_number);
+  }
 };
 
 struct SourceLocation {

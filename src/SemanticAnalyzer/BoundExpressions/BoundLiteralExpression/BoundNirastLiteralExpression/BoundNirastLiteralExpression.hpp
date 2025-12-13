@@ -27,11 +27,14 @@ namespace binding {
 class BoundNirastLiteralExpression : public BoundExpression {
 
 public:
-  BoundNirastLiteralExpression(std::shared_ptr<types::Type> type);
+  BoundNirastLiteralExpression(
+      std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundNirastLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   std::shared_ptr<types::Type> getType() const override;

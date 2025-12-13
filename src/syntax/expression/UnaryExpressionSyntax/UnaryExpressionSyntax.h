@@ -39,6 +39,7 @@ public:
 
   // Getters
   const std::unique_ptr<ExpressionSyntax> &getExpression() const;
+  const SyntaxToken *getOperatorToken() const;
   lexer::TokenKind getOperatorTokenKind() const;
 
 private:

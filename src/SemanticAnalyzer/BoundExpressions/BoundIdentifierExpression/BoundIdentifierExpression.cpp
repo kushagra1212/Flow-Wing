@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundIdentifierExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/common/Symbol/Symbol.hpp"
 
@@ -32,6 +32,10 @@ BoundIdentifierExpression::BoundIdentifierExpression(
 
 NodeKind BoundIdentifierExpression::getKind() const {
   return NodeKind::kIdentifierExpression;
+}
+
+void BoundIdentifierExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 analysis::Symbol *BoundIdentifierExpression::getSymbol() { return m_symbol; }

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ElseClauseSyntax.h"
 #include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
@@ -33,6 +32,10 @@ NodeKind ElseClauseSyntax::getKind() const { return NodeKind::kElseClause; }
 
 void ElseClauseSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
+}
+
+const std::unique_ptr<StatementSyntax> &ElseClauseSyntax::getStatement() const {
+  return m_statement;
 }
 
 const std::vector<const SyntaxNode *> &ElseClauseSyntax::getChildren() const {

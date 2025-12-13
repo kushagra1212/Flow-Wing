@@ -17,19 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CompilationUnitBinder.hpp"
 #include "ExpressionBinder/ExpressionBinder.hpp"
 #include "StatementBinder/StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
+#include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
+#include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/syntax/CompilationUnitSyntax.h"
 
 namespace flow_wing {
 namespace binding {
 
 CompilationUnitBinder::CompilationUnitBinder(BinderContext *context)
-    : m_context(context) {}
+    : m_context(context), m_symbol_table(context->getSymbolTable()) {}
+
+std::shared_ptr<analysis::ScopedSymbolTable>
+CompilationUnitBinder::getSymbolTable() const {
+  return m_symbol_table;
+}
 
 std::unique_ptr<BoundCompilationUnit>
 CompilationUnitBinder::bind(syntax::CompilationUnitSyntax *syntax) {
@@ -45,7 +51,8 @@ CompilationUnitBinder::bind(syntax::CompilationUnitSyntax *syntax) {
   }
 
   return std::make_unique<BoundCompilationUnit>(std::move(statements),
-                                                syntax->getSourceLocation());
+                                                syntax->getSourceLocation(),
+                                                std::move(m_symbol_table));
 }
 
 } // namespace binding

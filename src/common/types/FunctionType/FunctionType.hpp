@@ -24,6 +24,10 @@ enum class Constness {
   kMutable,
 };
 
+std::string toString(ValueKind value_kind);
+std::string toString(TypeConvention type_convention);
+std::string toString(Constness constness);
+
 struct ParameterType {
   std::shared_ptr<types::Type> type;
   ValueKind value_kind;
@@ -61,7 +65,7 @@ public:
   FunctionType(std::vector<std::shared_ptr<ParameterType>> parameters,
                std::vector<std::shared_ptr<ReturnType>> return_types,
                size_t default_value_start_index = static_cast<size_t>(-1),
-               bool is_variadic = false);
+               bool is_variadic = false, bool is_external = false);
 
   const std::vector<std::shared_ptr<ParameterType>> &getParameterTypes() const {
     return m_parameters;
@@ -74,6 +78,8 @@ public:
     return m_default_value_start_index;
   }
 
+  bool isExternal() const { return m_is_external; }
+
   bool operator==(const Type &other) const override;
 
 private:
@@ -81,6 +87,7 @@ private:
   std::vector<std::shared_ptr<ReturnType>> m_return_types;
   size_t m_default_value_start_index;
   bool m_is_variadic;
+  bool m_is_external;
 
   static std::string
   buildFunctionName(const std::vector<std::shared_ptr<ParameterType>> &params,

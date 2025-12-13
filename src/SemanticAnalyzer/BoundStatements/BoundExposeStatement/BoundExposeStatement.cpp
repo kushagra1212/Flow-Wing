@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundExposeStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
@@ -35,6 +35,10 @@ NodeKind BoundExposeStatement::getKind() const {
 const std::unique_ptr<BoundStatement> &
 BoundExposeStatement::getStatement() const {
   return m_statement;
+}
+
+void BoundExposeStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 } // namespace binding

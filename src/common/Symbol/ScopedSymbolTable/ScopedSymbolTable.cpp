@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ScopedSymbolTable.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 
@@ -56,6 +55,17 @@ bool ScopedSymbolTable::isInReturnScope() const {
 void ScopedSymbolTable::setCurrentFunctionSymbol(
     const FunctionSymbol *function) {
   m_current_function_symbol = function;
+}
+
+void ScopedSymbolTable::lookupSymbol(
+    std::function<bool(const Symbol *symbol)> predicate,
+    SymbolKind kind) const {
+  for (auto it = m_scope_stack.rbegin(); it != m_scope_stack.rend(); ++it) {
+    auto &scope = **it;
+    for (auto &[name, symbol] : scope)
+      if (symbol->getKind() == kind)
+        predicate(symbol.get());
+  }
 }
 
 const FunctionSymbol *ScopedSymbolTable::getCurrentFunctionSymbol() const {

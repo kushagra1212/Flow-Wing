@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/utils/LogConfig.h"
 #include <memory>
 
 namespace flow_wing {
@@ -16,7 +17,9 @@ public:
   VariableSymbol(std::string name, std::shared_ptr<types::Type> type,
                  bool isConst)
       : Symbol(std::move(name), SymbolKind::kVariable, std::move(type)),
-        m_initializer_expression(nullptr), m_isConst(isConst) {}
+        m_initializer_expression(nullptr), m_isConst(isConst) {
+    BINDER_DEBUG_LOG("Creating VariableSymbol: " + getName(), "VariableSymbol");
+  }
 
   ~VariableSymbol() = default;
 

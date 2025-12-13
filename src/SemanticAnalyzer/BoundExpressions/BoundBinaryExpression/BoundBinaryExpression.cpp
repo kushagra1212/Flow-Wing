@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBinaryExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 
 namespace flow_wing {
@@ -34,6 +34,10 @@ BoundBinaryExpression::BoundBinaryExpression(
 
 NodeKind BoundBinaryExpression::getKind() const {
   return NodeKind::kBinaryExpression;
+}
+
+void BoundBinaryExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundBinaryExpression::getType() const {

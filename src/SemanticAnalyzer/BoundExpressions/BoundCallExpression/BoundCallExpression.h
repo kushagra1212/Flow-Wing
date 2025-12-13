@@ -38,11 +38,15 @@ public:
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   std::shared_ptr<types::Type> getType() const override;
   bool isMultipleType() const override;
   std::vector<std::shared_ptr<types::Type>> getMultipleTypes() const override;
+  const analysis::FunctionSymbol *getSymbol() const;
+
+  const std::vector<std::unique_ptr<BoundExpression>> &getArguments() const;
 
 private:
   analysis::FunctionSymbol *m_symbol;

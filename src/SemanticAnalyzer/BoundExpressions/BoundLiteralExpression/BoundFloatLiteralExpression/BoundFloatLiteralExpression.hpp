@@ -27,12 +27,14 @@ namespace binding {
 class BoundFloatLiteralExpression : public BoundExpression {
 
 public:
-  BoundFloatLiteralExpression(float float_value,
-                              std::shared_ptr<types::Type> type);
+  BoundFloatLiteralExpression(
+      float float_value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundFloatLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   const float &getValue() const;

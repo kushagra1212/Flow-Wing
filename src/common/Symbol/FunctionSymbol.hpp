@@ -3,6 +3,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/utils/LogConfig.h"
 #include <memory>
 #include <vector>
 
@@ -15,7 +16,9 @@ public:
       : Symbol(std::move(name), SymbolKind::kFunction, std::move(type)),
         m_body(nullptr),
         m_parameters(
-            std::vector<std::shared_ptr<analysis::ParameterSymbol>>()) {}
+            std::vector<std::shared_ptr<analysis::ParameterSymbol>>()) {
+    BINDER_DEBUG_LOG("Creating FunctionSymbol: " + getName(), "FunctionSymbol");
+  }
 
   ~FunctionSymbol() = default;
 

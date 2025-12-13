@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundErrorExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 
 namespace flow_wing {
@@ -27,6 +27,10 @@ namespace binding {
 BoundErrorExpression::BoundErrorExpression(
     const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location) {}
+
+void BoundErrorExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
+}
 
 NodeKind BoundErrorExpression::getKind() const {
   return NodeKind::kErrorExpression;

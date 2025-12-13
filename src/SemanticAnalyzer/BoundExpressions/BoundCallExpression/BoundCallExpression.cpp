@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundCallExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 
@@ -34,6 +34,10 @@ BoundCallExpression::BoundCallExpression(
 
 NodeKind BoundCallExpression::getKind() const {
   return NodeKind::kCallExpression;
+}
+
+void BoundCallExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundCallExpression::getType() const {
@@ -57,6 +61,15 @@ BoundCallExpression::getMultipleTypes() const {
     types.push_back(return_type->type);
   }
   return types;
+}
+
+const analysis::FunctionSymbol *BoundCallExpression::getSymbol() const {
+  return m_symbol;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundCallExpression::getArguments() const {
+  return m_arguments;
 }
 
 } // namespace binding

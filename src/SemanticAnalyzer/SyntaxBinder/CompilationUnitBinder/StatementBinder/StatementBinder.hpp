@@ -35,7 +35,8 @@ class ReturnStatementSyntax;
 class SwitchStatementSyntax;
 // -- Class Statement --
 class ClassStatementSyntax;
-
+// -- Expression Statement --
+class ExpressionStatementSyntax;
 } // namespace syntax
 
 namespace binding {
@@ -99,6 +100,10 @@ private:
   // -- Class Statement --
   std::unique_ptr<BoundStatement>
   bindClassStatement(syntax::ClassStatementSyntax *statement);
+
+  // -- Expression Statement --
+  std::unique_ptr<BoundStatement>
+  bindExpressionStatement(syntax::ExpressionStatementSyntax *statement);
 };
 } // namespace binding
 } // namespace flow_wing

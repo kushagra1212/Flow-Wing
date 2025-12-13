@@ -41,6 +41,8 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
   // Getters
 
+  const std::vector<std::unique_ptr<ObjectMemberSyntax>> &getMembers() const;
+
 private:
   const SyntaxToken *m_open_brace_token;
   std::vector<std::unique_ptr<ObjectMemberSyntax>> m_members;

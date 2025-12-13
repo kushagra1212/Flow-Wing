@@ -35,6 +35,7 @@ public:
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   std::shared_ptr<types::Type> getType() const override;

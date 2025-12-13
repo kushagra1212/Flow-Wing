@@ -42,6 +42,9 @@ public:
   const std::vector<const SyntaxNode *> &getChildren() const override;
   void accept(visitor::ASTVisitor *visitor) override;
   // Getters
+  const std::unique_ptr<ExpressionSyntax> &getModuleNameExpression() const;
+  const std::vector<std::unique_ptr<StatementSyntax>> &
+  getModuleMemberStatements() const;
 
 private:
   const SyntaxToken *m_module_keyword_token;

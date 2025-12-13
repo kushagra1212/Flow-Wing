@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CommandLineParser.h"
 #include "src/common/cli/CliInfo.h"
 #include "src/common/cli/CliReporter.h"
@@ -96,8 +95,6 @@ public:
       kOptEntry,  kOptLibPath,  kOptLinkLib,     kOptFramework,
       kOptServer, kOptLinkWarn, kOptEmit,        kOutDir};
 
-  const std::string kDefaultEntryPoint = "main";
-
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
     flow_wing::cli::Reporter::message("======================\n");
@@ -126,7 +123,9 @@ public:
     } else if (value == "sem") {
       return CompilerOptions::OutputType::kSemJson;
     } else if (value == "ir") {
-      return CompilerOptions::OutputType::kLLVM_IR_Json;
+      return CompilerOptions::OutputType::kLLVM_IR;
+    } else if (value == "obj") {
+      return CompilerOptions::OutputType::kObj;
     }
     return CompilerOptions::OutputType::kExe;
   };
@@ -153,9 +152,9 @@ public:
 
     opts.code_content = parseParam(cmdl, kOptCode, "");
 
-    opts.output_file_path = parseParam(cmdl, kOptOut, "");
+    opts.output_file_path = parseParam(cmdl, kOptOut);
 
-    opts.entry_point = parseParam(cmdl, kOptEntry, kDefaultEntryPoint);
+    opts.entry_point = parseParam(cmdl, kOptEntry);
 
     // Boolean flags
     if (cmdl[{kOptFormat.names[0], kOptFormat.names[1]}])

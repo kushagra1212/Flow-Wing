@@ -17,18 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
 
 BoundBooleanLiteralExpression::BoundBooleanLiteralExpression(
-    bool value, std::shared_ptr<types::Type> type)
-    : m_value(value), m_type(type) {}
+    bool value, std::shared_ptr<types::Type> type,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_value(value), m_type(type) {}
 
 NodeKind BoundBooleanLiteralExpression::getKind() const {
   return NodeKind::kBooleanLiteralExpression;
+}
+
+void BoundBooleanLiteralExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 const bool &BoundBooleanLiteralExpression::getValue() const { return m_value; }

@@ -36,6 +36,15 @@ NodeKind ModuleAccessExpressionSyntax::getKind() const {
   return NodeKind::kModuleAccessExpression;
 }
 
+const std::unique_ptr<ExpressionSyntax> &
+ModuleAccessExpressionSyntax::getModuleNameExpression() const {
+  return m_module_name_expression;
+}
+const std::unique_ptr<ExpressionSyntax> &
+ModuleAccessExpressionSyntax::getMemberAccessExpression() const {
+  return m_member_access_expression;
+}
+
 void ModuleAccessExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }

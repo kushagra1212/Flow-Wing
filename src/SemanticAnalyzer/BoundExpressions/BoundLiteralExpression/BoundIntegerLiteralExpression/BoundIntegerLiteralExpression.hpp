@@ -27,12 +27,14 @@ namespace binding {
 class BoundIntegerLiteralExpression : public BoundExpression {
 
 public:
-  BoundIntegerLiteralExpression(int64_t value,
-                                std::shared_ptr<types::Type> type);
+  BoundIntegerLiteralExpression(
+      int64_t value, std::shared_ptr<types::Type> type,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundIntegerLiteralExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
   const int64_t &getValue() const;

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/utils/LogConfig.h"
@@ -55,7 +54,7 @@ struct CompilerOptions {
   enum class OutputType {
     kExe,
     kObj,
-    kLLVM_IR_Json,
+    kLLVM_IR,
     kAstJson,
     kTokensJson,
     kSemJson

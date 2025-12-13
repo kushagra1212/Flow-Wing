@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
@@ -30,6 +29,7 @@
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 #include <string>
 
@@ -107,7 +107,7 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     m_context->reportError(
         diagnostic::DiagnosticCode::kFunctionArgumentCountMismatch,
         {
-            function_type->getName(),
+            function_name + "(" + function_type->getName() + ")",
             std::to_string(function_type->getDefaultValueStartIndex()),
             std::to_string(arguments.size()),
         },
@@ -118,11 +118,12 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
   }
 
   if (!has_default_value &&
-      argument_types.size() != function_type->getParameterTypes().size()) {
+      argument_types.size() != function_type->getParameterTypes().size() &&
+      !function_type->isVariadic()) {
     m_context->reportError(
         diagnostic::DiagnosticCode::kFunctionArgumentCountMismatch,
         {
-            function_type->getName(),
+            function_name + "(" + function_type->getName() + ")",
             std::to_string(function_type->getParameterTypes().size()),
             std::to_string(arguments.size()),
         },
@@ -134,22 +135,21 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
 
   auto const size = arguments.size();
 
-  for (size_t i = 0; i < size; i++) {
-    auto parameter_type = function_type->getParameterTypes()[i]->type;
-    auto argument_type = arguments[i]->getType();
+  if (!function_type->isVariadic()) {
+    for (size_t i = 0; i < size; i++) {
+      auto parameter_type = function_type->getParameterTypes()[i]->type;
+      auto argument_type = arguments[i]->getType();
 
-    if (argument_type > parameter_type) {
-      m_context->reportError(
-          diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
-          {
-              parameter_type->getName(),
-              argument_type->getName(),
-              function_type->getName(),
-          },
-          arguments[i]->getSourceLocation());
+      if (argument_type > parameter_type) {
+        m_context->reportError(
+            diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+            {parameter_type->getName(), argument_type->getName(),
+             function_name + "(" + function_type->getName() + ")"},
+            arguments[i]->getSourceLocation());
 
-      return std::make_unique<BoundErrorExpression>(
-          arguments[i]->getSourceLocation());
+        return std::make_unique<BoundErrorExpression>(
+            arguments[i]->getSourceLocation());
+      }
     }
   }
 

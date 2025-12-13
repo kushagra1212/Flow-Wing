@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundModuleAccessExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
 namespace flow_wing {
 namespace binding {
@@ -32,6 +32,10 @@ BoundModuleAccessExpression::BoundModuleAccessExpression(
 
 NodeKind BoundModuleAccessExpression::getKind() const {
   return NodeKind::kModuleAccessExpression;
+}
+
+void BoundModuleAccessExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 std::shared_ptr<types::Type> BoundModuleAccessExpression::getType() const {

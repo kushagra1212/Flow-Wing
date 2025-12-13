@@ -25,7 +25,7 @@ namespace syntax {
 IdentifierExpressionSyntax::IdentifierExpressionSyntax(
     const SyntaxToken *identifier_token)
     : m_identifier_token(identifier_token),
-      m_value(std::any_cast<std::string>(identifier_token->getValue())) {}
+      m_value(identifier_token->getText()) {}
 
 // Overrides
 NodeKind IdentifierExpressionSyntax::getKind() const {

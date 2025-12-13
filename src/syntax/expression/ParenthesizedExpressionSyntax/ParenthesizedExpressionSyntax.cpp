@@ -38,6 +38,11 @@ syntax::NodeKind ParenthesizedExpressionSyntax::getKind() const {
   return NodeKind::kParenthesizedExpression;
 }
 
+const std::unique_ptr<ExpressionSyntax> &
+ParenthesizedExpressionSyntax::getExpression() const {
+  return m_expression;
+}
+
 void ParenthesizedExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }

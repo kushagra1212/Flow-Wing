@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ParsingPass.h"
 #include "src/ASTBuilder/ASTBuilder.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
@@ -37,12 +35,12 @@ ReturnStatus ParsingPass::run(CompilationContext &context) {
 
   auto ast = parser.create();
 
+  context.setAst(std::move(ast));
+
   if (diagnostics->hasError(diagnostic::DiagnosticType::kLexical) ||
       diagnostics->hasError(diagnostic::DiagnosticType::kSyntactic)) {
-    return ReturnStatus::kFailure;
+    return ReturnStatus::kCompletedWithErrors;
   }
-
-  context.setAst(std::move(ast));
 
   return ReturnStatus::kSuccess;
 }

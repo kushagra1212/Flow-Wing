@@ -31,7 +31,6 @@ const std::string &toString(TokenKind kind) {
       {TokenKind::kQuestionToken, "QuestionToken"},
       {TokenKind::kGreaterOrEqualsToken, "GreaterOrEqualsToken"},
       {TokenKind::kGreaterToken, "GreaterToken"},
-      {TokenKind::kSemicolonToken, "SemicolonToken"},
       {TokenKind::kColonToken, "ColonToken"},
       {TokenKind::kCommaToken, "CommaToken"},
       {TokenKind::kEndOfLineToken, "EndOfLineToken"},
@@ -114,6 +113,7 @@ const std::string &toString(TokenKind kind) {
 
       // Reserved Keywords
       {TokenKind::kReservedUnknownKeyword, "ReservedUnknownKeyword"},
+      {TokenKind::kSemicolonToken, "ReservedSemicolonToken"},
   };
 
   static const std::string kNotDefined = "NotDefined";

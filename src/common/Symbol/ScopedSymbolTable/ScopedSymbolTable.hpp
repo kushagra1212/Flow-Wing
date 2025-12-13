@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common/Symbol/Symbol.hpp"
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -26,6 +27,8 @@ public:
 
   // Looks up a symbol, searching from the innermost scope outwards.
   std::shared_ptr<Symbol> lookup(const std::string &name) const;
+  void lookupSymbol(std::function<bool(const Symbol *symbol)> predicate,
+                    SymbolKind kind) const;
 
   bool isInBreakScope() const;
   bool isInReturnScope() const;

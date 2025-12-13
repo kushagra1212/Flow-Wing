@@ -44,6 +44,16 @@ void FillExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
+const std::unique_ptr<ExpressionSyntax> &
+FillExpressionSyntax::getSizeToFillExpression() const {
+  return m_size_to_fill_expression;
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+FillExpressionSyntax::getElementExpression() const {
+  return m_element_expression;
+}
+
 const std::vector<const SyntaxNode *> &
 FillExpressionSyntax::getChildren() const {
 

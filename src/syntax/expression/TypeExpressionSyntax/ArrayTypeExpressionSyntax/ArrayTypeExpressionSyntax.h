@@ -39,13 +39,8 @@ public:
 
   // Getters
   const std::vector<std::unique_ptr<DimensionClauseExpressionSyntax>> &
-  getDimensions() const {
-    return m_dimensions;
-  }
-
-  const std::unique_ptr<ExpressionSyntax> &getUnderlyingType() const {
-    return m_underlying_type;
-  }
+  getDimensions() const;
+  const std::unique_ptr<ExpressionSyntax> &getUnderlyingType() const;
 
 private:
   std::unique_ptr<ExpressionSyntax> m_underlying_type;

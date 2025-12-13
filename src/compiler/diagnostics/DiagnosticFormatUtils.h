@@ -29,7 +29,7 @@ inline std::string formatMessage(std::string template_string,
     while (pos != std::string::npos) {
       template_string.replace(
           pos, place_holder.length(),
-          withHighlight ? HIGHLIGHT_TEXT + argToString(args[i]) + CLEAR_COLOR
+          withHighlight ? HIGHLIGHT_TEXT + argToString(args[i]) + WHITE_TEXT
                         : argToString(args[i]));
 
       pos = template_string.find(place_holder, pos);

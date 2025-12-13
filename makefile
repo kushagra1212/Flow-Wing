@@ -292,7 +292,7 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))  
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."

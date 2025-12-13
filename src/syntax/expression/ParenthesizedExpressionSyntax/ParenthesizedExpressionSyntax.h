@@ -39,6 +39,8 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
   // Getters
 
+  const std::unique_ptr<ExpressionSyntax> &getExpression() const;
+
 private:
   const SyntaxToken *m_open_parenthesis_token;
   std::unique_ptr<ExpressionSyntax> m_expression;

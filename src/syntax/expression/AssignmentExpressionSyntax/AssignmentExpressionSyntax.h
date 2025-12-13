@@ -44,6 +44,7 @@ public:
   // Getters
   const std::unique_ptr<ExpressionSyntax> &getLeft() const;
   const std::unique_ptr<ExpressionSyntax> &getRight() const;
+  const SyntaxToken *getOperatorToken() const;
 
 private:
   std::unique_ptr<ExpressionSyntax> m_left;

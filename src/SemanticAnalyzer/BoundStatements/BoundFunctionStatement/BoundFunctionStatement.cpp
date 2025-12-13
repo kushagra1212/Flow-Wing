@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundFunctionStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
-
 namespace flow_wing {
 namespace binding {
 
@@ -34,6 +33,10 @@ BoundFunctionStatement::BoundFunctionStatement(
 
 NodeKind BoundFunctionStatement::getKind() const {
   return NodeKind::kFunctionStatement;
+}
+
+void BoundFunctionStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
 const std::vector<std::shared_ptr<analysis::Symbol>> &

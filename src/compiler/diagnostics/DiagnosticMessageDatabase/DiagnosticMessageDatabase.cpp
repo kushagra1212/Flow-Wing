@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "DiagnosticMessageDatabase.h"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include <unordered_map>
@@ -697,6 +695,9 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
      {"File '{0}' contains errors. Please fix the errors and try again.",
       "Please fix the errors in file '{0}' and try again.",
       "Ensure that the file '{0}' contains no errors before bringing it in."}},
+
+    {(DiagnosticCode::kInternalIRGenerationError),
+     {"Internal IR generation error. Error: {0}", "", ""}},
 };
 
 const MessageTemplate &

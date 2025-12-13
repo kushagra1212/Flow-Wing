@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ParameterExpressionSyntax.h"
 #include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
@@ -58,16 +57,29 @@ bool ParameterExpressionSyntax::hasDefaultValueExpression() const {
 
 // Getters
 
-const std::unique_ptr<ExpressionSyntax> &
-ParameterExpressionSyntax::getTypeExpression() const {
-  return m_type_expression;
+const SyntaxToken *ParameterExpressionSyntax::getInoutKeyword() const {
+  return m_inout_keyword;
 }
-
+const SyntaxToken *ParameterExpressionSyntax::getConstKeyword() const {
+  return m_const_keyword;
+}
 const std::unique_ptr<ExpressionSyntax> &
 ParameterExpressionSyntax::getIdentifierExpression() const {
   return m_identifier_expression;
 }
-
+const SyntaxToken *ParameterExpressionSyntax::getColonToken() const {
+  return m_colon_token;
+}
+const SyntaxToken *ParameterExpressionSyntax::getAsKeyword() const {
+  return m_as_keyword;
+}
+const std::unique_ptr<ExpressionSyntax> &
+ParameterExpressionSyntax::getTypeExpression() const {
+  return m_type_expression;
+}
+const SyntaxToken *ParameterExpressionSyntax::getEqualsToken() const {
+  return m_equals_token;
+}
 const std::unique_ptr<ExpressionSyntax> &
 ParameterExpressionSyntax::getDefaultValueExpression() const {
   return m_default_value_expression;

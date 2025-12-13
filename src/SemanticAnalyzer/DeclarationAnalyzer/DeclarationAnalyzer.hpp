@@ -44,6 +44,7 @@ public:
   void visit(syntax::TemplateStringLiteralExpressionSyntax *node) override;
   void visit(syntax::TernaryExpressionSyntax *node) override;
   void visit(syntax::BinaryExpressionSyntax *node) override;
+  void visit(syntax::ErrorExpressionSyntax *node) override;
 
   // --- Type Expressions ---
   void visit(syntax::ArrayTypeExpressionSyntax *node) override;
@@ -81,6 +82,7 @@ public:
   void visit(syntax::SwitchStatementSyntax *node) override;
   void visit(syntax::VariableDeclarationSyntax *node) override;
   void visit(syntax::WhileStatementSyntax *node) override;
+  void visit(syntax::ExpressionStatementSyntax *node) override;
 
 private:
   binding::BinderContext &m_binder_context;

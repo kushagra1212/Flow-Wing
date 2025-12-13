@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DeclarationAnalyzer.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
@@ -47,6 +46,9 @@ void analysis::DeclarationAnalyzer::visit(syntax::ExposeStatementSyntax *node) {
     node->getStatement()->accept(this);
   }
 }
+
+void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::ErrorExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::BinaryExpressionSyntax *node) {}
@@ -221,6 +223,9 @@ void analysis::DeclarationAnalyzer::visit(
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::WhileStatementSyntax *node) {}
+
+void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::ExpressionStatementSyntax *node) {}
 
 } // namespace analysis
 } // namespace flow_wing
