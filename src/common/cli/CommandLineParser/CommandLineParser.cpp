@@ -46,8 +46,7 @@ public:
                                  "-V, --version"};
   const CliOption kOptFile = {
       {"-F", "--file"}, "Input source file path", "-F, --file=<path>"};
-  const CliOption kOptOut = {
-      {"-O", "--out"}, "Output file path", "-O, --out=<path>"};
+
   const CliOption kOptCode = {{"-C", "--code"},
                               "Provide source code directly as a string",
                               "-C, --code=<code>"};
@@ -90,10 +89,9 @@ public:
       "-OD, --output-dir=<path>"};
 
   const std::vector<CliOption> cli_options = {
-      kOptHelp,   kOptVersion,  kOptFile,        kOptOut,
-      kOptCode,   kOptFormat,   kOptFormatPrint, kOptOptLevels,
-      kOptEntry,  kOptLibPath,  kOptLinkLib,     kOptFramework,
-      kOptServer, kOptLinkWarn, kOptEmit,        kOutDir};
+      kOptHelp,        kOptVersion,   kOptFile,     kOptCode,    kOptFormat,
+      kOptFormatPrint, kOptOptLevels, kOptEntry,    kOptLibPath, kOptLinkLib,
+      kOptFramework,   kOptServer,    kOptLinkWarn, kOptEmit,    kOutDir};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
@@ -152,8 +150,6 @@ public:
 
     opts.code_content = parseParam(cmdl, kOptCode, "");
 
-    opts.output_file_path = parseParam(cmdl, kOptOut);
-
     opts.entry_point = parseParam(cmdl, kOptEntry);
 
     // Boolean flags
@@ -192,9 +188,8 @@ public:
     }
 
     // Handle output directory
-    if (cmdl[{kOutDir.names[0], kOutDir.names[1]}]) {
-      opts.output_dir = parseParam(cmdl, kOutDir, "");
-    }
+
+    opts.output_dir = parseParam(cmdl, kOutDir, "./build");
 
     if (cmdl[{kDump.names[0], kDump.names[1]}]) {
       opts.dump = 1;

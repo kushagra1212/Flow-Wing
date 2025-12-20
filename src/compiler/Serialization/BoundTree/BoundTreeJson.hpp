@@ -3,6 +3,7 @@
 
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/external/include/json.hpp"
@@ -80,6 +81,9 @@ private:
   // Symbols
   std::string visit(const analysis::FunctionSymbol *function_symbol);
   std::string visit(const analysis::ParameterSymbol *parameter_symbol);
+  std::string visit(const analysis::VariableSymbol *variable_symbol);
+  std::string visit(const analysis::ModuleSymbol *module_symbol);
+  std::string visit(const analysis::Symbol *symbol);
 
   // types
   std::string visit(const types::FunctionType *type);
@@ -93,11 +97,27 @@ private:
   // Serialization
   template <typename T>
   void serializeChild(const std::unique_ptr<T> &node, nlohmann::json &parent,
-                      const std::string &key);
+                      const std::string &key) {
+    if (node) {
+      node->accept(this);
+      parent[key] = std::move(m_last_node_json);
+    } else {
+      parent[key] = nullptr;
+    }
+  }
 
   template <typename T>
   void serializeArray(const std::vector<std::unique_ptr<T>> &nodes,
-                      nlohmann::json &parent, const std::string &key);
+                      nlohmann::json &parent, const std::string &key) {
+    nlohmann::json array = nlohmann::json::array();
+    for (const auto &node : nodes) {
+      if (node) {
+        node->accept(this);
+        array.push_back(std::move(m_last_node_json));
+      }
+    }
+    parent[key] = std::move(array);
+  }
 };
 
 } // namespace flow_wing::compiler::serializer

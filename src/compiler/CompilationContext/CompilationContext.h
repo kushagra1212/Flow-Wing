@@ -93,7 +93,7 @@ public:
 private:
   const CompilerOptions m_options;
   std::unique_ptr<diagnostic::DiagnosticHandler> m_diagnostics;
-  std::vector<std::string> m_source_lines;
+  std::vector<std::string> m_source_lines = {};
   std::string m_absolute_source_file_path;
   std::vector<std::unique_ptr<syntax::SyntaxToken>> m_tokens;
   std::unique_ptr<syntax::CompilationUnitSyntax> m_ast;

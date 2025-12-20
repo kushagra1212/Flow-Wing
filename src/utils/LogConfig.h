@@ -27,7 +27,7 @@
 #define AOT_TEST_MODE_RELEASE_IN_LINUX                                         \
   defined(AOT_TEST_MODE) && defined(RELEASE) && defined(__linux__)
 
-#ifdef ENABLE_LOGGING
+#if defined(ENABLE_LOGGING)
 // Implementation function
 // Implementation of the debug log function
 template <typename... Args>

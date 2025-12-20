@@ -244,19 +244,29 @@ run-jit-release: build-jit-release
 
 #! ----- JIT Tests -----
 
-#? Configured JIT Tests
-$(TESTS_JIT_DIR)/.configured: deps-install-release
-	$(ECHO_MSG) "--> Configuring JIT tests..."
-	@cmake --preset $(TESTS_JIT_PRESET) && $(call TOUCH, $@)
+# #? Configured JIT Tests
+# $(TESTS_JIT_DIR)/.configured: deps-install-release
+# 	$(ECHO_MSG) "--> Configuring JIT tests..."
+# 	@cmake --preset $(TESTS_JIT_PRESET) && $(call TOUCH, $@)
+
+# .PHONY: test-jit
+# #? Build and Run JIT Tests
+# test-jit: $(TESTS_JIT_DIR)/.configured
+# 	$(ECHO_MSG) "--> Building and running JIT tests... (Filter: $(FILTER))"
+# 	@cmake --build --preset $(TESTS_JIT_PRESET)
+# 	$(ECHO_MSG) "--> Staging SDK for tests..."
+# 	@cmake --install $(TESTS_JIT_DIR) --prefix $(TEST_SDK_DIR)
+# 	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
+
 
 .PHONY: test-jit
-#? Build and Run JIT Tests
-test-jit: $(TESTS_JIT_DIR)/.configured
-	$(ECHO_MSG) "--> Building and running JIT tests... (Filter: $(FILTER))"
-	@cmake --build --preset $(TESTS_JIT_PRESET)
-	$(ECHO_MSG) "--> Staging SDK for tests..."
-	@cmake --install $(TESTS_JIT_DIR) --prefix $(TEST_SDK_DIR)
-	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
+test-jit: build-jit-debug
+	$(ECHO_MSG) "--> Running JIT Integration Tests..."
+	@python3 tests/runner.py \
+		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
+		--dir tests/fixtures \
+		--filter "$(FILTER)" \
+		--mode jit
 
 #! ----- AOT -----
 
@@ -291,29 +301,41 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 .PHONY: run-aot-debug run-aot-release
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
 	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))  
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
 	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
-#? Configured AOT Tests
-$(TESTS_AOT_DIR)/.configured: deps-install-release
-	$(ECHO_MSG) "--> Configuring AOT tests..."
-	@cmake --preset $(TESTS_AOT_PRESET) && $(call TOUCH, $@)
+# #? Configured AOT Tests
+# $(TESTS_AOT_DIR)/.configured: deps-install-release
+# 	$(ECHO_MSG) "--> Configuring AOT tests..."
+# 	@cmake --preset $(TESTS_AOT_PRESET) && $(call TOUCH, $@)
 
+# .PHONY: test-aot
+# #? Build and Run AOT Tests
+# test-aot: $(TESTS_AOT_DIR)/.configured
+# 	$(ECHO_MSG) "--> Building and running AOT tests... (Filter: $(FILTER))"
+# 	@cmake --build --preset $(TESTS_AOT_PRESET)
+# 	$(ECHO_MSG) "--> Staging SDK for tests..."
+# 	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
+# 	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
+
+#? Configured AOT Tests
 .PHONY: test-aot
-#? Build and Run AOT Tests
-test-aot: $(TESTS_AOT_DIR)/.configured
-	$(ECHO_MSG) "--> Building and running AOT tests... (Filter: $(FILTER))"
-	@cmake --build --preset $(TESTS_AOT_PRESET)
-	$(ECHO_MSG) "--> Staging SDK for tests..."
-	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
-	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
+test-aot: build-aot-debug
+	$(ECHO_MSG) "--> Running AOT Integration Tests..."
+	@python3 tests/runner.py \
+		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
+		--dir tests/fixtures \
+		--filter "$(FILTER)" \
+		--mode aot
 
 #! ----- Clean -----
 

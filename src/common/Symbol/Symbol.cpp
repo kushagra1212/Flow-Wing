@@ -20,6 +20,7 @@
 #include "Symbol.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
+#include <cassert>
 
 namespace flow_wing {
 namespace analysis {
@@ -47,7 +48,8 @@ std::string Symbol::toString(SymbolKind kind) {
   case SymbolKind::kClass:
     return "Class";
   }
-  return "Unknown";
+  assert(false && "Unknown Symbol Kind");
+  return "Unknown Symbol Kind";
 }
 
 // Setters

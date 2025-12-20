@@ -1,1 +1,7 @@
-print("Hello")
+{
+
+var x:int, y: str = 2, "Hello"
+
+print(x,y)
+
+  }

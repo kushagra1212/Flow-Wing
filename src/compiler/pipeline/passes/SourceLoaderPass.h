@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/common/cli/CliInfo.h"
@@ -66,7 +65,7 @@ public:
       return ReturnStatus::kFailure;
     }
 
-    context.setSourceLines(file_content.value());
+    context.setSourceLines(std::move(file_content.value()));
 
     SOURCE_LOADER_DEBUG_LOG("Source loaded successfully from file", file_path);
 

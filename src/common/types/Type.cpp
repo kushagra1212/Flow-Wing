@@ -46,11 +46,11 @@ bool Type::operator<=(const Type &other) const { return *this == other; }
 bool Type::operator>(const Type &other) const { return !(*this <= other); }
 
 bool Type::isNthg() const {
-  return *this == *analysis::Builtins::m_nthg_type_instance;
+  return this == analysis::Builtins::m_nthg_type_instance.get();
 }
 
 bool Type::isDynamic() const {
-  return *this == *analysis::Builtins::m_dynamic_type_instance;
+  return this == analysis::Builtins::m_dynamic_type_instance.get();
 }
 
 bool Type::isPrimitive() const { return m_kind == TypeKind::kPrimitive; }

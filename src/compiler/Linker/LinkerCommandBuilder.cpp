@@ -5,6 +5,7 @@
 
 #include "src/compiler/Linker/LinkerCommandBuilder.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/io/Utils.hpp"
 #include "src/common/LibUtils/LibUtils.h"
 #include "src/common/io/FileUtils.h"
 #include "src/common/io/PathUtils.hpp"
@@ -75,7 +76,13 @@ void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
 }
 
 void LinkerCommandBuilder::addOutputConfig(std::vector<std::string> &args) {
-  args.push_back(getOutputFlag() + getBinaryFilePath());
+  auto binary_file_path = getBinaryFilePath();
+
+  std::filesystem::path output_directory =
+      std::filesystem::path(binary_file_path).parent_path();
+  flow_wing::ir_gen::Utils::createDirectories(output_directory.string());
+
+  args.push_back(getOutputFlag() + binary_file_path);
 }
 
 void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
@@ -175,18 +182,26 @@ LinkerCommandBuilder::getEntryPointFlag(const std::string &entry) const {
 }
 
 std::string LinkerCommandBuilder::getBinaryFilePath() const {
+  std::string binary_file_path = "";
+  // handle windows and ma
+#if defined(_WIN32)
+  binary_file_path =
+      m_context.getOptions().output_dir + "\\bin\\" +
+      utils::PathUtils::removeExtension(m_context.getOptions().input_file_path);
+#else
+  binary_file_path =
+      m_context.getOptions().output_dir + "/bin/" +
+      utils::PathUtils::removeExtension(m_context.getOptions().input_file_path);
+#endif
 
-  std::string output_file_path =
-      m_context.getOptions().output_file_path.value();
-
-  if (output_file_path.empty()) {
-    output_file_path =
+  if (binary_file_path.empty()) {
+    binary_file_path =
         std::string(flow_wing::ir_gen::constants::paths::kBin_files_dir) +
-        m_context.getOptions().input_file_path;
+        utils::PathUtils::removeExtension(
+            m_context.getOptions().input_file_path);
   }
 
-  std::string binary_file_path =
-      utils::PathUtils::removeExtension(output_file_path);
+  LINKING_DEBUG_LOG("binary_file_path", binary_file_path);
 
 #if defined(_WIN32)
   if (binary_file_path.find(".exe") == std::string::npos)

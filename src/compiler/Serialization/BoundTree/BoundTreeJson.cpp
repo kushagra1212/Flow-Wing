@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundTreeJson.hpp"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -28,6 +27,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/common/utils/stringUtils/StringUtils.hpp"
@@ -42,32 +42,6 @@ nlohmann::json BoundTreeJson::toJson(
   PARSER_DEBUG_LOG("Serializing Bound Tree to JSON", "BOUND TREE");
   bound_tree->accept(const_cast<BoundTreeJson *>(this));
   return m_bound_tree_json;
-}
-
-template <typename T>
-void BoundTreeJson::serializeChild(const std::unique_ptr<T> &node,
-                                   nlohmann::json &parent,
-                                   const std::string &key) {
-  if (node) {
-    node->accept(this);
-    parent[key] = std::move(m_last_node_json);
-  } else {
-    parent[key] = nullptr;
-  }
-}
-
-template <typename T>
-void BoundTreeJson::serializeArray(const std::vector<std::unique_ptr<T>> &nodes,
-                                   nlohmann::json &parent,
-                                   const std::string &key) {
-  nlohmann::json array = nlohmann::json::array();
-  for (const auto &node : nodes) {
-    if (node) {
-      node->accept(this);
-      array.push_back(std::move(m_last_node_json));
-    }
-  }
-  parent[key] = std::move(array);
 }
 
 nlohmann::json BoundTreeJson::toJsonSourcePoint(
@@ -96,9 +70,17 @@ void BoundTreeJson::visit(
                        {"types", m_types_json}};
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundBlockStatement *block_statement) {
+void BoundTreeJson::visit(binding::BoundBlockStatement *block_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Block Statement", "BOUND TREE");
+
+  nlohmann::json block_statement_json;
+  block_statement_json["kind"] = toString(block_statement->getKind());
+  serializeArray(block_statement->getStatements(), block_statement_json,
+                 "statements");
+  block_statement_json["range"] =
+      toJsonRange(block_statement->getSourceLocation());
+
+  m_last_node_json = std::move(block_statement_json);
 }
 
 void BoundTreeJson::visit(
@@ -109,22 +91,6 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Custom Type Statement", "BOUND TREE");
-}
-
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundVariableDeclaration *variable_declaration) {
-  PARSER_DEBUG_LOG("Visiting Bound Variable Declaration", "BOUND TREE");
-
-  // nlohmann::json variable_declaration_json;
-  // variable_declaration_json["kind"] =
-  // toString(variable_declaration->getKind());
-  // serializeChild(variable_declaration->getIdentifierExpression(),
-  //                variable_declaration_json, "identifier_expression");
-  // serializeChild(variable_declaration->getTypeExpression(),
-  //                variable_declaration_json, "type_expression");
-  // variable_declaration_json["range"] =
-  //     toJsonRange(variable_declaration->getSourceLocation());
-  // m_last_node_json = std::move(variable_declaration_json);
 }
 
 void BoundTreeJson::visit(
@@ -175,6 +141,20 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression
                               *identifier_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Identifier Expression", "BOUND TREE");
+
+  nlohmann::json identifier_expression_json;
+  identifier_expression_json["kind"] =
+      toString(identifier_expression->getKind());
+  identifier_expression_json["name"] =
+      identifier_expression->getSymbol()->getName();
+
+  identifier_expression_json["symbolId"] =
+      visit(identifier_expression->getSymbol());
+
+  identifier_expression_json["range"] =
+      toJsonRange(identifier_expression->getSourceLocation());
+
+  m_last_node_json = std::move(identifier_expression_json);
 }
 
 void BoundTreeJson::visit(
@@ -197,63 +177,6 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundIntegerLiteralExpression
-        *integer_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Integer Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
-                              *double_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Double Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
-                              *float_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Float Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundCharacterLiteralExpression
-        *character_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Character Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundStringLiteralExpression
-                              *string_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound String Literal Expression", "BOUND TREE");
-
-  nlohmann::json string_literal_expression_json;
-  string_literal_expression_json["kind"] =
-      toString(string_literal_expression->getKind());
-  string_literal_expression_json["value"] =
-      string_literal_expression->getValue();
-  string_literal_expression_json["range"] =
-      toJsonRange(string_literal_expression->getSourceLocation());
-  string_literal_expression_json["typeId"] =
-      visit(string_literal_expression->getType().get());
-
-  m_last_node_json = std::move(string_literal_expression_json);
-}
-
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundBooleanLiteralExpression
-        *boolean_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Boolean Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundTemplateStringLiteralExpression
-        *template_string_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Template String Literal Expression",
-                   "BOUND TREE");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundNirastLiteralExpression
-                              *nirast_literal_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Nirast Literal Expression", "BOUND TREE");
-}
-
-void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundErrorStatement *error_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Error Statement", "BOUND TREE");
 }
@@ -267,43 +190,6 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundModuleAccessExpression
                               *module_access_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Module Access Expression", "BOUND TREE");
 }
-
-std::string BoundTreeJson::getShortId(const void *ptr) {
-  if (m_ptr_to_id_map.find(ptr) == m_ptr_to_id_map.end()) {
-    m_ptr_to_id_map[ptr] = m_next_id++;
-  }
-
-  size_t id = m_ptr_to_id_map[ptr];
-
-  std::stringstream ss;
-  ss << "0x" << std::uppercase << std::hex << id;
-  return ss.str();
-}
-
-std::string
-BoundTreeJson::visit(const analysis::FunctionSymbol *function_symbol) {
-  PARSER_DEBUG_LOG("Visiting Function Symbol", "BOUND TREE");
-  nlohmann::json function_symbol_json;
-  function_symbol_json["kind"] =
-      analysis::Symbol::toString(function_symbol->getKind());
-  function_symbol_json["name"] = function_symbol->getName();
-  function_symbol_json["typeId"] =
-      visit(static_cast<const types::FunctionType *>(
-          function_symbol->getType().get()));
-  const auto &symbol_id = getShortId(function_symbol);
-  function_symbol_json["is_declaration"] =
-      function_symbol->getBody() == nullptr;
-
-  for (const auto &parameter : function_symbol->getParameters()) {
-    function_symbol_json["parameters"].push_back(visit(parameter.get()));
-  }
-
-  // TODO(kushagra): Add Ranges for Symbols
-
-  m_symbols_json[symbol_id] = function_symbol_json;
-
-  return symbol_id;
-};
 
 std::string BoundTreeJson::visit(const types::ParameterType *parameter_type) {
   PARSER_DEBUG_LOG("Visiting Parameter Type", "BOUND TREE");
@@ -367,38 +253,6 @@ std::string BoundTreeJson::visit(const types::FunctionType *function_type) {
   m_types_json[type_id] = function_type_json;
 
   return type_id;
-}
-
-std::string
-BoundTreeJson::visit(const analysis::ParameterSymbol *parameter_symbol) {
-  PARSER_DEBUG_LOG("Visiting Parameter Symbol", "BOUND TREE");
-  nlohmann::json parameter_symbol_json;
-  parameter_symbol_json["kind"] =
-      analysis::Symbol::toString(parameter_symbol->getKind());
-  parameter_symbol_json["name"] = parameter_symbol->getName();
-  parameter_symbol_json["typeId"] = visit(parameter_symbol->getType().get());
-
-  const auto &parameter_symbol_id = getShortId(parameter_symbol);
-
-  m_symbols_json[parameter_symbol_id] = parameter_symbol_json;
-
-  return parameter_symbol_id;
-}
-
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundCallExpression *call_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Call Expression", "BOUND TREE");
-  nlohmann::json call_expression_json;
-  call_expression_json["kind"] = toString(call_expression->getKind());
-
-  call_expression_json["symbolId"] = visit(call_expression->getSymbol());
-
-  serializeArray(call_expression->getArguments(), call_expression_json,
-                 "arguments");
-
-  call_expression_json["range"] =
-      toJsonRange(call_expression->getSourceLocation());
-  m_last_node_json = std::move(call_expression_json);
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundMemberAccessExpression

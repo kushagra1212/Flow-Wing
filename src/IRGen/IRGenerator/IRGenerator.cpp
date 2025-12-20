@@ -17,16 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "IRGenerator.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 
 // clang-format off
@@ -118,14 +119,20 @@ void IRGenerator::visit(
 }
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundBlockStatement *block_statement) {}
+    [[maybe_unused]] binding::BoundBlockStatement *block_statement) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Block Statement", "IR GENERATION");
+
+  for (const auto &statement : block_statement->getStatements()) {
+    statement->accept(this);
+    clearLastValue();
+  }
+}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundVariableDeclaration *variable_declaration) {}
+
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundFunctionStatement *variable_declaration) {}
 void IRGenerator::visit(
@@ -144,48 +151,15 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *variable_declaration) {}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundClassStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundIdentifierExpression *variable_declaration) {
-}
+
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundIndexExpression *variable_declaration) {}
-void IRGenerator::visit([[maybe_unused]] binding::BoundIntegerLiteralExpression
-                            *variable_declaration) {}
-
-void IRGenerator::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
-                            *variable_declaration) {}
-void IRGenerator::visit([[maybe_unused]] binding::BoundStringLiteralExpression
-                            *variable_declaration) {}
-void IRGenerator::visit([[maybe_unused]] binding::BoundBooleanLiteralExpression
-                            *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundTemplateStringLiteralExpression
-        *variable_declaration) {}
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorStatement *variable_declaration) {}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorExpression *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundCallExpression *call_expression) {
-  CODEGEN_DEBUG_LOG("Visiting Bound Call Expression", "IR GENERATION");
 
-  auto function_symbol = call_expression->getSymbol();
-
-  if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
-
-    CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
-                      function_symbol->getName());
-
-    if (function_symbol->getType()->getName() ==
-        std::string(ir_gen::constants::functions::kPrintf_fn)) {
-      auto printf_function = m_ir_gen_context.getLLVMModule()->getFunction(
-          std::string(ir_gen::constants::functions::kPrintf_fn));
-
-      m_ir_gen_context.getLLVMBuilder()->CreateCall(printf_function, {});
-    }
-  }
-}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundTernaryExpression *variable_declaration) {}
 void IRGenerator::visit(
@@ -214,8 +188,19 @@ void IRGenerator::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
                             *variable_declaration) {}
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundCharacterLiteralExpression
-        *variable_declaration) {}
+    binding::BoundIdentifierExpression *identifier_expression) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Identifier Expression", "IR GENERATION");
 
+  auto symbol = identifier_expression->getSymbol();
+  auto llvm_value = m_ir_gen_context.getSymbol(symbol->getName());
+  assert(llvm_value && "Symbol not found [BoundIdentifierExpression::visit]");
+
+  const auto &llvm_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(symbol->getType().get());
+
+  llvm::Value *load =
+      m_ir_gen_context.getLLVMBuilder()->CreateLoad(llvm_type, llvm_value);
+  m_last_value = load;
+}
 } // namespace ir_gen
 } // namespace flow_wing

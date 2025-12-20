@@ -39,9 +39,6 @@ struct CompilerOptions {
   std::string input_file_path;
   std::optional<std::string> code_content; // For --code flag
 
-  // Output configuration
-  std::optional<std::string> output_file_path;
-
   // Compiler modes
   int8_t show_help = 0;
   int8_t show_version = 0;
@@ -85,8 +82,8 @@ struct CompilerOptions {
       ss << "Code content: " << code_content.value() << separator;
     }
 
-    if (!output_file_path->empty()) {
-      ss << "Output file path: " << output_file_path.value() << separator;
+    if (!output_dir.empty()) {
+      ss << "Output directory: " << output_dir << separator;
     }
 
     ss << "Show help: " << getString(show_help) << separator;

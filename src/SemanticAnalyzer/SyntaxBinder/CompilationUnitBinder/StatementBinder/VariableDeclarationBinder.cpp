@@ -17,9 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -30,6 +30,7 @@
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -105,20 +106,41 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
       const auto &variable_type = variable_symbols[i]->getType();
 
+      BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
+
+      BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
+      BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
+      BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
+
       if (expression_type != variable_type && !variable_type->isDynamic() &&
           !expression_type->isDynamic()) {
         m_context->reportError(
             diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
-            {variable_type->getName(), expression_type->getName()},
+            {variable_type->getName(), expression_type->getName(),
+             variable_symbols[i]->getName()},
             initializer_expression->getSourceLocation());
 
-        return std::make_unique<BoundErrorStatement>(
+        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+            ->setInitializerExpression(std::make_unique<BoundErrorExpression>(
+                initializer_expression->getSourceLocation()));
+      } else if (!variable_type->isDynamic() && expression_type->isDynamic()) {
+
+        m_context->reportError(
+            diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
+            {variable_type->getName(), expression_type->getName(),
+             variable_symbols[i]->getName()},
             initializer_expression->getSourceLocation());
+
+        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+            ->setInitializerExpression(std::make_unique<BoundErrorExpression>(
+                initializer_expression->getSourceLocation()));
+
+      } else {
+
+        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+            ->setInitializerExpression(
+                std::move(bound_initializer_expressions[i]));
       }
-
-      static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
-          ->setInitializerExpression(
-              std::move(bound_initializer_expressions[i]));
     }
   }
 

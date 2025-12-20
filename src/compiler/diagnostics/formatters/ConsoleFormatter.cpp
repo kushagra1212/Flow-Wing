@@ -152,7 +152,7 @@ std::string
 ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
                                       const CompilationContext &context) const {
   std::string snippet = "\n";
-  const std::vector<std::string> &lines = context.getSourceLines();
+  auto lines = context.getSourceLines();
   size_t line_count = lines.size();
   auto start = diagnostic.getLocation().m_start;
   auto end = diagnostic.getLocation().m_end;
@@ -199,6 +199,9 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
     snippet += RESET;
     snippet += "\n";
   }
+
+  DEBUG_LOG("Snippet: ", snippet);
+
   return snippet;
 }
 

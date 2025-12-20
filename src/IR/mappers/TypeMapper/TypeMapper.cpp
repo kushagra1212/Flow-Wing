@@ -376,3 +376,8 @@ uint64_t TypeMapper::getSizeOf(SyntaxKindUtils::SyntaxKind type) {
   }
   return 0;
 }
+
+std::filesystem::path output_directory =
+    std::filesystem::path(object_file_path).parent_path();
+
+Utils::createDirectories(output_directory.string());
