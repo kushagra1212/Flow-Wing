@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
@@ -43,7 +41,7 @@ void BoundTreeJson::visit(
   integer_literal_expression_json["range"] =
       toJsonRange(integer_literal_expression->getSourceLocation());
   integer_literal_expression_json["typeId"] =
-      visit(integer_literal_expression->getType().get());
+      getTypeId(integer_literal_expression->getType().get());
 
   m_last_node_json = std::move(integer_literal_expression_json);
 }
@@ -59,7 +57,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
   double_literal_expression_json["range"] =
       toJsonRange(double_literal_expression->getSourceLocation());
   double_literal_expression_json["typeId"] =
-      visit(double_literal_expression->getType().get());
+      getTypeId(double_literal_expression->getType().get());
 
   m_last_node_json = std::move(double_literal_expression_json);
 }
@@ -75,7 +73,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
   float_literal_expression_json["range"] =
       toJsonRange(float_literal_expression->getSourceLocation());
   float_literal_expression_json["typeId"] =
-      visit(float_literal_expression->getType().get());
+      getTypeId(float_literal_expression->getType().get());
 
   m_last_node_json = std::move(float_literal_expression_json);
 }
@@ -93,7 +91,7 @@ void BoundTreeJson::visit(
   character_literal_expression_json["range"] =
       toJsonRange(character_literal_expression->getSourceLocation());
   character_literal_expression_json["typeId"] =
-      visit(character_literal_expression->getType().get());
+      getTypeId(character_literal_expression->getType().get());
 
   m_last_node_json = std::move(character_literal_expression_json);
 }
@@ -110,7 +108,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundStringLiteralExpression
   string_literal_expression_json["range"] =
       toJsonRange(string_literal_expression->getSourceLocation());
   string_literal_expression_json["typeId"] =
-      visit(string_literal_expression->getType().get());
+      getTypeId(string_literal_expression->getType().get());
 
   m_last_node_json = std::move(string_literal_expression_json);
 }
@@ -128,7 +126,7 @@ void BoundTreeJson::visit(
   boolean_literal_expression_json["range"] =
       toJsonRange(boolean_literal_expression->getSourceLocation());
   boolean_literal_expression_json["typeId"] =
-      visit(boolean_literal_expression->getType().get());
+      getTypeId(boolean_literal_expression->getType().get());
 
   m_last_node_json = std::move(boolean_literal_expression_json);
 }
@@ -147,7 +145,7 @@ void BoundTreeJson::visit(
   template_string_literal_expression_json["range"] =
       toJsonRange(template_string_literal_expression->getSourceLocation());
   template_string_literal_expression_json["typeId"] =
-      visit(template_string_literal_expression->getType().get());
+      getTypeId(template_string_literal_expression->getType().get());
 
   m_last_node_json = std::move(template_string_literal_expression_json);
 }
@@ -162,7 +160,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundNirastLiteralExpression
   nirast_literal_expression_json["range"] =
       toJsonRange(nirast_literal_expression->getSourceLocation());
   nirast_literal_expression_json["typeId"] =
-      visit(nirast_literal_expression->getType().get());
+      getTypeId(nirast_literal_expression->getType().get());
 
   m_last_node_json = std::move(nirast_literal_expression_json);
 }

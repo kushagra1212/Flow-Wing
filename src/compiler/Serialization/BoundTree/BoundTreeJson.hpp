@@ -2,6 +2,7 @@
 #pragma once
 
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
@@ -79,17 +80,21 @@ private:
   void visit(binding::BoundExpressionStatement *variable_declaration) override;
 
   // Symbols
-  std::string visit(const analysis::FunctionSymbol *function_symbol);
-  std::string visit(const analysis::ParameterSymbol *parameter_symbol);
-  std::string visit(const analysis::VariableSymbol *variable_symbol);
-  std::string visit(const analysis::ModuleSymbol *module_symbol);
-  std::string visit(const analysis::Symbol *symbol);
+  std::string getSymbolId(const analysis::FunctionSymbol *function_symbol);
+  std::string getSymbolId(const analysis::ParameterSymbol *parameter_symbol);
+  std::string getSymbolId(const analysis::VariableSymbol *variable_symbol);
+  std::string getSymbolId(const analysis::ModuleSymbol *module_symbol);
+  std::string getSymbolId(const analysis::Symbol *symbol);
 
   // types
-  std::string visit(const types::FunctionType *type);
-  std::string visit(const types::ParameterType *type);
-  std::string visit(const types::ReturnType *type);
-  std::string visit(const types::Type *type);
+  std::string getTypeId(const types::FunctionType *type);
+  std::string getTypeId(const types::ParameterType *type);
+  std::string getTypeId(const types::ReturnType *type);
+  std::string getTypeId(const types::Type *type);
+
+  // operators
+  nlohmann::json
+  getBinaryOperatorJson(const binding::BoundBinaryOperator *binary_operator);
 
   // Utility functions
   std::string getShortId(const void *ptr);

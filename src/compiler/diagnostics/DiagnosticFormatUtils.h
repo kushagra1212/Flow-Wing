@@ -6,6 +6,7 @@
 
 #include "DiagnosticCode.h" // For DiagnosticArg
 #include "src/common/cli/CliColors.h"
+#include "src/compiler/diagnostics/DiagnosticMessageDatabase/DiagnosticMessageDatabase.h"
 #include <sstream>
 #include <string>
 #include <variant>
@@ -38,8 +39,13 @@ inline std::string formatMessage(std::string template_string,
   return template_string;
 }
 
-inline std::string getErrorCodeString(const DiagnosticCode &code) {
-  return "flow_wing_error_code_" + std::to_string(static_cast<int16_t>(code));
+inline std::string
+getErrorCodeString([[maybe_unused]] const DiagnosticCode &code) {
+#if TEST_ENABLED
+  return ":" + DiagnosticMessageDatabase::toString(code);
+#else
+  return "";
+#endif
 }
 
 } // namespace diagnostic

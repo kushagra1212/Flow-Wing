@@ -42,6 +42,7 @@ public:
   using OperatorMap = std::unordered_map<BinaryOperatorKey,
                                          std::shared_ptr<BoundBinaryOperator>,
                                          BinaryOperatorKeyHash>;
+  static const OperatorMap &getOperatorMap();
 
   // Getters
   lexer::TokenKind getSyntaxKind() const { return m_syntax_kind; }
@@ -75,7 +76,6 @@ private:
   // Static list holding all valid binary operators
   static std::vector<BoundBinaryOperator> s_operators;
   static ExplicitConversionMap s_explicit_conversion_map;
-  static OperatorMap s_operator_map;
 };
 
 } // namespace binding

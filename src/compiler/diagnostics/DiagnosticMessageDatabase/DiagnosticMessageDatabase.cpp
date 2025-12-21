@@ -332,7 +332,7 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "type '{1}'.",
       "Having multiple attributes with the same key in a custom type can "
       "lead to ambiguity and unexpected behavior. Make sure each attribute "
-      "key is unique."}},
+      "ey is unique."}},
     {(DiagnosticCode::kDuplicateCustomTypeDeclaration),
      {"Custom type '{0}' is declared multiple times.",
       "Remove the duplicate declaration of custom type '{0}'.",
@@ -712,6 +712,245 @@ DiagnosticMessageDatabase::getTemplate(DiagnosticCode code) {
       "Internal Compiler Error: Unknown diagnostic code.", "", ""};
 
   return kNotFoundTemplate;
+}
+
+std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
+  switch (code) {
+  case DiagnosticCode::kNone:
+    return "None";
+
+  // --- Source Loader Errors ---
+  case DiagnosticCode::kUnableToOpenFile:
+    return "UnableToOpenFile";
+
+  // --- Lexical Errors ---
+  case DiagnosticCode::kUnterminatedSingleQuote:
+    return "UnterminatedSingleQuote";
+  case DiagnosticCode::kBadCharacterEscapeSequence:
+    return "BadCharacterEscapeSequence";
+  case DiagnosticCode::kNumberTooLargeForInt:
+    return "NumberTooLargeForInt";
+  case DiagnosticCode::kUnterminatedStringLiteral:
+    return "UnterminatedStringLiteral";
+  case DiagnosticCode::kBadCharacterEscapeSequenceInStringLiteral:
+    return "BadCharacterEscapeSequenceInStringLiteral";
+  case DiagnosticCode::kBadCharacterInput:
+    return "BadCharacterInput";
+  case DiagnosticCode::kUnterminatedTemplateStringLiteral:
+    return "UnterminatedTemplateStringLiteral";
+  case DiagnosticCode::kUnexpectedCharacter:
+    return "UnexpectedCharacter";
+
+  // ---  Lexical Errors ---
+  case DiagnosticCode::kUnexpectedToken:
+    return "UnexpectedToken";
+  case DiagnosticCode::kInvalidBracketedExpression:
+    return "InvalidBracketedExpression";
+  case DiagnosticCode::kReturnStatementOutsideOfFunction:
+    return "ReturnStatementOutsideOfFunction";
+  case DiagnosticCode::kNoDefaultCaseInSwitchStatement:
+    return "NoDefaultCaseInSwitchStatement";
+  case DiagnosticCode::kMoreThanOneDefaultCaseInSwitchStatement:
+    return "MoreThanOneDefaultCaseInSwitchStatement";
+  case DiagnosticCode::kNoCaseStatementInSwitchStatement:
+    return "NoCaseStatementInSwitchStatement";
+  case DiagnosticCode::kContinueStatementOutsideOfLoop:
+    return "ContinueStatementOutsideOfLoop";
+  case DiagnosticCode::kInvalidBreakStatementUsage:
+    return "InvalidBreakStatementUsage";
+
+  // --- Semantic Errors ---
+  case DiagnosticCode::kUnexpectedTypeExpression:
+    return "UnexpectedTypeExpression";
+  case DiagnosticCode::kUnexpectedExpression:
+    return "UnexpectedExpression";
+  case DiagnosticCode::kInValidTypeExpression:
+    return "InValidTypeExpression";
+  case DiagnosticCode::kInvalidAssignment:
+    return "InvalidAssignment";
+  case DiagnosticCode::kInvalidAssignmentToUndeclaredVariable:
+    return "InvalidAssignmentToUndeclaredVariable";
+  case DiagnosticCode::kInvalidAssignmentToConstantVariable:
+    return "InvalidAssignmentToConstantVariable";
+  case DiagnosticCode::kVariableNotFound:
+    return "VariableNotFound";
+  case DiagnosticCode::kVariableAlreadyDeclared:
+    return "VariableAlreadyDeclared";
+  case DiagnosticCode::kFunctionNotFound:
+    return "FunctionNotFound";
+  case DiagnosticCode::kFunctionAlreadyDeclared:
+    return "FunctionAlreadyDeclared";
+  case DiagnosticCode::kFunctionNameConflictsWithBuiltin:
+    return "FunctionNameConflictsWithBuiltin";
+  case DiagnosticCode::kIncorrectArgumentCount:
+    return "IncorrectArgumentCount";
+  case DiagnosticCode::kPassingMismatchedTypeToFunction:
+    return "PassingMismatchedTypeToFunction";
+  case DiagnosticCode::kPassingObjectToNonObjectParam:
+    return "PassingObjectToNonObjectParam";
+  case DiagnosticCode::kPassingArrayToNonArrayParam:
+    return "PassingArrayToNonArrayParam";
+  case DiagnosticCode::kArrayInitializerNotAllowedForDynamicType:
+    return "ArrayInitializerNotAllowedForDynamicType";
+  case DiagnosticCode::kObjectInitializerNotAllowedForDynamicType:
+    return "ObjectInitializerNotAllowedForDynamicType";
+  case DiagnosticCode::kPassingByReferenceWithAsKeywordIsNotAllowed:
+    return "PassingByReferenceWithAsKeywordIsNotAllowed";
+  case DiagnosticCode::kArrayPassedInFunctionArgumentMismatch:
+    return "ArrayPassedInFunctionArgumentMismatch";
+  case DiagnosticCode::
+      kArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeButArrayDimensionMismatch:
+    return "ArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeButArrayDi"
+           "mensionMismatch";
+  case DiagnosticCode::
+      kArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeAndHavingSameDimensionButSizeMismatch:
+    return "ArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeAndHavingS"
+           "ameDimensionButSizeMismatch";
+  case DiagnosticCode::kVariablePassedAsAnArgumentToFunctionIsNotAnArray:
+    return "VariablePassedAsAnArgumentToFunctionIsNotAnArray";
+  case DiagnosticCode::kIndexingNonArrayVariable:
+    return "IndexingNonArrayVariable";
+  case DiagnosticCode::kTypeOrClassNotFound:
+    return "TypeOrClassNotFound";
+  case DiagnosticCode::kTypeAlreadyDeclared:
+    return "TypeAlreadyDeclared";
+  case DiagnosticCode::kCustomTypeNotFound:
+    return "CustomTypeNotFound";
+  case DiagnosticCode::kDuplicateCustomTypeDeclaration:
+    return "DuplicateCustomTypeDeclaration";
+  case DiagnosticCode::kDuplicateAttributeKeyInCustomType:
+    return "DuplicateAttributeKeyInCustomType";
+  case DiagnosticCode::kUnSupportedUnaryOperatorForClassType:
+    return "UnSupportedUnaryOperatorForClassType";
+  case DiagnosticCode::kCanNotAssignObjectToDynamicType:
+    return "CanNotAssignObjectToDynamicType";
+  case DiagnosticCode::kCanNotAssignNonDynamicSupertypeToDynamicVariable:
+    return "CanNotAssignNonDynamicSupertypeToDynamicVariable";
+  case DiagnosticCode::kFunctionNameRequired:
+    return "FunctionNameRequired";
+    // Types
+  case DiagnosticCode::kInvalidParameterType:
+    return "InvalidParameterType";
+  case DiagnosticCode::kNthgCannotBeUsedAsParameterType:
+    return "NthgCannotBeUsedAsParameterType";
+  case DiagnosticCode::kExpectedNonNegativeIntegerForArrayDimension:
+    return "ExpectedNonNegativeIntegerForArrayDimension";
+
+    // --- Class-related Semantic Errors ---
+  case DiagnosticCode::kClassAlreadyDeclared:
+    return "ClassAlreadyDeclared";
+  case DiagnosticCode::kParentClassNotFound:
+    return "ParentClassNotFound";
+  case DiagnosticCode::kClassMissingSuperclass:
+    return "ClassMissingSuperclass";
+  case DiagnosticCode::kClassMissingInitializer:
+    return "ClassMissingInitializer";
+  case DiagnosticCode::kMemberFunctionOfClassAlreadyDeclared:
+    return "MemberFunctionOfClassAlreadyDeclared";
+  case DiagnosticCode::kSuperCallOutsideConstructor:
+    return "SuperCallOutsideConstructor";
+  case DiagnosticCode::kInvalidInitFunctionCall:
+    return "InvalidInitFunctionCall";
+
+    // Index Expression Errors
+  case DiagnosticCode::kIndexingNonArrayTypeVariable:
+    return "IndexingNonArrayTypeVariable";
+
+    // Call Expression Errors
+  case DiagnosticCode::kTypeIsNotAFunction:
+    return "TypeIsNotAFunction";
+  case DiagnosticCode::kFunctionArgumentCountMismatch:
+    return "FunctionArgumentCountMismatch";
+  case DiagnosticCode::kFunctionArgumentTypeMismatch:
+    return "FunctionArgumentTypeMismatch";
+
+    // Member Access Expression Errors
+  case DiagnosticCode::kMemberAccessOnNonObjectVariable:
+    return "MemberAccessOnNonObjectVariable";
+  case DiagnosticCode::kMemberNotFoundInObject:
+    return "MemberNotFoundInObject";
+
+    // Ternary Expression Errors
+  case DiagnosticCode::kIncompatibleTypesForTernaryExpression:
+    return "IncompatibleTypesForTernaryExpression";
+
+    // Unary Expression Errors
+  case DiagnosticCode::kInvalidUnaryOperator:
+    return "InvalidUnaryOperator";
+
+    // Binary Expression Errors
+  case DiagnosticCode::kInvalidBinaryOperationWithTypes:
+    return "InvalidBinaryOperationWithTypes";
+
+    // Assignment Expression Errors
+  case DiagnosticCode::kAssignmentExpressionTypeMismatch:
+    return "AssignmentExpressionTypeMismatch";
+  case DiagnosticCode::kAssignmentExpressionCountMismatch:
+    return "AssignmentExpressionCountMismatch";
+
+    // For Statement Errors
+  case DiagnosticCode::kTooManyDeclaratorsInVariableDeclaration:
+    return "TooManyDeclaratorsInVariableDeclaration";
+
+    // For Loop Variable Declaration Errors
+  case DiagnosticCode::
+      kInvalidVariableDeclarationTypeForForLoopVariableDeclaration:
+    return "InvalidVariableDeclarationTypeForForLoopVariableDeclaration";
+  case DiagnosticCode::
+      kMultiTargetAssignmentNotAllowedForForLoopAssignmentExpression:
+    return "MultiTargetAssignmentNotAllowedForForLoopAssignmentExpression";
+  case DiagnosticCode::
+      kInvalidAssignmentExpressionTypeForForLoopAssignmentExpression:
+    return "InvalidAssignmentExpressionTypeForForLoopAssignmentExpression";
+  case DiagnosticCode::kInvalidUpperBoundTypeForForLoop:
+    return "InvalidUpperBoundTypeForForLoop";
+  case DiagnosticCode::kInvalidStepTypeForForLoop:
+    return "InvalidStepTypeForForLoop";
+
+    // Break Statement Errors
+  case DiagnosticCode::kBreakStatementNotAllowedOutsideOfLoop:
+    return "BreakStatementNotAllowedOutsideOfLoop";
+
+    // Continue Statement Errors
+  case DiagnosticCode::kContinueStatementNotAllowedOutsideOfLoop:
+    return "ContinueStatementNotAllowedOutsideOfLoop";
+
+    // Return Statement Errors
+  case DiagnosticCode::kReturnStatementNotInFunction:
+    return "ReturnStatementNotInFunction";
+
+    // Return Expression Errors
+  case DiagnosticCode::kInvalidNumberOfReturnExpressions:
+    return "InvalidNumberOfReturnExpressions";
+
+    // Return Expression Type Mismatch Errors
+  case DiagnosticCode::kReturnExpressionTypeMismatch:
+    return "ReturnExpressionTypeMismatch";
+
+    // Switch Statement Errors
+  case DiagnosticCode::kMultipleDefaultCaseStatements:
+    return "MultipleDefaultCaseStatements";
+  case DiagnosticCode::kCaseExpressionTypeMismatch:
+    return "CaseExpressionTypeMismatch";
+
+    // Class Statement Errors
+  case DiagnosticCode::kParentClassIsNotAClass:
+    return "ParentClassIsNotAClass";
+  case DiagnosticCode::kInvalidClassMemberStatement:
+    return "InvalidClassMemberStatement";
+  case DiagnosticCode::kDuplicateMemberInClass:
+    return "DuplicateMemberInClass";
+
+    // Bring Statement Errors
+  case DiagnosticCode::kFileContainsErrors:
+    return "FileContainsErrors";
+
+    // Internal Errors
+  case DiagnosticCode::kInternalIRGenerationError:
+    return "InternalIRGenerationError";
+  default:
+    return "Unknown diagnostic code";
+  }
 }
 
 } // namespace diagnostic

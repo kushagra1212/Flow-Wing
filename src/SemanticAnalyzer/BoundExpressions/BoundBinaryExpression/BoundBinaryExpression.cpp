@@ -44,5 +44,18 @@ std::shared_ptr<types::Type> BoundBinaryExpression::getType() const {
   return m_binary_operator->getResultType();
 }
 
+const std::shared_ptr<BoundBinaryOperator> &
+BoundBinaryExpression::getBinaryOperator() const {
+  return m_binary_operator;
+}
+
+const std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeft() const {
+  return m_left;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundBinaryExpression::getRight() const {
+  return m_right;
+}
 } // namespace binding
 } // namespace flow_wing

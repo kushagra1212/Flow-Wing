@@ -166,8 +166,7 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNewExpression *variable_declaration) {}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundUnaryExpression *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundBinaryExpression *variable_declaration) {}
+
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundAssignmentExpression *variable_declaration) {
 }
@@ -202,5 +201,6 @@ void IRGenerator::visit(
       m_ir_gen_context.getLLVMBuilder()->CreateLoad(llvm_type, llvm_value);
   m_last_value = load;
 }
+
 } // namespace ir_gen
 } // namespace flow_wing

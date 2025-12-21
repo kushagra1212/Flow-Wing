@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
@@ -35,7 +32,7 @@ void BoundTreeJson::visit(
   for (const auto &symbol : variable_declaration->getSymbols()) {
     const auto &variable_symbol =
         static_cast<const analysis::VariableSymbol *>(symbol.get());
-    const auto &symbol_id = visit(variable_symbol);
+    const auto &symbol_id = getSymbolId(variable_symbol);
 
     if (variable_symbol->getInitializerExpression())
       variable_symbol->getInitializerExpression()->accept(this);

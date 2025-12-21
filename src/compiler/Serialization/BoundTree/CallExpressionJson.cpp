@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 
@@ -28,7 +27,7 @@ void BoundTreeJson::visit(binding::BoundCallExpression *call_expression) {
   nlohmann::json call_expression_json;
   call_expression_json["kind"] = toString(call_expression->getKind());
 
-  call_expression_json["symbolId"] = visit(call_expression->getSymbol());
+  call_expression_json["symbolId"] = getSymbolId(call_expression->getSymbol());
 
   serializeArray(call_expression->getArguments(), call_expression_json,
                  "arguments");

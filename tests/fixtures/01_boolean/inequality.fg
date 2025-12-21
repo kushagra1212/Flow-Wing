@@ -1,0 +1,4 @@
+print(true != true, "\n")
+print(true != false, "\n")
+print(false != true, "\n")
+print(false != false)

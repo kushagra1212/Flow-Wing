@@ -41,6 +41,9 @@ public:
 
   // Getters
   std::shared_ptr<types::Type> getType() const override;
+  const std::shared_ptr<BoundBinaryOperator> &getBinaryOperator() const;
+  const std::unique_ptr<BoundExpression> &getLeft() const;
+  const std::unique_ptr<BoundExpression> &getRight() const;
 
 private:
   std::unique_ptr<BoundExpression> m_left;

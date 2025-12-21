@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include "src/compiler/diagnostics/DiagnosticCode.h"
@@ -30,6 +28,8 @@ namespace diagnostic {
 class DiagnosticMessageDatabase {
 public:
   static const MessageTemplate &getTemplate(DiagnosticCode code);
+
+  static std::string toString(DiagnosticCode code);
 };
 
 } // namespace diagnostic

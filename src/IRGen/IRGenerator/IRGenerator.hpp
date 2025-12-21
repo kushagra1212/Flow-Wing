@@ -2,6 +2,8 @@
 
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
+#include "src/common/types/Type.hpp"
+#include "llvm/IR/Value.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -65,9 +67,57 @@ private:
 
   llvm::Function *createEntryPointFunction();
   llvm::Value *convertToString(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);
+
+  llvm::Value *getBinaryResult(llvm::Value *left_value,
+                               llvm::Value *right_value,
+                               lexer::TokenKind operator_kind,
+                               types::Type *left_type, types::Type *right_type,
+                               types::Type *result_type);
+
+  // Boolean Result
+  llvm::Value *getBooleanResult(llvm::Value *left_value,
+                                llvm::Value *right_value,
+                                lexer::TokenKind operator_kind,
+                                types::Type *left_type,
+                                types::Type *right_type);
+  llvm::Value *getEqualityComparisonBoolResult(llvm::Value *left_value,
+                                               llvm::Value *right_value,
+                                               types::Type *left_type,
+                                               types::Type *right_type);
+  llvm::Value *getInequalityComparisonBoolResult(llvm::Value *left_value,
+                                                 llvm::Value *right_value,
+                                                 types::Type *left_type,
+                                                 types::Type *right_type);
+  llvm::Value *getLogicalAndBoolResult(llvm::Value *left_value,
+                                       llvm::Value *right_value,
+                                       types::Type *left_type,
+                                       types::Type *right_type);
+  llvm::Value *getLogicalOrBoolResult(llvm::Value *left_value,
+                                      llvm::Value *right_value,
+                                      types::Type *left_type,
+                                      types::Type *right_type);
+  llvm::Value *getLessThanBoolResult(llvm::Value *left_value,
+                                     llvm::Value *right_value,
+                                     types::Type *left_type,
+                                     types::Type *right_type);
+  llvm::Value *getLessThanOrEqualBoolResult(llvm::Value *left_value,
+                                            llvm::Value *right_value,
+                                            types::Type *left_type,
+                                            types::Type *right_type);
+  llvm::Value *getGreaterThanBoolResult(llvm::Value *left_value,
+                                        llvm::Value *right_value,
+                                        types::Type *left_type,
+                                        types::Type *right_type);
+  llvm::Value *getGreaterThanOrEqualBoolResult(llvm::Value *left_value,
+                                               llvm::Value *right_value,
+                                               types::Type *left_type,
+                                               types::Type *right_type);
   void handleReturn();
   void verifyModule();
+
+  std::string unescapeString(const std::string &value);
 };
 } // namespace ir_gen
 } // namespace flow_wing

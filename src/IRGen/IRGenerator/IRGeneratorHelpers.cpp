@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IRGenerator.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
@@ -28,6 +27,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
 // clang-format on
 
 namespace flow_wing {
@@ -48,40 +48,43 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value,
 
   // 2. Character (i8) -> fg_ctos(char)
   if (type->isIntegerTy(8)) {
-    auto *func = module->getFunction("fg_ctos");
+    auto *func = module->getFunction(constants::functions::kCtos_fn);
     if (!func) {
       auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
       auto *i8Ty = llvm::Type::getInt8Ty(*ctx);
       func = llvm::Function::Create(
           llvm::FunctionType::get(charPtrTy, {i8Ty}, false),
-          llvm::Function::ExternalLinkage, "fg_ctos", module);
+          llvm::Function::ExternalLinkage, constants::functions::kCtos_fn,
+          module);
     }
     return builder.CreateCall(func, {value}, "char_to_str");
   }
 
   // 3. Integer (i32) -> fg_itos(int)
   if (type->isIntegerTy(32)) {
-    auto *func = module->getFunction("fg_itos");
+    auto *func = module->getFunction(constants::functions::kItos_fn);
     // Safety check if declaration is missing
     if (!func) {
       auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
       auto *i32Ty = llvm::Type::getInt32Ty(*ctx);
       func = llvm::Function::Create(
           llvm::FunctionType::get(charPtrTy, {i32Ty}, false),
-          llvm::Function::ExternalLinkage, "fg_itos", module);
+          llvm::Function::ExternalLinkage, constants::functions::kItos_fn,
+          module);
     }
     return builder.CreateCall(func, {value}, "int_to_str");
   }
 
   // 4. Long Integer (i64) -> fg_lltos(long long)
   if (type->isIntegerTy(64)) {
-    auto *func = module->getFunction("fg_lltos");
+    auto *func = module->getFunction(constants::functions::kLltos_fn);
     if (!func) {
       auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
       auto *i64Ty = llvm::Type::getInt64Ty(*ctx);
       func = llvm::Function::Create(
           llvm::FunctionType::get(charPtrTy, {i64Ty}, false),
-          llvm::Function::ExternalLinkage, "fg_lltos", module);
+          llvm::Function::ExternalLinkage, constants::functions::kLltos_fn,
+          module);
     }
     return builder.CreateCall(func, {value}, "long_to_str");
   }
@@ -90,26 +93,28 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value,
   if (type->isFloatTy()) {
     auto *doubleVal = builder.CreateFPExt(value, llvm::Type::getDoubleTy(*ctx),
                                           "float_to_double");
-    auto *func = module->getFunction("fg_dtos");
+    auto *func = module->getFunction(constants::functions::kDtos_fn);
     if (!func) {
       auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
       auto *dblTy = llvm::Type::getDoubleTy(*ctx);
       func = llvm::Function::Create(
           llvm::FunctionType::get(charPtrTy, {dblTy}, false),
-          llvm::Function::ExternalLinkage, "fg_dtos", module);
+          llvm::Function::ExternalLinkage, constants::functions::kDtos_fn,
+          module);
     }
     return builder.CreateCall(func, {doubleVal}, "float_to_str");
   }
 
   // 6. Double (double) -> fg_dtos(double)
   if (type->isDoubleTy()) {
-    auto *func = module->getFunction("fg_dtos");
+    auto *func = module->getFunction(constants::functions::kDtos_fn);
     if (!func) {
       auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
       auto *dblTy = llvm::Type::getDoubleTy(*ctx);
       func = llvm::Function::Create(
           llvm::FunctionType::get(charPtrTy, {dblTy}, false),
-          llvm::Function::ExternalLinkage, "fg_dtos", module);
+          llvm::Function::ExternalLinkage, constants::functions::kDtos_fn,
+          module);
     }
     return builder.CreateCall(func, {value}, "dbl_to_str");
   }
@@ -121,6 +126,26 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value,
 
   // Fallback
   return builder.CreateGlobalStringPtr("<unknown_type>");
+}
+
+llvm::Value *IRGenerator::convertToInt64(llvm::Value *value, llvm::Type *type) {
+  auto &builder = *m_ir_gen_context.getLLVMBuilder();
+  auto *ctx = m_ir_gen_context.getLLVMContext();
+  auto *module = m_ir_gen_context.getLLVMModule();
+  if (type->isIntegerTy(64)) {
+    return value;
+  }
+
+  if (type->isIntegerTy(1) || type->isIntegerTy(8) || type->isIntegerTy(32)) {
+    return builder.CreateZExt(value, llvm::Type::getInt64Ty(*ctx));
+  }
+
+  if (type->isFloatTy() || type->isDoubleTy()) {
+    return builder.CreateFPToSI(value, llvm::Type::getInt64Ty(*ctx));
+  }
+
+  auto *func = module->getFunction(constants::functions::kString_to_long_fn);
+  return builder.CreateCall(func, {value}, "string_to_long_long");
 }
 
 llvm::Value *IRGenerator::getDefaultValue(types::Type *type) {

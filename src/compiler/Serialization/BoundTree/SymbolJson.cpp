@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
@@ -25,45 +24,45 @@
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 
 namespace flow_wing::compiler::serializer {
-std::string BoundTreeJson::visit(const analysis::Symbol *symbol) {
+std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
 
   switch (symbol->getKind()) {
   case analysis::SymbolKind::kVariable:
-    return visit(static_cast<const analysis::VariableSymbol *>(symbol));
+    return getSymbolId(static_cast<const analysis::VariableSymbol *>(symbol));
   case analysis::SymbolKind::kFunction:
-    return visit(static_cast<const analysis::FunctionSymbol *>(symbol));
+    return getSymbolId(static_cast<const analysis::FunctionSymbol *>(symbol));
   case analysis::SymbolKind::kParameter:
-    return visit(static_cast<const analysis::ParameterSymbol *>(symbol));
+    return getSymbolId(static_cast<const analysis::ParameterSymbol *>(symbol));
   case analysis::SymbolKind::kModule:
-    return visit(static_cast<const analysis::ModuleSymbol *>(symbol));
+    return getSymbolId(static_cast<const analysis::ModuleSymbol *>(symbol));
   default:
     assert(false && "Unknown Symbol Kind");
     return "Unknown Symbol Kind";
   }
 }
 
-std::string BoundTreeJson::visit(
+std::string BoundTreeJson::getSymbolId(
     [[maybe_unused]] const analysis::ModuleSymbol *module_symbol) {
   PARSER_DEBUG_LOG("Visiting Module Symbol", "BOUND TREE");
   assert(false && "Module Symbol not implemented");
 }
 
 std::string
-BoundTreeJson::visit(const analysis::FunctionSymbol *function_symbol) {
+BoundTreeJson::getSymbolId(const analysis::FunctionSymbol *function_symbol) {
   PARSER_DEBUG_LOG("Visiting Function Symbol", "BOUND TREE");
   nlohmann::json function_symbol_json;
   function_symbol_json["kind"] =
       analysis::Symbol::toString(function_symbol->getKind());
   function_symbol_json["name"] = function_symbol->getName();
   function_symbol_json["typeId"] =
-      visit(static_cast<const types::FunctionType *>(
+      getTypeId(static_cast<const types::FunctionType *>(
           function_symbol->getType().get()));
   const auto &symbol_id = getShortId(function_symbol);
   function_symbol_json["is_declaration"] =
       function_symbol->getBody() == nullptr;
 
   for (const auto &parameter : function_symbol->getParameters()) {
-    function_symbol_json["parameters"].push_back(visit(parameter.get()));
+    function_symbol_json["parameters"].push_back(getSymbolId(parameter.get()));
   }
 
   // TODO(kushagra): Add Ranges for Symbols
@@ -74,13 +73,14 @@ BoundTreeJson::visit(const analysis::FunctionSymbol *function_symbol) {
 };
 
 std::string
-BoundTreeJson::visit(const analysis::ParameterSymbol *parameter_symbol) {
+BoundTreeJson::getSymbolId(const analysis::ParameterSymbol *parameter_symbol) {
   PARSER_DEBUG_LOG("Visiting Parameter Symbol", "BOUND TREE");
   nlohmann::json parameter_symbol_json;
   parameter_symbol_json["kind"] =
       analysis::Symbol::toString(parameter_symbol->getKind());
   parameter_symbol_json["name"] = parameter_symbol->getName();
-  parameter_symbol_json["typeId"] = visit(parameter_symbol->getType().get());
+  parameter_symbol_json["typeId"] =
+      getTypeId(parameter_symbol->getType().get());
 
   const auto &parameter_symbol_id = getShortId(parameter_symbol);
 
@@ -90,14 +90,14 @@ BoundTreeJson::visit(const analysis::ParameterSymbol *parameter_symbol) {
 }
 
 std::string
-BoundTreeJson::visit(const analysis::VariableSymbol *variable_symbol) {
+BoundTreeJson::getSymbolId(const analysis::VariableSymbol *variable_symbol) {
 
   PARSER_DEBUG_LOG("Visiting Variable Symbol", "BOUND TREE");
   nlohmann::json variable_symbol_json;
   variable_symbol_json["kind"] =
       analysis::Symbol::toString(variable_symbol->getKind());
   variable_symbol_json["name"] = variable_symbol->getName();
-  variable_symbol_json["typeId"] = visit(variable_symbol->getType().get());
+  variable_symbol_json["typeId"] = getTypeId(variable_symbol->getType().get());
   variable_symbol_json["isConst"] = variable_symbol->isConst();
 
   const auto &variable_symbol_id = getShortId(variable_symbol);

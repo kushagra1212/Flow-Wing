@@ -17,9 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBinaryOperator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 
@@ -131,7 +131,7 @@ void initializeStringOperators(std::vector<BoundBinaryOperator> &operators) {
 
     operators.emplace_back(token, analysis::Builtins::m_str_type_instance,
                            analysis::Builtins::m_str_type_instance,
-                           analysis::Builtins::m_str_type_instance);
+                           analysis::Builtins::m_bool_type_instance);
   }
 }
 
@@ -159,11 +159,7 @@ void initializeDecimalOperators(std::vector<BoundBinaryOperator> &operators,
 
 void initializeBoolOperators(std::vector<BoundBinaryOperator> &operators) {
   for (const auto &token :
-       {lexer::TokenKind::kPlusToken, lexer::TokenKind::kMinusToken,
-        lexer::TokenKind::kStarToken, lexer::TokenKind::kSlashToken,
-        lexer::TokenKind::kAmpersandToken, lexer::TokenKind::kPipeToken,
-        lexer::TokenKind::kCaretToken,
-        lexer::TokenKind::kAmpersandAmpersandToken,
+       {lexer::TokenKind::kAmpersandAmpersandToken,
         lexer::TokenKind::kPipePipeToken, lexer::TokenKind::kEqualsEqualsToken,
         lexer::TokenKind::kBangEqualsToken, lexer::TokenKind::kLessToken,
         lexer::TokenKind::kLessOrEqualsToken, lexer::TokenKind::kGreaterToken,
@@ -244,9 +240,6 @@ BoundBinaryOperator::OperatorMap initializeOperatorMap() {
 }
 } // namespace type_conversion
 
-BoundBinaryOperator::OperatorMap BoundBinaryOperator::s_operator_map =
-    type_conversion::initializeOperatorMap();
-
 BoundBinaryOperator::ExplicitConversionMap
     BoundBinaryOperator::s_explicit_conversion_map =
         type_conversion::initializeExplicitConversionMap();
@@ -282,8 +275,9 @@ BoundBinaryOperator::bind(lexer::TokenKind operator_kind,
 
   // Handling Normal Cases
   BinaryOperatorKey key = {operator_kind, left_type.get(), right_type.get()};
-  auto it = s_operator_map.find(key);
-  if (it != s_operator_map.end()) {
+  auto &operator_map = getOperatorMap();
+  auto it = operator_map.find(key);
+  if (it != operator_map.end()) {
     return it->second;
   }
 
@@ -322,14 +316,33 @@ BoundBinaryOperator::bindType(lexer::TokenKind operator_kind,
                               std::shared_ptr<types::Type> left_type,
                               std::shared_ptr<types::Type> right_type,
                               std::shared_ptr<types::Type> to_type) {
+
   auto left_converts = canConvert(left_type.get(), to_type.get());
   auto right_converts = canConvert(right_type.get(), to_type.get());
 
   if (left_converts && right_converts) {
-    return bind(operator_kind, to_type, to_type);
+
+    BinaryOperatorKey key = {operator_kind, to_type.get(), to_type.get()};
+    auto &operator_map = getOperatorMap();
+    auto it = operator_map.find(key);
+    if (it != operator_map.end()) {
+      return it->second;
+    }
   }
 
+  BINDER_DEBUG_LOG(
+      "bindType(operator_kind, left_type, right_type, to_type): %s, %s, %s, %s",
+      lexer::toString(operator_kind), left_type->getName(),
+      right_type->getName(), to_type->getName());
   return nullptr;
+}
+
+const BoundBinaryOperator::OperatorMap &BoundBinaryOperator::getOperatorMap() {
+  // This static variable is initialized the first time this function is called.
+  // By the time we call this, main() has started and Builtins are ready.
+  static BoundBinaryOperator::OperatorMap map =
+      type_conversion::initializeOperatorMap();
+  return map;
 }
 
 std::shared_ptr<BoundBinaryOperator>

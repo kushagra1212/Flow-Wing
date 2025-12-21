@@ -39,7 +39,6 @@ std::string ConsoleFormatter::format(const Diagnostic &diagnostic,
   ss << getErrorCodeSnippet(diagnostic, context);
   ss << getNoteSnippet(diagnostic);
   ss << getHelpSnippet(diagnostic);
-  ss << getErrorCodeString(diagnostic.getCode());
 
   return ss.str();
 }
@@ -123,11 +122,12 @@ ConsoleFormatter::getMessageSnippet(const Diagnostic &diagnostic) const {
            ? GREEN_TEXT
            : BLUE_TEXT);
 
+  const auto errorCode = getErrorCodeString(diagnostic.getCode());
   snippet << CLEAR_COLOR << "\n"
           << highlight_text << "["
           << flow_wing::diagnostic::utils::toString(diagnostic.getLevel())
-          << "] : " << YELLOW_TEXT << getLineSnippet(diagnostic) << WHITE_TEXT
-          << " \"" << diagnostic.getMessage() << "\"\n\n"
+          << errorCode << "] : " << YELLOW_TEXT << getLineSnippet(diagnostic)
+          << WHITE_TEXT << " \"" << diagnostic.getMessage() << "\"\n\n"
           << CLEAR_COLOR;
 
   return snippet.str();
@@ -199,8 +199,6 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
     snippet += RESET;
     snippet += "\n";
   }
-
-  DEBUG_LOG("Snippet: ", snippet);
 
   return snippet;
 }

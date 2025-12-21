@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "IRGenerator.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
@@ -34,8 +32,8 @@
 namespace flow_wing {
 namespace ir_gen {
 
-void IRGenerator::visit([[maybe_unused]] binding::BoundIntegerLiteralExpression
-                            *integer_literal_expression) {
+void IRGenerator::visit(
+    binding::BoundIntegerLiteralExpression *integer_literal_expression) {
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
       llvm::APInt(32,
@@ -43,37 +41,75 @@ void IRGenerator::visit([[maybe_unused]] binding::BoundIntegerLiteralExpression
                   true));
 }
 
-void IRGenerator::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
-                            *double_literal_expression) {
+void IRGenerator::visit(
+    binding::BoundDoubleLiteralExpression *double_literal_expression) {
   m_last_value = llvm::ConstantFP::get(
       *m_ir_gen_context.getLLVMContext(),
       llvm::APFloat(double_literal_expression->getValue()));
 }
 
-void IRGenerator::visit([[maybe_unused]] binding::BoundStringLiteralExpression
-                            *string_literal_expression) {
+std::string IRGenerator::unescapeString(const std::string &value) {
+  std::string string_value = "";
+  size_t pos = 0;
+  while (pos < value.size()) {
+    if (value[pos] == '\\' && pos + 1 < value.size()) {
+      switch (value[pos + 1]) {
+      case 'n': {
+        string_value += '\n';
+        pos += 2;
+        continue;
+      }
+      case 'r': {
+        string_value += '\r';
+        pos += 2;
+        continue;
+      }
+      case 't': {
+        string_value += '\t';
+        pos += 2;
+        continue;
+      }
+      case '0': {
+        string_value += '\0';
+        pos += 2;
+        continue;
+      }
+      default: {
+        string_value += value[pos];
+        pos++;
+        continue;
+      }
+      }
+    } else {
+      string_value += value[pos];
+      pos++;
+    }
+  }
+  return string_value;
+}
+void IRGenerator::visit(
+    binding::BoundStringLiteralExpression *string_literal_expression) {
+
   m_last_value = m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
-      string_literal_expression->getValue());
+      unescapeString(string_literal_expression->getValue()));
 }
 
-void IRGenerator::visit([[maybe_unused]] binding::BoundBooleanLiteralExpression
-                            *boolean_literal_expression) {
+void IRGenerator::visit(
+    binding::BoundBooleanLiteralExpression *boolean_literal_expression) {
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
       llvm::APInt(1, boolean_literal_expression->getValue() ? 1 : 0, false));
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundTemplateStringLiteralExpression
-        *template_string_literal_expression) {
+void IRGenerator::visit(binding::BoundTemplateStringLiteralExpression
+                            *template_string_literal_expression) {
 
   m_last_value = m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
       template_string_literal_expression->getValue());
 }
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundCharacterLiteralExpression
-        *character_literal_expression) {
+    binding::BoundCharacterLiteralExpression *character_literal_expression) {
 
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),

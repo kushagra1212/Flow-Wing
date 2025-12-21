@@ -1,7 +1,2 @@
-{
-
-var x:int, y: str = 2, "Hello"
-
-print(x,y)
-
-  }
+/; EXPECT_ERROR: kInvalidBinaryOperationWithTypes
+print(true==1.0)
