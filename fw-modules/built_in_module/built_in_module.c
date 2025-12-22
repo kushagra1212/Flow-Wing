@@ -5,7 +5,7 @@
 #include <gc.h> // Header for the Boehm Garbage Collector
 
 // --- Function Declarations (Forward declarations) ---
-void fg_pf(const char* str, bool newline);
+void fg_pf(const char* str);
 char* fg_cs(const char* str1, const char* str2);
 int fg_sl(const char* str);
 char* fg_itos(int num);
@@ -28,12 +28,8 @@ char* fg_ctos(char c);         // For int8 (char)
 
 // --- Function Implementations ---
 
-void fg_pf(const char* str, bool newline) {
-    if (newline) {
-        printf("%s\n", str);
-    } else {
+void fg_pf(const char* str) {
         printf("%s", str);
-    }
 }
 
 char* fg_cs(const char* str1, const char* str2) {

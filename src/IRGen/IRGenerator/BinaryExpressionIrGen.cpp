@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
@@ -62,6 +60,14 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
     assert(false && "Unsupported equality comparison");
   }
 
+  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOEQ(
+        convertToDouble(left_value, left_value->getType()),
+        convertToDouble(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
       left_value, right_value, "equality_comparison_result");
 }
@@ -97,6 +103,15 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
                                    llvm::Value *right_value,
                                    [[maybe_unused]] types::Type *left_type,
                                    [[maybe_unused]] types::Type *right_type) {
+
+  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOLT(
+        convertToDouble(left_value, left_value->getType()),
+        convertToDouble(right_value, right_value->getType()),
+        "less_than_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
       left_value, right_value, "less_than_result");
 }
@@ -105,6 +120,15 @@ llvm::Value *IRGenerator::getLessThanOrEqualBoolResult(
     llvm::Value *left_value, llvm::Value *right_value,
     [[maybe_unused]] types::Type *left_type,
     [[maybe_unused]] types::Type *right_type) {
+
+  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOLE(
+        convertToDouble(left_value, left_value->getType()),
+        convertToDouble(right_value, right_value->getType()),
+        "less_than_or_equal_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpULE(
       left_value, right_value, "less_than_or_equal_result");
 }
@@ -113,6 +137,15 @@ llvm::Value *IRGenerator::getGreaterThanBoolResult(
     llvm::Value *left_value, llvm::Value *right_value,
     [[maybe_unused]] types::Type *left_type,
     [[maybe_unused]] types::Type *right_type) {
+
+  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOGT(
+        convertToDouble(left_value, left_value->getType()),
+        convertToDouble(right_value, right_value->getType()),
+        "greater_than_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpUGT(
       left_value, right_value, "greater_than_result");
 }
@@ -121,6 +154,15 @@ llvm::Value *IRGenerator::getGreaterThanOrEqualBoolResult(
     llvm::Value *left_value, llvm::Value *right_value,
     [[maybe_unused]] types::Type *left_type,
     [[maybe_unused]] types::Type *right_type) {
+
+  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOGE(
+        convertToDouble(left_value, left_value->getType()),
+        convertToDouble(right_value, right_value->getType()),
+        "greater_than_or_equal_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpUGE(
       left_value, right_value, "greater_than_or_equal_result");
 }

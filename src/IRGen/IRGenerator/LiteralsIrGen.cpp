@@ -50,28 +50,28 @@ void IRGenerator::visit(
 
 std::string IRGenerator::unescapeString(const std::string &value) {
   std::string string_value = "";
-  size_t pos = 0;
-  while (pos < value.size()) {
-    if (value[pos] == '\\' && pos + 1 < value.size()) {
-      switch (value[pos + 1]) {
+  size_t pos = 0, len = value.size();
+  while (pos < len) {
+    if (value[pos] == '\\' && pos + 1 < len) {
+      switch (value[++pos]) {
       case 'n': {
         string_value += '\n';
-        pos += 2;
+        pos++;
         continue;
       }
       case 'r': {
         string_value += '\r';
-        pos += 2;
+        pos++;
         continue;
       }
       case 't': {
         string_value += '\t';
-        pos += 2;
+        pos++;
         continue;
       }
       case '0': {
         string_value += '\0';
-        pos += 2;
+        pos++;
         continue;
       }
       default: {
@@ -81,10 +81,10 @@ std::string IRGenerator::unescapeString(const std::string &value) {
       }
       }
     } else {
-      string_value += value[pos];
-      pos++;
+      string_value += value[pos++];
     }
   }
+
   return string_value;
 }
 void IRGenerator::visit(

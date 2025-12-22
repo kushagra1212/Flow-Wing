@@ -36,7 +36,8 @@ ReturnStatus IrDumperPass::run(CompilationContext &context) {
     flow_wing::cli::Reporter::message(context.getLLVMIr());
   } else {
     std::ofstream llvm_ir_file(context.getOptions().output_dir + "/llvm_ir.ll");
-    llvm_ir_file << context.getLLVMIr();
+    std::string llvm_ir = context.getLLVMIr();
+    llvm_ir_file << llvm_ir;
     llvm_ir_file.close();
     flow_wing::cli::Reporter::message(
         "LLVM IR dumped to " + context.getOptions().output_dir + "/llvm_ir.ll");

@@ -68,6 +68,7 @@ private:
   llvm::Function *createEntryPointFunction();
   llvm::Value *convertToString(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);
 
   llvm::Value *getBinaryResult(llvm::Value *left_value,

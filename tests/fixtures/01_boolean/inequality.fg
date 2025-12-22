@@ -1,4 +1,11 @@
+print("Boolean Inequality\n")
 print(true != true, "\n")
 print(true != false, "\n")
 print(false != true, "\n")
-print(false != false)
+print(false != false, "\n")
+
+print("Decimal Inequality\n")
+print(1.0 != 1.0, "\n")
+print(1.0 != 2.0, "\n")
+print(2.0 != 1.0, "\n")
+print(2.0 != 2.0, "\n")

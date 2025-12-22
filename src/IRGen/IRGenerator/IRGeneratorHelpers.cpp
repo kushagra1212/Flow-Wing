@@ -132,20 +132,45 @@ llvm::Value *IRGenerator::convertToInt64(llvm::Value *value, llvm::Type *type) {
   auto &builder = *m_ir_gen_context.getLLVMBuilder();
   auto *ctx = m_ir_gen_context.getLLVMContext();
   auto *module = m_ir_gen_context.getLLVMModule();
+  auto int64_type = llvm::Type::getInt64Ty(*ctx);
   if (type->isIntegerTy(64)) {
     return value;
   }
 
   if (type->isIntegerTy(1) || type->isIntegerTy(8) || type->isIntegerTy(32)) {
-    return builder.CreateZExt(value, llvm::Type::getInt64Ty(*ctx));
+    return builder.CreateZExt(value, int64_type);
   }
 
   if (type->isFloatTy() || type->isDoubleTy()) {
-    return builder.CreateFPToSI(value, llvm::Type::getInt64Ty(*ctx));
+    return builder.CreateFPToSI(value, int64_type);
   }
 
-  auto *func = module->getFunction(constants::functions::kString_to_long_fn);
-  return builder.CreateCall(func, {value}, "string_to_long_long");
+  return builder.CreateCall(
+      module->getFunction(constants::functions::kString_to_long_fn), {value},
+      "string_to_long_long");
+}
+
+llvm::Value *IRGenerator::convertToDouble(llvm::Value *value,
+                                          llvm::Type *type) {
+  auto &builder = *m_ir_gen_context.getLLVMBuilder();
+  auto *ctx = m_ir_gen_context.getLLVMContext();
+  auto *module = m_ir_gen_context.getLLVMModule();
+  auto double_type = llvm::Type::getDoubleTy(*ctx);
+  if (type->isDoubleTy()) {
+    return value;
+  }
+  if (type->isFloatTy()) {
+    return builder.CreateFPExt(value, double_type);
+  }
+
+  if (type->isIntegerTy(1) || type->isIntegerTy(8) || type->isIntegerTy(32) ||
+      type->isIntegerTy(64)) {
+    return builder.CreateSIToFP(value, double_type);
+  }
+
+  return builder.CreateCall(
+      module->getFunction(constants::functions::kString_to_double_fn), {value},
+      "string_to_double");
 }
 
 llvm::Value *IRGenerator::getDefaultValue(types::Type *type) {
