@@ -236,7 +236,7 @@ build-jit-release: $(JIT_RELEASE_DIR)/.configured
 .PHONY: run-jit-debug run-jit-release
 run-jit-debug: build-jit-debug
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..."
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS)
 
 run-jit-release: build-jit-release
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."

@@ -19,11 +19,21 @@
 
 #pragma once
 
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
 #include <vector>
+
+#if defined(__linux__) || defined(__APPLE__)
+#include <cstdlib>
+#include <unistd.h>
+#elif defined(_WIN32)
+#include <windows.h>
+#endif
 
 namespace flow_wing {
 namespace io {
@@ -83,6 +93,31 @@ getFiles(const std::string &directory_path, const std::string &extension,
   }
 
   return files;
+}
+
+static inline void removeFiles(const std::string &directory_path,
+                               const std::string &extension) {
+  std::vector<std::string> files = getFiles(directory_path, extension);
+  for (const auto &file : files) {
+    std::filesystem::remove(file);
+  }
+}
+
+static inline std::string getTempDirectoryPath() {
+#if defined(_WIN32)
+  char tempPath[MAX_PATH];
+  DWORD pathLen = GetTempPathA(MAX_PATH, tempPath);
+  if (pathLen > 0 && pathLen < MAX_PATH) {
+    return std::string(tempPath);
+  }
+  return "";
+#else
+  const char *tempDir = std::getenv("TMPDIR");
+  if (!tempDir) {
+    tempDir = "/tmp/";
+  }
+  return std::string(tempDir);
+#endif
 }
 
 } // namespace io

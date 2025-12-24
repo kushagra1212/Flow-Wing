@@ -27,7 +27,7 @@
       "cacheVariables": {
         "BUILD_AOT": "ON",
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_LOGGING": "OFF"
+        "ENABLE_LOGGING": "ON"
       }
     },
     {
@@ -59,7 +59,8 @@
       "binaryDir": "${sourceDir}/build/jit-debug",
       "cacheVariables": {
         "BUILD_AOT": "OFF",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_LOGGING": "OFF"
       }
     },
     {

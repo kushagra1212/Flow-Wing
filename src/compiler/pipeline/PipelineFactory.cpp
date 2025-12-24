@@ -19,8 +19,10 @@
 
 #include "PipelineFactory.hpp"
 #include "src/compiler/pipeline/passes/AstJsonDumperPass/AstJsonDumperPass.hpp"
+#include "src/compiler/pipeline/passes/CleanupPass/CleanupPass.hpp"
 #include "src/compiler/pipeline/passes/IRGenerationPass/IRGenerationPass.hpp"
 #include "src/compiler/pipeline/passes/IrDumperPass/IrDumperPass.hpp"
+#include "src/compiler/pipeline/passes/JITCompilerPass/JITCompilerPass.hpp"
 #include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
 #include "src/compiler/pipeline/passes/LinkerPass/LinkerPass.hpp"
 #include "src/compiler/pipeline/passes/ObjectEmissionPass/ObjectEmissionPass.hpp"
@@ -29,6 +31,7 @@
 #include "src/compiler/pipeline/passes/SemanticTreeJsonDumperPass/SemanticTreeJsonDumperPass.hpp"
 #include "src/compiler/pipeline/passes/SourceLoaderPass.h"
 #include "src/compiler/pipeline/passes/TokenJsonDumperPass/TokenJsonDumperPass.hpp"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 namespace compiler {
@@ -85,17 +88,28 @@ void PipelineFactory::registerPipelines() {
   m_pipeline_definitions[CompilerOptions::OutputType::kLLVM_IR].push_back(
       [] { return std::make_unique<IrDumperPass>(); });
 
+  // TODO(kushagra): Add optimization pass
+  // Add optimization passes here as needed:
+  // pipeline.addPass(std::make_unique<SimpleConstantFoldingPass>());
+
+  m_pipeline_definitions[CompilerOptions::OutputType::kJIT] = current_passes;
+  m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
+      [] { return std::make_unique<JITCompilerPass>(); });
+
   m_pipeline_definitions[CompilerOptions::OutputType::kObj] = current_passes;
   m_pipeline_definitions[CompilerOptions::OutputType::kObj].push_back(
       [] { return std::make_unique<ObjectEmissionPass>(); });
-
-  // Add optimization passes here as needed:
-  // pipeline.addPass(std::make_unique<SimpleConstantFoldingPass>());
 
   m_pipeline_definitions[CompilerOptions::OutputType::kExe] =
       m_pipeline_definitions[CompilerOptions::OutputType::kObj];
   m_pipeline_definitions[CompilerOptions::OutputType::kExe].push_back(
       [] { return std::make_unique<LinkerPass>(); });
+
+  // Cleanup Pass
+  m_pipeline_definitions[CompilerOptions::OutputType::kExe].push_back(
+      [] { return std::make_unique<CleanupPass>(); });
+  m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
+      [] { return std::make_unique<CleanupPass>(); });
 }
 
 } // namespace pipeline

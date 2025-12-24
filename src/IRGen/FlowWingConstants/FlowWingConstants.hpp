@@ -11,10 +11,18 @@ namespace paths {
 const std::string_view kObject_files_dir = "build\\objects\\";
 const std::string_view kBin_files_dir = "build\\bin\\";
 const std::string_view kObject_file_extension = ".obj";
+const std::string_view kFG_tmp_dir = "fg_temp\\";
 #else
 const std::string_view kObject_files_dir = "build/objects/";
 const std::string_view kBin_files_dir = "build/bin/";
 const std::string_view kObject_file_extension = ".o";
+const std::string_view kFG_tmp_dir = "fg_tmp/";
+#endif
+
+#if defined(DEBUG)
+const std::string_view kIR_files_extension = ".ll";
+#else
+const std::string_view kIR_files_extension = ".bc";
 #endif
 } // namespace paths
 

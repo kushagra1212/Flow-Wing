@@ -54,10 +54,16 @@ struct CompilerOptions {
     kLLVM_IR,
     kAstJson,
     kTokensJson,
-    kSemJson
+    kSemJson,
+    kJIT
   };
 
+#if defined(AOT_MODE)
   OutputType output_type = OutputType::kExe;
+#else
+  OutputType output_type = OutputType::kJIT;
+#endif
+
   std::string output_dir = "./build";
   // Compilation settings
   OptimizationLevel optimization_level = OptimizationLevel::O0;

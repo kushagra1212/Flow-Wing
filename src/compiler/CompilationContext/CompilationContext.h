@@ -19,12 +19,15 @@
 
 #pragma once
 
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
+#include "src/common/io/FileUtils.h"
 #include "src/common/utils/PathUtils/PathUtils.h"
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
 #include "src/compiler/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/CompilationUnitSyntax.h"
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -39,7 +42,13 @@ public:
       : m_options(options),
         m_diagnostics(std::make_unique<diagnostic::DiagnosticHandler>()),
         m_absolute_source_file_path(
-            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)) {}
+            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)) {
+
+    std::filesystem::path temp_root(flow_wing::io::getTempDirectoryPath());
+
+    m_tmp_dir =
+        (temp_root / flow_wing::ir_gen::constants::paths::kFG_tmp_dir).string();
+  }
 
   // Getters
   const CompilerOptions &getOptions() const { return m_options; }
@@ -65,6 +74,7 @@ public:
     return m_bound_tree;
   }
 
+  const std::string &getTempDirectoryPath() const { return m_tmp_dir; }
   const std::string &getLLVMIr() const { return m_llvm_ir; }
 
   ir_gen::LLVMBackendContext *getBackendContext() const {
@@ -99,6 +109,7 @@ private:
   std::unique_ptr<syntax::CompilationUnitSyntax> m_ast;
   std::unique_ptr<binding::BoundCompilationUnit> m_bound_tree;
   std::string m_llvm_ir;
+  std::string m_tmp_dir;
   std::unique_ptr<ir_gen::LLVMBackendContext> m_llvm_backend_context = nullptr;
 };
 } // namespace flow_wing

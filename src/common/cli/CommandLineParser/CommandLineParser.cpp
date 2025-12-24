@@ -124,8 +124,15 @@ public:
       return CompilerOptions::OutputType::kLLVM_IR;
     } else if (value == "obj") {
       return CompilerOptions::OutputType::kObj;
+    } else if (value == "jit") {
+      return CompilerOptions::OutputType::kJIT;
     }
+
+#if defined(AOT_MODE)
     return CompilerOptions::OutputType::kExe;
+#else
+    return CompilerOptions::OutputType::kJIT;
+#endif
   };
 
   ParseResult parse(int argc, char *argv[]) {
@@ -183,6 +190,7 @@ public:
     // Handle emit options
 
     auto emit_value = parseParam(cmdl, kOptEmit, "");
+
     if (!emit_value.empty()) {
       opts.output_type = getOutputType(emit_value);
     }
