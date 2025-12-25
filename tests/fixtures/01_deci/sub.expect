@@ -1,0 +1,15 @@
+Double Subtraction
+0.1
+-0.9
+Double / Int Subtraction
+0.3
+0.7
+Float Subtraction
+0.0999999
+-0.9000001
+Float / Int Subtraction
+0.3
+0.7
+Double / Float Subtraction
+0.0999999523162842
+0.900000047683716

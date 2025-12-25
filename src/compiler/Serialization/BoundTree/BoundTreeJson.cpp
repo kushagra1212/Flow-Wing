@@ -88,56 +88,67 @@ void BoundTreeJson::visit(binding::BoundBlockStatement *block_statement) {
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Expose Statement", "BOUND TREE");
+  assert(false && "Expose statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Custom Type Statement", "BOUND TREE");
+  assert(false && "Custom type statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Function Statement", "BOUND TREE");
+  assert(false && "Function statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundIfStatement *if_statement) {
   PARSER_DEBUG_LOG("Visiting Bound If Statement", "BOUND TREE");
+  assert(false && "If statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundWhileStatement *while_statement) {
   PARSER_DEBUG_LOG("Visiting Bound While Statement", "BOUND TREE");
+  assert(false && "While statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundForStatement *for_statement) {
   PARSER_DEBUG_LOG("Visiting Bound For Statement", "BOUND TREE");
+  assert(false && "For statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundBreakStatement *break_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Break Statement", "BOUND TREE");
+  assert(false && "Break statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundContinueStatement *continue_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Continue Statement", "BOUND TREE");
+  assert(false && "Continue statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundReturnStatement *return_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Return Statement", "BOUND TREE");
+  assert(false && "Return statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Switch Statement", "BOUND TREE");
+  assert(false && "Switch statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundClassStatement *class_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Class Statement", "BOUND TREE");
+  assert(false && "Class statement not supported");
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression
@@ -162,6 +173,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundIndexExpression *index_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Index Expression", "BOUND TREE");
+  assert(false && "Index expression not supported");
 }
 
 void BoundTreeJson::visit(
@@ -181,41 +193,63 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundErrorStatement *error_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Error Statement", "BOUND TREE");
+  assert(false && "Error statement not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundErrorExpression *error_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Error Expression", "BOUND TREE");
+  assert(false && "Error expression not supported");
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundModuleAccessExpression
                               *module_access_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Module Access Expression", "BOUND TREE");
+  assert(false && "Module access expression not supported");
+}
+
+void BoundTreeJson::visit([[maybe_unused]] binding::BoundParenthesizedExpression
+                              *parenthesized_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Parenthesized Expression", "BOUND TREE");
+  nlohmann::json parenthesized_expression_json;
+  parenthesized_expression_json["kind"] =
+      toString(parenthesized_expression->getKind());
+  serializeChild(parenthesized_expression->getExpression(),
+                 parenthesized_expression_json, "expression");
+  parenthesized_expression_json["range"] =
+      toJsonRange(parenthesized_expression->getSourceLocation());
+  m_last_node_json = std::move(parenthesized_expression_json);
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundMemberAccessExpression
                               *member_access_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Member Access Expression", "BOUND TREE");
+
+  assert(false && "Member access expression not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundTernaryExpression *ternary_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Ternary Expression", "BOUND TREE");
+  assert(false && "Ternary expression not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundNewExpression *new_expression) {
   PARSER_DEBUG_LOG("Visiting Bound New Expression", "BOUND TREE");
+  assert(false && "New expression not supported");
 }
 
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundUnaryExpression *unary_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Unary Expression", "BOUND TREE");
+  assert(false && "Unary expression not supported");
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundAssignmentExpression
                               *assignment_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Assignment Expression", "BOUND TREE");
+  assert(false && "Assignment expression not supported");
 }
 
 } // namespace flow_wing::compiler::serializer

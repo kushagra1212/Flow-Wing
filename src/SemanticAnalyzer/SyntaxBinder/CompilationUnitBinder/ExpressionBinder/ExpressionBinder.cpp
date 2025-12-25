@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -39,10 +38,12 @@
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
+#include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 #include <set>
 
@@ -133,7 +134,13 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kUnaryExpression:
     return bindUnaryExpression(
         static_cast<syntax::UnaryExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kParenthesizedExpression:
+    return bindParenthesizedExpression(
+        static_cast<syntax::ParenthesizedExpressionSyntax *>(expression));
   default:
+    BINDER_DEBUG_LOG("Unexpected expression kind for ExpressionBinder: ",
+                     toString(expression->getKind()));
     assert(false && "Unexpected expression kind for ExpressionBinder");
     return nullptr;
   }

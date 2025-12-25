@@ -10,6 +10,7 @@ char* fg_cs(const char* str1, const char* str2);
 int fg_sl(const char* str);
 char* fg_itos(int num);
 char* fg_dtos(double f);
+char* fg_ftos(float f);
 char* fg_gmosc(const char* str);
 int fg_cmp(const char* str1, const char* str2);
 bool fg_lt(const char* str1, const char* str2);
@@ -21,6 +22,7 @@ char* fg_gi();
 int fg_sti(const char* str);
 long long fg_stl(const char* str);
 double fg_std(const char* str);
+float fg_stf(const char* str);
 void fg_re(const char* errorMsg);
 char* fg_lltos(long long num); // For int64
 char* fg_ctos(char c);         // For int8 (char)
@@ -84,13 +86,21 @@ char* fg_ctos(char c) {
 
 
 char* fg_dtos(double f) {
-    // Allocate a sufficiently large buffer for double representation.
+    // 64 bytes is plenty for %g (max length is usually ~24 chars)
     char* buffer = (char*)GC_MALLOC(64);
-     if (buffer == NULL) {
-        fg_re("Memory allocation failed in fg_dtos");
-    }
-    // "%.14f" matches your LLVM IR format string
-    snprintf(buffer, 64, "%.14f", f);
+    if (buffer == NULL) fg_re("Memory allocation failed in fg_dtos");
+    
+    // %.15g automatically chooses the best format and precision for Double
+    snprintf(buffer, 64, "%.15g", f); 
+    return buffer;
+}
+
+char* fg_ftos(float f) {
+    char* buffer = (char*)GC_MALLOC(64);
+    if (buffer == NULL) fg_re("Memory allocation failed in fg_ftos");
+    
+    // %.7g is the correct precision limit for Float
+    snprintf(buffer, 64, "%.7g", f); 
     return buffer;
 }
 
@@ -151,7 +161,11 @@ long long fg_stl(const char* str) {
 }
 
 double fg_std(const char* str) {
-    return atof(str);
+    return strtod(str, NULL);
+}
+
+float fg_stf(const char* str) {
+    return strtof(str, NULL);
 }
 
 void fg_re(const char* errorMsg) {

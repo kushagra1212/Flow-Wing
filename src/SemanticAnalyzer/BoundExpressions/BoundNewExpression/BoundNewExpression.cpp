@@ -40,5 +40,10 @@ std::shared_ptr<types::Type> BoundNewExpression::getType() const {
   return m_expression->getType();
 }
 
+const std::unique_ptr<BoundExpression> &
+BoundNewExpression::getExpression() const {
+  return m_expression;
+}
+
 } // namespace binding
 } // namespace flow_wing

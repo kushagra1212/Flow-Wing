@@ -17,6 +17,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundModuleAccessExpression/BoundModuleAccessExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundNewExpression/BoundNewExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
@@ -98,6 +99,8 @@ public:
   virtual void visit(binding::BoundNewExpression *variable_declaration) = 0;
   virtual void visit(binding::BoundUnaryExpression *variable_declaration) = 0;
   virtual void visit(binding::BoundBinaryExpression *variable_declaration) = 0;
+  virtual void
+  visit(binding::BoundParenthesizedExpression *variable_declaration) = 0;
   virtual void
   visit(binding::BoundAssignmentExpression *variable_declaration) = 0;
 };

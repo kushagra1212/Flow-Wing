@@ -1,0 +1,24 @@
+Boolean Equality
+true
+false
+false
+true
+Decimal Equality
+true
+false
+false
+true
+Nir Equality
+true
+Int32 Equality
+true
+String Equality
+true
+false
+false
+true
+Character Equality
+true
+false
+false
+true

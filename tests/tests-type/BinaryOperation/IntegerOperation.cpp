@@ -31,81 +31,9 @@
 
 */
 
-// Binary Operations on Integers with Integers ( Arithmetic Operations )
 
-TEST_F(BinaryOperationTest, BasicIntegerOperationAddition) {
-  std::string input = "2+2";
-  std::string expected_output = "4";
 
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
 
-TEST_F(BinaryOperationTest, BasicIntegerOperationSubtraction) {
-  std::string input = "2-2";
-  std::string expected_output = "0";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationMultiplication) {
-  std::string input = "2*2";
-  std::string expected_output = "4";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationDivision) {
-  std::string input = "2/2";
-  std::string expected_output = "1.00000000000000";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationDivision2) {
-  std::string input = "2/3";
-  std::string expected_output = "0.66666666666667";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationDivision3) {
-  std::string input = "5/2";
-  std::string expected_output = "2.50000000000000";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-// Binary Operations on Integers with Integers ( Logical Operations )
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalAnd) {
-  std::string input = "2&&2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalOr) {
-  std::string input = "2||2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalNot) {
   std::string input = "!2";
@@ -125,90 +53,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalNotNot) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Binary Operations on Integers with Integers ( Comparison Operations )
 
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonEqual) {
-  std::string input = "2==2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonNotEqual) {
-  std::string input = "2!=2";
-  std::string expected_output = "false";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonLessThan) {
-  std::string input = "2<2";
-  std::string expected_output = "false";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonLessThanOrEqual) {
-  std::string input = "2<=2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonGreaterThan) {
-  std::string input = "2>2";
-  std::string expected_output = "false";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationComparisonGreaterThanOrEqual) {
-  std::string input = "2>=2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-// Binary Operations on Integers with Integers ( Bitwise Operations )
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationBitwiseAnd) {
-  std::string input = "2&2";
-  std::string expected_output = "2";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationBitwiseOr) {
-  std::string input = "2|2";
-  std::string expected_output = "2";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationBitwiseXor) {
-  std::string input = "2^2";
-  std::string expected_output = "0";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationNegation) {
   std::string input = "~2";

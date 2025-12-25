@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
@@ -39,168 +40,24 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
                             right_type);
   }
 
+  if (result_type == analysis::Builtins::m_int32_type_instance.get()) {
+    return getInt32Result(left_value, right_value, operator_kind);
+  }
+
+  if (result_type == analysis::Builtins::m_deci32_type_instance.get()) {
+    return getDecimal32Result(left_value, right_value, operator_kind);
+  }
+
+  if (result_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return getDecimalResult(left_value, right_value, operator_kind);
+  }
+
+  if (result_type == analysis::Builtins::m_str_type_instance.get()) {
+    return getStringResult(left_value, right_value, operator_kind);
+  }
+
   assert(false && "Unsupported binary operator");
   return nullptr;
-}
-
-llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
-    llvm::Value *left_value, llvm::Value *right_value, types::Type *left_type,
-    types::Type *right_type) {
-  if (left_type == analysis::Builtins::m_nirast_type_instance.get() &&
-      right_type == analysis::Builtins::m_nirast_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->getTrue();
-  }
-
-  if (left_type->getKind() == types::TypeKind::kClass &&
-      right_type == analysis::Builtins::m_nirast_type_instance.get()) {
-    assert(false && "Unsupported equality comparison");
-  }
-  if (left_type == analysis::Builtins::m_nirast_type_instance.get() &&
-      right_type->getKind() == types::TypeKind::kClass) {
-    assert(false && "Unsupported equality comparison");
-  }
-
-  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
-      right_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOEQ(
-        convertToDouble(left_value, left_value->getType()),
-        convertToDouble(right_value, right_value->getType()),
-        "equality_comparison_result");
-  }
-
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
-      left_value, right_value, "equality_comparison_result");
-}
-
-llvm::Value *IRGenerator::getInequalityComparisonBoolResult(
-    llvm::Value *left_value, llvm::Value *right_value, types::Type *left_type,
-    types::Type *right_type) {
-  return m_ir_gen_context.getLLVMBuilder()->CreateNot(
-      getEqualityComparisonBoolResult(left_value, right_value, left_type,
-                                      right_type));
-}
-
-llvm::Value *
-IRGenerator::getLogicalAndBoolResult(llvm::Value *left_value,
-                                     llvm::Value *right_value,
-                                     [[maybe_unused]] types::Type *left_type,
-                                     [[maybe_unused]] types::Type *right_type) {
-  return m_ir_gen_context.getLLVMBuilder()->CreateLogicalAnd(
-      left_value, right_value, "logical_and_result");
-}
-
-llvm::Value *
-IRGenerator::getLogicalOrBoolResult(llvm::Value *left_value,
-                                    llvm::Value *right_value,
-                                    [[maybe_unused]] types::Type *left_type,
-                                    [[maybe_unused]] types::Type *right_type) {
-  return m_ir_gen_context.getLLVMBuilder()->CreateLogicalOr(
-      left_value, right_value, "logical_or_result");
-}
-
-llvm::Value *
-IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
-                                   llvm::Value *right_value,
-                                   [[maybe_unused]] types::Type *left_type,
-                                   [[maybe_unused]] types::Type *right_type) {
-
-  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
-      right_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOLT(
-        convertToDouble(left_value, left_value->getType()),
-        convertToDouble(right_value, right_value->getType()),
-        "less_than_result");
-  }
-
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
-      left_value, right_value, "less_than_result");
-}
-
-llvm::Value *IRGenerator::getLessThanOrEqualBoolResult(
-    llvm::Value *left_value, llvm::Value *right_value,
-    [[maybe_unused]] types::Type *left_type,
-    [[maybe_unused]] types::Type *right_type) {
-
-  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
-      right_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOLE(
-        convertToDouble(left_value, left_value->getType()),
-        convertToDouble(right_value, right_value->getType()),
-        "less_than_or_equal_result");
-  }
-
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpULE(
-      left_value, right_value, "less_than_or_equal_result");
-}
-
-llvm::Value *IRGenerator::getGreaterThanBoolResult(
-    llvm::Value *left_value, llvm::Value *right_value,
-    [[maybe_unused]] types::Type *left_type,
-    [[maybe_unused]] types::Type *right_type) {
-
-  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
-      right_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOGT(
-        convertToDouble(left_value, left_value->getType()),
-        convertToDouble(right_value, right_value->getType()),
-        "greater_than_result");
-  }
-
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpUGT(
-      left_value, right_value, "greater_than_result");
-}
-
-llvm::Value *IRGenerator::getGreaterThanOrEqualBoolResult(
-    llvm::Value *left_value, llvm::Value *right_value,
-    [[maybe_unused]] types::Type *left_type,
-    [[maybe_unused]] types::Type *right_type) {
-
-  if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
-      right_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOGE(
-        convertToDouble(left_value, left_value->getType()),
-        convertToDouble(right_value, right_value->getType()),
-        "greater_than_or_equal_result");
-  }
-
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpUGE(
-      left_value, right_value, "greater_than_or_equal_result");
-}
-llvm::Value *IRGenerator::getBooleanResult(llvm::Value *left_value,
-                                           llvm::Value *right_value,
-                                           lexer::TokenKind operator_kind,
-                                           types::Type *left_type,
-                                           types::Type *right_type) {
-
-  switch (operator_kind) {
-  case lexer::TokenKind::kEqualsEqualsToken:
-    return getEqualityComparisonBoolResult(left_value, right_value, left_type,
-                                           right_type);
-  case lexer::TokenKind::kBangEqualsToken:
-    return getInequalityComparisonBoolResult(left_value, right_value, left_type,
-                                             right_type);
-  case lexer::TokenKind::kAmpersandAmpersandToken:
-    return getLogicalAndBoolResult(left_value, right_value, left_type,
-                                   right_type);
-  case lexer::TokenKind::kPipePipeToken:
-    return getLogicalOrBoolResult(left_value, right_value, left_type,
-                                  right_type);
-  case lexer::TokenKind::kLessToken:
-    return getLessThanBoolResult(left_value, right_value, left_type,
-                                 right_type);
-  case lexer::TokenKind::kLessOrEqualsToken:
-    return getLessThanOrEqualBoolResult(left_value, right_value, left_type,
-                                        right_type);
-  case lexer::TokenKind::kGreaterToken:
-    return getGreaterThanBoolResult(left_value, right_value, left_type,
-                                    right_type);
-  case lexer::TokenKind::kGreaterOrEqualsToken:
-    return getGreaterThanOrEqualBoolResult(left_value, right_value, left_type,
-                                           right_type);
-  default:
-    assert(false && "Unsupported boolean operator");
-    return nullptr;
-  }
 }
 
 void IRGenerator::visit(binding::BoundBinaryExpression *binary_expression) {

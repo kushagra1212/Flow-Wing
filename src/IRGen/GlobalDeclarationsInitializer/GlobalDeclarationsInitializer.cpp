@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "GlobalDeclarationsInitializer.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
@@ -170,6 +169,10 @@ void GlobalDeclarationsInitializer::visit(
         *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundNirastLiteralExpression
+        *variable_declaration) {}
+
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundParenthesizedExpression
         *variable_declaration) {}
 
 } // namespace ir_gen

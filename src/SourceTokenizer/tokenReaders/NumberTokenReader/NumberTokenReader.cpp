@@ -73,7 +73,7 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer,
 
   int8_t is_deci32 = 0;
 
-  if (lexer.currentChar() == 'd') {
+  if (lexer.currentChar() == 'f') {
     lexer.advancePosition();
     is_deci32 = 1;
   }

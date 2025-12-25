@@ -1,0 +1,27 @@
+Boolean Inequality
+false
+true
+true
+false
+Decimal Inequality
+false
+true
+true
+false
+Nir Inequality
+false
+Int32 Inequality
+false
+true
+true
+false
+String Inequality
+false
+true
+true
+false
+Character Inequality
+false
+true
+true
+false

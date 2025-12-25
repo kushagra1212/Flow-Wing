@@ -68,6 +68,9 @@ enum class NodeKind : int {
   kIdentifierExpression,
   kIndexExpression,
 
+  // ---- Bound Parenthesized Expressions ----
+  kParenthesizedExpression,
+
   // --- Bound Literal Expressions ---
   kNumberLiteralExpression,
   kDoubleLiteralExpression,

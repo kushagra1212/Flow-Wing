@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundNirastLiteralExpression/BoundNirastLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
 
 // clang-format off
@@ -43,9 +44,26 @@ void IRGenerator::visit(
 
 void IRGenerator::visit(
     binding::BoundDoubleLiteralExpression *double_literal_expression) {
-  m_last_value = llvm::ConstantFP::get(
-      *m_ir_gen_context.getLLVMContext(),
-      llvm::APFloat(double_literal_expression->getValue()));
+  auto *double_type =
+      llvm::Type::getDoubleTy(*m_ir_gen_context.getLLVMContext());
+  m_last_value =
+      llvm::ConstantFP::get(double_type, double_literal_expression->getValue());
+}
+
+void IRGenerator::visit(
+    binding::BoundFloatLiteralExpression *float_literal_expression) {
+  auto *float_type = llvm::Type::getFloatTy(*m_ir_gen_context.getLLVMContext());
+  m_last_value =
+      llvm::ConstantFP::get(float_type, float_literal_expression->getValue());
+}
+
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundNirastLiteralExpression *statement) {
+  auto *void_ptr_type =
+      llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext());
+
+  // Create the actual 'null' literal
+  m_last_value = llvm::ConstantPointerNull::get(void_ptr_type);
 }
 
 std::string IRGenerator::unescapeString(const std::string &value) {

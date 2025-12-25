@@ -127,48 +127,88 @@ void IRGenerator::visit(
     clearLastValue();
   }
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
+
+void IRGenerator::visit([[maybe_unused]] binding::BoundParenthesizedExpression
+                            *parenthesized_expression) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Parenthesized Expression", "IR GENERATION");
+  parenthesized_expression->getExpression()->accept(this);
 }
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundFunctionStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {
+  assert(false && "Expose statement not supported");
+}
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundIfStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundWhileStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundForStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundBreakStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundContinueStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundReturnStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundSwitchStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundClassStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
+  assert(false && "Custom type statement not supported");
+}
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundIndexExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundFunctionStatement *statement) {
+  assert(false && "Function statement not supported");
+}
+void IRGenerator::visit([[maybe_unused]] binding::BoundIfStatement *statement) {
+  assert(false && "If statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundWhileStatement *statement) {
+  assert(false && "While statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundForStatement *statement) {
+  assert(false && "For statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundBreakStatement *statement) {
+  assert(false && "Break statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundContinueStatement *statement) {
+  assert(false && "Continue statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundReturnStatement *statement) {
+  assert(false && "Return statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundSwitchStatement *statement) {
+  assert(false && "Switch statement not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundClassStatement *statement) {
+  assert(false && "Class statement not supported");
+}
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundErrorStatement *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundErrorExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundIndexExpression *statement) {
+  assert(false && "Index expression not supported");
+}
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundTernaryExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundErrorStatement *statement) {
+  assert(false && "Error statement not supported");
+}
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundNewExpression *variable_declaration) {}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundUnaryExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundErrorExpression *statement) {
+  assert(false && "Error expression not supported");
+}
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundAssignmentExpression *variable_declaration) {
+    [[maybe_unused]] binding::BoundTernaryExpression *statement) {
+  assert(false && "Ternary expression not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundNewExpression *statement) {
+  assert(false && "New expression not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundUnaryExpression *statement) {
+  assert(false && "Unary expression not supported");
+}
+
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundAssignmentExpression *statement) {
+  assert(false && "Assignment expression not supported");
 }
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundExpressionStatement *expression_statement) {
@@ -176,15 +216,14 @@ void IRGenerator::visit(
 
   expression_statement->getExpression()->accept(this);
 }
-void IRGenerator::visit([[maybe_unused]] binding::BoundModuleAccessExpression
-                            *variable_declaration) {}
-void IRGenerator::visit([[maybe_unused]] binding::BoundMemberAccessExpression
-                            *variable_declaration) {}
-void IRGenerator::visit([[maybe_unused]] binding::BoundNirastLiteralExpression
-                            *variable_declaration) {}
-
-void IRGenerator::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
-                            *variable_declaration) {}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundModuleAccessExpression *statement) {
+  assert(false && "Module access expression not supported");
+}
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundMemberAccessExpression *statement) {
+  assert(false && "Member access expression not supported");
+}
 
 void IRGenerator::visit(
     binding::BoundIdentifierExpression *identifier_expression) {

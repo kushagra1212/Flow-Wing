@@ -83,9 +83,9 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
             output = result.stderr + result.stdout 
             
             if expected_error_code in output:
-                 return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code})"
+                 return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
             else:
-                return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Output:\n{output}"
+                return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Output:\n{output} ({duration:.1f}ms)"
 
         # --- PATH B: EXECUTION TEST (Expect Success + Golden File Output) ---
         
@@ -129,7 +129,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
         with open(expect_file, 'r') as f: expected_output = f.read()
 
         if actual_output == expected_output:
-            return True, f"{Colors.OKGREEN}[PASS (EXEC)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
+            return True, f"{Colors.OKGREEN}[PASS (COMPILED)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
         else:
             diff = list(difflib.unified_diff(
                 expected_output.splitlines(keepends=True),
@@ -142,7 +142,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
             if not diff_text and actual_output != expected_output:
                 diff_text = f"{Colors.WARNING}--- INVISIBLE DIFF ---{Colors.ENDC}\nExp: {repr(expected_output)}\nAct: {repr(actual_output)}\n"
             if stderr_output: diff_text += f"\n{Colors.WARNING}--- STDERR ---{Colors.ENDC}\n{stderr_output}"
-            return False, f"{Colors.FAIL}[FAIL (EXEC)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+            return False, f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
 
     except subprocess.TimeoutExpired:
         return False, f"{Colors.FAIL}[TIMEOUT]{Colors.ENDC} {file_path.name}"
@@ -189,7 +189,7 @@ def main():
     stats = {
         "failed": 0,
         "completed": 0,
-        "passed_exec": 0,
+        "passed_compiled": 0,
         "passed_diag": 0
     }
     
@@ -202,8 +202,8 @@ def main():
         stats["completed"] += 1
         if not success:
             stats["failed"] += 1
-        elif "PASS (EXEC)" in msg:
-            stats["passed_exec"] += 1
+        elif "PASS (COMPILED)" in msg:
+            stats["passed_compiled"] += 1
         elif "PASS (DIAG)" in msg:
             stats["passed_diag"] += 1
         
@@ -211,7 +211,7 @@ def main():
         
         if not success or "UPDATED" in msg: 
              print(msg)
-        elif "PASS" in msg and total < 15: 
+        elif "PASS" in msg and total < 3000: 
              print(msg)
              
         print_progress_bar(stats["completed"], total, stats["failed"], suite_start_time)
@@ -240,7 +240,7 @@ def main():
         sys.exit(1)
     else:
         duration = time.time() - suite_start_time
-        breakdown = f"({stats['passed_exec']} Exec, {stats['passed_diag']} Diag)"
+        breakdown = f"({stats['passed_compiled']} Compiled, {stats['passed_diag']} Diag)"
         print(f"{Colors.OKGREEN}✅ All {total} tests passed {breakdown} in {duration:.2f}s!{Colors.ENDC}")
         sys.exit(0)
 

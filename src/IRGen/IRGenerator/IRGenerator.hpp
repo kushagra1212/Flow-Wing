@@ -48,6 +48,8 @@ public:
   void visit(binding::BoundCallExpression *variable_declaration) override;
   void visit(binding::BoundTernaryExpression *variable_declaration) override;
   void visit(binding::BoundNewExpression *variable_declaration) override;
+  void
+  visit(binding::BoundParenthesizedExpression *variable_declaration) override;
   void visit(binding::BoundUnaryExpression *variable_declaration) override;
   void visit(binding::BoundBinaryExpression *variable_declaration) override;
   void visit(binding::BoundAssignmentExpression *variable_declaration) override;
@@ -69,6 +71,7 @@ private:
   llvm::Value *convertToString(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToFloat(llvm::Value *value, llvm::Type *type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);
 
   llvm::Value *getBinaryResult(llvm::Value *left_value,
@@ -83,6 +86,7 @@ private:
                                 lexer::TokenKind operator_kind,
                                 types::Type *left_type,
                                 types::Type *right_type);
+
   llvm::Value *getEqualityComparisonBoolResult(llvm::Value *left_value,
                                                llvm::Value *right_value,
                                                types::Type *left_type,
@@ -115,6 +119,19 @@ private:
                                                llvm::Value *right_value,
                                                types::Type *left_type,
                                                types::Type *right_type);
+
+  // Integer Result
+  llvm::Value *getInt32Result(llvm::Value *left_value, llvm::Value *right_value,
+                              lexer::TokenKind operator_kind);
+  llvm::Value *getDecimal32Result(llvm::Value *left_value,
+                                  llvm::Value *right_value,
+                                  lexer::TokenKind operator_kind);
+  llvm::Value *getDecimalResult(llvm::Value *left_value,
+                                llvm::Value *right_value,
+                                lexer::TokenKind operator_kind);
+  llvm::Value *getStringResult(llvm::Value *left_value,
+                               llvm::Value *right_value,
+                               lexer::TokenKind operator_kind);
   void handleReturn();
   void verifyModule();
 

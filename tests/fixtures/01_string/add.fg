@@ -1,0 +1,26 @@
+print("String Concatenation\n")
+print("Hello" + "World", "\n")
+print("Hello" + "World" + "Hello", "\n")
+
+print("String Concatenation with Numbers\n")
+print("Hello" + 2, "\n")
+print("Hello" + 2.0, "\n")
+print("Hello" + 2.0f, "\n")
+print("Hello" + 2.2f, "\n")
+print("Hello" + 2.5, "\n")
+print("Hello" + true, "\n")
+
+print("String Concatenation with Booleans\n")
+print("Hello" + true, "\n")
+print("Hello" + false, "\n")
+
+print("String Concatenation with Characters\n")
+print("Hello" + 'a', "\n")
+print("Hello" + 'b', "\n")
+
+print("String Concatenation with escaped characters\n")
+print("Hello" + "\n", "\n")
+print("Hello" + "\t" + "World", "\n")
+print("Hello" + "\r" + "World", "\n")
+print("Hello" + "\0" + "World", "\n")
+print("old text" +"\r" + "new text", "\n")

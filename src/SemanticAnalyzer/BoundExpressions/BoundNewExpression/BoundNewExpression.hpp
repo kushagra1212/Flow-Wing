@@ -37,7 +37,7 @@ public:
   // Getters
   std::shared_ptr<types::Type> getType() const override;
 
-  const std::unique_ptr<BoundExpression> &getExpression();
+  const std::unique_ptr<BoundExpression> &getExpression() const;
 
 private:
   std::unique_ptr<BoundExpression> m_expression;

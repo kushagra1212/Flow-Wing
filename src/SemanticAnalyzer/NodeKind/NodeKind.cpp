@@ -51,6 +51,9 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kIdentifierExpression, "IdentifierExpression"},
       {NodeKind::kIndexExpression, "IndexExpression"},
 
+      // ---- Bound Parenthesized Expressions ----
+      {NodeKind::kParenthesizedExpression, "ParenthesizedExpression"},
+
       // --- Bound Literal Expressions ---
       {NodeKind::kNumberLiteralExpression, "NumberLiteralExpression"},
       {NodeKind::kDoubleLiteralExpression, "DoubleLiteralExpression"},

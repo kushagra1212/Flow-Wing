@@ -1,0 +1,17 @@
+print("Int Multiplication\n")
+print(1 * 1, "\n")
+print(1 * 2, "\n")
+print(2 * 1, "\n")
+print(2 * 2, "\n")
+
+print("Int Division\n")
+print(1 // 1, "\n")
+print(1 // 2, "\n")
+print(2 // 1, "\n")
+print(2 // 2, "\n")
+
+print("Int Modulus\n")
+print(1 % 1, "\n")
+print(1 % 2, "\n")
+print(2 % 1, "\n")
+print(2 % 2, "\n")

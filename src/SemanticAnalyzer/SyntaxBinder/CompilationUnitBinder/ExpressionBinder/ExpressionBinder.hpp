@@ -54,6 +54,9 @@ class BinaryExpressionSyntax;
 
 // -- Assignment Expression --
 class AssignmentExpressionSyntax;
+
+// -- Parenthesized Expression --
+class ParenthesizedExpressionSyntax;
 } // namespace syntax
 
 namespace binding {
@@ -134,6 +137,9 @@ private:
   isUnaryAllowedType(lexer::TokenKind operator_token_kind,
                      std::shared_ptr<types::Type> type,
                      const diagnostic::SourceLocation &source_location);
+  // -- Parenthesized Expression --
+  std::unique_ptr<BoundExpression> bindParenthesizedExpression(
+      syntax::ParenthesizedExpressionSyntax *expression);
 
   // -- Binary Expression --
   std::unique_ptr<BoundExpression>

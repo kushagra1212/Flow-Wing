@@ -74,6 +74,8 @@ private:
   visit(binding::BoundMemberAccessExpression *variable_declaration) override;
   void visit(binding::BoundTernaryExpression *variable_declaration) override;
   void visit(binding::BoundNewExpression *variable_declaration) override;
+  void
+  visit(binding::BoundParenthesizedExpression *variable_declaration) override;
   void visit(binding::BoundUnaryExpression *variable_declaration) override;
   void visit(binding::BoundBinaryExpression *variable_declaration) override;
   void visit(binding::BoundAssignmentExpression *variable_declaration) override;
