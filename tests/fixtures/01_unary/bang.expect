@@ -40,3 +40,12 @@ false
 false
 Bang Prefix Operator for Nir
 true
+Bang Bang Prefix Operator for Int
+true
+true
+false
+Bang Bang Prefix Operator for Double
+true
+true
+true
+false

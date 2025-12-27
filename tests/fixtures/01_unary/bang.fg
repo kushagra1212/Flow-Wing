@@ -46,3 +46,15 @@ print(!('a' != 'b') , '\n')
 
 print("Bang Prefix Operator for Nir\n")
 print(!Nir , '\n')
+
+
+print("Bang Bang Prefix Operator for Int\n")
+print(!(!1) , '\n')
+print(!(!3) , '\n')
+print(!(!0) , '\n')
+
+print("Bang Bang Prefix Operator for Double\n")
+print(!(!1.0) , '\n')
+print(!(!3.0) , '\n')
+print(!(!2.5) , '\n')
+print(!(!0.0) , '\n')

@@ -220,7 +220,6 @@ ExpressionBinder::isUnaryAllowedType(
   static const std::set<types::Type *> allowed_types_for_tilde_operator = {
       // integers
       analysis::Builtins::m_int32_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get(),
       analysis::Builtins::m_int64_type_instance.get(),
 
       // dynamic
