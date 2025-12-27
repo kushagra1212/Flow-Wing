@@ -7,6 +7,7 @@ import difflib
 import time
 import re
 import shutil
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -19,10 +20,10 @@ class Colors:
     BOLD = '\033[1m'
     ENDC = '\033[0m'
 
-def print_progress_bar(iteration, total, failed, start_time, bar_length=40):
+def print_progress_bar(iteration, total, failed, skipped, start_time, bar_length=40):
     """
-    Prints a progress bar with percentage, elapsed time, ETA, and failure count.
-    Output: ▕██████░░░░▏ 60.0% | ⏳ 3.5s | 🏁 ETA: 2.3s | ❌ 0
+    Prints a progress bar with percentage, elapsed time, ETA, failure count, and skip count.
+    Output: ▕██████░░░░▏ 60.0% | ⏳ 3.5s | 🏁 ETA: 2.3s | ❌ 0 | ⏭ 1
     """
     percent = 100 * (iteration / float(total))
     filled_length = int(bar_length * iteration // total)
@@ -47,7 +48,7 @@ def print_progress_bar(iteration, total, failed, start_time, bar_length=40):
     # -----------------------
 
     # \r moves cursor to start, \033[K clears line
-    sys.stdout.write(f'\r\033[K{status_color}▕{bar}▏{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | ⏳ {elapsed:.1f}s | 🏁 ETA: {eta_str} | ❌ {failed}')
+    sys.stdout.write(f'\r\033[K{status_color}▕{bar}▏{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | ⏳ {elapsed:.1f}s | 🏁 ETA: {eta_str} | ❌ {failed} | {Colors.WARNING}⏭ {skipped}{Colors.ENDC}')
     sys.stdout.flush()
 
 def get_expected_error_code(file_path):
@@ -66,7 +67,14 @@ def get_expected_error_code(file_path):
         pass
     return None
 
-def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
+def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock):
+    parent_dir = file_path.parent
+
+    # --- Check for Directory Failure (Stop-on-fail logic) ---
+    with dir_lock:
+        if parent_dir in failed_dirs:
+            return None, f"{Colors.WARNING}[SKIPPED]{Colors.ENDC} {file_path.name} (Directory failed)"
+
     try:
         start_time = time.time()
         
@@ -85,6 +93,8 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
             if expected_error_code in output:
                  return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
             else:
+                with dir_lock:
+                    failed_dirs.add(parent_dir)
                 return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Output:\n{output} ({duration:.1f}ms)"
 
         # --- PATH B: EXECUTION TEST (Expect Success + Golden File Output) ---
@@ -97,12 +107,16 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
             compile_result = subprocess.run(compile_cmd, capture_output=True, text=True)
             
             if compile_result.returncode != 0:
+                with dir_lock:
+                    failed_dirs.add(parent_dir)
                 return False, f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr}\n{compile_result.stdout}"
             
             binary_name = file_path.stem
             binary_path = test_temp_dir / "bin" / binary_name
             
             if not binary_path.exists():
+                 with dir_lock:
+                    failed_dirs.add(parent_dir)
                  return False, f"{Colors.FAIL}[MISSING BINARY]{Colors.ENDC} Expected at: {binary_path}"
             
             run_cmd = [str(binary_path)]
@@ -126,6 +140,8 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
                 with open(expect_file, 'w') as f: f.write(actual_output)
                 return True, f"{Colors.OKBLUE}{action_tag}{Colors.ENDC} {file_path.name}"
             except Exception as e:
+                with dir_lock:
+                    failed_dirs.add(parent_dir)
                 return False, f"{Colors.FAIL}[WRITE ERROR]{Colors.ENDC} Could not write {expect_file}: {e}"
     
 
@@ -145,11 +161,18 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
             if not diff_text and actual_output != expected_output:
                 diff_text = f"{Colors.WARNING}--- INVISIBLE DIFF ---{Colors.ENDC}\nExp: {repr(expected_output)}\nAct: {repr(actual_output)}\n"
             if stderr_output: diff_text += f"\n{Colors.WARNING}--- STDERR ---{Colors.ENDC}\n{stderr_output}"
+            
+            with dir_lock:
+                failed_dirs.add(parent_dir)
             return False, f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
 
     except subprocess.TimeoutExpired:
+        with dir_lock:
+            failed_dirs.add(parent_dir)
         return False, f"{Colors.FAIL}[TIMEOUT]{Colors.ENDC} {file_path.name}"
     except Exception as e:
+        with dir_lock:
+            failed_dirs.add(parent_dir)
         return False, f"{Colors.FAIL}[ERROR]{Colors.ENDC} {file_path.name}: {str(e)}"
 
 def main():
@@ -193,18 +216,29 @@ def main():
         "failed": 0,
         "completed": 0,
         "passed_compiled": 0,
-        "passed_diag": 0
+        "passed_diag": 0,
+        "skipped": 0
     }
     
+    # Shared state for directory skipping and failing file collection
+    failed_dirs = set()
+    failed_files = [] # Store full paths of failed tests
+    dir_lock = threading.Lock()
+
     total = len(all_tests)
     suite_start_time = time.time()
     
-    print_progress_bar(0, total, 0, suite_start_time)
+    print_progress_bar(0, total, 0, 0, suite_start_time)
 
-    def handle_result(success, msg):
+    def handle_result(success, msg, file_path):
         stats["completed"] += 1
-        if not success:
+        
+        if success is None: # Skipped
+            stats["skipped"] += 1
+        elif not success:
             stats["failed"] += 1
+            # Add to list of failed files
+            failed_files.append(file_path)
         elif "PASS (COMPILED)" in msg:
             stats["passed_compiled"] += 1
         elif "PASS (DIAG)" in msg:
@@ -212,34 +246,40 @@ def main():
         
         sys.stdout.write('\r\033[K')
         
-        if not success or "UPDATED" in msg or "CREATED" in msg: 
+        if success is False or "UPDATED" in msg or "CREATED" in msg: 
              print(msg)
-        elif "PASS" in msg and total < 3000: 
+        elif success is True and total < 3000: 
              print(msg)
              
-        print_progress_bar(stats["completed"], total, stats["failed"], suite_start_time)
+        print_progress_bar(stats["completed"], total, stats["failed"], stats["skipped"], suite_start_time)
 
     use_parallel = args.parallel
 
     if use_parallel:
         with ThreadPoolExecutor() as executor:
             future_to_test = {
-                executor.submit(run_single_test, compiler_path, t, args.update, args.mode, temp_root): t 
+                executor.submit(run_single_test, compiler_path, t, args.update, args.mode, temp_root, failed_dirs, dir_lock): t 
                 for t in all_tests
             }
             for future in as_completed(future_to_test):
+                test_path = future_to_test[future]
                 success, msg = future.result()
-                handle_result(success, msg)
+                handle_result(success, msg, test_path)
     else:
         for t in all_tests:
-            success, msg = run_single_test(compiler_path, t, args.update, args.mode, temp_root)
-            handle_result(success, msg)
+            success, msg = run_single_test(compiler_path, t, args.update, args.mode, temp_root, failed_dirs, dir_lock)
+            handle_result(success, msg, t)
 
     print()
     print("-" * 60)
 
     if stats["failed"] > 0:
-        print(f"{Colors.FAIL}❌ Failed: {stats['failed']}/{total}{Colors.ENDC}")
+        print(f"\n{Colors.HEADER}Failed Test Summary:{Colors.ENDC}")
+        for f in failed_files:
+            print(f"{Colors.FAIL}• {f}{Colors.ENDC}")
+        print("-" * 60)
+        
+        print(f"{Colors.FAIL}❌ Failed: {stats['failed']}, Skipped: {stats['skipped']}, Passed: {stats['passed_compiled'] + stats['passed_diag']}{Colors.ENDC}")
         sys.exit(1)
     else:
         duration = time.time() - suite_start_time
