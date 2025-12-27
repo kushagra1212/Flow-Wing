@@ -1,0 +1,17 @@
+/; EXPECT_ERROR: UnTerminatedTemplateStringLiteral
+var s = `
+
+This is the template string
+
+
+Very long string
+
+
+                funny string
+
+weird string
+{char}
+
+
+
+print(s)

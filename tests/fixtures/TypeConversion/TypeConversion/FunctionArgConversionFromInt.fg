@@ -1,0 +1,2 @@
+fun getC(d: deci32) -> str { return String(d) }
+    print(getC(42.0d))

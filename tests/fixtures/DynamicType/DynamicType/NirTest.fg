@@ -1,0 +1,76 @@
+{
+  var x: int = 22
+  if (x) {
+    print("x is true")
+  }
+}
+print("\n")
+{
+  var x: str = "Hello"
+  if (x) {
+    print("x is true")
+  }
+}
+print("\n")
+{
+  var x = "Hello"
+  if (x) {
+    print("x is true")
+  }
+}
+print("\n")
+{
+  var x = 22
+  if (x) {
+    print("x is true")
+  }
+}
+print("\n")
+{
+  var x = 0
+  if (x) {
+    print("x is true")
+  }
+}
+print("\n")
+{
+  var x = 22
+  if (x != Nir) {
+    print("x is not Nir")
+  }
+}
+print("\n")
+{
+  var x = Nir
+  if (x == Nir) {
+    print("x is Nir")
+  }
+}
+print("\n")
+{
+  var x: str = "Hello"
+  if (x == Nir) {
+    print("x is Nir")
+  }
+}
+print("\n")
+{
+  var x = 2
+  if (x == Nir) {
+    print("x is Nir")
+  }
+}
+print("\n")
+{
+  var x = 2
+  if (x == Nir) {
+    print("x is Nir")
+  }
+}
+print("\n")
+{
+  var x = 0
+  if (x == Nir) {
+    print("x is Nir")
+  }
+}

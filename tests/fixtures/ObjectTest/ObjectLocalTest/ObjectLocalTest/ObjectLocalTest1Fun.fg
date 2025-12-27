@@ -1,0 +1,21 @@
+type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool
+     }
+     fun mainTest() -> t1{
+           var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+
+     return x
+     }
+
+    {
+             var u:t1 = mainTest()
+     print(u)
+    }

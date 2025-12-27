@@ -1,0 +1,9 @@
+fun test(arr:int[5])-> nthg{
+        print(arr)
+        arr = [2 fill 10]
+        print(arr)
+    }
+    var arr:int[5] = [1,2,3,4,5]
+    {
+        test(arr)
+    }

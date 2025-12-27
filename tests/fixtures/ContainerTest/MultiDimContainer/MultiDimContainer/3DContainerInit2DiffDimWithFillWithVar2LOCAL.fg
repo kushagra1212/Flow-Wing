@@ -1,0 +1,3 @@
+{            var y:int = 5
+            var x : int[2][3][2] = [6 fill y + 1] 
+            print(x)}

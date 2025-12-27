@@ -1,0 +1,13 @@
+fun test2(a: int, b: str, c = 2.2) -> nthg {
+  print("A ", a, "\n")
+  print("B ", b, "\n")
+  print("C ", c, "\n")
+}
+
+test2(2, "3", "Hello")
+test2(2, "3", 2)
+test2(2, "3", 3.5d)
+test2(2, "3", 3.5)
+test2(2, "3", true)
+test2(2, "3", false)
+test2(2, "3", Nir)

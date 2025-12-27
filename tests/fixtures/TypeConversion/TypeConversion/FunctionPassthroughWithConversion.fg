@@ -1,0 +1,2 @@
+fun getD(s: str) -> str { return s }
+    print(Int32(getD("65")))

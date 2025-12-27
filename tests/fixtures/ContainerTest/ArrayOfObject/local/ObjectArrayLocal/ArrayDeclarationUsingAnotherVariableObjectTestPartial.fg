@@ -1,0 +1,32 @@
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+{
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var arr2:t[2] = [1 fill {y:"j",a:2.2}]
+print(arr)
+print("\n")
+var p:int[2] = [1,2]
+arr[0] = arr2[0]
+print(arr)
+}

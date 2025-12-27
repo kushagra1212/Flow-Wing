@@ -1,0 +1,27 @@
+type parent = {
+      pa:str,
+      pb:int,
+      pc:deci,
+      pd:bool
+     }
+
+     type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool,
+      p:parent
+     }
+
+     fun mainTest() -> t1 {
+           var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+     return x
+     }
+
+     var y:t1 = mainTest()
+     print(y)

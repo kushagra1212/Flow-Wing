@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: VariableAlreadyDeclared
+
+var xx: int = 2
+bring "test1.fg"
+  

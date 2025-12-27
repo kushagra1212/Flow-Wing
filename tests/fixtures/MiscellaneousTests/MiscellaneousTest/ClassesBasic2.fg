@@ -1,0 +1,20 @@
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+fun getA() -> A {
+  var x:A = new A({a:22})
+
+  return x 
+}
+
+var a:A = getA()
+print(a.obj)

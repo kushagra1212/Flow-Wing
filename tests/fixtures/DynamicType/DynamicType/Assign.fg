@@ -1,0 +1,6 @@
+var x = "Hello"
+var k: int = 5
+var y = 2 + (20 + 22 + k)
+print(k, "\n")
+k = x 
+print(k, "\n")

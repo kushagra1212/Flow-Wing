@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: CanNotAssignNonDynamicSupertypeToDynamicVariable
+var x = 2
+print(x, "\n")
+type T = {
+  y: int
+}
+var j: T = {
+  y: 2
+}
+x = j 
+print(x, "\n")

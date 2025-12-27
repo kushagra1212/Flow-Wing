@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: PassingObjectToNonObjectParam
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+testFun({
+  x: 2
+})

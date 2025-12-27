@@ -1,0 +1,4 @@
+fun mainTest()-> bool {
+return false
+}
+print(mainTest())

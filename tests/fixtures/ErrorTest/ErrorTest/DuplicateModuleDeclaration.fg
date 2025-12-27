@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: DuplicateModuleDeclaration
+var x = 2 + 2
+module [My_Module_3]
+
+
+module [My_Module_3]

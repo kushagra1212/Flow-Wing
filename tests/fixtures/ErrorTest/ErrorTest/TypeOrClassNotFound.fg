@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: TypeOrClassNotFound
+var x:Test = 2

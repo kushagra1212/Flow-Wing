@@ -1,0 +1,1 @@
+if(false) { print( 4) } or if(true) { print( 5) } else { print( 6)}

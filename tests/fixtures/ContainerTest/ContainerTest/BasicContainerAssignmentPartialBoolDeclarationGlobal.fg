@@ -1,0 +1,5 @@
+var a:bool[5] = [true, false, true, false, true]
+  a = [false, true, false]
+
+
+print(a)

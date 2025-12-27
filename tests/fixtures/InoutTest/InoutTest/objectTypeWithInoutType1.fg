@@ -1,0 +1,17 @@
+type T = {
+  a:int
+}
+
+fun getA(inout d:T) -> T {
+  d.a = 21
+  return d
+}
+fun getAA(inout d:T) -> T {
+  var x:T = getA(d)
+  print(x)
+  return x
+}
+var b:T = {a:10} 
+
+var d:T = getAA(b)
+print(d)

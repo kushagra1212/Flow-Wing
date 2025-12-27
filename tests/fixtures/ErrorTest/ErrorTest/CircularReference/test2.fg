@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: CircularReference
+
+bring "test1.fg"
+
+  

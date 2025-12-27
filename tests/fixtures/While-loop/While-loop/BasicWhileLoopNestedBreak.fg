@@ -1,0 +1,2 @@
+var x = 0 while(x<3) { x=x+1 while(x<3) { if(x==2) { break }
+      print(x) x=x+1 } print(x) }

@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: MemberFunctionOfClassAlreadyDeclared
+class A {
+  init() -> nthg {
+  }
+
+
+  test2() -> nthg {
+    print("Hello from A")
+  }
+
+  test2() -> nthg {
+  }
+  }

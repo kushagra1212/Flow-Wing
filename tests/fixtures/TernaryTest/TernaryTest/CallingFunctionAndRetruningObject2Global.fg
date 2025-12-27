@@ -1,0 +1,24 @@
+type B ={
+    s:int 
+  }
+type D = {
+    a:int,
+    s:str
+}
+fun printA(d:D) -> B {
+    print("A ",d)
+    return {s:0}
+  }
+
+
+fun printB() -> B {
+
+    print("B")
+
+    return {s:2} 
+}
+
+var g:int = 2 
+ var x: B= ( (g==2) ? printA({a:1,s:"hello"}) : printB() )  
+
+print(x)

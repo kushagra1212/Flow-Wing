@@ -1,0 +1,1 @@
+for var i = 5 to 0 : -2 { print(i) }

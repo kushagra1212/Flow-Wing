@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: ClassMissingSuperclass
+class A {
+  init() -> nthg {
+    super()
+  }
+
+
+}

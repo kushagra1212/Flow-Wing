@@ -1,0 +1,8 @@
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> deci,str  {
+  
+  print("a: ",a,b,c,d)
+  return 2.3,"Hello World"
+}
+
+var e:deci,s:str = test(2,100)
+print("\nE:",e,s)

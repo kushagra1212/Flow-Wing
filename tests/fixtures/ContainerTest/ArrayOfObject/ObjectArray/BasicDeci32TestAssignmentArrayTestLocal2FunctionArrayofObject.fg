@@ -1,0 +1,7 @@
+type T ={
+    a:deci32[2]
+  }
+
+var x:T  ={a:[2 fill 2.2d]}
+
+print(x)

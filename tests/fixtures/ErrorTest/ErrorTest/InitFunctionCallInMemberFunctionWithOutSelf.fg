@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: InvalidInitFunctionCall
+class A {
+  init() -> nthg {
+  }
+  getX() -> int {
+    init()
+    return 2
+  }
+}

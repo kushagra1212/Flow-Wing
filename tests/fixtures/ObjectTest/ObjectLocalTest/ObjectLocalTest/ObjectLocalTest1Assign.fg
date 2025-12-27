@@ -1,0 +1,27 @@
+type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool
+     }
+
+     var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+    {
+            var y:t1  = {
+      a:"world",
+      b:20,
+      c:20.20,
+      d:false
+    }
+
+    y.a = x.a
+    y.b = x.b
+    y.c = x.c
+    y.d = x.d
+     print(y)
+    }

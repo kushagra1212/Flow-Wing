@@ -1,0 +1,21 @@
+type K = {
+  e:deci,
+  s:str 
+}
+
+type T ={
+a:int,
+b:deci,
+c:str,
+d:K[2]
+}
+
+fun pa( a:int,b:str, c:deci,d:bool,u:T[2]) -> nthg {
+  print(u)
+  u[1].a = 32
+  print("\n")
+  print(u)
+}
+
+
+pa(2,"sw",3.3,false, [{c:"hio"}])

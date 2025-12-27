@@ -1,0 +1,13 @@
+fun test(a:int[5])-> nthg{
+    {
+      a = [2 fill 10]
+
+    print(a)
+    }
+}
+
+{
+    var a:int[5] = [1, 2, 3, 4, 5]
+
+    test(a)
+}

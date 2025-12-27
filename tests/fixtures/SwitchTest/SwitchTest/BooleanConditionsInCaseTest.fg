@@ -1,0 +1,13 @@
+var a:int = 5
+
+switch true {
+    case a > 3 && a < 7:{
+    print("a is between 3 and 7")
+    }
+    case a == 5:{
+    print("a is exactly 5")
+    }
+    default: { 
+    print("default")
+    }
+}

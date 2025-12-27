@@ -1,0 +1,23 @@
+type K = {
+  e:deci,
+  s:str 
+}
+
+type T ={
+a:int,
+b:deci,
+c:str,
+d:K[2]
+}
+
+fun pa(inout a:T[2]) -> nthg {
+  a[0].d[0].e = 10.1 
+  print(a)
+  print("\n")
+}
+
+var a:T[2] = [2 fill {c:"hi",a:2}]
+print(a)
+print("\n")
+pa(a)
+print(a)

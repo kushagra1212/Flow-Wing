@@ -1,0 +1,4 @@
+fun mainTest()-> str {
+return "Hello" + " World"
+}
+print(mainTest())

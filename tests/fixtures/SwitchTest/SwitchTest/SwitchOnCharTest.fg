@@ -1,0 +1,13 @@
+var ch:char = 'a'
+
+switch ch {
+    case 'a':{
+    print("Character is a")
+    }
+    case 'b':{
+    print("Character is b")
+    }
+    default: { 
+    print("default")
+    }
+}

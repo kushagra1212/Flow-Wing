@@ -1,0 +1,14 @@
+type t1 = {
+        a:bool
+      }
+
+      var x:t1 = {
+        a:true
+      }
+
+      var y:t1 = {
+        a:false
+      }
+      print(y)
+      y = x 
+      print(y)

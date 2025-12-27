@@ -1,0 +1,6 @@
+fun getSum(a:int,b:deci)-> deci {
+    return a + b
+
+}
+
+print(getSum(2,3.3))

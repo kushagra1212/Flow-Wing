@@ -1,0 +1,13 @@
+type my = {
+            name: str,
+            age: int,
+            height: deci,
+            weight: deci,
+            isEmployed: bool,
+        }
+
+        var a:my = {
+            name: "Kushagra",
+        }
+
+        print(a)

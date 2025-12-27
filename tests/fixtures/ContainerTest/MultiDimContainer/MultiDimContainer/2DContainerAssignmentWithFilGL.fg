@@ -1,0 +1,5 @@
+var y:int[2][5] = [10 fill 1+2]
+    print(y)
+  {    y = [2 fill 5]
+   print(y)
+        }

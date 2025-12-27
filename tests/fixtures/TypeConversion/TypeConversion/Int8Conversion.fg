@@ -1,0 +1,2 @@
+var x:char = Int8(65)
+    print(x)

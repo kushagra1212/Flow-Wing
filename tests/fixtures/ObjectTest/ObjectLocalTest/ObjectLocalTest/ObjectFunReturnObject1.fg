@@ -1,0 +1,12 @@
+type t1 = {
+      a:str
+}
+
+fun get() -> t1 {
+      var x:t1 = {
+            a:"h"
+      }
+      
+      return x
+}
+print(get())

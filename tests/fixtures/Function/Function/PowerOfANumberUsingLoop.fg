@@ -1,0 +1,9 @@
+fun power(base, exp) -> int {
+  var result = 1
+  for (var i = 0 to exp - 1: 1) {
+    result = result * base
+  }
+  return result
+}
+
+print(power(2, 3))

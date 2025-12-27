@@ -1,0 +1,27 @@
+fun testFun(inout a) -> nthg {
+  print(a, "\n")
+  a = 30 
+  print(a, "\n")
+}
+
+var x = 20
+testFun(x)
+print(x, "\n")
+var y = "Hello"
+testFun(y)
+print(y, "\n")
+var z = 30.2
+testFun(z)
+print(z, "\n")
+var w = 30.2d
+testFun(w)
+print(w, "\n")
+var v = true
+testFun(v)
+print(v, "\n")
+var u = false
+testFun(u)
+print(u, "\n")
+var j = Nir
+testFun(j)
+print(j, "\n")

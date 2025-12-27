@@ -1,0 +1,109 @@
+{
+  var i = 0
+  var step = 2
+  var limit = 10
+  for i to limit : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var i: int = 0
+  var step = 2
+  var limit = 10
+  for i to limit : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var i: int = 0
+  var step = 2
+  for i to 10 : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var i: int = 0
+  var step: int = 2
+  for i to 10 : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var i: int = 0
+  for i to 10 : 2 {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var i: int = 0
+  for i to 10 {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var c = 10
+  var step: int = 2
+  for var i: int = 0 to c : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var c = 10
+  var step = 2
+  for var i: int = 0 to c : step {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var c = 10
+  for var i: int = 0 to c : 2 {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  for var i: int = 0 to 10 : 2 {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  for var i = 0 to 10 : 2 {
+    print(i, " ")
+  }
+}
+print("\n")
+for var i = 0 to 10 {
+  print(i, " ")
+}
+print("\n")
+for var i: int = 0 to 10 {
+  print(i, " ")
+}
+print("\n")
+{
+  var c = 10
+  for var i: int = 0 to c {
+    print(i, " ")
+  }
+}
+print("\n")
+{
+  var c: int = 10
+  for var i: int = 0 to c {
+    print(i, " ")
+  }
+}
+print("\n")
+var c = 10
+for var i = 0 to c {
+  print(i, " ")
+}

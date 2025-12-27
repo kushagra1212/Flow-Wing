@@ -1,0 +1,8 @@
+var a:bool[5] = [true, false, true, false, true]
+{
+
+  var isBool:bool = false
+  var isbool = true
+  a = [isBool, isbool, isBool]
+print(a)
+       }

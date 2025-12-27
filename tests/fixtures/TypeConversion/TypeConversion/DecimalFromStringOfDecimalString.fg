@@ -1,0 +1,1 @@
+print(Decimal(String("25.2")))

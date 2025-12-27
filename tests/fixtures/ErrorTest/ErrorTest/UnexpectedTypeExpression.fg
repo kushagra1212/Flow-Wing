@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: UnexpectedTypeExpression
+var x:

@@ -1,0 +1,2 @@
+var x = 0 while(x < 5) { if(x == 3) { print(x) x = x + 1 } else {
+      if(x == 2) { print(x) x = x + 2 } else { print(x) x = x + 3 } } }

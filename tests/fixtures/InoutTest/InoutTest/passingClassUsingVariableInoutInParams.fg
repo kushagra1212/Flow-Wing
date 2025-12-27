@@ -1,0 +1,24 @@
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main2(inout a:A) -> nthg {
+  print(a.obj)
+  a.obj.a = 21
+}
+
+var a:A = new A({a:100})
+
+main2(a)
+
+print("After Pass\n")
+print(a.obj)

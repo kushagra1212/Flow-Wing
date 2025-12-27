@@ -1,0 +1,6 @@
+fun getSum(a:bool,b:int)-> int {
+    return a + b
+
+}
+
+print(getSum(true,3))

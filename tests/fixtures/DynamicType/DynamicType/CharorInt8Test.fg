@@ -1,0 +1,48 @@
+{
+  var z: char = 'a'
+  var x = 'a'
+  var y = 'b'
+  print(x, "\n")
+  x = z + "ac" 
+  print(x, "\n")
+}
+{
+  var z: char = 'a'
+  var x = 'a'
+  var y = 'b'
+  print(x, "\n")
+  x = y 
+  print(x, "\n")
+}
+{
+  var z: char = 'a'
+  var x = z
+  var y = 2.2
+  print(x, "\n")
+  x = x + y 
+  print(x, "\n")
+}
+{
+  var z: char = 'a'
+  var x = 'a'
+  var y = 'b'
+  print(x, "\n")
+  x = z + "ac" 
+  print(x, "\n")
+}
+{
+  var z: char = 'a'
+  var x = 'a'
+  var y = 'b'
+  print(x, "\n")
+  x = y 
+  print(x, "\n")
+}
+{
+  var z: char = 'a'
+  var x = z
+  var y = 2.2
+  print(x, "\n")
+  x = x + y 
+  print(x, "\n")
+}

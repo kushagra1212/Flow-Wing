@@ -1,0 +1,21 @@
+/; EXPECT_ERROR: PassingMismatchedTypeToFunction
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+type Test = {
+  x: int,
+  y: str,
+  z: deci,
+  w: deci32,
+  v: bool,
+}
+var t: Test = {
+  x: 10,
+  y: "Hello",
+  z: 10.2,
+  w: 10.2d,
+  v: true
+}
+
+testFun(t)

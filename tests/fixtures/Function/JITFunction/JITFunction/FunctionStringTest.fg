@@ -1,0 +1,6 @@
+fun getConactString(b:str,a:str)-> str {
+
+    return a + b
+}
+
+print(getConactString("Hello","World"))

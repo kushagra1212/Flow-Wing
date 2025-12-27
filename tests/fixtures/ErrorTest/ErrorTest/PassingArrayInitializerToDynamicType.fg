@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: ArrayInitializerNotAllowedForDynamicType
+var a = [1, 2]

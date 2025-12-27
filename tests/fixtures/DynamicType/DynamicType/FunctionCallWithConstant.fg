@@ -1,0 +1,11 @@
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+testFun(10)
+testFun("Hello")
+testFun(10.2)
+testFun(10.2d)
+testFun(true)
+testFun(false)
+testFun(Nir)

@@ -1,0 +1,10 @@
+type obj  = {
+    a:int,
+    b:str,
+    c:deci,
+    d:bool,
+    p:int[2]
+}
+var o:obj[2] = new [{a:2}]
+o[1].p[1] = 10
+print(o)

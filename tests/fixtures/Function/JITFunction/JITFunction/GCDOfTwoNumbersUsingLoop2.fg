@@ -1,0 +1,9 @@
+fun gcd(a:int, b:int) -> int {
+  while (b != 0) {
+    var temp = b
+    b = a % b
+    a = temp
+  }
+  return a
+}
+print(gcd(10, 15))

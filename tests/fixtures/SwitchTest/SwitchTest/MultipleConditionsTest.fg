@@ -1,0 +1,13 @@
+var a:int = 5
+
+switch true {
+    case a > 0 && a < 10:{
+    print("a is between 0 and 10")
+    }
+    case a > 10 && a < 20:{
+    print("a is between 10 and 20")
+    }
+    default: { 
+    print("default")
+    }
+}

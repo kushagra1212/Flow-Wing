@@ -1,0 +1,7 @@
+fun foo(a:bool[2][3]) -> nthg {
+                print(a)
+            }
+    
+            var a:bool[2][3] = [[true,false,true],[false,true,false]]
+    
+            foo(a)

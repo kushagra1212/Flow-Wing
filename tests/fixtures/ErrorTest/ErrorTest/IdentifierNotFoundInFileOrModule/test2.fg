@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: IdentifierNotFoundInFileOrModule
+
+bring {xx} from "test1.fg"
+
+  

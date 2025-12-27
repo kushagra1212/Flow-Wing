@@ -1,0 +1,17 @@
+fun increment(x:int) -> int {
+    return x + 1
+}
+
+var a:int = 2
+
+switch increment(a) {
+    case 2:{
+    print("a is 2")
+    }
+    case 3:{
+    print("a is 3")
+    }
+    default: { 
+    print("default")
+    }
+}

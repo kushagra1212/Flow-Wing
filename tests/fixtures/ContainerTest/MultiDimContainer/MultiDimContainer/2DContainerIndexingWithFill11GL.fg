@@ -1,0 +1,7 @@
+var x : int[5][3] = [ 4, 6 ]
+        var y : int = 1
+        var z : int[2][3] = [ [ 4, y, 1 ], [ 5, 6, 2 ] ]
+{        print(x)
+        x = z
+        print(x)
+        print(z)  }

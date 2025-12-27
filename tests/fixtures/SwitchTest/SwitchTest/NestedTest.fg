@@ -1,0 +1,24 @@
+var a:int = 1
+
+switch a {
+    case 1:{
+    print("Print 1")
+    switch a {
+        case 1:{
+        print("Print 1")
+        }
+        case 2:{
+        print("Print 2")
+        }default: { 
+        print("default")
+
+        }
+    }
+    }
+    case 2:{
+    print("Print 2")
+    }default: { 
+    print("default")
+
+    }
+}

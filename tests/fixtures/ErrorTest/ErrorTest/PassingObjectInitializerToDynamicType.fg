@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: ObjectInitializerNotAllowedForDynamicType
+var a = {x:10}

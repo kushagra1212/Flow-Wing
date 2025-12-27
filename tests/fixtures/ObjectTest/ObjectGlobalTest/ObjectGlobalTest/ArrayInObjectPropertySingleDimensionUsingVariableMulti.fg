@@ -1,0 +1,11 @@
+type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [5 fill 10]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)

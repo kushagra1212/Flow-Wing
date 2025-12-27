@@ -1,0 +1,6 @@
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> nthg {
+  
+  print("a: ",a,b,c,d)
+}
+
+test(2)

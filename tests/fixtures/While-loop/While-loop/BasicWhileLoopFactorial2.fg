@@ -1,0 +1,4 @@
+var x = 0 const num = 5 var factorial = 1 var current = 1 while
+      (current <= num) { factorial = factorial * current current = current +
+      1 if (current == 3) { continue } if (current > 7) { break } }
+      print(factorial)

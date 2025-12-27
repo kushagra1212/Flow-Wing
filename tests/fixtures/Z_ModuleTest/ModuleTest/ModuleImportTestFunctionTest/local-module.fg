@@ -1,0 +1,37 @@
+
+module [local]
+
+
+type P ={
+    a:int 
+  }
+
+type T = {
+    a:int,
+    b:str,
+    c:deci,
+    d:deci32,
+    e:bool,
+    f:local::P
+  }
+
+  var x:local::T
+
+
+fun callMe(y:local::T) -> local::T {
+  var p:local::T = y
+
+  p.e = true
+
+  return p
+
+  
+}
+
+fun main() -> nthg {
+  local::x = {a:2}
+  var k:local::T
+  print(k)
+print(local::x)
+}
+  

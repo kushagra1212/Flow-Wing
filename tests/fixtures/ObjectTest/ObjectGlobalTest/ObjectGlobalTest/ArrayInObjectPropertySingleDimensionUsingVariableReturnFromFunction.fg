@@ -1,0 +1,14 @@
+type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:get()
+    }
+    print(y)

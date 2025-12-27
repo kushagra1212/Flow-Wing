@@ -1,0 +1,14 @@
+fun gcd(a, b) -> int {
+  while (b != 0) {
+    var temp = b
+    b = a % b
+    a = temp
+  }
+  return a
+}
+
+fun lcm(a, b) -> int {
+  return ((a * b) // gcd(a, b))
+}
+
+print(lcm(10, 15))

@@ -1,0 +1,17 @@
+var a:int = 4
+var b:int = 2
+
+switch true {
+    case a % 2 == 0 && b % 2 == 0:{
+    print("Both are even")
+    }
+    case a % 2 == 0 && b % 2 != 0:{
+    print("a is even, b is odd")
+    }
+    case a % 2 != 0 && b % 2 == 0:{
+    print("a is odd, b is even")
+    }
+    default: { 
+    print("Both are odd")
+    }
+}

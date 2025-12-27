@@ -1,0 +1,17 @@
+{
+    type p = {
+    x:int,
+    y:int[2],
+    b:deci[2],
+    c:str[2],
+    d:bool[2],
+    f:str
+}
+var x:p = {x:2}
+print(x.y)
+print(x.b)
+print(x.c)
+print(x.d)
+print(x.f)
+print(x)
+}

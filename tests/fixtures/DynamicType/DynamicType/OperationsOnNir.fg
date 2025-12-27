@@ -1,0 +1,37 @@
+{
+  var x = Nir
+  x = x + 1
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = 1 + x
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = x + "a"
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = "a" + x
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  if(x) {
+    print("is true")
+  } else {
+    print("is false")
+  }
+}
+print("\n")
+{
+  var x:int = Nir
+  print(x)
+}

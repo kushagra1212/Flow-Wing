@@ -1,0 +1,6 @@
+
+module [local]
+var x: int = 2
+var x ="Hello"
+
+  

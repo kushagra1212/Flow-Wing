@@ -1,0 +1,18 @@
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+var x = 10
+testFun(x)
+var y = "Hello"
+testFun(y)
+var z = 10.2
+testFun(z)
+var w = 10.2d
+testFun(w)
+var a = true
+testFun(a)
+var b = false
+testFun(b)
+var c = Nir
+testFun(c)

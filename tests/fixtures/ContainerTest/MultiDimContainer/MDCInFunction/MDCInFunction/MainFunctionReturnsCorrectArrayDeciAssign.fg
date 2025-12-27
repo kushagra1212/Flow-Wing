@@ -1,0 +1,8 @@
+fun mainTest() -> deci[2][5] {
+      var x:deci[2][5] = [6 fill 1.23]
+      return x
+    }
+
+    var result:deci[2][5] = [7 fill 1.5]
+    result = mainTest()
+    print(result)

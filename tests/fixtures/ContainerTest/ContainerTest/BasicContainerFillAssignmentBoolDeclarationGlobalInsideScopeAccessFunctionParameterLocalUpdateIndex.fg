@@ -1,0 +1,15 @@
+fun test(a:bool[5])-> nthg{
+
+      a = [2 fill false]
+
+    print(a)
+    a[0] = true
+    print(a)
+}
+
+{
+    var a:bool[5] = [true, false, true, false, true]
+
+    test(a)
+    print(a)
+}

@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: FunctionAlreadyDeclared
+fun test2() -> nthg {
+}
+
+
+fun test2() -> nthg {
+}

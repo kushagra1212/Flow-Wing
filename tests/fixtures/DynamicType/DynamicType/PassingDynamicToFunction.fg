@@ -1,0 +1,16 @@
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+var i: int = 10
+testFun(i)
+var j: str = "Hello"
+testFun(j)
+var k: deci = 10.2
+testFun(k)
+var e: deci32 = 10.2d
+testFun(e)
+var l: bool = true
+testFun(l)
+var m: bool = false
+testFun(m)

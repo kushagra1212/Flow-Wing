@@ -1,0 +1,13 @@
+var a:deci = 2.0000000001
+
+switch a {
+    case 2.0000000000:{
+    print("a matches 2.0")
+    }
+    case 2.0000000001:{
+    print("a matches 2.0000000001")
+    }
+    default: { 
+    print("default")
+    }
+}

@@ -1,0 +1,5 @@
+var i, j = 2,"Hello"
+var k, l = 3,4
+print(i, j, k, l, "\n")
+l, k = "Hello", 2.5d 
+print(l, k, "\n")

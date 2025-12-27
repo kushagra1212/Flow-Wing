@@ -1,0 +1,24 @@
+type x = {
+    a:int 
+  }
+
+  var a:x
+fun def() -> int {
+  type x = {
+      a:int,
+      j:str
+    }
+  var y:x
+  print("print y ",y)
+  return 0
+  }
+
+{
+  type x = {s:str}
+ {
+    var a:x 
+    print("print a in block ",a)
+  } 
+  }
+print("print a gloabl",a)
+def()

@@ -1,0 +1,15 @@
+type Person = { name: str, age: int }
+
+var p: Person = { name: "Alice", age: 30 }
+
+switch p.age {
+    case 20:{
+    print("Age is 20")
+    }
+    case 30:{
+    print("Age is 30")
+    }
+    default: { 
+    print("Unknown age")
+    }
+}

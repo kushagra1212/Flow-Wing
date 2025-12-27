@@ -1,0 +1,28 @@
+{
+    type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  o: 102,
+  s: "sora"
+}
+
+var arr2:t[2] =[{y:"j",a:2.2}]
+print(arr2)
+print("\n")
+print(arr2[0].ar[0].g[0].d)
+}

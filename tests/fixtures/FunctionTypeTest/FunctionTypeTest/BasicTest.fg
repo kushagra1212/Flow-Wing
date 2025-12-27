@@ -1,0 +1,11 @@
+fun printX(x: int) -> nthg {
+    print("Printing X",x)
+  }
+
+
+fun main2(f:[(int)-> nthg]) -> nthg {
+f(2)
+}
+
+
+  main2(printX)

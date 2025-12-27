@@ -1,0 +1,23 @@
+{
+    type k = {
+   o:int,
+   s:str,
+   d:deci,
+   i:int
+}
+type par ={
+    u:str,
+    g:k[2]
+}
+type t = {
+    x:int,
+    y:str,
+    a:deci,
+    b:bool,
+    arr:par[1]
+}
+
+var arrvar:t =  {x:2,y:"hello",a:3.3,b:true}
+var arr:t[2] = [arrvar]
+print(arr)
+}

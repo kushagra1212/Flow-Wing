@@ -1,0 +1,6 @@
+{        var x : int[2][2] = [ 4 fill 5 ] 
+        var y : int = 1
+        var z : int[2][2] = [ 4 fill 10 ] 
+        print(x)
+        x[y][y] = z[y][y]
+        print(x)}

@@ -1,0 +1,8 @@
+fun foo(a:int[2][3],x:int) -> nthg {
+                a[0][1] = x
+                print(a)
+            }
+
+{            var a:int[2][3] = [[1,2,3],[4,5,6]]
+
+            foo(a,1)}

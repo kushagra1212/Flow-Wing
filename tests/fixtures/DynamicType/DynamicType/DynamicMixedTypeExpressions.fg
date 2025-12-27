@@ -1,0 +1,32 @@
+{
+  var x = 1 + "a"
+  print(x, "\n")
+}
+{
+  var x = "a" + 1
+  print(x, "\n")
+}
+{
+  var x = 1 + 2.5
+  print(x, "\n")
+}
+{
+  var x = true + 1
+  print(x, "\n")
+}
+{
+  var x = 1 + true
+  print(x, "\n")
+}
+{
+  var x = "a" + true
+  print(x, "\n")
+}
+{
+  var x = true + "a"
+  print(x, "\n")
+}
+{
+  var x = 1 + 2 + "a" + (3 + 4)
+  print(x, "\n")
+}

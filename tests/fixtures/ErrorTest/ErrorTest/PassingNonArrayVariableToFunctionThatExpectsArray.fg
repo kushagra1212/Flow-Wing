@@ -1,0 +1,6 @@
+fun testFun(x: int[2]) -> nthg {
+  print(x, "\n")
+}
+
+var y: int = 2
+testFun(y)

@@ -1,0 +1,10 @@
+fun sumOfDigits(n:int) -> int {
+  var sum:int = 0
+  while (n != 0) {
+    sum = sum + (n % 10)
+    n = n // 10
+  }
+  return sum
+}
+
+print(sumOfDigits(123))

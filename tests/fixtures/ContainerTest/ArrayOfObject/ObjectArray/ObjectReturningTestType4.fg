@@ -1,0 +1,33 @@
+type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
+  }
+}
+
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
+
+fun main2(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main2(10)
+print(x.a)
+x =main2(2)
+print(x.a)

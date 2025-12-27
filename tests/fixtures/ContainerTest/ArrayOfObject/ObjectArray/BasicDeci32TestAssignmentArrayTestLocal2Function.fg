@@ -1,0 +1,6 @@
+fun printdec(a:deci32[2]) -> nthg {
+    print(a)
+ 
+ }
+
+ printdec([3.2d])

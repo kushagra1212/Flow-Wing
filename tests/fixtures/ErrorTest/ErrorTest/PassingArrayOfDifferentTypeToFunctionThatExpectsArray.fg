@@ -1,0 +1,6 @@
+fun testFun(x: int[2]) -> nthg {
+  print(x, "\n")
+}
+
+var y: deci[3] = [1.0, 2.0, 3.0]
+testFun(y)

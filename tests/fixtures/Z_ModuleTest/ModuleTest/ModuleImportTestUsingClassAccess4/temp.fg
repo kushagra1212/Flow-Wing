@@ -1,0 +1,8 @@
+
+bring local
+var a:local::A =  new local::A()
+print(a.x)
+print(a.u)
+a.x = {a:21}
+a.printX()
+  

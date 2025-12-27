@@ -1,0 +1,21 @@
+type T = {
+      x:int 
+    }
+    fun  getC() -> T {
+      return  {x:2}
+    }
+
+    fun setC(x:T) -> nthg {
+      print(x)
+    }
+setC(getC())
+print(getC())
+/#
+    fun  getC() -> int {
+      return  3
+    }
+
+    fun setC(x:int) -> nthg {
+      print(x)
+      }
+setC(getC())

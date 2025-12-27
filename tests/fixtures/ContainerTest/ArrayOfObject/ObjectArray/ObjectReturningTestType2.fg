@@ -1,0 +1,19 @@
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:a}
+}
+
+fun main2(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t = main2(10)
+print(x)
+x =main2(2)
+print(x)

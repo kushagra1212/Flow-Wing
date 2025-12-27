@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: NumberTooLargeForInt
+var x: int = 100000000000000000000
+print(x)

@@ -1,0 +1,17 @@
+fun A() -> deci32 {
+  return 5.5d
+}
+
+
+fun B(d: deci, d2: deci, d3: deci) -> str {
+  print(d, d2, d3)
+  return String(d * 2)
+}
+
+
+fun C(s: str) -> int {
+  return Int32(s)
+}
+
+var x: int = C(B(Decimal(A()), Decimal(A()), Decimal(A())))
+print(x)

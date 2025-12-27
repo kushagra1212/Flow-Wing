@@ -1,0 +1,14 @@
+type t1 = {
+        a:int
+      }
+
+      var x:t1 = {
+        a:1
+      }
+
+      var y:t1 = {
+        a:2
+      }
+      print(y)
+      y = x 
+      print(y)

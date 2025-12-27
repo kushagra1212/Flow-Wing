@@ -1,0 +1,17 @@
+var arr:int[3] = [10, 20, 30]
+var index:int = 1
+
+switch arr[index] {
+    case 10:{
+    print("Element is 10")
+    }
+    case 20:{
+    print("Element is 20")
+    }
+    case 30:{
+    print("Element is 30")
+    }
+    default: { 
+    print("default")
+    }
+}

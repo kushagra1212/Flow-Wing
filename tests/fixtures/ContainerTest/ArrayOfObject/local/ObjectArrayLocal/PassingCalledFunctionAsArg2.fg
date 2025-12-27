@@ -1,0 +1,8 @@
+fun getOne() -> int {
+    return 2
+}
+fun getDeci(num:int,p:deci) -> deci {
+    return 3.2 * num * p 
+}
+
+print(getDeci(getOne(),2.3))

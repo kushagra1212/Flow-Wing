@@ -1,0 +1,10 @@
+fun foo(a:str[2][3],x:str) -> nthg {
+                a[0][1] = x
+                print(a)
+            }
+
+            var x:str = "a"
+
+            var a:str[2][3] = [["a","b","c"],["d","e","f"]]
+
+            foo(a,x)

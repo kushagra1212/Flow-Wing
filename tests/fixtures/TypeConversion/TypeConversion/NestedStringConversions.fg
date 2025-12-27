@@ -1,0 +1,1 @@
+print(String(Decimal32(Int32("12.3"))))

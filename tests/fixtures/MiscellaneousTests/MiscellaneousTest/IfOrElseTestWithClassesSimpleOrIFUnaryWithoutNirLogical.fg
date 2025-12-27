@@ -1,0 +1,12 @@
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A  = new A(2)
+
+if(a && 2){
+  print("A")
+}

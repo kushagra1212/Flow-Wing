@@ -1,0 +1,25 @@
+var x:int, y:str = 2,"hello"
+
+print(x,y)
+
+y,x = "Hi",5
+
+print(x,y)
+
+
+type J ={
+  a:str 
+}
+
+type T = {
+
+  a:int,
+  b:deci,
+  c:J
+}
+
+var a:int,b:str,c:deci,e:bool,g:T  = 2,"e"
+
+
+c,g = 2.3,{b:3.3}
+print(a,b,c,e,g)

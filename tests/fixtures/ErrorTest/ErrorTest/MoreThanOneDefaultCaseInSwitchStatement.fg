@@ -1,0 +1,24 @@
+/; EXPECT_ERROR: MoreThanOneDefaultCaseInSwitchStatement
+switch 2 {
+  case 0 : {
+    print("a is 0")
+  }
+  case 1 : {
+    print("a is 1")
+  }
+  case 2 : {
+    print("a is 2")
+  }
+  case 3 : {
+    print("a is 3")
+  }
+  case "Hello" : {
+    print("a is Hello")
+  }
+  default : {
+    print("default 1")
+  }
+  default : {
+    print("default 2")
+  }
+}

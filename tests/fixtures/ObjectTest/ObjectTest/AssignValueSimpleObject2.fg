@@ -1,0 +1,25 @@
+type Parent = {
+          a:int
+        }
+
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str,
+          p:Parent
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello",
+          p:{ a : 100 }
+        }
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        x.p = { a : 400 }
+        print(x)

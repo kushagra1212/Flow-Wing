@@ -1,0 +1,38 @@
+type parent = {
+      pa:str,
+      pb:int,
+      pc:deci,
+      pd:bool
+     }
+
+     type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool,
+      p:parent
+     }
+
+     var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+     var y:t1  = {
+       a:"world",
+       b:20,
+       c:20.20,
+       d:false
+     }
+
+     y.a = x.a
+     y.b = x.b
+     y.c = x.c
+     y.d = x.d
+     print(y)
+     y.p.pa = x.p.pa
+     y.p.pb = x.p.pb
+     y.p.pc = x.p.pc
+     y.p.pd = x.p.pd
+     print(y)

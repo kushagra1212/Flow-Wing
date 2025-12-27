@@ -1,0 +1,4 @@
+var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = [5 fill "hello"]
+
+print(a)

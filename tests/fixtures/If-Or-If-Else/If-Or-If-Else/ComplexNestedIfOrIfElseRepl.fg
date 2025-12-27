@@ -1,0 +1,3 @@
+if(true) { if(false) { print(10) } or if(true) { if(5 > 3) {
+      print(15) } else { print(20) } } else { print(25) } } else { print(30)
+      }

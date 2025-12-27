@@ -1,0 +1,8 @@
+fun mainTest() -> str[2][5] {
+      var x:str[2][5] = [6 fill "Hello"]
+      return x
+    }
+
+    var result:str[2][5] =[7 fill "Hi"]
+    result = mainTest()
+    print(result)

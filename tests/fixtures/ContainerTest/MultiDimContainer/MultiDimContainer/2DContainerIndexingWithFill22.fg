@@ -1,0 +1,14 @@
+var x : bool[2][2] = [ true, false ]
+        var y : bool = true
+        var z : bool[2][2] = [ [ true, y ], [ false, false ] ]
+        print(x)
+        print(z)
+        print(x[0][0])
+        print(x[0][1])
+        print(x[1][0])
+        print(x[1][1])
+        print(z[0][0])
+        print(z[0][1])
+        print(z[1][0])
+        print(z[1][1])
+        print(y)

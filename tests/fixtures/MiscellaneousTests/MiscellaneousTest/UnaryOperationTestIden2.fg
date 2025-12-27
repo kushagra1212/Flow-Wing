@@ -1,0 +1,5 @@
+var x:str
+
+if(x){
+    print("x",x)
+  }

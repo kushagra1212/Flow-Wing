@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: ClassAlreadyDeclared
+
+class A {
+  init() -> nthg {
+  }
+
+
+}
+bring "test1.fg"
+  

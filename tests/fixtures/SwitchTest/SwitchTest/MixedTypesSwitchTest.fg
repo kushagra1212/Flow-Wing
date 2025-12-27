@@ -1,0 +1,13 @@
+var a:deci = 5.2
+
+switch a {
+    case 5:{
+    print("a matches int 5")
+    }
+    case 5.2:{
+    print("a matches deci 5.2")
+    }
+    default: { 
+    print("default")
+    }
+}

@@ -1,0 +1,2 @@
+var arr:deci32[2] = [2.2d]
+print(arr)

@@ -1,0 +1,7 @@
+var x:int, y:str = 2,"hello"
+
+print(x,y)
+
+y,x = "Hi",5
+
+print(x,y)

@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: DuplicateAttributeKeyInCustomType
+type CustomType1 = {
+  a: int,
+  b: int,
+  a:int
+}

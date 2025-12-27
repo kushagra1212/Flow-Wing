@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: UnexpectedToken
+var x: int = fun

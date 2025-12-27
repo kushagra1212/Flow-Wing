@@ -1,0 +1,4 @@
+fun mainTest()-> nthg {
+      return "Hello"
+    }
+    print(mainTest())

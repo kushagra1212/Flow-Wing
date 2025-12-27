@@ -1,0 +1,16 @@
+fun printA() -> int {
+  print("A")
+    return 2
+  }
+
+
+fun printB() -> int {
+  print("B")
+    return 3
+}
+
+{
+var g:int = 3 
+ ( (g==2) ? printA() : printB() )  
+
+}

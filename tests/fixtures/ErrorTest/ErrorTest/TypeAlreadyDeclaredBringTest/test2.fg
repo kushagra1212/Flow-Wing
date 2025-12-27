@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: TypeAlreadyDeclared
+
+
+type T = {
+  a: int,
+  c: str,
+  d: deci
+}
+bring "test1.fg"
+  

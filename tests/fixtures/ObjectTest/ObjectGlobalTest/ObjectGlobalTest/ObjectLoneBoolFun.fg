@@ -1,0 +1,14 @@
+type t1 = {
+        a:bool
+      }
+
+      fun mainTest() -> t1 {
+           var x:t1 = {
+        a:true
+      }
+      return x
+      }
+
+    
+      var y:t1 = mainTest()
+      print(y)

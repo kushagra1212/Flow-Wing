@@ -1,0 +1,11 @@
+
+module [local]
+type T = {
+  a: int,
+  b: deci
+}
+type T = {
+  a: int,
+  b: deci
+}
+  

@@ -1,0 +1,8 @@
+
+var xx: int = 2
+
+fun helloWorld() -> nthg {
+  print("Hello World From test1")
+}
+
+  

@@ -1,0 +1,13 @@
+var a:str = "s"
+
+switch a {
+    case "s":{
+    print("Print s")
+    }
+    case "d":{
+    print("Print d")
+    }default: { 
+    print("default")
+
+    }
+}

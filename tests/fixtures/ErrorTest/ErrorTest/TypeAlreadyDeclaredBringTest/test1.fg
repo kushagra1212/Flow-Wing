@@ -1,0 +1,9 @@
+
+type T = {
+  a: int,
+  c: str,
+  d: deci
+}
+
+
+  

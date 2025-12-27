@@ -1,0 +1,1 @@
+print(Decimal("2.5"))

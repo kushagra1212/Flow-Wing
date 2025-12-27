@@ -1,0 +1,19 @@
+class A {
+  var s:str 
+    init(s:str) -> nthg {
+    self.s = s 
+
+      }
+
+
+
+  }
+
+fun p(x: int) -> int, A {
+return 2, new A("Hello World")
+}
+
+if (true) {
+        var x: int, err:A = p(2)
+      print(err.s)
+}

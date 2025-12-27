@@ -1,0 +1,32 @@
+class A {
+  var x: int = 22
+  init() -> nthg {
+    x = 22 
+  }
+
+
+}
+var decimalA = 2.2
+if (decimalA != Nir) {
+  print("\ndecimalA is not Nir")
+}
+var decimalB = 2.2d
+if (decimalB != Nir) {
+  print("\ndecimalB is not Nir")
+}
+var integerA = 5
+if (integerA != Nir) {
+  print("\nintegerA is not Nir")
+}
+var stringA = "Hello"
+if (stringA != Nir) {
+  print("\nstringA is not Nir")
+}
+var booleanA = false
+if (booleanA != Nir) {
+  print("\nbooleanA is not Nir")
+}
+var classObjectA = new A()
+if (classObjectA != Nir) {
+  print("\nclassObjectA is not Nir")
+}

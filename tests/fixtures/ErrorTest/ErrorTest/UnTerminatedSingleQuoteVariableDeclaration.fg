@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: UnTerminatedSingleQuote
+var x='

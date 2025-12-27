@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: InvalidInitFunctionCall
+class A {
+  init() -> nthg {
+  }
+  getX() -> int {
+    self.init()
+    return 2
+  }
+}

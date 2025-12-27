@@ -1,0 +1,2 @@
+var x : int[2][3][2] = [6 fill 5] 
+     {       print(x)}

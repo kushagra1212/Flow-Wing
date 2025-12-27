@@ -1,0 +1,5 @@
+var x:str = true ? "Hello" : "Bye"
+var y:str = false ? "Hello" : "Bye"
+
+print(x)
+print(y)

@@ -1,0 +1,4 @@
+fun mainTest()-> int {
+return true
+}
+print(mainTest())

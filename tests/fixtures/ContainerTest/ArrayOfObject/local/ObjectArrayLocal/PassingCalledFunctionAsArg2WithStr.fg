@@ -1,0 +1,8 @@
+fun getOne() ->  str {
+    return "One"
+}
+fun getDeci(num:str) -> str {
+    return  num + "two" 
+}
+
+print(getDeci(getOne()))

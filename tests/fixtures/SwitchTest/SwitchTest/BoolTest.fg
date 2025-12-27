@@ -1,0 +1,13 @@
+var a:bool = true
+
+switch a {
+    case true:{
+    print("Print true")
+    }
+    case false:{
+    print("Print false")
+    }default: { 
+    print("default")
+
+    }
+}
