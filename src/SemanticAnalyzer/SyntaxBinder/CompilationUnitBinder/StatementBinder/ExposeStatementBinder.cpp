@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundDeclarationStatement.hpp"
@@ -68,13 +67,14 @@ StatementBinder::bindExposeStatement(syntax::ExposeStatementSyntax *statement) {
         std::move(bound_statement), expose_statement->getSourceLocation());
   }
   default: {
-    m_context->reportError(flow_wing::diagnostic::DiagnosticCode::
-                               kUnsupportedStatementInExposeStatement,
-                           {syntax::toString(statement_kind)},
-                           expose_statement->getSourceLocation());
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        expose_statement->getSourceLocation(),
+        flow_wing::diagnostic::DiagnosticCode::
+            kUnsupportedStatementInExposeStatement,
+        diagnostic::DiagnosticArgs{syntax::toString(statement_kind)});
 
-    return std::make_unique<BoundErrorStatement>(
-        expose_statement->getSourceLocation());
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
   }
 }

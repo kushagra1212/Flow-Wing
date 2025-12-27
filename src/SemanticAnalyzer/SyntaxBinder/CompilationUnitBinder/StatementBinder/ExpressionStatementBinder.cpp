@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.hpp"
@@ -28,7 +29,6 @@
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.hpp"
 #include <cassert>
-
 namespace flow_wing {
 namespace binding {
 
@@ -42,8 +42,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindExpressionStatement(
       m_expression_binder->bind(expression_statement->getExpression().get());
 
   if (bound_expression->getKind() == NodeKind::kErrorExpression) {
-    return std::make_unique<BoundErrorStatement>(
-        expression_statement->getExpression()->getSourceLocation());
+    return std::make_unique<BoundErrorStatement>(std::move(bound_expression));
   }
 
   return std::make_unique<BoundExpressionStatement>(

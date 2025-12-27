@@ -19,6 +19,7 @@
 
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
@@ -59,30 +60,31 @@ TypeResolver::getTypeConvention(const bool has_as_keyword) {
                         : types::TypeConvention::kFlowWing;
 }
 
-std::shared_ptr<types::Type>
+std::pair<std::shared_ptr<types::Type>,
+          std::unique_ptr<binding::BoundErrorExpression>>
 TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
 
   if (syntax == nullptr) {
-    return Builtins::m_dynamic_type_instance;
+    return {Builtins::m_dynamic_type_instance, nullptr};
   }
 
   switch (syntax->getKind()) {
   case syntax::NodeKind::kInt8TypeExpression:
-    return Builtins::m_int8_type_instance;
+    return {Builtins::m_int8_type_instance, nullptr};
   case syntax::NodeKind::kInt32TypeExpression:
-    return Builtins::m_int32_type_instance;
+    return {Builtins::m_int32_type_instance, nullptr};
   case syntax::NodeKind::kInt64TypeExpression:
-    return Builtins::m_int64_type_instance;
+    return {Builtins::m_int64_type_instance, nullptr};
   case syntax::NodeKind::kDeciTypeExpression:
-    return Builtins::m_deci_type_instance;
+    return {Builtins::m_deci_type_instance, nullptr};
   case syntax::NodeKind::kDeci32TypeExpression:
-    return Builtins::m_deci32_type_instance;
+    return {Builtins::m_deci32_type_instance, nullptr};
   case syntax::NodeKind::kStrTypeExpression:
-    return Builtins::m_str_type_instance;
+    return {Builtins::m_str_type_instance, nullptr};
   case syntax::NodeKind::kBoolTypeExpression:
-    return Builtins::m_bool_type_instance;
+    return {Builtins::m_bool_type_instance, nullptr};
   case syntax::NodeKind::kNthgTypeExpression:
-    return Builtins::m_nthg_type_instance;
+    return {Builtins::m_nthg_type_instance, nullptr};
   case syntax::NodeKind::kObjectTypeExpression:
     return resolveObjectType(
         static_cast<const syntax::ObjectTypeExpressionSyntax *>(syntax));
@@ -97,11 +99,13 @@ TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
         static_cast<const syntax::ModuleAccessTypeExpressionSyntax *>(syntax));
   default:
     assert(false && "TypeResolver::resolveType: unknown type kind");
-    return nullptr;
+    return {nullptr, nullptr};
   }
 }
 
-std::shared_ptr<types::Type> TypeResolver::resolveModuleAccessType(
+std::pair<std::shared_ptr<types::Type>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveModuleAccessType(
     const syntax::ModuleAccessTypeExpressionSyntax *syntax) {
 
   assert(syntax != nullptr &&
@@ -112,16 +116,18 @@ std::shared_ptr<types::Type> TypeResolver::resolveModuleAccessType(
 
   auto qualifier_name = syntax->getModuleIdentifier()->getValue();
 
-  auto base_type = resolveType(syntax->getTypeExpression().get());
+  auto [base_type, error_expression] =
+      resolveType(syntax->getTypeExpression().get());
 
   if (base_type == nullptr) {
-    return nullptr;
+    return {nullptr, std::move(error_expression)};
   }
 
-  return base_type;
+  return {base_type, nullptr};
 }
 
-bool TypeResolver::populateDimensionValue(
+std::unique_ptr<binding::BoundErrorExpression>
+TypeResolver::populateDimensionValue(
     const syntax::DimensionClauseExpressionSyntax *syntax, int64_t &value) {
 
   assert(syntax != nullptr &&
@@ -132,12 +138,13 @@ bool TypeResolver::populateDimensionValue(
 
   if (syntax->getSizeLiteral()->getKind() !=
       syntax::NodeKind::kNumberLiteralExpression) {
-    m_ctx->reportError(
+
+    return std::make_unique<binding::BoundErrorExpression>(
+        syntax->getSizeLiteral()->getSourceLocation(),
         flow_wing::diagnostic::DiagnosticCode::kUnexpectedExpression,
-        {syntax::toString(syntax->getSizeLiteral()->getKind()),
-         syntax::toString(syntax::NodeKind::kNumberLiteralExpression)},
-        syntax->getSizeLiteral()->getSourceLocation());
-    return false;
+        diagnostic::DiagnosticArgs{
+            syntax::toString(syntax->getSizeLiteral()->getKind()),
+            syntax::toString(syntax::NodeKind::kNumberLiteralExpression)});
   }
 
   auto number_literal =
@@ -147,20 +154,21 @@ bool TypeResolver::populateDimensionValue(
   auto int_value = number_literal->getValue();
 
   if (int_value < 0) {
-    m_ctx->reportError(flow_wing::diagnostic::DiagnosticCode::
-                           kExpectedNonNegativeIntegerForArrayDimension,
-                       {
-                           std::to_string(int_value),
-                       },
-                       syntax->getSizeLiteral()->getSourceLocation());
-    return false;
+
+    return std::make_unique<binding::BoundErrorExpression>(
+        syntax->getSizeLiteral()->getSourceLocation(),
+        flow_wing::diagnostic::DiagnosticCode::
+            kExpectedNonNegativeIntegerForArrayDimension,
+        diagnostic::DiagnosticArgs{std::to_string(int_value)});
   }
 
   value = int_value;
-  return true;
+  return nullptr;
 }
 
-std::shared_ptr<types::Type> TypeResolver::resolveArrayType(
+std::pair<std::shared_ptr<types::Type>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveArrayType(
     const syntax::ArrayTypeExpressionSyntax *syntax) {
 
   assert(syntax != nullptr && "TypeResolver::resolveArrayType: syntax is null");
@@ -175,29 +183,35 @@ std::shared_ptr<types::Type> TypeResolver::resolveArrayType(
   for (const auto &dimension : syntax->getDimensions()) {
 
     int64_t value;
-    if (!populateDimensionValue(dimension.get(), value)) {
-      return nullptr;
+    auto error_expression = populateDimensionValue(dimension.get(), value);
+    if (error_expression != nullptr) {
+      return {nullptr, std::move(error_expression)};
     }
     dimensions.push_back(static_cast<size_t>(value));
   }
 
-  auto base_type = resolveType(syntax->getUnderlyingType().get());
+  auto [base_type, error_expression] =
+      resolveType(syntax->getUnderlyingType().get());
 
-  if (base_type == nullptr) {
-    return nullptr;
+  if (error_expression != nullptr) {
+    return {nullptr, std::move(error_expression)};
   }
 
-  return std::make_shared<types::ArrayType>(base_type, dimensions);
+  return {std::make_shared<types::ArrayType>(base_type, dimensions), nullptr};
 }
 
-std::shared_ptr<types::Type> TypeResolver::resolveObjectType(
+std::pair<std::shared_ptr<types::Type>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveObjectType(
     const syntax::ObjectTypeExpressionSyntax *syntax) {
 
   assert(syntax != nullptr &&
          "TypeResolver::resolveObjectType: syntax is null");
 
-  return std::make_shared<types::Type>(
-      syntax->getObjectIdentifier()->getValue(), types::TypeKind::kObject);
+  return {
+      std::make_shared<types::Type>(syntax->getObjectIdentifier()->getValue(),
+                                    types::TypeKind::kObject),
+      nullptr};
 }
 
 std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
@@ -209,9 +223,11 @@ std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
   std::shared_ptr<types::Type> base_type = nullptr;
 
   if (syntax->getTypeExpression()) {
-    base_type = resolveType(syntax->getTypeExpression().get());
+    std::pair<std::shared_ptr<types::Type>,
+              std::unique_ptr<binding::BoundErrorExpression>>
+        result = resolveType(syntax->getTypeExpression().get());
 
-    if (base_type == nullptr) {
+    if (result.first == nullptr) {
       return nullptr;
     }
 
@@ -243,7 +259,7 @@ std::vector<std::shared_ptr<types::ReturnType>> TypeResolver::resolveReturnType(
   const bool has_as_keyword = syntax->hasAsKeyword();
 
   for (const auto &type_expression : syntax->getTypeExpressions()) {
-    auto base_type = resolveType(type_expression.get());
+    auto [base_type, error_expression] = resolveType(type_expression.get());
 
     return_types.push_back(std::make_shared<types::ReturnType>(
         base_type, getTypeConvention(has_as_keyword)));
@@ -252,7 +268,9 @@ std::vector<std::shared_ptr<types::ReturnType>> TypeResolver::resolveReturnType(
   return return_types;
 }
 
-std::shared_ptr<types::Type> TypeResolver::resolveFunctionType(
+std::pair<std::shared_ptr<types::Type>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveFunctionType(
     const syntax::FunctionTypeExpressionSyntax *syntax) {
   assert(syntax != nullptr &&
          "TypeResolver::resolveFunctionType: syntax is null");
@@ -269,12 +287,16 @@ std::shared_ptr<types::Type> TypeResolver::resolveFunctionType(
     const bool has_as_keyword =
         syntax->getAsParameterKeywordsTable().count(parameter_count) > 0;
 
-    auto parameter_type = !parameter_type_expression
-                              ? Builtins::m_dynamic_type_instance
-                              : resolveType(parameter_type_expression.get());
+    std::shared_ptr<types::Type> parameter_type = nullptr;
 
-    if (parameter_type == nullptr) {
-      return nullptr;
+    if (!parameter_type_expression) {
+      parameter_type = Builtins::m_dynamic_type_instance;
+    } else {
+      auto [parameter_type, error_expression] =
+          resolveType(parameter_type_expression.get());
+      if (error_expression != nullptr) {
+        return {nullptr, std::move(error_expression)};
+      }
     }
 
     parameter_types.push_back(std::make_shared<types::ParameterType>(
@@ -288,18 +310,20 @@ std::shared_ptr<types::Type> TypeResolver::resolveFunctionType(
 
   for (const auto &return_type_expression : syntax->getReturnTypes()) {
 
-    auto return_type = resolveType(return_type_expression.get());
+    auto [return_type, error_expression] =
+        resolveType(return_type_expression.get());
 
-    if (return_type == nullptr) {
-      return nullptr;
+    if (error_expression != nullptr) {
+      return {nullptr, std::move(error_expression)};
     }
 
     return_types.push_back(std::make_shared<types::ReturnType>(
         return_type, getTypeConvention(has_as_keyword)));
   }
 
-  return std::make_shared<types::FunctionType>(parameter_types, return_types,
-                                               -1, false);
+  return {std::make_shared<types::FunctionType>(parameter_types, return_types,
+                                                -1, false),
+          nullptr};
 }
 
 } // namespace analysis

@@ -19,19 +19,33 @@
 
 #pragma once
 
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 namespace flow_wing {
 namespace binding {
 
 class BoundErrorStatement : public BoundStatement {
 
 public:
-  BoundErrorStatement(const flow_wing::diagnostic::SourceLocation &location);
+  BoundErrorStatement(
+      const flow_wing::diagnostic::SourceLocation &location,
+      flow_wing::diagnostic::DiagnosticCode code,
+      const std::vector<flow_wing::diagnostic::DiagnosticArg> &args);
+
+  BoundErrorStatement(std::unique_ptr<BoundExpression> expression);
   ~BoundErrorStatement() = default;
 
   // Overrides
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
+  flow_wing::diagnostic::DiagnosticCode getCode() const;
+  const std::vector<flow_wing::diagnostic::DiagnosticArg> &getArgs() const;
+
+private:
+  flow_wing::diagnostic::DiagnosticCode m_code;
+  std::vector<flow_wing::diagnostic::DiagnosticArg> m_args;
 };
 } // namespace binding
 } // namespace flow_wing

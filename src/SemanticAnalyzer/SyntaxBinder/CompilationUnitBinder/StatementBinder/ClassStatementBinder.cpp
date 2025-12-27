@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
@@ -34,6 +33,7 @@
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include <cassert>
+#include <utility>
 
 namespace flow_wing {
 namespace binding {
@@ -61,20 +61,24 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
         m_context->getSymbolTable()->lookup(parent_class_name);
 
     if (parent_class_symbol == nullptr) {
-      m_context->reportError(diagnostic::DiagnosticCode::kParentClassNotFound,
-                             {parent_class_name, class_name},
-                             class_statement->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          class_statement->getSourceLocation());
+
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          class_statement->getSourceLocation(),
+          diagnostic::DiagnosticCode::kParentClassNotFound,
+          diagnostic::DiagnosticArgs{parent_class_name, class_name});
+
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     if (parent_class_symbol->getKind() != analysis::SymbolKind::kClass) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          class_statement->getSourceLocation(),
           diagnostic::DiagnosticCode::kParentClassIsNotAClass,
-          {parent_class_name, class_name},
-          class_statement->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          class_statement->getSourceLocation());
+          diagnostic::DiagnosticArgs{parent_class_name, class_name});
+
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     parent_class_type_base = parent_class_symbol->getType();
@@ -95,9 +99,9 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
     case syntax::NodeKind::kVariableDeclaration: {
 
       auto bound_statement = bind(class_member_statement_syntax.get());
+
       if (bound_statement->getKind() == NodeKind::kErrorStatement) {
-        return std::make_unique<BoundErrorStatement>(
-            class_member_statement_syntax->getSourceLocation());
+        return bound_statement;
       }
 
       auto bound_declaration_statement =
@@ -115,13 +119,15 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
     }
 
     default:
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          class_member_statement_syntax->getSourceLocation(),
           diagnostic::DiagnosticCode::kInvalidClassMemberStatement,
-          {syntax::toString(class_member_statement_syntax->getKind()),
-           class_name},
-          class_member_statement_syntax->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          class_member_statement_syntax->getSourceLocation());
+          diagnostic::DiagnosticArgs{
+              syntax::toString(class_member_statement_syntax->getKind()),
+              class_name});
+
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
   }
 
@@ -135,13 +141,14 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
 
   for (const auto &symbol : class_member_symbols) {
     if (!class_type->defineMember(symbol)) {
-      m_context->reportError(
-          diagnostic::DiagnosticCode::kDuplicateMemberInClass,
-          {symbol->getName(), class_name},
-          class_statement->getSourceLocation());
 
-      return std::make_unique<BoundErrorStatement>(
-          class_statement->getSourceLocation());
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          class_statement->getSourceLocation(),
+          diagnostic::DiagnosticCode::kDuplicateMemberInClass,
+          diagnostic::DiagnosticArgs{symbol->getName(), class_name});
+
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
   }
 
@@ -149,10 +156,14 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
       class_name, analysis::SymbolKind::kClass, class_type);
 
   if (!m_context->getSymbolTable()->define(class_symbol)) {
-    m_context->reportError(diagnostic::DiagnosticCode::kClassAlreadyDeclared,
-                           {class_name}, class_statement->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        class_statement->getSourceLocation());
+
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        class_statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kClassAlreadyDeclared,
+        diagnostic::DiagnosticArgs{class_name});
+
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   return std::make_unique<BoundClassStatement>(

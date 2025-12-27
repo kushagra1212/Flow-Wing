@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -49,13 +48,14 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
   }
 
   if (bound_expression->isMultipleType()) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
-        {bound_expression->getType()->getName()},
-        left_expression->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        left_expression->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        left_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
+        diagnostic::DiagnosticArgs{bound_expression->getType()->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   auto type = bound_expression->getType();
@@ -63,13 +63,14 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
   std::vector<std::unique_ptr<BoundExpression>> bound_index_expressions;
 
   if (type->getKind() != types::TypeKind::kArray) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
-        {bound_expression->getType()->getName()},
-        left_expression->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        left_expression->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        left_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
+        diagnostic::DiagnosticArgs{bound_expression->getType()->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   auto array_type = static_cast<types::ArrayType *>(type.get());

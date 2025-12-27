@@ -20,13 +20,29 @@
 #include "BoundErrorStatement.hpp"
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+#include <cassert>
 
 namespace flow_wing {
 namespace binding {
 
 BoundErrorStatement::BoundErrorStatement(
-    const flow_wing::diagnostic::SourceLocation &location)
-    : BoundStatement(location) {}
+    const flow_wing::diagnostic::SourceLocation &location,
+    flow_wing::diagnostic::DiagnosticCode code,
+    const std::vector<flow_wing::diagnostic::DiagnosticArg> &args)
+    : BoundStatement(location), m_code(code), m_args(args) {}
+
+BoundErrorStatement::BoundErrorStatement(
+    std::unique_ptr<BoundExpression> expression)
+    : BoundStatement(expression->getSourceLocation()) {
+
+  assert(expression->getKind() == NodeKind::kErrorExpression &&
+         "BoundErrorStatement::BoundErrorStatement: expression is not a "
+         "BoundErrorExpression");
+
+  auto error_expression = static_cast<BoundErrorExpression *>(expression.get());
+  m_code = error_expression->getCode();
+  m_args = error_expression->getArgs();
+}
 
 NodeKind BoundErrorStatement::getKind() const {
   return NodeKind::kErrorStatement;
@@ -34,6 +50,15 @@ NodeKind BoundErrorStatement::getKind() const {
 
 void BoundErrorStatement::accept(visitor::BoundTreeVisitor *visitor) {
   visitor->visit(this);
+}
+
+flow_wing::diagnostic::DiagnosticCode BoundErrorStatement::getCode() const {
+  return m_code;
+}
+
+const std::vector<flow_wing::diagnostic::DiagnosticArg> &
+BoundErrorStatement::getArgs() const {
+  return m_args;
 }
 
 } // namespace binding

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -52,11 +51,12 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
   auto symbol_table = m_context->getSymbolTable().get();
 
   if (symbol_table->isInReturnScope()) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kReturnStatementNotInFunction, {},
-        return_statement->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        return_statement->getSourceLocation());
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        return_statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kReturnStatementNotInFunction,
+        diagnostic::DiagnosticArgs{});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   std::vector<std::unique_ptr<BoundExpression>> return_expressions;
@@ -73,13 +73,14 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
 
   if (!return_expressions.empty()) {
     if (return_expressions.size() != function_type->getReturnTypes().size()) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          return_statement->getSourceLocation(),
           diagnostic::DiagnosticCode::kInvalidNumberOfReturnExpressions,
-          {std::to_string(function_type->getReturnTypes().size()),
-           std::to_string(return_expressions.size())},
-          return_statement->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          return_statement->getSourceLocation());
+          diagnostic::DiagnosticArgs{
+              std::to_string(function_type->getReturnTypes().size()),
+              std::to_string(return_expressions.size())});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     size_t count = return_expressions.size();
@@ -89,39 +90,40 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
       auto return_type = function_type->getReturnTypes()[i]->type;
 
       if (return_expression->getType() != return_type) {
-        m_context->reportError(
-            diagnostic::DiagnosticCode::kReturnExpressionTypeMismatch,
-            {return_expression->getType()->getName(), return_type->getName()},
-            return_statement->getSourceLocation());
 
-        return std::make_unique<BoundErrorStatement>(
-            return_statement->getSourceLocation());
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            return_statement->getSourceLocation(),
+            diagnostic::DiagnosticCode::kReturnExpressionTypeMismatch,
+            diagnostic::DiagnosticArgs{return_expression->getType()->getName(),
+                                       return_type->getName()});
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
       }
     }
   } else if (function_type->getReturnTypes().size() == 1 &&
              function_type->getReturnTypes().back()->type !=
                  analysis::Builtins::m_nthg_type_instance) {
-    m_context->reportError(
+
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        return_statement->getSourceLocation(),
         diagnostic::DiagnosticCode::kReturnExpressionTypeMismatch,
-        {
+        diagnostic::DiagnosticArgs{
             analysis::Builtins::m_nthg_type_instance->getName(),
             function_type->getReturnTypes().back()->type->getName(),
-        },
-        return_statement->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        return_statement->getSourceLocation());
+        });
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   } else if (function_type->getReturnTypes().size() > 1) {
 
-    m_context->reportError(
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        return_statement->getSourceLocation(),
         diagnostic::DiagnosticCode::kInvalidNumberOfReturnExpressions,
-        {
+        diagnostic::DiagnosticArgs{
             std::to_string(1),
             std::to_string(function_type->getReturnTypes().size()),
-        },
-        return_statement->getSourceLocation());
-
-    return std::make_unique<BoundErrorStatement>(
-        return_statement->getSourceLocation());
+        });
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   return std::make_unique<BoundReturnStatement>(

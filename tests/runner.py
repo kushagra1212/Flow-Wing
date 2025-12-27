@@ -119,12 +119,15 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root):
 
         expect_file = file_path.with_suffix(".expect")
         
-        if update_mode:
-            with open(expect_file, 'w') as f: f.write(actual_output)
-            return True, f"{Colors.OKBLUE}[UPDATED]{Colors.ENDC} {file_path.name}"
-
-        if not expect_file.exists():
-            return False, f"{Colors.WARNING}[MISSING]{Colors.ENDC} {file_path.name} (No .expect file)"
+        # If --update is passed, OR if the .expect file doesn't exist yet, write it.
+        if update_mode or not expect_file.exists():
+            action_tag = "[UPDATED]" if expect_file.exists() else "[CREATED]"
+            try:
+                with open(expect_file, 'w') as f: f.write(actual_output)
+                return True, f"{Colors.OKBLUE}{action_tag}{Colors.ENDC} {file_path.name}"
+            except Exception as e:
+                return False, f"{Colors.FAIL}[WRITE ERROR]{Colors.ENDC} Could not write {expect_file}: {e}"
+    
 
         with open(expect_file, 'r') as f: expected_output = f.read()
 
@@ -153,7 +156,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin", required=True, help="Path to compiler executable")
     parser.add_argument("--dir", required=True, help="Path to fixtures")
-    parser.add_argument("--update", action="store_true", help="Update expect files")
+    parser.add_argument("--update", action="store_true", help="Force update of existing expect files")
     parser.add_argument("--filter", type=str, help="Regex filter")
     parser.add_argument("--mode", choices=["jit", "aot"], default="jit", help="Execution mode")
     parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
@@ -209,7 +212,7 @@ def main():
         
         sys.stdout.write('\r\033[K')
         
-        if not success or "UPDATED" in msg: 
+        if not success or "UPDATED" in msg or "CREATED" in msg: 
              print(msg)
         elif "PASS" in msg and total < 3000: 
              print(msg)

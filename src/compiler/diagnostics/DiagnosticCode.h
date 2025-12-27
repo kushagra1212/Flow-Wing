@@ -6,11 +6,12 @@
 
 #include <cstdint>
 #include <string>
-
+#include <vector>
 namespace flow_wing {
 namespace diagnostic {
 
 using DiagnosticArg = std::variant<std::string, int, double, bool>;
+using DiagnosticArgs = std::vector<flow_wing::diagnostic::DiagnosticArg>;
 
 struct MessageTemplate {
   std::string message;

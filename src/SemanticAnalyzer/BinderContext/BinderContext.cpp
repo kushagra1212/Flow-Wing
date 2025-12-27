@@ -18,6 +18,7 @@
  */
 
 #include "BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
@@ -57,6 +58,17 @@ void BinderContext::reportError(
       flow_wing::diagnostic::DiagnosticFactory::create(
           code, args, location, flow_wing::diagnostic::DiagnosticLevel::kError,
           flow_wing::diagnostic::DiagnosticType::kSemantic));
+}
+
+void BinderContext::reportError(
+    binding::BoundErrorExpression *error_expression) {
+  reportError(error_expression->getCode(), error_expression->getArgs(),
+              error_expression->getSourceLocation());
+}
+
+void BinderContext::reportError(binding::BoundErrorStatement *error_statement) {
+  reportError(error_statement->getCode(), error_statement->getArgs(),
+              error_statement->getSourceLocation());
 }
 
 void BinderContext::switchSymbolTable(

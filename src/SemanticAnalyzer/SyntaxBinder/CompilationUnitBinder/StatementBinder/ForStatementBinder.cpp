@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -79,22 +78,25 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
     auto variable_symbols = bound_variable_declaration->getSymbols();
 
     if (variable_symbols.size() != 1) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          for_statement->getVariableDeclaration()->getSourceLocation(),
           diagnostic::DiagnosticCode::kTooManyDeclaratorsInVariableDeclaration,
-          {std::to_string(1), std::to_string(variable_symbols.size())},
-          for_statement->getVariableDeclaration()->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          for_statement->getVariableDeclaration()->getSourceLocation());
+          diagnostic::DiagnosticArgs{std::to_string(1),
+                                     std::to_string(variable_symbols.size())});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     if (!isForLoopCompatibleType(variable_symbols[0]->getType())) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          for_statement->getVariableDeclaration()->getSourceLocation(),
           diagnostic::DiagnosticCode::
               kInvalidVariableDeclarationTypeForForLoopVariableDeclaration,
-          {compatible_type_names, variable_symbols[0]->getType()->getName()},
-          for_statement->getVariableDeclaration()->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          for_statement->getVariableDeclaration()->getSourceLocation());
+          diagnostic::DiagnosticArgs{
+              compatible_type_names,
+              variable_symbols[0]->getType()->getName()});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
   } else {
     bound_for_assignment_expression = m_expression_binder->bind(
@@ -103,7 +105,7 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
     if (bound_for_assignment_expression->getKind() ==
         NodeKind::kErrorExpression) {
       return std::make_unique<BoundErrorStatement>(
-          for_statement->getAssignmentExpression()->getSourceLocation());
+          std::move(bound_for_assignment_expression));
     }
 
     auto bound_assignment_expression = static_cast<BoundAssignmentExpression *>(
@@ -112,24 +114,26 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
         bound_assignment_expression->isMultiTargetAssignment();
 
     if (is_multi_target_assignment) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          for_statement->getAssignmentExpression()->getSourceLocation(),
           diagnostic::DiagnosticCode::
               kMultiTargetAssignmentNotAllowedForForLoopAssignmentExpression,
-          {}, for_statement->getAssignmentExpression()->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          for_statement->getAssignmentExpression()->getSourceLocation());
+          diagnostic::DiagnosticArgs{});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     auto assignment_expression_type = bound_assignment_expression->getType();
 
     if (!isForLoopCompatibleType(assignment_expression_type)) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          for_statement->getAssignmentExpression()->getSourceLocation(),
           diagnostic::DiagnosticCode::
               kInvalidAssignmentExpressionTypeForForLoopAssignmentExpression,
-          {compatible_type_names, assignment_expression_type->getName()},
-          for_statement->getAssignmentExpression()->getSourceLocation());
-      return std::make_unique<BoundErrorStatement>(
-          for_statement->getAssignmentExpression()->getSourceLocation());
+          diagnostic::DiagnosticArgs{compatible_type_names,
+                                     assignment_expression_type->getName()});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
   }
 
@@ -137,33 +141,35 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
       m_expression_binder->bind(for_statement->getUpperBound().get());
 
   if (bound_upper_bound->getKind() == NodeKind::kErrorExpression) {
-    return std::make_unique<BoundErrorStatement>(
-        for_statement->getUpperBound()->getSourceLocation());
+    return std::make_unique<BoundErrorStatement>(std::move(bound_upper_bound));
   }
 
   if (!isForLoopCompatibleType(bound_upper_bound->getType())) {
-    m_context->reportError(
+
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        for_statement->getUpperBound()->getSourceLocation(),
         diagnostic::DiagnosticCode::kInvalidUpperBoundTypeForForLoop,
-        {compatible_type_names, bound_upper_bound->getType()->getName()},
-        for_statement->getUpperBound()->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        for_statement->getUpperBound()->getSourceLocation());
+        diagnostic::DiagnosticArgs{compatible_type_names,
+                                   bound_upper_bound->getType()->getName()});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   auto bound_step = m_expression_binder->bind(for_statement->getStep().get());
 
   if (bound_step->getKind() == NodeKind::kErrorExpression) {
-    return std::make_unique<BoundErrorStatement>(
-        for_statement->getStep()->getSourceLocation());
+    return std::make_unique<BoundErrorStatement>(std::move(bound_step));
   }
 
   if (!isForLoopCompatibleType(bound_step->getType())) {
-    m_context->reportError(
+
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        for_statement->getStep()->getSourceLocation(),
         diagnostic::DiagnosticCode::kInvalidStepTypeForForLoop,
-        {compatible_type_names, bound_step->getType()->getName()},
-        for_statement->getStep()->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        for_statement->getStep()->getSourceLocation());
+        diagnostic::DiagnosticArgs{compatible_type_names,
+                                   bound_step->getType()->getName()});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   auto bound_for_loop_statement = bind(for_statement->getBody().get());

@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -54,13 +51,16 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
   auto is_full_re_assignment = expression->isFullReAssignment();
 
   if (left_expressions.size() != right_expressions.size()) {
-    m_context->reportError(
+
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getSourceLocation(),
         diagnostic::DiagnosticCode::kAssignmentExpressionCountMismatch,
-        {std::to_string(left_expressions.size()),
-         std::to_string(right_expressions.size())},
-        expression->getSourceLocation());
-    return std::make_unique<BoundErrorExpression>(
-        expression->getSourceLocation());
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            std::to_string(left_expressions.size()),
+            std::to_string(right_expressions.size())});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   size_t size = left_expressions.size();
@@ -72,14 +72,16 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     if (left_expression->getType() != right_expression->getType() &&
         !left_expression->getType()->isDynamic() &&
         !right_expression->getType()->isDynamic()) {
-      m_context->reportError(
-          diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
-          {left_expression->getType()->getName(),
-           right_expression->getType()->getName()},
-          expression->getSourceLocation());
 
-      return std::make_unique<BoundErrorExpression>(
-          expression->getSourceLocation());
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{
+              left_expression->getType()->getName(),
+              right_expression->getType()->getName()});
+
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
     }
   }
 

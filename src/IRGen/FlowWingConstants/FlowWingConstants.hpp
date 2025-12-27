@@ -33,6 +33,7 @@ const std::string_view kDynamic_type_name = "fg_dyn_type";
 namespace functions {
 // Built-in Functions
 const std::string_view kPrint_fn = "print";
+const std::string_view kString_fn = "String";
 
 // FlowWing Internal Functions
 const std::string_view kPrintf_fn = "fg_pf";

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -51,12 +50,14 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindModuleAccessExpression(
   auto symbol = m_context->getSymbolTable()->lookup(module_name).get();
 
   if (!symbol) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kModuleNotFound, {module_name},
-        expression->getModuleNameExpression()->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        expression->getModuleNameExpression()->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getModuleNameExpression()->getSourceLocation(),
+        diagnostic::DiagnosticCode::kModuleNotFound,
+        diagnostic::DiagnosticArgs{module_name});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   auto module_symbol = static_cast<analysis::ModuleSymbol *>(symbol);

@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 
 namespace flow_wing {
 namespace binding {
@@ -27,12 +28,21 @@ namespace binding {
 class BoundErrorExpression : public BoundExpression {
 
 public:
-  BoundErrorExpression(const flow_wing::diagnostic::SourceLocation &location);
+  BoundErrorExpression(
+      const flow_wing::diagnostic::SourceLocation &location,
+      flow_wing::diagnostic::DiagnosticCode code,
+      const std::vector<flow_wing::diagnostic::DiagnosticArg> &args);
   ~BoundErrorExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
+  flow_wing::diagnostic::DiagnosticCode getCode() const;
+  const std::vector<flow_wing::diagnostic::DiagnosticArg> &getArgs() const;
   void accept(visitor::BoundTreeVisitor *visitor) override;
+
+private:
+  flow_wing::diagnostic::DiagnosticCode m_code;
+  std::vector<flow_wing::diagnostic::DiagnosticArg> m_args;
 };
 } // namespace binding
 } // namespace flow_wing

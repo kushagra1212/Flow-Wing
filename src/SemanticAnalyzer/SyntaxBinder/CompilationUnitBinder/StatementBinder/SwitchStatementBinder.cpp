@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -56,7 +55,7 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
   if (bound_switch_condition_expression->getKind() ==
       NodeKind::kErrorExpression) {
     return std::make_unique<BoundErrorStatement>(
-        switch_statement->getSourceLocation());
+        std::move(bound_switch_condition_expression));
   }
   std::unique_ptr<BoundStatement> bound_default_case_statement = nullptr;
 
@@ -66,11 +65,12 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
   for (const auto &case_statement : switch_statement->getCaseStatements()) {
     if (case_statement->getKind() == syntax::NodeKind::kDefaultCaseStatement) {
       if (bound_default_case_statement != nullptr) {
-        m_context->reportError(
-            diagnostic::DiagnosticCode::kMultipleDefaultCaseStatements, {},
-            case_statement->getSourceLocation());
-        return std::make_unique<BoundErrorStatement>(
-            case_statement->getSourceLocation());
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            case_statement->getSourceLocation(),
+            diagnostic::DiagnosticCode::kMultipleDefaultCaseStatements,
+            diagnostic::DiagnosticArgs{});
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
       }
 
       auto default_case_statement_syntax =
@@ -98,21 +98,21 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
 
       if (bound_case_expression->getKind() == NodeKind::kErrorExpression) {
         return std::make_unique<BoundErrorStatement>(
-            case_statement->getSourceLocation());
+            std::move(bound_case_expression));
       }
 
       auto case_expression_type = bound_case_expression->getType();
 
       if (case_expression_type != condition_type) {
-        m_context->reportError(
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            case_statement->getSourceLocation(),
             diagnostic::DiagnosticCode::kCaseExpressionTypeMismatch,
-            {
+            diagnostic::DiagnosticArgs{
                 condition_type->getName(),
                 case_expression_type->getName(),
-            },
-            case_statement->getSourceLocation());
-        return std::make_unique<BoundErrorStatement>(
-            case_statement->getSourceLocation());
+            });
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
       }
 
       bound_case_expressions.push_back(std::move(bound_case_expression));
@@ -125,8 +125,7 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
       m_context->getSymbolTable()->leaveScope();
 
       if (bound_case_statement->getKind() == NodeKind::kErrorStatement) {
-        return std::make_unique<BoundErrorStatement>(
-            case_statement->getSourceLocation());
+        return bound_case_statement;
       }
 
       bound_case_statements.push_back(std::move(bound_case_statement));

@@ -38,6 +38,9 @@ public:
   static bool isBuiltInFunction(const std::string &name);
   static bool isBuiltInType(const std::string &name);
 
+  static std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
+      m_functions_symbols_map;
+
 private:
   static std::shared_ptr<types::Type>
   createBuiltinType(const std::string &name);
@@ -58,8 +61,6 @@ private:
                                  std::shared_ptr<types::Type> return_type);
 
   static std::vector<std::shared_ptr<Symbol>> m_all_symbols;
-  static std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
-      m_functions_symbols_map;
   static std::unordered_map<std::string, std::shared_ptr<Symbol>>
       m_types_symbols_map;
 };

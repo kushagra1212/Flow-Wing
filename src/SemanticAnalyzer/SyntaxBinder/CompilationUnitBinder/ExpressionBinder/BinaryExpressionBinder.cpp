@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
@@ -54,15 +53,17 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindBinaryExpression(
       right_expression->getType());
 
   if (binary_operator == nullptr) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kInvalidBinaryOperationWithTypes,
-        {lexer::toString(operator_token->getTokenKind()),
-         left_expression->getType()->getName(),
-         right_expression->getType()->getName()},
-        expression->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        expression->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kInvalidBinaryOperationWithTypes,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            lexer::toString(operator_token->getTokenKind()),
+            left_expression->getType()->getName(),
+            right_expression->getType()->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   return std::make_unique<BoundBinaryExpression>(

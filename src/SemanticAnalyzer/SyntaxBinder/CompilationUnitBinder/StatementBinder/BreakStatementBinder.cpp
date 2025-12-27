@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
@@ -41,11 +40,13 @@ StatementBinder::bindBreakStatement(syntax::BreakStatementSyntax *statement) {
   auto break_statement = static_cast<syntax::BreakStatementSyntax *>(statement);
 
   if (!m_context->getSymbolTable()->isInBreakScope()) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kBreakStatementNotAllowedOutsideOfLoop, {},
-        break_statement->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        break_statement->getSourceLocation());
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        break_statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kBreakStatementNotAllowedOutsideOfLoop,
+        diagnostic::DiagnosticArgs{});
+
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   return std::make_unique<BoundBreakStatement>(

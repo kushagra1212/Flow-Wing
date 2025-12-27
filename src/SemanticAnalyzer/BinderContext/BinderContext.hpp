@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include <cstdint>
 #include <vector>
@@ -33,6 +34,9 @@ public:
   reportError(flow_wing::diagnostic::DiagnosticCode code,
               const std::vector<flow_wing::diagnostic::DiagnosticArg> &args,
               const flow_wing::diagnostic::SourceLocation &location);
+
+  void reportError(binding::BoundErrorExpression *error_expression);
+  void reportError(binding::BoundErrorStatement *error_statement);
 
   // Setters
   void

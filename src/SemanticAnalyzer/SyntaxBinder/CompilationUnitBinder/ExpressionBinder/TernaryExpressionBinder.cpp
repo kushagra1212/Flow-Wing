@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -54,14 +53,15 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindTernaryExpression(
   }
 
   if (true_expression->getType() != false_expression->getType()) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kIncompatibleTypesForTernaryExpression,
-        {true_expression->getType()->getName(),
-         false_expression->getType()->getName()},
-        expression->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        expression->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kIncompatibleTypesForTernaryExpression,
+        diagnostic::DiagnosticArgs{true_expression->getType()->getName(),
+                                   false_expression->getType()->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   return std::make_unique<BoundTernaryExpression>(

@@ -135,8 +135,7 @@ private:
   // -- Helper Methods --
   std::pair<bool, std::shared_ptr<types::Type>>
   isUnaryAllowedType(lexer::TokenKind operator_token_kind,
-                     std::shared_ptr<types::Type> type,
-                     const diagnostic::SourceLocation &source_location);
+                     std::shared_ptr<types::Type> type);
   // -- Parenthesized Expression --
   std::unique_ptr<BoundExpression> bindParenthesizedExpression(
       syntax::ParenthesizedExpressionSyntax *expression);

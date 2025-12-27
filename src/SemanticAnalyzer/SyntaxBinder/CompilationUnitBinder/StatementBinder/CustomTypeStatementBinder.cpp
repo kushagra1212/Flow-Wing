@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -56,15 +55,14 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
         field_declaration->getKey().get());
     const auto &field_name_value = field_name->getValue();
 
-    auto field_type = m_context->getTypeResolver()->resolveType(
+    auto result = m_context->getTypeResolver()->resolveType(
         field_declaration->getValue().get());
 
-    if (field_type == nullptr) {
-      return std::make_unique<BoundErrorStatement>(
-          field_declaration->getValue()->getSourceLocation());
+    if (result.second != nullptr) {
+      return std::make_unique<BoundErrorStatement>(std::move(result.second));
     }
 
-    custom_type_fields.insert({field_name_value, field_type});
+    custom_type_fields.insert({field_name_value, result.first});
   }
 
   auto custom_type_type = std::make_shared<types::CustomObjectType>(
@@ -76,12 +74,13 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
   auto symbol_table = m_context->getSymbolTable().get();
 
   if (!symbol_table->define(symbol)) {
-    m_context->reportError(
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        statement->getSourceLocation(),
         diagnostic::DiagnosticCode::kCustomTypeAlreadyDeclared,
-        {custom_type_name}, statement->getSourceLocation());
+        diagnostic::DiagnosticArgs{custom_type_name});
 
-    return std::make_unique<BoundErrorStatement>(
-        statement->getSourceLocation());
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   return std::make_unique<BoundCustomTypeStatement>(

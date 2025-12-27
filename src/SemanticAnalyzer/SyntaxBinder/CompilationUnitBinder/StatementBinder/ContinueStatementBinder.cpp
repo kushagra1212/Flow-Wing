@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundContinueStatement/BoundContinueStatement.hpp"
@@ -40,11 +39,13 @@ std::unique_ptr<BoundStatement> StatementBinder::bindContinueStatement(
       static_cast<syntax::ContinueStatementSyntax *>(statement);
 
   if (!m_context->getSymbolTable()->isInBreakScope()) {
-    m_context->reportError(
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        continue_statement->getSourceLocation(),
         diagnostic::DiagnosticCode::kContinueStatementNotAllowedOutsideOfLoop,
-        {}, continue_statement->getSourceLocation());
-    return std::make_unique<BoundErrorStatement>(
-        continue_statement->getSourceLocation());
+        diagnostic::DiagnosticArgs{});
+
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
   }
 
   return std::make_unique<BoundContinueStatement>(

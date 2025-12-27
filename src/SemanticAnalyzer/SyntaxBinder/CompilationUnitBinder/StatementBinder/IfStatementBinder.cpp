@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -49,8 +48,7 @@ StatementBinder::bindIfStatement(syntax::IfStatementSyntax *statement) {
       m_expression_binder->bind(if_statement->getConditionExpression().get());
 
   if (bound_if_condition->getKind() == NodeKind::kErrorExpression) {
-    return std::make_unique<BoundErrorStatement>(
-        if_statement->getConditionExpression()->getSourceLocation());
+    return std::make_unique<BoundErrorStatement>(std::move(bound_if_condition));
   }
 
   auto bound_if_statement = bind(if_statement->getStatement().get());
@@ -72,7 +70,7 @@ StatementBinder::bindIfStatement(syntax::IfStatementSyntax *statement) {
 
     if (bound_or_if_condition->getKind() == NodeKind::kErrorExpression) {
       return std::make_unique<BoundErrorStatement>(
-          or_if_statement->getConditionExpression()->getSourceLocation());
+          std::move(bound_or_if_condition));
     }
 
     auto bound_or_if_statement = bind(or_if_statement->getStatement().get());

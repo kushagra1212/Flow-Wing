@@ -57,6 +57,14 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
         clearLastValue();
       }
     }
+
+    if (function_symbol->getName() ==
+        std::string(ir_gen::constants::functions::kString_fn)) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToString(m_last_value, m_last_value->getType());
+    }
   }
 }
 } // namespace flow_wing::ir_gen

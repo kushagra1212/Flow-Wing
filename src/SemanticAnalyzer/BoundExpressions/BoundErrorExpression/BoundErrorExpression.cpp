@@ -25,8 +25,10 @@ namespace flow_wing {
 namespace binding {
 
 BoundErrorExpression::BoundErrorExpression(
-    const flow_wing::diagnostic::SourceLocation &location)
-    : BoundExpression(location) {}
+    const flow_wing::diagnostic::SourceLocation &location,
+    flow_wing::diagnostic::DiagnosticCode code,
+    const std::vector<flow_wing::diagnostic::DiagnosticArg> &args)
+    : BoundExpression(location), m_code(code), m_args(args) {}
 
 void BoundErrorExpression::accept(visitor::BoundTreeVisitor *visitor) {
   visitor->visit(this);
@@ -34,6 +36,15 @@ void BoundErrorExpression::accept(visitor::BoundTreeVisitor *visitor) {
 
 NodeKind BoundErrorExpression::getKind() const {
   return NodeKind::kErrorExpression;
+}
+
+flow_wing::diagnostic::DiagnosticCode BoundErrorExpression::getCode() const {
+  return m_code;
+}
+
+const std::vector<flow_wing::diagnostic::DiagnosticArg> &
+BoundErrorExpression::getArgs() const {
+  return m_args;
 }
 
 } // namespace binding

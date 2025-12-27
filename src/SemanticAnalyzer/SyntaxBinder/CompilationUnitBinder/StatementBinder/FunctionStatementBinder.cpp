@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -118,14 +117,13 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
         has_default_value && !has_function_body;
 
     if (is_function_decl_param_has_default_value) {
-      m_context->reportError(
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          parameter_expression->getSourceLocation(),
           diagnostic::DiagnosticCode::
               kFunctionDeclarationDoesNotAllowDefaultParameterValues,
-          {param_identifier_name, function_name},
-          parameter_expression->getSourceLocation());
-
-      return std::make_unique<BoundErrorStatement>(
-          parameter_expression->getSourceLocation());
+          diagnostic::DiagnosticArgs{param_identifier_name, function_name});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     if (has_default_value) {
@@ -135,7 +133,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
       if (bound_default_value_expression->getKind() ==
           NodeKind::kErrorExpression) {
         return std::make_unique<BoundErrorStatement>(
-            parameter_expression->getSourceLocation());
+            std::move(bound_default_value_expression));
       }
     }
 
@@ -144,13 +142,13 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
         std::move(bound_default_value_expression));
 
     if (!symbol_table->define(param_symbol)) {
-      m_context->reportError(
-          diagnostic::DiagnosticCode::kParameterAlreadyDeclared,
-          {param_identifier_name, function_name},
-          parameter_expression->getSourceLocation());
 
-      return std::make_unique<BoundErrorStatement>(
-          parameter_expression->getSourceLocation());
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          parameter_expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kParameterAlreadyDeclared,
+          diagnostic::DiagnosticArgs{param_identifier_name, function_name});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
     }
 
     function_symbol->addParameter(param_symbol);

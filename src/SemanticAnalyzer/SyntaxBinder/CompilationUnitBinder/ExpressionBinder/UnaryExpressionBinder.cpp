@@ -17,13 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
+#include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+#include "src/common/types/Type.hpp"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
-
 namespace flow_wing {
 namespace binding {
 
@@ -39,12 +40,17 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindUnaryExpression(
   auto operator_token_kind = syntax_node->getOperatorTokenKind();
 
   const auto &[is_allowed, resolved_type] =
-      isUnaryAllowedType(operator_token_kind, bound_expression->getType(),
-                         bound_expression->getSourceLocation());
+      isUnaryAllowedType(operator_token_kind, bound_expression->getType());
 
   if (!is_allowed) {
-    return std::make_unique<BoundErrorExpression>(
-        bound_expression->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        bound_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kInvalidUnaryOperator,
+        diagnostic::DiagnosticArgs{lexer::toString(operator_token_kind),
+                                   bound_expression->getType()->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   return std::make_unique<BoundUnaryExpression>(

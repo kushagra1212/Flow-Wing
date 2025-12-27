@@ -173,9 +173,8 @@ ExpressionBinder::bindExpressionList(syntax::ExpressionSyntax *expression) {
 }
 
 std::pair<bool, std::shared_ptr<types::Type>>
-ExpressionBinder::isUnaryAllowedType(
-    lexer::TokenKind operator_token_kind, std::shared_ptr<types::Type> type,
-    const diagnostic::SourceLocation &source_location) {
+ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
+                                     std::shared_ptr<types::Type> type) {
 
   static const std::set<types::Type *> allowed_types_for_plus_minus_operator = {
       // integers
@@ -229,10 +228,7 @@ ExpressionBinder::isUnaryAllowedType(
   auto isAllowedType = [&](const std::set<types::Type *> &allowed_types) {
     if (std::find(allowed_types.begin(), allowed_types.end(), type.get()) ==
         allowed_types.end()) {
-      m_context->reportError(
-          diagnostic::DiagnosticCode::kInvalidUnaryOperator,
-          {lexer::toString(operator_token_kind), type->getName()},
-          source_location);
+
       return false;
     }
     return true;

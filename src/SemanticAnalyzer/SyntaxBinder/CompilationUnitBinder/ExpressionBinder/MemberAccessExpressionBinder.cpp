@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -25,6 +24,7 @@
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/Type.hpp"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "src/syntax/expression/MemberAccessExpressionSyntax/MemberAccessExpressionSyntax.h"
@@ -47,13 +47,14 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
   const auto &left_type = left_expression->getType();
 
   if (left_type->getKind() != types::TypeKind::kObject) {
-    m_context->reportError(
-        diagnostic::DiagnosticCode::kMemberAccessOnNonObjectVariable,
-        {left_type->getName()},
-        expression->getLeftExpression()->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        expression->getLeftExpression()->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getLeftExpression()->getSourceLocation(),
+        diagnostic::DiagnosticCode::kMemberAccessOnNonObjectVariable,
+        diagnostic::DiagnosticArgs{left_type->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   auto object_type = static_cast<types::CustomObjectType *>(left_type.get());
@@ -65,12 +66,14 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
   auto field_type = object_type->getFieldType(member_name);
 
   if (field_type == nullptr) {
-    m_context->reportError(diagnostic::DiagnosticCode::kMemberNotFoundInObject,
-                           {member_name, object_type->getName()},
-                           member_identifier->getSourceLocation());
 
-    return std::make_unique<BoundErrorExpression>(
-        member_identifier->getSourceLocation());
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        member_identifier->getSourceLocation(),
+        diagnostic::DiagnosticCode::kMemberNotFoundInObject,
+        diagnostic::DiagnosticArgs{member_name, object_type->getName()});
+
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
   }
 
   return std::make_unique<BoundMemberAccessExpression>(

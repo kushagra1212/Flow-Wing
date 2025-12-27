@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include <any>
@@ -24,13 +25,16 @@ class TypeResolver {
 public:
   explicit TypeResolver(binding::BinderContext *ctx);
 
-  std::shared_ptr<types::Type>
+  std::pair<std::shared_ptr<types::Type>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveType(const syntax::ExpressionSyntax *syntax);
 
-  std::shared_ptr<types::Type>
+  std::pair<std::shared_ptr<types::Type>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveObjectType(const syntax::ObjectTypeExpressionSyntax *syntax);
 
-  std::shared_ptr<types::Type>
+  std::pair<std::shared_ptr<types::Type>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveArrayType(const syntax::ArrayTypeExpressionSyntax *syntax);
 
   std::shared_ptr<types::ParameterType>
@@ -39,10 +43,13 @@ public:
   std::vector<std::shared_ptr<types::ReturnType>>
   resolveReturnType(const syntax::FunctionReturnTypeExpressionSyntax *syntax);
 
-  std::shared_ptr<types::Type> resolveModuleAccessType(
+  std::pair<std::shared_ptr<types::Type>,
+            std::unique_ptr<binding::BoundErrorExpression>>
+  resolveModuleAccessType(
       const syntax::ModuleAccessTypeExpressionSyntax *syntax);
 
-  std::shared_ptr<types::Type>
+  std::pair<std::shared_ptr<types::Type>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveFunctionType(const syntax::FunctionTypeExpressionSyntax *syntax);
 
   static types::ValueKind getValueKind(const bool has_inout_keyword);
@@ -52,7 +59,7 @@ public:
 private:
   binding::BinderContext *m_ctx;
 
-  bool
+  std::unique_ptr<binding::BoundErrorExpression>
   populateDimensionValue(const syntax::DimensionClauseExpressionSyntax *syntax,
                          int64_t &value);
 };

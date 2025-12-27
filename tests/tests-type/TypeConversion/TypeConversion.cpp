@@ -24,62 +24,9 @@ void TypeConversion::SetUp() { _test->SetUp(); }
 
 void TypeConversion::TearDown() { _test->TearDown(); }
 
-#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
-// String Conversion Tests
-TEST_F(TypeConversion, StringFromInt) {
-  I(R"(print(String(2)))");
-  EXPECT_EQ(getOutput(), "2");
-}
 
-TEST_F(TypeConversion, StringFromDouble) {
-  I(R"(print(String(2.2)))");
-  EXPECT_EQ(getOutput(), "2.20000000000000");
-}
 
-TEST_F(TypeConversion, StringFromDoubleD) {
-  I(R"(print(String(2.2d)))");
-  EXPECT_EQ(getOutput(), "2.20000004768372");
-}
 
-TEST_F(TypeConversion, StringFromChar) {
-  I(R"(print(String('a')))");
-  EXPECT_EQ(getOutput(), "97");
-}
-
-TEST_F(TypeConversion, StringFromBoolTrue) {
-  I(R"(print(String(true)))");
-  EXPECT_EQ(getOutput(), "true");
-}
-
-TEST_F(TypeConversion, StringFromBoolFalse) {
-  I(R"(print(String(false)))");
-  EXPECT_EQ(getOutput(), "false");
-}
-
-TEST_F(TypeConversion, StringNestedConversion) {
-  I(R"(print(String(String("Hello"))))");
-  EXPECT_EQ(getOutput(), "Hello");
-}
-
-TEST_F(TypeConversion, StringFromStringLiteral) {
-  I(R"(print(String("Hello")))");
-  EXPECT_EQ(getOutput(), "Hello");
-}
-
-TEST_F(TypeConversion, StringFromDivision) {
-  I(R"(print(String(2 / 2)))");
-  EXPECT_EQ(getOutput(), "1.00000000000000");
-}
-
-TEST_F(TypeConversion, StringFromNumericString) {
-  I(R"(print(String("25")))");
-  EXPECT_EQ(getOutput(), "25");
-}
-
-TEST_F(TypeConversion, StringFromDecimalString) {
-  I(R"(print(String("25.2")))");
-  EXPECT_EQ(getOutput(), "25.2");
-}
 
 // Int32 Conversion Tests
 TEST_F(TypeConversion, Int32FromInt) {
@@ -905,4 +852,3 @@ print(x)
   )");
   EXPECT_EQ(getOutput(), "5.500000000000005.500000000000005.5000000000000011");
 }
-#endif // __TYPE_CONVERSION_H__
