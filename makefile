@@ -266,7 +266,7 @@ test-jit: build-jit-debug
 		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
 		--dir tests/fixtures \
 		--filter "$(FILTER)" \
-		--mode jit
+		--mode jit $(ARGS)
 
 #! ----- AOT -----
 
@@ -335,7 +335,7 @@ test-aot: build-aot-debug
 		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
 		--dir tests/fixtures \
 		--filter "$(FILTER)" \
-		--mode aot
+		--mode aot $(ARGS)
 
 #! ----- Clean -----
 
