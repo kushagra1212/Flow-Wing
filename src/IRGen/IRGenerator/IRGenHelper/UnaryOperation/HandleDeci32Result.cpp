@@ -18,48 +18,24 @@
  */
 
 
-#include "IntegerOperation.h"
-/*
 
-    INTEGER OPERATIONS
+#include "src/IRGen/IRGenerator/IRGenerator.hpp"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+namespace flow_wing::ir_gen {
 
-*/
-
-/*
-
-    INTEGER OPERATIONS WITH INTEGERS
-
-*/
-
-
-
-
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalNot) {
-  std::string input = "!2";
-  std::string expected_output = "false";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
+llvm::Value *IRGenerator::getDecimal32Result(llvm::Value *value,
+                                             lexer::TokenKind operator_kind) {
+  switch (operator_kind) {
+  case lexer::TokenKind::kPlusToken: {
+    return value;
+  }
+  case lexer::TokenKind::kMinusToken: {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFNeg(value,
+                                                         "negation_result");
+  }
+  default: {
+    assert(false && "Unsupported unary operator for decimal32 result type");
+  }
+  }
 }
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationLogicalNotNot) {
-  std::string input = "!!2";
-  std::string expected_output = "true";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
-
-
-
-TEST_F(BinaryOperationTest, BasicIntegerOperationNegation) {
-  std::string input = "~2";
-  std::string expected_output = "-3";
-
-  setInput(input);
-  runEvaluator();
-  EXPECT_EQ(getOutput(), expected_output);
-}
+} // namespace flow_wing::ir_gen

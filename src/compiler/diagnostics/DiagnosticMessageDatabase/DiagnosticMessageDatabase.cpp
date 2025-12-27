@@ -561,15 +561,10 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "both branches of the ternary expression."}},
 
     {(DiagnosticCode::kInvalidUnaryOperator),
-     {"Invalid unary operator '{0}' for type '{1}'.",
-      "Please use a valid unary operator for type '{1}'.",
-      "Ensure that the unary operator is valid and supported for type '{1}'."}},
+     {"Invalid unary operator '{0}' for type '{1}'.", "", ""}},
 
     {(DiagnosticCode::kInvalidBinaryOperationWithTypes),
-     {"Invalid binary operation '{0}' with types '{1}' and '{2}'.",
-      "Please use a valid binary operation '{0}' with types '{1}' and '{2}'.",
-      "Ensure that the binary operation '{0}' is valid and supported for types "
-      "'{1}' and '{2}'."}},
+     {"Invalid binary operation '{0}' with types '{1}' and '{2}'.", "", ""}},
 
     {(DiagnosticCode::kAssignmentExpressionTypeMismatch),
      {"Assignment expression type mismatch. Expected '{0}' but got '{1}'.",

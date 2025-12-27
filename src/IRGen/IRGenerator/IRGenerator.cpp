@@ -201,10 +201,6 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNewExpression *statement) {
   assert(false && "New expression not supported");
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundUnaryExpression *statement) {
-  assert(false && "Unary expression not supported");
-}
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundAssignmentExpression *statement) {

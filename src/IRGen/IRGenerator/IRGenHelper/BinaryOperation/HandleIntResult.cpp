@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -25,9 +24,9 @@
 
 namespace flow_wing::ir_gen {
 
-llvm::Value *IRGenerator::getInt32Result(llvm::Value *left_value,
-                                         llvm::Value *right_value,
-                                         lexer::TokenKind operator_kind) {
+llvm::Value *IRGenerator::getIntResult(llvm::Value *left_value,
+                                       llvm::Value *right_value,
+                                       lexer::TokenKind operator_kind) {
 
   switch (operator_kind) {
   case lexer::TokenKind::kPlusToken:

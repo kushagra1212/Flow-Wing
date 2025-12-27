@@ -174,17 +174,25 @@ void initializeIntegerOperators(
     std::vector<BoundBinaryOperator> &operators,
     std::shared_ptr<types::Type> type,
     std::shared_ptr<types::Type> decimal_result_type) {
-  for (const auto &token : {
-           lexer::TokenKind::kPlusToken,
-           lexer::TokenKind::kMinusToken,
-           lexer::TokenKind::kStarToken,
-           lexer::TokenKind::kSlashSlashToken,
-           lexer::TokenKind::kPercentToken,
-           lexer::TokenKind::kAmpersandToken,
-           lexer::TokenKind::kPipeToken,
-           lexer::TokenKind::kCaretToken,
-       }) {
-    operators.emplace_back(token, type, type, type);
+
+  if (type == analysis::Builtins::m_int8_type_instance) {
+
+    operators.emplace_back(lexer::TokenKind::kPlusToken, type, type,
+                           analysis::Builtins::m_str_type_instance);
+
+  } else {
+    for (const auto &token : {
+             lexer::TokenKind::kPlusToken,
+             lexer::TokenKind::kMinusToken,
+             lexer::TokenKind::kStarToken,
+             lexer::TokenKind::kSlashSlashToken,
+             lexer::TokenKind::kPercentToken,
+             lexer::TokenKind::kAmpersandToken,
+             lexer::TokenKind::kPipeToken,
+             lexer::TokenKind::kCaretToken,
+         }) {
+      operators.emplace_back(token, type, type, type);
+    }
   }
 
   operators.emplace_back(lexer::TokenKind::kSlashToken, type, type,

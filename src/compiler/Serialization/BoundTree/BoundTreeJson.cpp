@@ -240,12 +240,6 @@ void BoundTreeJson::visit(
   assert(false && "New expression not supported");
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundUnaryExpression *unary_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Unary Expression", "BOUND TREE");
-  assert(false && "Unary expression not supported");
-}
-
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundAssignmentExpression
                               *assignment_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Assignment Expression", "BOUND TREE");

@@ -228,7 +228,7 @@ ExpressionBinder::isUnaryAllowedType(
   };
 
   auto isAllowedType = [&](const std::set<types::Type *> &allowed_types) {
-    if (std::find(allowed_types.begin(), allowed_types.end(), type.get()) !=
+    if (std::find(allowed_types.begin(), allowed_types.end(), type.get()) ==
         allowed_types.end()) {
       m_context->reportError(
           diagnostic::DiagnosticCode::kInvalidUnaryOperator,

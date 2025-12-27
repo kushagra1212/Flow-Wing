@@ -120,9 +120,8 @@ private:
                                                types::Type *left_type,
                                                types::Type *right_type);
 
-  // Integer Result
-  llvm::Value *getInt32Result(llvm::Value *left_value, llvm::Value *right_value,
-                              lexer::TokenKind operator_kind);
+  llvm::Value *getIntResult(llvm::Value *left_value, llvm::Value *right_value,
+                            lexer::TokenKind operator_kind);
   llvm::Value *getDecimal32Result(llvm::Value *left_value,
                                   llvm::Value *right_value,
                                   lexer::TokenKind operator_kind);
@@ -132,6 +131,23 @@ private:
   llvm::Value *getStringResult(llvm::Value *left_value,
                                llvm::Value *right_value,
                                lexer::TokenKind operator_kind);
+
+  // Unary Result
+
+  llvm::Value *getUnaryOperationResult(llvm::Value *value,
+                                       lexer::TokenKind operator_kind,
+                                       types::Type *result_type,
+                                       types::Type *expression_type);
+
+  // Integer Result
+  llvm::Value *getIntResult(llvm::Value *value, lexer::TokenKind operator_kind);
+  llvm::Value *getBoolResult(llvm::Value *value, lexer::TokenKind operator_kind,
+                             types::Type *expression_type);
+  llvm::Value *getDecimal32Result(llvm::Value *value,
+                                  lexer::TokenKind operator_kind);
+  llvm::Value *getDecimalResult(llvm::Value *value,
+                                lexer::TokenKind operator_kind);
+
   void handleReturn();
   void verifyModule();
 

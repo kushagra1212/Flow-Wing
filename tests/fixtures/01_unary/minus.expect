@@ -1,0 +1,11 @@
+Minus Prefix Operator for Int
+-1
+-3
+Minus Prefix Operator for Double
+-1
+-3
+-2.5
+Minus Prefix Operator for Float
+-1
+-3
+-2.5

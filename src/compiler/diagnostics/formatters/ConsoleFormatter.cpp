@@ -33,10 +33,10 @@ std::string ConsoleFormatter::format(const Diagnostic &diagnostic,
                                      const CompilationContext &context) const {
   std::stringstream ss;
 
-  ss << getMessageSnippet(diagnostic);
-  ss << getLocationSnippet(diagnostic, context);
-  ss << getFileSnippet(diagnostic, context);
   ss << getErrorCodeSnippet(diagnostic, context);
+  ss << getMessageSnippet(diagnostic);
+  ss << getFileSnippet(diagnostic, context);
+  ss << getLocationSnippet(diagnostic, context);
   ss << getNoteSnippet(diagnostic);
   ss << getHelpSnippet(diagnostic);
 
@@ -76,20 +76,30 @@ std::string ConsoleFormatter::getFileName(const std::string &file_path) const {
 
 std::string
 ConsoleFormatter::getNoteSnippet(const Diagnostic &diagnostic) const {
+
+  const auto note = diagnostic.getNote();
+  if (note.empty()) {
+    return "";
+  }
+
   std::stringstream snippet;
   snippet << CLEAR_COLOR << "\n"
-          << BLUE_TEXT << "Note: " << WHITE_TEXT << diagnostic.getNote()
-          << "\n\n"
+          << GREEN_TEXT << "[Note] " << WHITE_TEXT << note << "\n\n"
           << CLEAR_COLOR;
   return snippet.str();
 }
 
 std::string
 ConsoleFormatter::getHelpSnippet(const Diagnostic &diagnostic) const {
+
+  const auto help = diagnostic.getHelp();
+  if (help.empty()) {
+    return "";
+  }
+
   std::stringstream snippet;
   snippet << CLEAR_COLOR << "\n"
-          << BLUE_TEXT << "Help: " << WHITE_TEXT << diagnostic.getHelp()
-          << "\n\n"
+          << GREEN_TEXT << "[Help] " << WHITE_TEXT << help << "\n\n"
           << CLEAR_COLOR;
   return snippet.str();
 }
@@ -103,10 +113,8 @@ ConsoleFormatter::getFileSnippet(const Diagnostic &diagnostic,
   }
 
   std::stringstream snippet;
-  snippet << CLEAR_COLOR << "\n"
-          << YELLOW_TEXT << "File: ----> " << WHITE_TEXT
+  snippet << CLEAR_COLOR << YELLOW_TEXT << "File: ----> " << WHITE_TEXT
           << getFileName(context.getAbsoluteSourceFilePath()) << WHITE_TEXT
-          << "\n\n"
           << CLEAR_COLOR;
   return snippet.str();
 }
@@ -144,7 +152,7 @@ ConsoleFormatter::getLocationSnippet(const Diagnostic &diagnostic,
   std::stringstream snippet;
   snippet << CLEAR_COLOR << "\n"
           << YELLOW_TEXT << "Location: ----> " << GREEN_TEXT
-          << context.getAbsoluteSourceFilePath() << CLEAR_COLOR;
+          << context.getAbsoluteSourceFilePath() << CLEAR_COLOR << "\n";
   return snippet.str();
 }
 

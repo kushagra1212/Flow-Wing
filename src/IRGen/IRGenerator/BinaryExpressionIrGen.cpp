@@ -41,7 +41,7 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
   }
 
   if (result_type == analysis::Builtins::m_int32_type_instance.get()) {
-    return getInt32Result(left_value, right_value, operator_kind);
+    return getIntResult(left_value, right_value, operator_kind);
   }
 
   if (result_type == analysis::Builtins::m_deci32_type_instance.get()) {
