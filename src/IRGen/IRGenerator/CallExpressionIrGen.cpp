@@ -30,41 +30,53 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
   auto function_symbol = call_expression->getSymbol();
 
+  auto callBuiltinFunction =
+      [&](binding::BoundCallExpression *call_expression) {
+        auto printFn = [&](binding::BoundCallExpression *call_expression) {
+          auto printf_function = m_ir_gen_context.getLLVMModule()->getFunction(
+              std::string(ir_gen::constants::functions::kPrintf_fn));
+
+          CODEGEN_DEBUG_LOG("printf_function",
+                            printf_function->getName().str());
+
+          assert(printf_function && "kPrintf_fn function not found");
+
+          std::vector<llvm::Value *> arguments;
+
+          for (const auto &argument : call_expression->getArguments()) {
+            argument->accept(this);
+
+            assert(m_last_value && "m_last_value is null");
+
+            m_ir_gen_context.getLLVMBuilder()->CreateCall(
+                printf_function,
+                {convertToString(m_last_value, m_last_value->getType())});
+            clearLastValue();
+          }
+        };
+
+        auto stringFn = [&](binding::BoundCallExpression *call_expression) {
+          const auto &argument = call_expression->getArguments()[0];
+          argument->accept(this);
+          assert(m_last_value && "m_last_value is null");
+          m_last_value = convertToString(m_last_value, m_last_value->getType());
+        };
+
+        CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
+                          function_symbol->getName());
+
+        std::unordered_map<std::string,
+                           std::function<void(binding::BoundCallExpression *)>>
+            builtinFunctions = {
+                {std::string(ir_gen::constants::functions::kPrint_fn), printFn},
+                {std::string(ir_gen::constants::functions::kString_fn),
+                 stringFn}};
+
+        builtinFunctions[function_symbol->getName()](call_expression);
+      };
+
   if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
-
-    CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
-                      function_symbol->getName());
-
-    if (function_symbol->getName() ==
-        std::string(ir_gen::constants::functions::kPrint_fn)) {
-      auto printf_function = m_ir_gen_context.getLLVMModule()->getFunction(
-          std::string(ir_gen::constants::functions::kPrintf_fn));
-
-      CODEGEN_DEBUG_LOG("printf_function", printf_function->getName().str());
-
-      assert(printf_function && "kPrintf_fn function not found");
-
-      std::vector<llvm::Value *> arguments;
-
-      for (const auto &argument : call_expression->getArguments()) {
-        argument->accept(this);
-
-        assert(m_last_value && "m_last_value is null");
-
-        m_ir_gen_context.getLLVMBuilder()->CreateCall(
-            printf_function,
-            {convertToString(m_last_value, m_last_value->getType())});
-        clearLastValue();
-      }
-    }
-
-    if (function_symbol->getName() ==
-        std::string(ir_gen::constants::functions::kString_fn)) {
-      const auto &argument = call_expression->getArguments()[0];
-      argument->accept(this);
-      assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToString(m_last_value, m_last_value->getType());
-    }
+    callBuiltinFunction(call_expression);
   }
 }
 } // namespace flow_wing::ir_gen
