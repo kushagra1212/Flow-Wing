@@ -16,12 +16,13 @@ endif
 #? Dependency Presets
 DEPS_INSTALL_PRESET ?= deps-install-debug
 
-#? Dependency Stamps
-STAMPS_DIR :=.fw_dependencies/stamps
+#? Dependency Stamps (Separate directories for debug and release)
+DEBUG_STAMPS_DIR := .fw_dependencies_debug/stamps
+RELEASE_STAMPS_DIR := .fw_dependencies/stamps
 
 #? Dependency Directories
-DEBUG_DEPS_DIR := $(STAMPS_DIR)
-RELEASE_DEPS_DIR := $(STAMPS_DIR)
+DEBUG_DEPS_DIR := $(DEBUG_STAMPS_DIR)
+RELEASE_DEPS_DIR := $(RELEASE_STAMPS_DIR)
 
 #! ----- SDK -----
 
@@ -176,41 +177,43 @@ help:
 
 #! ----- Dependencies -----
 
-#? Configured Dependencies
-$(DEBUG_DEPS_DIR)/.configured-debug:
+#? Configured Dependencies (use capital case to match CMAKE_BUILD_TYPE)
+$(DEBUG_DEPS_DIR)/.configured-Debug:
 	$(ECHO_MSG) "--> Configuring dependencies (Debug)..."
+	@$(call MKDIR_P, $(DEBUG_STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-debug $(SILENT_CMD))
+	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.configured-Debug)
 
-$(RELEASE_DEPS_DIR)/.configured-release:
+$(RELEASE_DEPS_DIR)/.configured-Release:
 	$(ECHO_MSG) "--> Configuring dependencies (Release)..."
+	@$(call MKDIR_P, $(RELEASE_STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-release $(SILENT_CMD))
+	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.configured-Release)
 
 #? Install dependencies
-$(DEBUG_DEPS_DIR)/.installed-debug: $(DEBUG_DEPS_DIR)/.configured-debug
+$(DEBUG_DEPS_DIR)/.installed-Debug: $(DEBUG_DEPS_DIR)/.configured-Debug
 	$(ECHO_MSG) "--> Installing dependencies (Debug)..."
-	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-debug -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.installed-debug)
+	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.installed-Debug)
 
-$(RELEASE_DEPS_DIR)/.installed-release: $(RELEASE_DEPS_DIR)/.configured-release
+$(RELEASE_DEPS_DIR)/.installed-Release: $(RELEASE_DEPS_DIR)/.configured-Release
 	$(ECHO_MSG) "--> Installing dependencies (Release)..."
-	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-release -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.installed-release)
+	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.installed-Release)
 
 #? Dependencies Aliases
 .PHONY: deps-install-debug deps-install-release
-deps-install-debug: $(DEBUG_DEPS_DIR)/.installed-debug
-deps-install-release: $(RELEASE_DEPS_DIR)/.installed-release
+deps-install-debug: $(DEBUG_DEPS_DIR)/.installed-Debug
+deps-install-release: $(RELEASE_DEPS_DIR)/.installed-Release
 
 #! ----- JIT -----
 
 #? Configured JIT
-$(JIT_DEBUG_DIR)/.configured: deps-install-debug
+$(JIT_DEBUG_DIR)/.configured: $(DEBUG_DEPS_DIR)/.installed-Debug
 	$(ECHO_MSG) "--> Configuring JIT (Debug)..."
 	@cmake --preset $(JIT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
-$(JIT_RELEASE_DIR)/.configured: deps-install-release
+$(JIT_RELEASE_DIR)/.configured: $(RELEASE_DEPS_DIR)/.installed-Release
 	$(ECHO_MSG) "--> Configuring JIT (Release)..."
 	@cmake --preset $(JIT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
@@ -271,11 +274,11 @@ test-jit: build-jit-release
 #! ----- AOT -----
 
 #? Configured AOT
-$(AOT_DEBUG_DIR)/.configured: deps-install-debug
+$(AOT_DEBUG_DIR)/.configured: $(DEBUG_DEPS_DIR)/.installed-Debug
 	$(ECHO_MSG) "--> Configuring AOT (Debug)..."
 	@cmake --preset $(AOT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
-$(AOT_RELEASE_DIR)/.configured: deps-install-release
+$(AOT_RELEASE_DIR)/.configured: $(RELEASE_DEPS_DIR)/.installed-Release
 	$(ECHO_MSG) "--> Configuring AOT (Release)..."
 	@cmake --preset $(AOT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
@@ -355,12 +358,14 @@ ifeq ($(OS),Windows_NT)
 	@$(call RM_RF, build)
 	@$(call RM_RF, bin)
 	@$(call RM_RF, .fw_dependencies)
+	@$(call RM_RF, .fw_dependencies_debug)
 else
 	@if [ "$(FORCE)" = "1" ]; then \
 		echo "--> Deleting files (non-interactive)..."; \
 		$(call RM_RF, build); \
 		$(call RM_RF, bin); \
 		$(call RM_RF, .fw_dependencies); \
+		$(call RM_RF, .fw_dependencies_debug); \
 	else \
 		read -p "Are you sure? This will delete all dependencies? [y/N] " -n 1 -r; \
 		echo; \
@@ -369,6 +374,7 @@ else
 			$(call RM_RF, build); \
 			$(call RM_RF, bin); \
 			$(call RM_RF, .fw_dependencies); \
+			$(call RM_RF, .fw_dependencies_debug); \
 		else \
 			echo "--> Aborted."; \
 		fi; \
