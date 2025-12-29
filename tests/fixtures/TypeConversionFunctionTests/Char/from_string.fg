@@ -1,0 +1,4 @@
+print(Char("😍"), "\n")
+print(Char("A"), "\n")
+print(Char("😄"), "\n")
+

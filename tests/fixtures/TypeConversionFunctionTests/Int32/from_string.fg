@@ -1,0 +1,4 @@
+print(Int32("42"), "\n")
+print(Int32("-1000"), "\n")
+print(Int32("0"), "\n")
+

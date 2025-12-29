@@ -62,9 +62,13 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
     auto stringFn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
+      bool is_char =
+          argument->getType() == analysis::Builtins::m_char_type_instance;
+
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToString(m_last_value, m_last_value->getType());
+      m_last_value =
+          convertToString(m_last_value, m_last_value->getType(), is_char);
     };
 
     auto boolFn = [&](binding::BoundCallExpression *call_expression) {
@@ -87,6 +91,12 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToDouble(m_last_value, m_last_value->getType());
     };
+    auto int8Fn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToInt8(m_last_value, m_last_value->getType());
+    };
 
     auto int32Fn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
@@ -95,18 +105,18 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       m_last_value = convertToInt32(m_last_value, m_last_value->getType());
     };
 
-    auto int8Fn = [&](binding::BoundCallExpression *call_expression) {
+    auto int64Fn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToInt8(m_last_value, m_last_value->getType());
+      m_last_value = convertToInt64(m_last_value, m_last_value->getType());
     };
 
     auto charFn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToInt32(m_last_value, m_last_value->getType());
+      m_last_value = convertToChar(m_last_value, m_last_value->getType());
     };
 
     CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
@@ -123,6 +133,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
             {std::string(ir_gen::constants::functions::kDecimal_fn), deciFn},
             {std::string(ir_gen::constants::functions::kInt32_fn), int32Fn},
             {std::string(ir_gen::constants::functions::kInt8_fn), int8Fn},
+            {std::string(ir_gen::constants::functions::kInt64_fn), int64Fn},
             {std::string(ir_gen::constants::functions::kChar_fn), charFn}};
 
     builtinFunctions[function_symbol->getName()](call_expression);

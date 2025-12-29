@@ -74,6 +74,7 @@ private:
   llvm::Value *convertToInt8(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt32(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToChar(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToFloat(llvm::Value *value, llvm::Type *type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);

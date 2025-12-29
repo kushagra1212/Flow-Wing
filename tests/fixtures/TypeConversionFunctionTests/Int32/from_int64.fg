@@ -1,0 +1,4 @@
+print(Int32(10000000000l), "\n")
+print(Int32(100l), "\n")
+print(Int32(-100l), "\n")
+

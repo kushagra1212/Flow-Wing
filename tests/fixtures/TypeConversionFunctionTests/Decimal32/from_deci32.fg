@@ -1,0 +1,4 @@
+print(Decimal32(3.14f), "\n")
+print(Decimal32(-3.14f), "\n")
+print(Decimal32(0.0f), "\n")
+

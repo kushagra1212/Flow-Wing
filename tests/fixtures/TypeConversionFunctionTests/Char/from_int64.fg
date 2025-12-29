@@ -1,0 +1,3 @@
+print(Char(65l), "\n")
+print(Char(90l), "\n")
+

@@ -150,7 +150,7 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
         DEBUG_LOG("Parameter Type", "Parameter Type",
                   parameter_type->getName());
 
-        if (argument_type > parameter_type) {
+        if (argument_type != parameter_type) {
 
           auto error_expression = std::make_unique<BoundErrorExpression>(
               arguments[i]->getSourceLocation(),

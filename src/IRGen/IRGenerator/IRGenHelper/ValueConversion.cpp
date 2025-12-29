@@ -153,6 +153,36 @@ llvm::Value *IRGenerator::convertToInt32(llvm::Value *value, llvm::Type *type) {
       "string_to_int");
 }
 
+llvm::Value *IRGenerator::convertToChar(llvm::Value *value, llvm::Type *type) {
+  auto &builder = *m_ir_gen_context.getLLVMBuilder();
+  auto *ctx = m_ir_gen_context.getLLVMContext();
+  auto *module = m_ir_gen_context.getLLVMModule();
+  auto int32_type = llvm::Type::getInt32Ty(*ctx);
+
+  if (type->isIntegerTy(32)) {
+    return value;
+  }
+  if (type->isIntegerTy(1)) {
+    return builder.CreateZExt(value, int32_type);
+  }
+
+  if (type->isIntegerTy(8)) {
+    return builder.CreateSExt(value, int32_type);
+  }
+
+  if (type->isIntegerTy(64)) {
+    return builder.CreateTrunc(value, int32_type);
+  }
+
+  if (type->isFloatTy() || type->isDoubleTy()) {
+    return builder.CreateFPToSI(value, int32_type);
+  }
+
+  return builder.CreateCall(
+      module->getFunction(constants::functions::kString_to_char_fn), {value},
+      "string_to_char");
+}
+
 llvm::Value *IRGenerator::convertToInt8(llvm::Value *value, llvm::Type *type) {
   auto &builder = *m_ir_gen_context.getLLVMBuilder();
   auto *ctx = m_ir_gen_context.getLLVMContext();

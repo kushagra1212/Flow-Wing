@@ -1,0 +1,4 @@
+print(Char('A'), "\n")
+print(Char('z'), "\n")
+print(Char(' '), "\n")
+

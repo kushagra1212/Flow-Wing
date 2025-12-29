@@ -1,0 +1,3 @@
+print(Int32(true), "\n")
+print(Int32(false), "\n")
+

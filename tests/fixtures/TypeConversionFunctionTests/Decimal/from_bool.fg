@@ -1,0 +1,3 @@
+print(Decimal(true), "\n")
+print(Decimal(false), "\n")
+

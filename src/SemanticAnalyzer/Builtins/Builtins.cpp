@@ -154,134 +154,60 @@ bool Builtins::initialize(binding::BinderContext *context) {
                                            types::TypeConvention::kC)},
       false);
 
-  // --- Int32 Conversion Overloads ---
-  auto int32Fn = std::string(ir_gen::constants::functions::kInt32_fn);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_str_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_int8_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_char_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_int64_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_deci_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_deci32_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_bool_type_instance,
-                                 Builtins::m_int32_type_instance);
-  createBuiltinFunctionOverloads(int32Fn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_int32_type_instance);
+  // --- Int32, Int8, Int64 Conversion Overloads ---
 
-  // -- Int8 Conversion Overloads --
   auto int8Fn = std::string(ir_gen::constants::functions::kInt8_fn);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_str_type_instance,
-                                 Builtins::m_int8_type_instance);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_int8_type_instance,
-                                 Builtins::m_int8_type_instance);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_int32_type_instance,
-                                 Builtins::m_int8_type_instance);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_int64_type_instance,
-                                 Builtins::m_int8_type_instance);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_int8_type_instance);
-  createBuiltinFunctionOverloads(int8Fn, Builtins::m_char_type_instance,
-                                 Builtins::m_int8_type_instance);
-
-  // -- Decimal Conversion Overloads --
+  auto int32Fn = std::string(ir_gen::constants::functions::kInt32_fn);
+  auto int64Fn = std::string(ir_gen::constants::functions::kInt64_fn);
   auto deciFn = std::string(ir_gen::constants::functions::kDecimal_fn);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_str_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_int32_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_int8_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_char_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_int64_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_deci32_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_bool_type_instance,
-                                 Builtins::m_deci_type_instance);
-  createBuiltinFunctionOverloads(deciFn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_deci_type_instance);
-
-  // -- Deci32 Conversion Overloads --
   auto deci32Fn = std::string(ir_gen::constants::functions::kDecimal32_fn);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_str_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_int32_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_int8_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_char_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_int64_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_bool_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_deci32_type_instance);
-  createBuiltinFunctionOverloads(deci32Fn, Builtins::m_deci_type_instance,
-                                 Builtins::m_deci32_type_instance);
-
-  // -- Bool Conversion Overloads --
-
   auto boolFn = std::string(ir_gen::constants::functions::kBool_fn);
-
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_str_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_int32_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_int8_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_char_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_int64_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_deci32_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_bool_type_instance);
-  createBuiltinFunctionOverloads(boolFn, Builtins::m_deci_type_instance,
-                                 Builtins::m_bool_type_instance);
-
-  // -- String Conversion Overloads --
-
   auto stringFn = std::string(ir_gen::constants::functions::kString_fn);
 
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_int32_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_int8_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_char_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_int64_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_deci32_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_bool_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_str_type_instance);
-  createBuiltinFunctionOverloads(stringFn, Builtins::m_deci_type_instance,
-                                 Builtins::m_str_type_instance);
+  for (const auto &param_type : {
+           Builtins::m_str_type_instance,
+           Builtins::m_int8_type_instance,
+           Builtins::m_int32_type_instance,
+           Builtins::m_int64_type_instance,
+           Builtins::m_char_type_instance,
+           Builtins::m_deci32_type_instance,
+           Builtins::m_deci_type_instance,
+           Builtins::m_bool_type_instance,
+           Builtins::m_dynamic_type_instance,
+       }) {
+    createBuiltinFunctionOverloads(int8Fn, param_type,
+                                   Builtins::m_int8_type_instance);
+    createBuiltinFunctionOverloads(int32Fn, param_type,
+                                   Builtins::m_int32_type_instance);
+    createBuiltinFunctionOverloads(int64Fn, param_type,
+                                   Builtins::m_int64_type_instance);
+
+    createBuiltinFunctionOverloads(deci32Fn, param_type,
+                                   Builtins::m_deci32_type_instance);
+    createBuiltinFunctionOverloads(deciFn, param_type,
+                                   Builtins::m_deci_type_instance);
+
+    createBuiltinFunctionOverloads(boolFn, param_type,
+                                   Builtins::m_bool_type_instance);
+    createBuiltinFunctionOverloads(stringFn, param_type,
+                                   Builtins::m_str_type_instance);
+  }
 
   // -- Char Conversion Overloads --
   auto charFn = std::string(ir_gen::constants::functions::kChar_fn);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_str_type_instance,
-                                 Builtins::m_char_type_instance);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_int32_type_instance,
-                                 Builtins::m_char_type_instance);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_int8_type_instance,
-                                 Builtins::m_char_type_instance);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_char_type_instance,
-                                 Builtins::m_char_type_instance);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_int64_type_instance,
-                                 Builtins::m_char_type_instance);
-  createBuiltinFunctionOverloads(charFn, Builtins::m_dynamic_type_instance,
-                                 Builtins::m_char_type_instance);
+
+  for (const auto &param_type : {
+           Builtins::m_str_type_instance,
+           Builtins::m_int32_type_instance,
+           Builtins::m_int8_type_instance,
+           Builtins::m_char_type_instance,
+           Builtins::m_int64_type_instance,
+           Builtins::m_dynamic_type_instance,
+       }) {
+
+    createBuiltinFunctionOverloads(charFn, param_type,
+                                   Builtins::m_char_type_instance);
+  }
 
   // Internal Functions
   initializeInternalFunctions();
@@ -370,6 +296,10 @@ void Builtins::initializeInternalFunctions() {
   createInternalFunction(
       std::string(ir_gen::constants::functions::kString_to_int_fn),
       {Builtins::m_str_type_instance}, {Builtins::m_int32_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kString_to_char_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_char_type_instance});
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kString_to_long_fn),

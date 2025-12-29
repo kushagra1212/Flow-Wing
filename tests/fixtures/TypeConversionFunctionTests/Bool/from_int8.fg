@@ -1,0 +1,5 @@
+print(Bool(1), "\n")
+print(Bool(0), "\n")
+print(Bool(-1), "\n")
+print(Bool(127), "\n")
+

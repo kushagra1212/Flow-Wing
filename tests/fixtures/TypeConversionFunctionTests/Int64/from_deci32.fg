@@ -1,0 +1,4 @@
+print(Int64(3.14f), "\n")
+print(Int64(-3.99f), "\n")
+print(Int64(1000000.5f), "\n")
+

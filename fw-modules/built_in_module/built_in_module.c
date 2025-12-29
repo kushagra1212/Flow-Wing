@@ -21,6 +21,8 @@ bool fg_gte(const char* str1, const char* str2);
 bool fg_eq(const char* str1, const char* str2);
 char* fg_gi();
 int fg_sti(const char* str);
+int fg_stc(const char* str);
+
 long long fg_stl(const char* str);
 double fg_std(const char* str);
 float fg_stf(const char* str);
@@ -192,7 +194,6 @@ char* fg_gi() {
     return buffer;
 }
 
-// --- SAFE CONVERSIONS (Replaced) ---
 
 int fg_sti(const char* str) {
     if (str == NULL) fg_panic("Runtime Error: Cannot convert NULL to Int.", "");
@@ -204,6 +205,60 @@ int fg_sti(const char* str) {
     return (int)val;
 }
 
+
+int fg_stc(const char* str) {
+    if (str == NULL) {
+        fg_panic("Runtime Error: Cannot convert NULL to Char.", "");
+    }
+    
+    // 1. Check for Empty String
+    if (str[0] == '\0') {
+        fg_panic("Runtime Error: Cannot convert empty string to Char.", "");
+    }
+
+    const unsigned char* bytes = (const unsigned char*)str;
+    int code_point = 0;
+    int num_bytes = 0;
+
+    // 2. Decode UTF-8 to Code Point
+    if (bytes[0] < 0x80) {
+        // 1-byte sequence (0xxxxxxx) - Standard ASCII
+        code_point = bytes[0];
+        num_bytes = 1;
+    } 
+    else if ((bytes[0] & 0xE0) == 0xC0) {
+        // 2-byte sequence (110xxxxx 10xxxxxx)
+        code_point = ((bytes[0] & 0x1F) << 6) | 
+                     (bytes[1] & 0x3F);
+        num_bytes = 2;
+    } 
+    else if ((bytes[0] & 0xF0) == 0xE0) {
+        // 3-byte sequence (1110xxxx 10xxxxxx 10xxxxxx)
+        code_point = ((bytes[0] & 0x0F) << 12) | 
+                     ((bytes[1] & 0x3F) << 6) | 
+                     (bytes[2] & 0x3F);
+        num_bytes = 3;
+    } 
+    else if ((bytes[0] & 0xF8) == 0xF0) {
+        // 4-byte sequence (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+        code_point = ((bytes[0] & 0x07) << 18) | 
+                     ((bytes[1] & 0x3F) << 12) | 
+                     ((bytes[2] & 0x3F) << 6) | 
+                     (bytes[3] & 0x3F);
+        num_bytes = 4;
+    } 
+    else {
+        fg_panic("Runtime Error: Invalid UTF-8 sequence in String to Char conversion.\n  ▶ String: \"%s\"", str);
+    }
+
+    // 3. Strict Length Check
+    // If there is any character data AFTER the first char, throw error.
+    if (str[num_bytes] != '\0') {
+        fg_panic("Runtime Error: String contains more than one character.\n  ▶ Cannot convert \"%s\" to a single Char.", str);
+    }
+
+    return code_point;
+}
 
 
 long long fg_stl(const char* str) {

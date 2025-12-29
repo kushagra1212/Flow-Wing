@@ -1,0 +1,3 @@
+print(Bool(true), "\n")
+print(Bool(false), "\n")
+

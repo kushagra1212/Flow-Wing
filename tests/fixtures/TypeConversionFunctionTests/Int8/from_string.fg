@@ -1,0 +1,4 @@
+print(Int8("42"), "\n")
+print(Int8("-100"), "\n")
+print(Int8("0"), "\n")
+
