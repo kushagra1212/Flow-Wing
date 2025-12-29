@@ -10,6 +10,7 @@ class ParameterExpressionSyntax;
 class ArrayTypeExpressionSyntax;
 class DimensionClauseExpressionSyntax;
 class IntegerLiteralExpressionSyntax;
+class Int64LiteralExpressionSyntax;
 class FunctionTypeExpressionSyntax;
 class VariableDeclarationSyntax;
 class AssignmentExpressionSyntax;
@@ -84,6 +85,7 @@ public:
   virtual void visit(syntax::ParameterExpressionSyntax *node) = 0;
   virtual void visit(syntax::DimensionClauseExpressionSyntax *node) = 0;
   virtual void visit(syntax::IntegerLiteralExpressionSyntax *node) = 0;
+  virtual void visit(syntax::Int64LiteralExpressionSyntax *node) = 0;
 
   virtual void visit(syntax::AssignmentExpressionSyntax *node) = 0;
   virtual void visit(syntax::BooleanLiteralExpressionSyntax *node) = 0;

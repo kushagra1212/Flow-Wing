@@ -45,6 +45,7 @@ const std::string &toString(TokenKind kind) {
 
       // Literals
       {TokenKind::kIntegerLiteralToken, "IntegerLiteralToken"},
+      {TokenKind::kInt64LiteralToken, "Int64LiteralToken"},
       {TokenKind::kFloatLiteralToken, "FloatLiteralToken"},
       {TokenKind::kDoubleLiteralToken, "DoubleLiteralToken"},
       {TokenKind::kCharacterLiteralToken, "CharacterLiteralToken"},

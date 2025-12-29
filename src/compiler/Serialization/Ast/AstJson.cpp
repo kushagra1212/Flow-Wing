@@ -40,6 +40,7 @@
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/Int64LiteralExpressionSyntax/Int64LiteralExpressionSyntax.h"
 #include "src/syntax/expression/IntegerLiteralExpressionSyntax/IntegerLiteralExpressionSyntax.h"
 #include "src/syntax/expression/MemberAccessExpressionSyntax/MemberAccessExpressionSyntax.h"
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
@@ -218,6 +219,17 @@ void AstJson::visit(
   integer_literal_json["range"] = toJsonRange(node->getSourceLocation());
 
   m_last_node_json = std::move(integer_literal_json);
+}
+void AstJson::visit(
+    [[maybe_unused]] syntax::Int64LiteralExpressionSyntax *node) {
+  PARSER_DEBUG_LOG("Visiting Int64LiteralExpressionSyntax", "AST");
+  nlohmann::json int64_literal_json;
+
+  int64_literal_json["kind"] = syntax::toString(node->getKind());
+  int64_literal_json["value"] = node->getValue();
+  int64_literal_json["range"] = toJsonRange(node->getSourceLocation());
+
+  m_last_node_json = std::move(int64_literal_json);
 }
 void AstJson::visit([[maybe_unused]] syntax::AssignmentExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting AssignmentExpressionSyntax", "AST");

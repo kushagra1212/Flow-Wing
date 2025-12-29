@@ -31,6 +31,7 @@ enum class NodeKind : int {
 
   // --- Literals ---
   kNumberLiteralExpression,
+  kInt64LiteralExpression,
   kFloatLiteralExpression,
   kDoubleLiteralExpression,
   kStringLiteralExpression,

@@ -57,6 +57,13 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
     }
   }
 
+  // Check for int64 suffix 'l'
+  bool is_int64 = false;
+  if (!lexer.isEOLorEOF() && (lexer.currentChar() == 'l')) {
+    lexer.advancePosition();
+    is_int64 = true;
+  }
+
   const size_t &length = lexer.position() - start_pos;
   const std::string &text =
       lexer.getLine(line_number).substr(start_pos, length);
@@ -78,8 +85,12 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
       value = static_cast<int64_t>(u_val);
     }
 
-    return std::make_unique<syntax::SyntaxToken>(
-        lexer::TokenKind::kIntegerLiteralToken, text, value, location);
+    // Use Int64LiteralToken if 'l' suffix was present
+    auto token_kind = is_int64 ? lexer::TokenKind::kInt64LiteralToken
+                               : lexer::TokenKind::kIntegerLiteralToken;
+
+    return std::make_unique<syntax::SyntaxToken>(token_kind, text, value,
+                                                 location);
   } catch (const std::out_of_range &) {
     lexer.reportError(diagnostic::DiagnosticCode::kNumberTooLargeForInt, {text},
                       location);

@@ -28,6 +28,7 @@ class StringLiteralExpressionSyntax;
 class TemplateStringLiteralExpressionSyntax;
 class BooleanLiteralExpressionSyntax;
 class IntegerLiteralExpressionSyntax;
+class Int64LiteralExpressionSyntax;
 // -- Nirast Expressions --
 class NirastExpressionSyntax;
 
@@ -87,6 +88,9 @@ private:
   // -- Literal Expressions --
   std::unique_ptr<BoundExpression>
   bindLiteralExpression(syntax::IntegerLiteralExpressionSyntax *expression);
+
+  std::unique_ptr<BoundExpression>
+  bindLiteralExpression(syntax::Int64LiteralExpressionSyntax *expression);
 
   std::unique_ptr<BoundExpression>
   bindLiteralExpression(syntax::DoubleLiteralExpressionSyntax *expression);

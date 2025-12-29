@@ -24,6 +24,7 @@
 #include "src/syntax/expression/CharacterLiteralExpressionSyntax/CharacterLiteralExpressionSyntax.h"
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
+#include "src/syntax/expression/Int64LiteralExpressionSyntax/Int64LiteralExpressionSyntax.h"
 #include "src/syntax/expression/IntegerLiteralExpressionSyntax/IntegerLiteralExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
@@ -41,6 +42,9 @@ std::unique_ptr<syntax::ExpressionSyntax> LiteralExpressionParser::parse() {
   case lexer::TokenKind::kIntegerLiteralToken:
     return std::make_unique<syntax::IntegerLiteralExpressionSyntax>(
         token); // 123
+  case lexer::TokenKind::kInt64LiteralToken:
+    return std::make_unique<syntax::Int64LiteralExpressionSyntax>(
+        token); // 123l
   case lexer::TokenKind::kDoubleLiteralToken:
     return std::make_unique<syntax::DoubleLiteralExpressionSyntax>(
         token); // 123.456

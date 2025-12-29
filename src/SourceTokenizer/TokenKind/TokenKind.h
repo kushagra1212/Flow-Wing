@@ -117,6 +117,7 @@ enum class TokenKind : int {
 
   // --- Literals ---
   kIntegerLiteralToken,
+  kInt64LiteralToken,
   kFloatLiteralToken,
   kDoubleLiteralToken,
   kCharacterLiteralToken,

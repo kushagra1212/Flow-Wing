@@ -41,6 +41,7 @@ PrimaryExpressionParserFactory::create(ParserContext *ctx,
     return std::make_unique<ParenthesizedExpressionParser>(ctx);
   }
   case lexer::TokenKind::kIntegerLiteralToken:
+  case lexer::TokenKind::kInt64LiteralToken:
   case lexer::TokenKind::kStringLiteralToken:
   case lexer::TokenKind::kCharacterLiteralToken:
   case lexer::TokenKind::kTemplateStringLiteralToken:

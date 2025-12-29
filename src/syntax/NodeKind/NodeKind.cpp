@@ -17,6 +17,7 @@ const std::string &toString(NodeKind kind) {
       // Expressions
       {NodeKind::kCharacterLiteralExpression, "CharacterLiteralExpression"},
       {NodeKind::kNumberLiteralExpression, "NumberLiteralExpression"},
+      {NodeKind::kInt64LiteralExpression, "Int64LiteralExpression"},
       {NodeKind::kFloatLiteralExpression, "FloatLiteralExpression"},
       {NodeKind::kDoubleLiteralExpression, "DoubleLiteralExpression"},
       {NodeKind::kStringLiteralExpression, "StringLiteralExpression"},

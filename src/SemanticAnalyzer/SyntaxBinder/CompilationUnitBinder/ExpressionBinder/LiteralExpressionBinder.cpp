@@ -32,6 +32,7 @@
 #include "src/syntax/expression/CharacterLiteralExpressionSyntax/CharacterLiteralExpressionSyntax.h"
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
+#include "src/syntax/expression/Int64LiteralExpressionSyntax/Int64LiteralExpressionSyntax.h"
 #include "src/syntax/expression/IntegerLiteralExpressionSyntax/IntegerLiteralExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
@@ -60,6 +61,20 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
 
   return std::make_unique<BoundIntegerLiteralExpression>(
       value, type, expression->getSourceLocation());
+}
+
+std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
+    syntax::Int64LiteralExpressionSyntax *expression) {
+  assert(expression != nullptr &&
+         "LiteralExpressionBinder::bind: Int64LiteralExpressionSyntax "
+         "expression is null");
+
+  auto value = expression->getValue();
+
+  // Always use int64 type for explicit 'l' suffix literals
+  return std::make_unique<BoundIntegerLiteralExpression>(
+      value, analysis::Builtins::m_int64_type_instance,
+      expression->getSourceLocation());
 }
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(

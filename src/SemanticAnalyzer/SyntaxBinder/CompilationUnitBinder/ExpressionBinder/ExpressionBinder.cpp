@@ -33,6 +33,7 @@
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/Int64LiteralExpressionSyntax/Int64LiteralExpressionSyntax.h"
 #include "src/syntax/expression/IntegerLiteralExpressionSyntax/IntegerLiteralExpressionSyntax.h"
 #include "src/syntax/expression/MemberAccessExpressionSyntax/MemberAccessExpressionSyntax.h"
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
@@ -87,6 +88,9 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kNumberLiteralExpression:
     return bindLiteralExpression(
         static_cast<syntax::IntegerLiteralExpressionSyntax *>(expression));
+  case syntax::NodeKind::kInt64LiteralExpression:
+    return bindLiteralExpression(
+        static_cast<syntax::Int64LiteralExpressionSyntax *>(expression));
   case syntax::NodeKind::kDoubleLiteralExpression:
     return bindLiteralExpression(
         static_cast<syntax::DoubleLiteralExpressionSyntax *>(expression));

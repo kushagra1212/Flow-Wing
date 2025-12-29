@@ -69,6 +69,9 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::IntegerLiteralExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::Int64LiteralExpressionSyntax *node) {}
+
+void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::AssignmentExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(

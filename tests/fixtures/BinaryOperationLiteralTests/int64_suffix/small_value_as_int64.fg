@@ -1,0 +1,3 @@
+print(5l + 10l, "\n")
+/; EXPECT: 15
+

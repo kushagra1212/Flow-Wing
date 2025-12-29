@@ -19,6 +19,7 @@ public:
   void visit(syntax::ParameterExpressionSyntax *node) override;
   void visit(syntax::DimensionClauseExpressionSyntax *node) override;
   void visit(syntax::IntegerLiteralExpressionSyntax *node) override;
+  void visit(syntax::Int64LiteralExpressionSyntax *node) override;
 
   void visit(syntax::AssignmentExpressionSyntax *node) override;
   void visit(syntax::BooleanLiteralExpressionSyntax *node) override;
