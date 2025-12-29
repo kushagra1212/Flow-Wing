@@ -1,1 +1,1 @@
-print(Decimal(2.2d))
+print(Decimal(2.2f))

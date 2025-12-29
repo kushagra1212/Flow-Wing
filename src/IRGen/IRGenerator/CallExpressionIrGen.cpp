@@ -30,50 +30,103 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
   auto function_symbol = call_expression->getSymbol();
 
-  auto callBuiltinFunction =
-      [&](binding::BoundCallExpression *call_expression) {
-        auto printFn = [&](binding::BoundCallExpression *call_expression) {
-          auto printf_function = m_ir_gen_context.getLLVMModule()->getFunction(
-              std::string(ir_gen::constants::functions::kPrintf_fn));
+  auto callBuiltinFunction = [&](binding::BoundCallExpression
+                                     *call_expression) {
+    auto printFn = [&](binding::BoundCallExpression *call_expression) {
+      auto printf_function = m_ir_gen_context.getLLVMModule()->getFunction(
+          std::string(ir_gen::constants::functions::kPrintf_fn));
 
-          CODEGEN_DEBUG_LOG("printf_function",
-                            printf_function->getName().str());
+      CODEGEN_DEBUG_LOG("printf_function", printf_function->getName().str());
 
-          assert(printf_function && "kPrintf_fn function not found");
+      assert(printf_function && "kPrintf_fn function not found");
 
-          std::vector<llvm::Value *> arguments;
+      std::vector<llvm::Value *> arguments;
 
-          for (const auto &argument : call_expression->getArguments()) {
-            argument->accept(this);
+      for (const auto &argument : call_expression->getArguments()) {
+        bool is_char = (argument->getType().get() ==
+                        analysis::Builtins::m_char_type_instance.get());
 
-            assert(m_last_value && "m_last_value is null");
+        DEBUG_LOG("Print function argument type: ",
+                  argument->getType()->getName());
 
-            m_ir_gen_context.getLLVMBuilder()->CreateCall(
-                printf_function,
-                {convertToString(m_last_value, m_last_value->getType())});
-            clearLastValue();
-          }
-        };
+        argument->accept(this);
 
-        auto stringFn = [&](binding::BoundCallExpression *call_expression) {
-          const auto &argument = call_expression->getArguments()[0];
-          argument->accept(this);
-          assert(m_last_value && "m_last_value is null");
-          m_last_value = convertToString(m_last_value, m_last_value->getType());
-        };
+        assert(m_last_value && "m_last_value is null");
 
-        CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
-                          function_symbol->getName());
+        m_ir_gen_context.getLLVMBuilder()->CreateCall(
+            printf_function,
+            {convertToString(m_last_value, m_last_value->getType(), is_char)});
+        clearLastValue();
+      }
+    };
 
-        std::unordered_map<std::string,
-                           std::function<void(binding::BoundCallExpression *)>>
-            builtinFunctions = {
-                {std::string(ir_gen::constants::functions::kPrint_fn), printFn},
-                {std::string(ir_gen::constants::functions::kString_fn),
-                 stringFn}};
+    auto stringFn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToString(m_last_value, m_last_value->getType());
+    };
 
-        builtinFunctions[function_symbol->getName()](call_expression);
-      };
+    auto boolFn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToBool(m_last_value, m_last_value->getType());
+    };
+
+    auto deci32Fn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToFloat(m_last_value, m_last_value->getType());
+    };
+
+    auto deciFn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToDouble(m_last_value, m_last_value->getType());
+    };
+
+    auto int32Fn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToInt32(m_last_value, m_last_value->getType());
+    };
+
+    auto int8Fn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToInt8(m_last_value, m_last_value->getType());
+    };
+
+    auto charFn = [&](binding::BoundCallExpression *call_expression) {
+      const auto &argument = call_expression->getArguments()[0];
+      argument->accept(this);
+      assert(m_last_value && "m_last_value is null");
+      m_last_value = convertToInt32(m_last_value, m_last_value->getType());
+    };
+
+    CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",
+                      function_symbol->getName());
+
+    std::unordered_map<std::string,
+                       std::function<void(binding::BoundCallExpression *)>>
+        builtinFunctions = {
+            {std::string(ir_gen::constants::functions::kPrint_fn), printFn},
+            {std::string(ir_gen::constants::functions::kString_fn), stringFn},
+            {std::string(ir_gen::constants::functions::kBool_fn), boolFn},
+            {std::string(ir_gen::constants::functions::kDecimal32_fn),
+             deci32Fn},
+            {std::string(ir_gen::constants::functions::kDecimal_fn), deciFn},
+            {std::string(ir_gen::constants::functions::kInt32_fn), int32Fn},
+            {std::string(ir_gen::constants::functions::kInt8_fn), int8Fn},
+            {std::string(ir_gen::constants::functions::kChar_fn), charFn}};
+
+    builtinFunctions[function_symbol->getName()](call_expression);
+  };
 
   if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
     callBuiltinFunction(call_expression);

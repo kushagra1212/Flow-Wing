@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "DiagnosticReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
@@ -34,8 +32,10 @@ DiagnosticReporter::DiagnosticReporter(
 
 void DiagnosticReporter::report(const DiagnosticHandler &handler,
                                 const CompilationContext &context) {
-  for (const auto &diagnostic : handler.getDiagnostics()) {
-    m_output_stream << m_formatter->format(diagnostic, context);
+  auto diagnostics = handler.getDiagnostics();
+  if (!diagnostics.empty()) {
+    // Print the last diagnostic
+    m_output_stream << m_formatter->format(diagnostics.back(), context);
   }
 }
 } // namespace diagnostic

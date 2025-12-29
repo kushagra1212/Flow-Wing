@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "AstJson.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/CompilationUnitSyntax.h"
@@ -54,6 +53,7 @@
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/BoolTypeExpressionSyntax/BoolTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/CharTypeExpressionSyntax/CharTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Deci32TypeExpressionSyntax/Deci32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/DeciTypeExpressionSyntax/DeciTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
@@ -899,6 +899,14 @@ void AstJson::visit([[maybe_unused]] syntax::ExpressionStatementSyntax *node) {
                  "expression");
   expression_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(expression_statement_json);
+}
+
+void AstJson::visit([[maybe_unused]] syntax::CharTypeExpressionSyntax *node) {
+  PARSER_DEBUG_LOG("Visiting CharTypeExpressionSyntax", "AST");
+  nlohmann::json char_type_expression_json;
+  char_type_expression_json["kind"] = syntax::toString(node->getKind());
+  char_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
+  m_last_node_json = std::move(char_type_expression_json);
 }
 
 std::vector<syntax::ExpressionSyntax *>

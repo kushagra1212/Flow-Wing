@@ -26,7 +26,7 @@ namespace syntax {
 
 CharacterLiteralExpressionSyntax::CharacterLiteralExpressionSyntax(
     const SyntaxToken *token)
-    : m_token(token), m_value(std::any_cast<char>(token->getValue())) {}
+    : m_token(token), m_value(std::any_cast<uint32_t>(token->getValue())) {}
 
 // Overrides
 NodeKind CharacterLiteralExpressionSyntax::getKind() const {

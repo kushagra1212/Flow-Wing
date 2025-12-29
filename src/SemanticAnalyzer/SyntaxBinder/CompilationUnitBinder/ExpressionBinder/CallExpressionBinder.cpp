@@ -88,6 +88,7 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     }
 
     auto function_type = static_cast<types::FunctionType *>(type.get());
+    DEBUG_LOG("Function Type", "Function Type", function_type->getName());
 
     auto argument_expression = expression->getArgumentExpression().get();
 
@@ -135,7 +136,6 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
               std::to_string(arguments.size()),
           });
 
-      m_context->reportError(error_expression.get());
       return std::move(error_expression);
     }
 
@@ -145,6 +145,10 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
       for (size_t i = 0; i < size; i++) {
         auto parameter_type = function_type->getParameterTypes()[i]->type;
         auto argument_type = arguments[i]->getType();
+
+        DEBUG_LOG("Argument Type", "Argument Type", argument_type->getName());
+        DEBUG_LOG("Parameter Type", "Parameter Type",
+                  parameter_type->getName());
 
         if (argument_type > parameter_type) {
 
@@ -163,32 +167,37 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     return std::make_unique<BoundCallExpression>(
         function_symbol, std::move(arguments), expression->getSourceLocation());
   };
-  std::vector<std::unique_ptr<BoundExpression>> results;
 
   auto builtins_symbol_itr =
       analysis::Builtins::m_functions_symbols_map.find(function_name);
+
+  std::unique_ptr<BoundExpression> result;
   if (builtins_symbol_itr !=
       analysis::Builtins::m_functions_symbols_map.end()) {
 
+    DEBUG_LOG("Builtins Symbol Itr", "Builtins Symbol Itr",
+              builtins_symbol_itr->second.size());
     for (const auto &symbol : builtins_symbol_itr->second) {
-      results.push_back(handleCallExpression(symbol.get()));
-      if (results.back()->getKind() != NodeKind::kErrorExpression) {
+
+      result = handleCallExpression(symbol.get());
+      if (result->getKind() != NodeKind::kErrorExpression) {
         break;
       }
+      result = nullptr;
     }
   }
 
-  if (results.empty()) {
+  if (!result) {
     auto symbols = m_context->getSymbolTable()->lookup(function_name);
-    results.push_back(handleCallExpression(symbols.get()));
+    result = handleCallExpression(symbols.get());
   }
 
-  if (results.back()->getKind() == NodeKind::kErrorExpression) {
-    m_context->reportError(
-        static_cast<BoundErrorExpression *>(results.back().get()));
+  if (result->getKind() == NodeKind::kErrorExpression) {
+
+    m_context->reportError(static_cast<BoundErrorExpression *>(result.get()));
   }
 
-  return std::move(results.back());
+  return result;
 }
 
 } // namespace binding

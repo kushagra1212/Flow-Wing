@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -130,7 +129,7 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
         m_ir_gen_context.getLLVMBuilder()->getInt32(0), "less_than_result");
   }
 
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
+  return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
       left_value, right_value, "less_than_result");
 }
 

@@ -34,6 +34,13 @@ namespace functions {
 // Built-in Functions
 const std::string_view kPrint_fn = "print";
 const std::string_view kString_fn = "String";
+const std::string_view kBool_fn = "Bool";
+const std::string_view kDecimal_fn = "Decimal";
+const std::string_view kDecimal32_fn = "Decimal32";
+const std::string_view kInt8_fn = "Int8";
+const std::string_view kChar_fn = "Char";
+const std::string_view kInt32_fn = "Int32";
+const std::string_view kInt64_fn = "Int64";
 
 // FlowWing Internal Functions
 const std::string_view kPrintf_fn = "fg_pf";

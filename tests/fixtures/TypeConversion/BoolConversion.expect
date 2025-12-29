@@ -1,0 +1,51 @@
+Conversion to Bool from String
+true
+true
+true
+true
+false
+true
+true
+true
+true
+Conversion to Bool from Float
+true
+true
+true
+false
+true
+true
+true
+false
+Conversion to Bool from Double
+true
+true
+true
+false
+true
+true
+true
+false
+Conversion to Bool from Char
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+Conversion to Bool from Bool
+true
+false
+Conversion to Bool from Int
+true
+true
+true
+false
+true
+true
+true
+false

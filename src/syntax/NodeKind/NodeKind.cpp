@@ -38,6 +38,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kInt64TypeExpression, "Int64TypeExpression"},
       {NodeKind::kDeci32TypeExpression, "Deci32TypeExpression"},
       {NodeKind::kInt8TypeExpression, "Int8TypeExpression"},
+      {NodeKind::kCharTypeExpression, "CharTypeExpression"},
       {NodeKind::kDeciTypeExpression, "DeciTypeExpression"},
       {NodeKind::kStrTypeExpression, "StrTypeExpression"},
       {NodeKind::kBoolTypeExpression, "BoolTypeExpression"},

@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 #include <string>
 
@@ -98,6 +96,7 @@ enum class TokenKind : int {
   kInt32Keyword,
   kInt64Keyword,
   kInt8Keyword,
+  kCharKeyword,
   kDeciKeyword,
   kDeci32Keyword,
   kStrKeyword,

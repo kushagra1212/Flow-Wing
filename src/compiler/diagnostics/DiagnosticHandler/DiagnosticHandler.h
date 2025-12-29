@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include "src/compiler/diagnostics/Diagnostic.h"
 #include "src/compiler/diagnostics/formatters/IDiagnosticFormatter.h"
+#include "src/utils/LogConfig.h"
 #include <vector>
 
 namespace flow_wing {

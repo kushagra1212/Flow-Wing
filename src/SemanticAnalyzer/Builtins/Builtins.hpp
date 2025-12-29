@@ -20,6 +20,7 @@ class Builtins {
 public:
   // --- Built-in Types ---
   static std::shared_ptr<types::Type> m_int8_type_instance;
+  static std::shared_ptr<types::Type> m_char_type_instance;
   static std::shared_ptr<types::Type> m_int32_type_instance;
   static std::shared_ptr<types::Type> m_int64_type_instance;
   static std::shared_ptr<types::Type> m_deci_type_instance;

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -75,6 +74,8 @@ llvm::Type *LLVMTypeBuilder::convertPrimitive(const types::Type *type) {
     return llvm::Type::getInt8PtrTy(m_context);
   if (type == analysis::Builtins::m_nthg_type_instance.get())
     return llvm::Type::getVoidTy(m_context);
+  if (type == analysis::Builtins::m_char_type_instance.get())
+    return llvm::Type::getInt32Ty(m_context);
   if (type == analysis::Builtins::m_dynamic_type_instance.get())
     return createDynamicValueType();
 

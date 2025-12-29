@@ -131,9 +131,7 @@ void IRGenerator::visit(
 
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
-      llvm::APInt(
-          8, static_cast<uint8_t>(character_literal_expression->getValue()),
-          true));
+      llvm::APInt(32, character_literal_expression->getValue(), true));
 }
 
 } // namespace ir_gen

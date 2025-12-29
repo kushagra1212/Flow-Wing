@@ -1,1 +1,2 @@
--1.00000000000000
+Runtime Error: Invalid input for Decimal(Double) conversion.
+  ▶ Value: "-1*5.5"

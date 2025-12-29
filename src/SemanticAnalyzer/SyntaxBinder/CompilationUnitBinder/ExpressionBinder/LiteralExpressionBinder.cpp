@@ -50,8 +50,11 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
   auto value = expression->getValue();
 
   std::shared_ptr<types::Type> type =
-      (value >= std::numeric_limits<int32_t>::min() &&
-       value <= std::numeric_limits<int32_t>::max())
+      (value >= std::numeric_limits<int8_t>::min() &&
+       value <= std::numeric_limits<int8_t>::max())
+          ? analysis::Builtins::m_int8_type_instance
+      : (value >= std::numeric_limits<int32_t>::min() &&
+         value <= std::numeric_limits<int32_t>::max())
           ? analysis::Builtins::m_int32_type_instance
           : analysis::Builtins::m_int64_type_instance;
 
@@ -87,7 +90,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
          "LiteralExpressionBinder::bind: expression is null");
 
   return std::make_unique<BoundCharacterLiteralExpression>(
-      expression->getValue(), analysis::Builtins::m_int8_type_instance,
+      expression->getValue(), analysis::Builtins::m_char_type_instance,
       expression->getSourceLocation());
 }
 

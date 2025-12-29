@@ -55,6 +55,7 @@ enum class NodeKind : int {
   kInt64TypeExpression,
   kDeci32TypeExpression,
   kInt8TypeExpression,
+  kCharTypeExpression,
   kDeciTypeExpression,
   kStrTypeExpression,
   kArrayTypeExpression,

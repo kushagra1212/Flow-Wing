@@ -1,1 +1,1 @@
-print(Decimal32(String(2.2d)))
+print(Decimal32(String(2.2f)))

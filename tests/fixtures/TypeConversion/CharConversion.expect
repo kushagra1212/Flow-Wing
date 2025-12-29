@@ -1,0 +1,27 @@
+--- 1. Basic ASCII Characters ---
+a
+z
+A
+0
+9
+!
+~
+
+--- 2. Escape Sequences ---
+Newline:
+Tab:	End
+Single Quote:'
+Backslash:\
+
+--- 3. UTF-8 Extended Characters (2-byte) ---
+ñ
+µ
+ß
+
+--- 4. UTF-8 Emojis & Symbols (3/4-byte) ---
+🚀
+€
+👍
+
+--- 5. Char Logic & Identity ---
+x = x

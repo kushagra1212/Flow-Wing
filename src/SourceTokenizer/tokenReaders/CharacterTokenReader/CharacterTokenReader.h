@@ -38,6 +38,10 @@ private:
   std::unique_ptr<syntax::SyntaxToken>
   badEscapeSequenceToken(SourceTokenizer &lexer, const std::string &text,
                          const size_t &start_pos);
+
+  std::unique_ptr<syntax::SyntaxToken> badCharToken(SourceTokenizer &lexer,
+                                                    const std::string &text,
+                                                    const size_t &start_pos);
 };
 } // namespace lexer
 } // namespace flow_wing

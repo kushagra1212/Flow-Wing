@@ -34,7 +34,8 @@ llvm::Value *IRGenerator::getUnaryOperationResult(
     types::Type *result_type, types::Type *expression_type) {
 
   if (result_type == analysis::Builtins::m_int32_type_instance.get() ||
-      result_type == analysis::Builtins::m_int8_type_instance.get()) {
+      result_type == analysis::Builtins::m_int8_type_instance.get() ||
+      result_type == analysis::Builtins::m_int64_type_instance.get()) {
     return getIntResult(value, operator_kind);
   }
 

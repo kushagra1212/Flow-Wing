@@ -68,7 +68,11 @@ private:
   llvm::Value *m_last_value = nullptr;
 
   llvm::Function *createEntryPointFunction();
-  llvm::Value *convertToString(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToString(llvm::Value *value, llvm::Type *type,
+                               bool is_char = false);
+  llvm::Value *convertToBool(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToInt8(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToInt32(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToFloat(llvm::Value *value, llvm::Type *type);

@@ -21,6 +21,7 @@
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 
@@ -40,16 +41,14 @@ ReturnStatus CleanupPass::run(CompilationContext &context) {
     }
 
     std::error_code ec;
-    if (fs::exists(targetPath, ec)) {
-      fs::remove_all(targetPath, ec);
-      DEBUG_LOG(" [INFO]: Deleting directory: ", targetPath.string());
+    fs::remove_all(targetPath, ec);
+    DEBUG_LOG(" [INFO]: Deleting directory: ", targetPath.string());
 
-      if (ec) {
-        // For Windows this may happen if a file is still "open" or "locked"
-        flow_wing::cli::Reporter::error("Could not clean up '" +
-                                        targetPath.string() + "'. " +
-                                        "Error: " + ec.message());
-      }
+    if (ec) {
+      // For Windows this may happen if a file is still "open" or "locked"
+      DEBUG_LOG(" [ERROR]: Could not clean up '" + targetPath.string() +
+                    "'. Error: ",
+                ec.message());
     }
   };
 

@@ -28,17 +28,15 @@ Type::Type(std::string name, TypeKind kind)
 
 bool Type::operator==(const Type &other) const {
 
-  if ((this->isDynamic() && other.m_kind == TypeKind::kPrimitive) ||
-      (m_kind == TypeKind::kPrimitive && other.isDynamic())) {
-    return true;
+  for (auto const &type_kind : {TypeKind::kPrimitive, TypeKind::kClass}) {
+    if ((this->getKind() == type_kind && other.isDynamic()) ||
+        (other.getKind() == type_kind && this->isDynamic())) {
+      return true;
+    }
   }
 
-  if ((this->getKind() == TypeKind::kClass && other.isDynamic()) ||
-      (other.getKind() == TypeKind::kClass && this->isDynamic())) {
-    return true;
-  }
-
-  return this->m_name == other.m_name && this->m_kind == other.m_kind;
+  return this->getName() == other.getName() &&
+         this->getKind() == other.getKind();
 }
 bool Type::operator!=(const Type &other) const { return !(*this == other); }
 

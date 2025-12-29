@@ -71,6 +71,8 @@ TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case syntax::NodeKind::kInt8TypeExpression:
     return {Builtins::m_int8_type_instance, nullptr};
+  case syntax::NodeKind::kCharTypeExpression:
+    return {Builtins::m_char_type_instance, nullptr};
   case syntax::NodeKind::kInt32TypeExpression:
     return {Builtins::m_int32_type_instance, nullptr};
   case syntax::NodeKind::kInt64TypeExpression:

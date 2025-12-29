@@ -42,6 +42,7 @@ class DeciTypeExpressionSyntax;
 class Int8TypeExpressionSyntax;
 class Int32TypeExpressionSyntax;
 class Int64TypeExpressionSyntax;
+class CharTypeExpressionSyntax;
 class ModuleAccessTypeExpressionSyntax;
 class NthgTypeExpressionSyntax;
 class ObjectTypeExpressionSyntax;
@@ -117,6 +118,7 @@ public:
   virtual void visit(syntax::DeciTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::FunctionTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int8TypeExpressionSyntax *node) = 0;
+  virtual void visit(syntax::CharTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int32TypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int64TypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::ModuleAccessTypeExpressionSyntax *node) = 0;

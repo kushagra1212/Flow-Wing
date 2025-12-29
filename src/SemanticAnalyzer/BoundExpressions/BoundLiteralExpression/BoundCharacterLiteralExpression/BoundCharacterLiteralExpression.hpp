@@ -28,7 +28,7 @@ class BoundCharacterLiteralExpression : public BoundExpression {
 
 public:
   BoundCharacterLiteralExpression(
-      char char_value, std::shared_ptr<types::Type> type,
+      uint32_t char_value, std::shared_ptr<types::Type> type,
       const flow_wing::diagnostic::SourceLocation &location);
   ~BoundCharacterLiteralExpression() = default;
 
@@ -37,11 +37,11 @@ public:
   void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
-  const char &getValue() const;
+  const uint32_t &getValue() const;
   std::shared_ptr<types::Type> getType() const override;
 
 private:
-  char m_value;
+  uint32_t m_value;
   std::shared_ptr<types::Type> m_type;
 };
 } // namespace binding

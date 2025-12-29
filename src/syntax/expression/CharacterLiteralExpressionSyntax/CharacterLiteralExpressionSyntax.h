@@ -36,11 +36,11 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  const char &getValue() const { return m_value; }
+  const uint32_t &getValue() const { return m_value; }
 
 private:
   const SyntaxToken *m_token;
-  char m_value;
+  uint32_t m_value;
   mutable std::vector<const SyntaxNode *> m_children;
 };
 } // namespace syntax

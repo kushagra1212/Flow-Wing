@@ -156,6 +156,9 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::Int8TypeExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::CharTypeExpressionSyntax *node) {}
+
+void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::Int32TypeExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(

@@ -53,6 +53,7 @@ public:
   void visit(syntax::DeciTypeExpressionSyntax *node) override;
   void visit(syntax::FunctionTypeExpressionSyntax *node) override;
   void visit(syntax::Int8TypeExpressionSyntax *node) override;
+  void visit(syntax::CharTypeExpressionSyntax *node) override;
   void visit(syntax::Int32TypeExpressionSyntax *node) override;
   void visit(syntax::Int64TypeExpressionSyntax *node) override;
   void visit(syntax::ModuleAccessTypeExpressionSyntax *node) override;

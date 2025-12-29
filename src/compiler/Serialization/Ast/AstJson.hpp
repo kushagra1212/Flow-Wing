@@ -59,6 +59,7 @@ private:
   void visit(syntax::TemplateStringLiteralExpressionSyntax *node) override;
   void visit(syntax::TernaryExpressionSyntax *node) override;
   void visit(syntax::BinaryExpressionSyntax *node) override;
+  void visit(syntax::CharTypeExpressionSyntax *node) override;
 
   void visit(syntax::ArrayTypeExpressionSyntax *node) override;
 

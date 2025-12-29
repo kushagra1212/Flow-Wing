@@ -94,7 +94,11 @@ void PipelineFactory::registerPipelines() {
 
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT] = current_passes;
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
+      [] { return std::make_unique<CleanupPass>(); });
+  m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
       [] { return std::make_unique<JITCompilerPass>(); });
+  m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
+      [] { return std::make_unique<CleanupPass>(); });
 
   m_pipeline_definitions[CompilerOptions::OutputType::kObj] = current_passes;
   m_pipeline_definitions[CompilerOptions::OutputType::kObj].push_back(
@@ -107,8 +111,6 @@ void PipelineFactory::registerPipelines() {
 
   // Cleanup Pass
   m_pipeline_definitions[CompilerOptions::OutputType::kExe].push_back(
-      [] { return std::make_unique<CleanupPass>(); });
-  m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
       [] { return std::make_unique<CleanupPass>(); });
 }
 

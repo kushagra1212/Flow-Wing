@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: FunctionArgumentCountMismatch
+print(String("s", "\n"))

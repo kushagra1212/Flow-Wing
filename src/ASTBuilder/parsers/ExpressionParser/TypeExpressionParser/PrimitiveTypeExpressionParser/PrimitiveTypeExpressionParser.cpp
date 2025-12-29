@@ -21,6 +21,7 @@
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/BoolTypeExpressionSyntax/BoolTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/CharTypeExpressionSyntax/CharTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Deci32TypeExpressionSyntax/Deci32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/DeciTypeExpressionSyntax/DeciTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int32TypeExpressionSyntax/Int32TypeExpressionSyntax.h"
@@ -42,6 +43,9 @@ PrimitiveTypeExpressionParser::parse() {
   case lexer::TokenKind::kInt8Keyword:
     return std::make_unique<syntax::Int8TypeExpressionSyntax>(
         m_ctx->match(lexer::TokenKind::kInt8Keyword)); // int8
+  case lexer::TokenKind::kCharKeyword:
+    return std::make_unique<syntax::CharTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kCharKeyword)); // char
   case lexer::TokenKind::kInt32Keyword:
     return std::make_unique<syntax::Int32TypeExpressionSyntax>(
         m_ctx->match(lexer::TokenKind::kInt32Keyword)); // int

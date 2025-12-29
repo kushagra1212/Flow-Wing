@@ -29,63 +29,86 @@ namespace type_conversion {
 void initializeIntegerExplicitConversionMap(
     BoundBinaryOperator::ExplicitConversionMap &explicit_conversion_map) {
   explicit_conversion_map[analysis::Builtins::m_int32_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
+      analysis::Builtins::m_char_type_instance.get(),
+      analysis::Builtins::m_bool_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
+      analysis::Builtins::m_int64_type_instance.get(),
       analysis::Builtins::m_deci32_type_instance.get(),
       analysis::Builtins::m_deci_type_instance.get(),
-      analysis::Builtins::m_bool_type_instance.get(),
-      analysis::Builtins::m_int64_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get()};
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 
   explicit_conversion_map[analysis::Builtins::m_int64_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
+      analysis::Builtins::m_bool_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
+      analysis::Builtins::m_int32_type_instance.get(),
+      analysis::Builtins::m_char_type_instance.get(),
       analysis::Builtins::m_deci32_type_instance.get(),
       analysis::Builtins::m_deci_type_instance.get(),
-      analysis::Builtins::m_bool_type_instance.get(),
-      analysis::Builtins::m_int32_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get()};
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 
   explicit_conversion_map[analysis::Builtins::m_int8_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
-      analysis::Builtins::m_deci32_type_instance.get(),
-      analysis::Builtins::m_deci_type_instance.get(),
       analysis::Builtins::m_bool_type_instance.get(),
       analysis::Builtins::m_int32_type_instance.get(),
-      analysis::Builtins::m_int64_type_instance.get()};
+      analysis::Builtins::m_char_type_instance.get(),
+      analysis::Builtins::m_int64_type_instance.get(),
+      analysis::Builtins::m_deci32_type_instance.get(),
+      analysis::Builtins::m_deci_type_instance.get(),
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 }
 
 void initializeDecimalExplicitConversionMap(
     BoundBinaryOperator::ExplicitConversionMap &explicit_conversion_map) {
   explicit_conversion_map[analysis::Builtins::m_deci_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
       analysis::Builtins::m_deci32_type_instance.get(),
       analysis::Builtins::m_bool_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
       analysis::Builtins::m_int32_type_instance.get(),
       analysis::Builtins::m_int64_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get()};
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 
   explicit_conversion_map[analysis::Builtins::m_deci32_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
       analysis::Builtins::m_deci_type_instance.get(),
       analysis::Builtins::m_bool_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
       analysis::Builtins::m_int32_type_instance.get(),
       analysis::Builtins::m_int64_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get()};
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 }
 
 void initializeBoolExplicitConversionMap(
     BoundBinaryOperator::ExplicitConversionMap &explicit_conversion_map) {
   explicit_conversion_map[analysis::Builtins::m_bool_type_instance.get()] = {
-      analysis::Builtins::m_str_type_instance.get(),
-      analysis::Builtins::m_deci32_type_instance.get(),
-      analysis::Builtins::m_deci_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
       analysis::Builtins::m_int32_type_instance.get(),
       analysis::Builtins::m_int64_type_instance.get(),
-      analysis::Builtins::m_int8_type_instance.get()};
+      analysis::Builtins::m_deci32_type_instance.get(),
+      analysis::Builtins::m_deci_type_instance.get(),
+      analysis::Builtins::m_str_type_instance.get(),
+  };
 }
 
 void initializeStringExplicitConversionMap(
     BoundBinaryOperator::ExplicitConversionMap &explicit_conversion_map) {
   explicit_conversion_map[analysis::Builtins::m_str_type_instance.get()] = {
+      analysis::Builtins::m_bool_type_instance.get(),
+      analysis::Builtins::m_char_type_instance.get(),
+      analysis::Builtins::m_int8_type_instance.get(),
+      analysis::Builtins::m_int32_type_instance.get(),
+      analysis::Builtins::m_int64_type_instance.get(),
+      analysis::Builtins::m_deci32_type_instance.get(),
+      analysis::Builtins::m_deci_type_instance.get(),
+  };
+}
+
+void initializeCharExplicitConversionMap(
+    BoundBinaryOperator::ExplicitConversionMap &explicit_conversion_map) {
+  explicit_conversion_map[analysis::Builtins::m_char_type_instance.get()] = {
+      analysis::Builtins::m_str_type_instance.get(),
       analysis::Builtins::m_deci32_type_instance.get(),
       analysis::Builtins::m_deci_type_instance.get(),
       analysis::Builtins::m_bool_type_instance.get(),
@@ -100,7 +123,7 @@ BoundBinaryOperator::ExplicitConversionMap initializeExplicitConversionMap() {
   initializeIntegerExplicitConversionMap(explicit_conversion_map);
   initializeDecimalExplicitConversionMap(explicit_conversion_map);
   initializeBoolExplicitConversionMap(explicit_conversion_map);
-
+  initializeCharExplicitConversionMap(explicit_conversion_map);
   return explicit_conversion_map;
 }
 } // namespace type_conversion
@@ -175,7 +198,8 @@ void initializeIntegerOperators(
     std::shared_ptr<types::Type> type,
     std::shared_ptr<types::Type> decimal_result_type) {
 
-  if (type == analysis::Builtins::m_int8_type_instance) {
+  if (type == analysis::Builtins::m_int8_type_instance ||
+      type == analysis::Builtins::m_char_type_instance) {
 
     operators.emplace_back(lexer::TokenKind::kPlusToken, type, type,
                            analysis::Builtins::m_str_type_instance);
@@ -292,6 +316,11 @@ BoundBinaryOperator::OperatorMap initializeOperatorMap() {
   // Int8
   initializeIntegerOperators(operators,
                              analysis::Builtins::m_int8_type_instance,
+                             analysis::Builtins::m_deci32_type_instance);
+
+  // Char
+  initializeIntegerOperators(operators,
+                             analysis::Builtins::m_char_type_instance,
                              analysis::Builtins::m_deci32_type_instance);
 
   // Int32

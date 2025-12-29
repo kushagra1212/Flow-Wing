@@ -1,1 +1,1 @@
-print(Int32(String(2.2d)))
+print(Int32(String(2.2f)))

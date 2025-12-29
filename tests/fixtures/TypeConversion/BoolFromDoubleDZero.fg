@@ -1,1 +1,1 @@
-print(Bool(0.0d))
+print(Bool(0.0f))

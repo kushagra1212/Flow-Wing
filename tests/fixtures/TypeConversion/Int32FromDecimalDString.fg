@@ -1,1 +1,1 @@
-print(Int32("2.7d"))
+print(Int32("2.7f"))
