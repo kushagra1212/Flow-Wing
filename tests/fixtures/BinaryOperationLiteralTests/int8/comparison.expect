@@ -1,0 +1,27 @@
+Int8 Comparison Tests
+Equality:
+true
+true
+false
+true
+true
+Inequality:
+false
+true
+true
+Less Than:
+true
+false
+true
+Less Than or Equal:
+true
+true
+false
+Greater Than:
+true
+false
+true
+Greater Than or Equal:
+true
+true
+false

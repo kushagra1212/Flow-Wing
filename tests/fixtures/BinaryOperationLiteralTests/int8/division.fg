@@ -1,0 +1,13 @@
+print("Int8 Division Tests (returns decimal)\n")
+print(0 / 1, "\n")
+print(1 / 1, "\n")
+print(5 / 2, "\n")
+print(10 / 3, "\n")
+print(20 / 4, "\n")
+print(100 / 7, "\n")
+print(-10 / 3, "\n")
+print(10 / -3, "\n")
+print(-10 / -3, "\n")
+print(7 / 2, "\n")
+print(1 / 4, "\n")
+

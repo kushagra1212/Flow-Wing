@@ -1,13 +1,11 @@
-Int32 Multiplication Tests
+Int32 Multiplication Tests (values outside int8 range)
 0
-0
-0
-1
-15
-200
-20000
--1
--15
-200
-24
--24
+128
+256
+1000000
+250000
+-129
+-1500
+40000
+100000000
+2147395600

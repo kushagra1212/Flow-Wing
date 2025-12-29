@@ -1,7 +1,5 @@
-Int32 Equality Tests
+Int32 Equality Tests (values outside int8 range)
 true
-true
-false
 false
 true
 false

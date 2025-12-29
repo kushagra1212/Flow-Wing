@@ -1,12 +1,9 @@
-Int32 Bitwise AND Tests
+Int32 Bitwise AND Tests (values outside int8 range)
 0
-0
-0
-1
-1
-7
 128
 0
-1
-15
-8
+480
+255
+255
+999936
+1073741823

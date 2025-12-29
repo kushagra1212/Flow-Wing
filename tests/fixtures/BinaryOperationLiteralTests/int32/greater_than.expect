@@ -1,7 +1,4 @@
-Int32 Greater Than Tests
-false
-false
-true
+Int32 Greater Than Tests (values outside int8 range)
 false
 false
 true
@@ -9,4 +6,6 @@ false
 true
 false
 true
+true
+false
 true

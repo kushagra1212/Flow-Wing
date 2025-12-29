@@ -1,12 +1,9 @@
-Int32 Bitwise XOR Tests
+Int32 Bitwise XOR Tests (values outside int8 range)
+128
 0
-1
-1
+511
+540
+65280
+65280
 0
-6
-8
-127
-255
-0
-255
-6
+2147483647

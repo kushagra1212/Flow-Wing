@@ -1,12 +1,11 @@
-Int32 Division Tests (returns decimal)
-0
-1
+Int32 Division Tests (returns decimal, values outside int8 range)
+128
+128
+333.3333435
+1428.5714111
+1000
+-64.5
+-333.3333435
+333.3333435
+1.073742e+09
 2.5
-3.3333333
-5
-14.2857141
--3.3333333
--3.3333333
-3.3333333
-3.5
-0.25

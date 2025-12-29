@@ -1,7 +1,5 @@
-Int32 Inequality Tests
+Int32 Inequality Tests (values outside int8 range)
 false
-false
-true
 true
 false
 true
