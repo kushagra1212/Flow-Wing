@@ -1,0 +1,5 @@
+print('A' + 1, "\n")
+print('A' + 32, "\n")
+/; EXPECT: B
+/; EXPECT: a
+

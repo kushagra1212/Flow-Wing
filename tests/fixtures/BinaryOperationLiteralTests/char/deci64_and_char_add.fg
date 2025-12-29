@@ -1,0 +1,3 @@
+print('A' + 1.5, "\n")
+/; EXPECT: B
+
