@@ -126,6 +126,8 @@ private:
 
   llvm::Value *getIntResult(llvm::Value *left_value, llvm::Value *right_value,
                             lexer::TokenKind operator_kind);
+  llvm::Value *getCharResult(llvm::Value *left_value, llvm::Value *right_value,
+                             lexer::TokenKind operator_kind);
   llvm::Value *getDecimal32Result(llvm::Value *left_value,
                                   llvm::Value *right_value,
                                   lexer::TokenKind operator_kind);
@@ -134,7 +136,8 @@ private:
                                 lexer::TokenKind operator_kind);
   llvm::Value *getStringResult(llvm::Value *left_value,
                                llvm::Value *right_value,
-                               lexer::TokenKind operator_kind);
+                               lexer::TokenKind operator_kind,
+                               types::Type *left_type, types::Type *right_type);
 
   // Unary Result
 

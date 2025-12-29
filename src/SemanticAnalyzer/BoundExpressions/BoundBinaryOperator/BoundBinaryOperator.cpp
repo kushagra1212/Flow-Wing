@@ -187,7 +187,6 @@ void initializeCharOperators(std::vector<BoundBinaryOperator> &operators) {
   for (const auto &other_type : {analysis::Builtins::m_int32_type_instance,
                                  analysis::Builtins::m_int8_type_instance,
                                  analysis::Builtins::m_str_type_instance,
-                                 analysis::Builtins::m_char_type_instance,
                                  analysis::Builtins::m_int64_type_instance,
                                  analysis::Builtins::m_deci32_type_instance,
                                  analysis::Builtins::m_deci_type_instance,
@@ -196,8 +195,13 @@ void initializeCharOperators(std::vector<BoundBinaryOperator> &operators) {
     updateWithBothOperandTypes(operators, lexer::TokenKind::kPlusToken,
                                analysis::Builtins::m_char_type_instance,
                                other_type,
-                               analysis::Builtins::m_str_type_instance);
+                               analysis::Builtins::m_char_type_instance);
   }
+
+  updateWithBothOperandTypes(operators, lexer::TokenKind::kPlusToken,
+                             analysis::Builtins::m_char_type_instance,
+                             analysis::Builtins::m_char_type_instance,
+                             analysis::Builtins::m_str_type_instance);
 
   for (const auto &token :
        {lexer::TokenKind::kEqualsEqualsToken,

@@ -17,20 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 
 namespace flow_wing::ir_gen {
 
 llvm::Value *IRGenerator::getStringResult(llvm::Value *left_value,
                                           llvm::Value *right_value,
-                                          lexer::TokenKind operator_kind) {
+                                          lexer::TokenKind operator_kind,
+                                          types::Type *left_type,
+                                          types::Type *right_type) {
 
-  auto string_left_value = convertToString(left_value, left_value->getType());
+  auto is_left_type_char =
+      left_type == analysis::Builtins::m_char_type_instance.get();
+  auto is_right_type_char =
+      right_type == analysis::Builtins::m_char_type_instance.get();
+
+  auto string_left_value =
+      convertToString(left_value, left_value->getType(), is_left_type_char);
   auto string_right_value =
-      convertToString(right_value, right_value->getType());
+      convertToString(right_value, right_value->getType(), is_right_type_char);
 
   switch (operator_kind) {
   case lexer::TokenKind::kPlusToken: {

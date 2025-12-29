@@ -1,0 +1,10 @@
+print("Int8 Less Than or Equal Tests\n")
+print(0 <= 0, "\n")
+print(0 <= 1, "\n")
+print(1 <= 0, "\n")
+print(-128 <= 127, "\n")
+print(127 <= -128, "\n")
+print(-50 <= 50, "\n")
+print(50 <= 50, "\n")
+print(-10 <= -10, "\n")
+

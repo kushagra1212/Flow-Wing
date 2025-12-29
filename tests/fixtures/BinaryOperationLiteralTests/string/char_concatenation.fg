@@ -1,0 +1,7 @@
+print("String with Char Concatenation Tests\n")
+print("Hello" + 'W' + "orld", "\n")
+print('H' + "ello" + ' ' + "World", "\n")
+print("A" + 'B' + "C" + 'D', "\n")
+print('a' + 'b' + "cd", "\n")
+print("ab" + 'c' + 'd', "\n")
+

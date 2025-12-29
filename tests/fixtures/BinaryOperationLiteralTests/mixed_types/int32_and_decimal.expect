@@ -1,0 +1,18 @@
+Int32 and Decimal Mixed Operations
+Int32 + Double:
+1001.5
+1001.5
+-998.5
+Int32 + Float:
+1001.5
+1001.5
+-998.5
+Int32 - Double:
+998.5
+-998.5
+Int32 * Double:
+1500
+1500
+Int32 / Double:
+666.666666666666629
+0.0015

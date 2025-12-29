@@ -1,0 +1,11 @@
+print("Int8 Greater Than Tests\n")
+print(0 > 0, "\n")
+print(0 > 1, "\n")
+print(1 > 0, "\n")
+print(-128 > 127, "\n")
+print(127 > -128, "\n")
+print(-50 > 50, "\n")
+print(50 > -50, "\n")
+print(-5 > -10, "\n")
+print(-10 > -5, "\n")
+

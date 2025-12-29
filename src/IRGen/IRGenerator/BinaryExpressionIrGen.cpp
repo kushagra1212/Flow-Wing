@@ -46,6 +46,10 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
     return getIntResult(left_value, right_value, operator_kind);
   }
 
+  if (result_type == analysis::Builtins::m_char_type_instance.get()) {
+    return getCharResult(left_value, right_value, operator_kind);
+  }
+
   if (result_type == analysis::Builtins::m_deci32_type_instance.get()) {
     return getDecimal32Result(left_value, right_value, operator_kind);
   }
@@ -55,7 +59,8 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
   }
 
   if (result_type == analysis::Builtins::m_str_type_instance.get()) {
-    return getStringResult(left_value, right_value, operator_kind);
+    return getStringResult(left_value, right_value, operator_kind, left_type,
+                           right_type);
   }
 
   assert(false && "Unsupported binary operator");

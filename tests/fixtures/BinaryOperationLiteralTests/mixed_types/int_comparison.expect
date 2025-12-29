@@ -1,0 +1,18 @@
+Mixed Integer Comparison Tests
+Int8 vs Int32:
+false
+true
+true
+false
+true
+false
+true
+false
+Int8 vs Int64:
+false
+true
+true
+Int32 vs Int64:
+false
+true
+true
