@@ -2,10 +2,6 @@ print("Plus Prefix Operator for Int\n")
 print(+1 , "\n")
 print(+3 , "\n")
 
-print("Plus Prefix Operator for Char\n")
-print(+'a' , '\n')
-print(+'b' , '\n')
-
 print("Plus Prefix Operator for Double\n")
 print(+1.0 , "\n")
 print(+3.0 , "\n")

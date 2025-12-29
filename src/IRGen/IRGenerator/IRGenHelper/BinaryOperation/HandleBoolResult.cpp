@@ -21,6 +21,7 @@
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
 
@@ -80,6 +81,14 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
     return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
         convertToInt32(left_value, left_value->getType()),
         convertToInt32(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
+  if (left_type == analysis::Builtins::m_int8_type_instance.get() ||
+      right_type == analysis::Builtins::m_int8_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        convertToInt8(left_value, left_value->getType()),
+        convertToInt8(right_value, right_value->getType()),
         "equality_comparison_result");
   }
 
@@ -161,7 +170,14 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
         "less_than_result");
   }
 
-  return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
+  if (left_type == analysis::Builtins::m_int8_type_instance.get() ||
+      right_type == analysis::Builtins::m_int8_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
+        convertToInt8(left_value, left_value->getType()),
+        convertToInt8(right_value, right_value->getType()), "less_than_result");
+  }
+
+  return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
       left_value, right_value, "less_than_result");
 }
 
