@@ -94,5 +94,6 @@ llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
     assert(false && "Unsupported unary operator for bool result type");
   }
   }
+  return nullptr;
 }
 } // namespace flow_wing::ir_gen

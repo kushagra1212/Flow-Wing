@@ -50,6 +50,14 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
         "equality_comparison_result");
   }
 
+  if (left_type == analysis::Builtins::m_deci32_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci32_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOEQ(
+        convertToFloat(left_value, left_value->getType()),
+        convertToFloat(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
   if (left_type == analysis::Builtins::m_str_type_instance.get() ||
       right_type == analysis::Builtins::m_str_type_instance.get()) {
 
@@ -89,6 +97,14 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
     return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
         convertToInt8(left_value, left_value->getType()),
         convertToInt8(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
+  if (left_type == analysis::Builtins::m_char_type_instance.get() ||
+      right_type == analysis::Builtins::m_char_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        convertToChar(left_value, left_value->getType()),
+        convertToChar(right_value, right_value->getType()),
         "equality_comparison_result");
   }
 
@@ -136,6 +152,14 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
         "less_than_result");
   }
 
+  if (left_type == analysis::Builtins::m_deci32_type_instance.get() ||
+      right_type == analysis::Builtins::m_deci32_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOLT(
+        convertToFloat(left_value, left_value->getType()),
+        convertToFloat(right_value, right_value->getType()),
+        "less_than_result");
+  }
+
   if (left_type == analysis::Builtins::m_str_type_instance.get() ||
       right_type == analysis::Builtins::m_str_type_instance.get()) {
 
@@ -175,6 +199,13 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
     return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
         convertToInt8(left_value, left_value->getType()),
         convertToInt8(right_value, right_value->getType()), "less_than_result");
+  }
+
+  if (left_type == analysis::Builtins::m_char_type_instance.get() ||
+      right_type == analysis::Builtins::m_char_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
+        convertToChar(left_value, left_value->getType()),
+        convertToChar(right_value, right_value->getType()), "less_than_result");
   }
 
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpULT(
@@ -242,7 +273,8 @@ llvm::Value *IRGenerator::getBooleanResult(llvm::Value *left_value,
                                            right_type);
   default:
     assert(false && "Unsupported boolean operator");
-    return nullptr;
   }
+
+  return nullptr;
 }
 } // namespace flow_wing::ir_gen

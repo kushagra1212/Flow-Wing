@@ -260,7 +260,7 @@ run-jit-release: build-jit-release
 
 
 .PHONY: test-jit
-test-jit: build-jit-debug
+test-jit: build-jit-release
 	$(ECHO_MSG) "--> Running JIT Integration Tests..."
 	@python3 tests/runner.py \
 		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \

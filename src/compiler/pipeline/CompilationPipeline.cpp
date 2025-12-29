@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "CompilationPipeline.h"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
@@ -40,6 +38,7 @@ ReturnStatus CompilationPipeline::run(CompilationContext &context) {
   for (const auto &pass : m_passes) {
 
     DEBUG_LOG("[[Running pass: ", pass->getName() + " ]]");
+
     if (pass->run(context) == ReturnStatus::kFailure) {
       DEBUG_LOG("Pipeline stopped after failed pass ", pass->getName());
       return ReturnStatus::kFailure;

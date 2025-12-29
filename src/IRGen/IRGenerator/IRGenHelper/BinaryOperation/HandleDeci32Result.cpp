@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 
@@ -49,9 +47,11 @@ llvm::Value *IRGenerator::getDecimal32Result(llvm::Value *left_value,
     return m_ir_gen_context.getLLVMBuilder()->CreateFDiv(
         decimal32_left_value, decimal32_right_value, "division_result");
 
-  default:
+  default: {
+
     assert(false && "Unsupported decimal32 operator");
     return nullptr;
+  }
   }
 }
 } // namespace flow_wing::ir_gen

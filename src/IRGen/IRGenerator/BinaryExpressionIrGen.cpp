@@ -36,6 +36,7 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
                                           types::Type *result_type) {
 
   if (result_type == analysis::Builtins::m_bool_type_instance.get()) {
+
     return getBooleanResult(left_value, right_value, operator_kind, left_type,
                             right_type);
   }

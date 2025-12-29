@@ -109,6 +109,7 @@ std::unique_ptr<syntax::SyntaxToken>
 NumberTokenReader::readDecimal(SourceTokenizer &lexer,
                                const size_t &start_pos) {
   const size_t line_number = lexer.lineNumber();
+
   if (lexer.currentChar() == '.') {
     lexer.advancePosition(); // consume the dot
 
@@ -155,6 +156,7 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer,
       return std::make_unique<syntax::SyntaxToken>(
           TokenKind::kDoubleLiteralToken, text, value, location);
     }
+
   } catch (const std::exception &) {
     lexer.reportError(diagnostic::DiagnosticCode::kBadCharacterInput, {text},
                       location);

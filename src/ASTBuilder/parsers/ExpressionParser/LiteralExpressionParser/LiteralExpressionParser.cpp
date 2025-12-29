@@ -69,6 +69,7 @@ std::unique_ptr<syntax::ExpressionSyntax> LiteralExpressionParser::parse() {
     assert(false && "Unexpected token kind for LiteralExpressionParser");
     break;
   }
+  return nullptr;
 }
 
 } // namespace parser

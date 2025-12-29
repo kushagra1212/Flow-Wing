@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 namespace flow_wing::ir_gen {
@@ -41,5 +39,6 @@ llvm::Value *IRGenerator::getIntResult(llvm::Value *value,
     assert(false && "Unsupported unary operator for int32 result type");
   }
   }
+  return nullptr;
 }
 } // namespace flow_wing::ir_gen

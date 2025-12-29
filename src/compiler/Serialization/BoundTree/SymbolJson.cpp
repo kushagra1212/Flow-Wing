@@ -39,12 +39,14 @@ std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
     assert(false && "Unknown Symbol Kind");
     return "Unknown Symbol Kind";
   }
+  return "Unknown Symbol Kind";
 }
 
 std::string BoundTreeJson::getSymbolId(
     [[maybe_unused]] const analysis::ModuleSymbol *module_symbol) {
   PARSER_DEBUG_LOG("Visiting Module Symbol", "BOUND TREE");
   assert(false && "Module Symbol not implemented");
+  return "Unknown Symbol Kind";
 }
 
 std::string
