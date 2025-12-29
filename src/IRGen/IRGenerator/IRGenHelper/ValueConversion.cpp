@@ -59,15 +59,15 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value, llvm::Type *type,
   if (type->isIntegerTy(8) || (type->isIntegerTy(32))) {
 
     auto *func = module->getFunction(constants::functions::kItos_fn);
+    auto int32_value = convertToInt32(value, type);
     // Safety check if declaration is missing
     assert(func && "Function fg_itos not found");
-    return builder.CreateCall(func, {value}, "int_to_str");
+    return builder.CreateCall(func, {int32_value}, "int_to_str");
   }
 
   // 4. Long Integer (i64) -> fg_lltos(long long)
   if (type->isIntegerTy(64)) {
     auto *func = module->getFunction(constants::functions::kLltos_fn);
-
     assert(func && "Function fg_lltos not found");
 
     return builder.CreateCall(func, {value}, "long_to_str");

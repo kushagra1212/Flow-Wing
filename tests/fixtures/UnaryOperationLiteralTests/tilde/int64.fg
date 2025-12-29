@@ -1,0 +1,9 @@
+print("Unary Bitwise Not Int64 Tests\n")
+print(~3000000000, "\n")
+print(~4294967295, "\n")
+print(~9223372036854775807, "\n")
+print(~0, "\n")
+print(~-1, "\n")
+print(~~3000000000, "\n")
+print(~~9223372036854775807, "\n")
+

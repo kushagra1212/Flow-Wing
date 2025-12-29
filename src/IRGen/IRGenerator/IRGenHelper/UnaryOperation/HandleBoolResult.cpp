@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/utils/LogConfig.h"
 namespace flow_wing::ir_gen {
 
 llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
@@ -35,7 +34,8 @@ llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
           value, "logical_negation_result");
     }
 
-    if (expression_type == analysis::Builtins::m_int32_type_instance.get()) {
+    if (expression_type == analysis::Builtins::m_int32_type_instance.get() ||
+        expression_type == analysis::Builtins::m_char_type_instance.get()) {
       return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
           value,
           llvm::ConstantInt::get(
@@ -48,6 +48,14 @@ llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
           value,
           llvm::ConstantInt::get(m_ir_gen_context.getLLVMBuilder()->getInt8Ty(),
                                  0),
+          "is_zero_result");
+    }
+
+    if (expression_type == analysis::Builtins::m_int64_type_instance.get()) {
+      return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+          value,
+          llvm::ConstantInt::get(
+              m_ir_gen_context.getLLVMBuilder()->getInt64Ty(), 0),
           "is_zero_result");
     }
 

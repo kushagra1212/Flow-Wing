@@ -40,10 +40,15 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
                             right_type);
   }
 
-  if (result_type == analysis::Builtins::m_int32_type_instance.get() ||
-      result_type == analysis::Builtins::m_int8_type_instance.get() ||
-      result_type == analysis::Builtins::m_int64_type_instance.get()) {
-    return getIntResult(left_value, right_value, operator_kind);
+  if (result_type == analysis::Builtins::m_int32_type_instance.get()) {
+    return getInt32Result(left_value, right_value, operator_kind, left_type,
+                          right_type);
+  } else if (result_type == analysis::Builtins::m_int64_type_instance.get()) {
+    return getInt64Result(left_value, right_value, operator_kind, left_type,
+                          right_type);
+  } else if (result_type == analysis::Builtins::m_int8_type_instance.get()) {
+    return getInt8Result(left_value, right_value, operator_kind, left_type,
+                         right_type);
   }
 
   if (result_type == analysis::Builtins::m_char_type_instance.get()) {

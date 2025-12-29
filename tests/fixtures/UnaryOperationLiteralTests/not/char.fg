@@ -1,0 +1,8 @@
+print("Unary Not Char Tests (checks if zero char)\n")
+print(!'a', "\n")
+print(!'A', "\n")
+print(!'0', "\n")
+print(!'1', "\n")
+print(!' ', "\n")
+print(!'z', "\n")
+

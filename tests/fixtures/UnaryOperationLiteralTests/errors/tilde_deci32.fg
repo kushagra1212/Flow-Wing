@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: InvalidUnaryOperator
+print(~3.14f)
+

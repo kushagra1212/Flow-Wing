@@ -1,0 +1,8 @@
+print("Unary Not String Tests (checks if empty)\n")
+print(!"", "\n")
+print(!"Hello", "\n")
+print(!" ", "\n")
+print(!"a", "\n")
+print(!"Hello World", "\n")
+print(!"\n", "\n")
+

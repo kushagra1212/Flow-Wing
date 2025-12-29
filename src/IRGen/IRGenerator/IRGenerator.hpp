@@ -125,7 +125,17 @@ private:
                                                types::Type *right_type);
 
   llvm::Value *getIntResult(llvm::Value *left_value, llvm::Value *right_value,
-                            lexer::TokenKind operator_kind);
+                            lexer::TokenKind operator_kind,
+                            types::Type *left_type, types::Type *right_type);
+  llvm::Value *getInt32Result(llvm::Value *left_value, llvm::Value *right_value,
+                              lexer::TokenKind operator_kind,
+                              types::Type *left_type, types::Type *right_type);
+  llvm::Value *getInt64Result(llvm::Value *left_value, llvm::Value *right_value,
+                              lexer::TokenKind operator_kind,
+                              types::Type *left_type, types::Type *right_type);
+  llvm::Value *getInt8Result(llvm::Value *left_value, llvm::Value *right_value,
+                             lexer::TokenKind operator_kind,
+                             types::Type *left_type, types::Type *right_type);
   llvm::Value *getCharResult(llvm::Value *left_value, llvm::Value *right_value,
                              lexer::TokenKind operator_kind);
   llvm::Value *getDecimal32Result(llvm::Value *left_value,

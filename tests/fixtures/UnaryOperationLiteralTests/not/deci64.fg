@@ -1,0 +1,8 @@
+print("Unary Not Deci (Double) Tests (checks if zero)\n")
+print(!0.0, "\n")
+print(!1.0, "\n")
+print(!-1.0, "\n")
+print(!3.14159265359, "\n")
+print(!-3.14159265359, "\n")
+print(!0.000001, "\n")
+

@@ -1,0 +1,4 @@
+print("Unary Not Nir Tests (always true)\n")
+print(!Nir, "\n")
+print(!!Nir, "\n")
+

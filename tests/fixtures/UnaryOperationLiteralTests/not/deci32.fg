@@ -1,0 +1,8 @@
+print("Unary Not Deci32 (Float) Tests (checks if zero)\n")
+print(!0.0f, "\n")
+print(!1.0f, "\n")
+print(!-1.0f, "\n")
+print(!3.14f, "\n")
+print(!-3.14f, "\n")
+print(!0.001f, "\n")
+

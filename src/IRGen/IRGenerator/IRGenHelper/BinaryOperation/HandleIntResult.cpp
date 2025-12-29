@@ -26,7 +26,20 @@ namespace flow_wing::ir_gen {
 
 llvm::Value *IRGenerator::getIntResult(llvm::Value *left_value,
                                        llvm::Value *right_value,
-                                       lexer::TokenKind operator_kind) {
+                                       lexer::TokenKind operator_kind,
+                                       types::Type *left_type,
+                                       types::Type *right_type) {
+
+  if (left_type == analysis::Builtins::m_int64_type_instance.get() ||
+      right_type == analysis::Builtins::m_int64_type_instance.get()) {
+    left_value = convertToInt64(left_value, left_value->getType());
+    right_value = convertToInt64(right_value, right_value->getType());
+  } else if (left_type == analysis::Builtins::m_int32_type_instance.get() ||
+             right_type == analysis::Builtins::m_int32_type_instance.get()) {
+    left_value = convertToInt32(left_value, left_value->getType());
+    right_value = convertToInt32(right_value, right_value->getType());
+  }
+  // else both are int8
 
   switch (operator_kind) {
   case lexer::TokenKind::kPlusToken:
@@ -57,5 +70,35 @@ llvm::Value *IRGenerator::getIntResult(llvm::Value *left_value,
     assert(false && "Unsupported integer operator");
     return nullptr;
   }
+}
+
+llvm::Value *IRGenerator::getInt32Result(llvm::Value *left_value,
+                                         llvm::Value *right_value,
+                                         lexer::TokenKind operator_kind,
+                                         types::Type *left_type,
+                                         types::Type *right_type) {
+  return getIntResult(convertToInt32(left_value, left_value->getType()),
+                      convertToInt32(right_value, right_value->getType()),
+                      operator_kind, left_type, right_type);
+}
+
+llvm::Value *IRGenerator::getInt64Result(llvm::Value *left_value,
+                                         llvm::Value *right_value,
+                                         lexer::TokenKind operator_kind,
+                                         types::Type *left_type,
+                                         types::Type *right_type) {
+  return getIntResult(convertToInt64(left_value, left_value->getType()),
+                      convertToInt64(right_value, right_value->getType()),
+                      operator_kind, left_type, right_type);
+}
+
+llvm::Value *IRGenerator::getInt8Result(llvm::Value *left_value,
+                                        llvm::Value *right_value,
+                                        lexer::TokenKind operator_kind,
+                                        types::Type *left_type,
+                                        types::Type *right_type) {
+  return getIntResult(convertToInt8(left_value, left_value->getType()),
+                      convertToInt8(right_value, right_value->getType()),
+                      operator_kind, left_type, right_type);
 }
 } // namespace flow_wing::ir_gen

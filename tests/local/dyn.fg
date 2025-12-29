@@ -1,10 +1,2 @@
-print("Char and String Mixed Operations\n")
-print('H' + "ello", "\n")
-print("Hell" + 'o', "\n")
-print('a' + "bc", "\n")
-print("ab" + 'c', "\n")
-print(' ' + "space before", "\n")
-print("space after" + ' ', "\n")
-print('1' + "23", "\n")
-print("12" + '3', "\n")
 
+print(10 * 1000, "\n")

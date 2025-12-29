@@ -211,6 +211,9 @@ ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
       // strings
       analysis::Builtins::m_str_type_instance.get(),
 
+      // chars
+      analysis::Builtins::m_char_type_instance.get(),
+
       // classes
       // type->getKind() == types::TypeKind::kClass
 
@@ -218,6 +221,7 @@ ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
 
   static const std::set<types::Type *> allowed_types_for_tilde_operator = {
       // integers
+      analysis::Builtins::m_int8_type_instance.get(),
       analysis::Builtins::m_int32_type_instance.get(),
       analysis::Builtins::m_int64_type_instance.get(),
 

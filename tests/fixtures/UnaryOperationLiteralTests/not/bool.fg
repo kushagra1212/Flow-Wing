@@ -1,0 +1,8 @@
+print("Unary Not Bool Tests\n")
+print(!true, "\n")
+print(!false, "\n")
+print(!!true, "\n")
+print(!!false, "\n")
+print(!!!true, "\n")
+print(!!!false, "\n")
+

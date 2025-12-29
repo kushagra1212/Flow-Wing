@@ -67,6 +67,22 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
         "equality_comparison_result");
   }
 
+  if (left_type == analysis::Builtins::m_int64_type_instance.get() ||
+      right_type == analysis::Builtins::m_int64_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        convertToInt64(left_value, left_value->getType()),
+        convertToInt64(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
+  if (left_type == analysis::Builtins::m_int32_type_instance.get() ||
+      right_type == analysis::Builtins::m_int32_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        convertToInt32(left_value, left_value->getType()),
+        convertToInt32(right_value, right_value->getType()),
+        "equality_comparison_result");
+  }
+
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
       left_value, right_value, "equality_comparison_result");
 }
@@ -127,6 +143,22 @@ IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
             {convertToString(left_value, left_value->getType()),
              convertToString(right_value, right_value->getType())}),
         m_ir_gen_context.getLLVMBuilder()->getInt32(0), "less_than_result");
+  }
+
+  if (left_type == analysis::Builtins::m_int64_type_instance.get() ||
+      right_type == analysis::Builtins::m_int64_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
+        convertToInt64(left_value, left_value->getType()),
+        convertToInt64(right_value, right_value->getType()),
+        "less_than_result");
+  }
+
+  if (left_type == analysis::Builtins::m_int32_type_instance.get() ||
+      right_type == analysis::Builtins::m_int32_type_instance.get()) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(
+        convertToInt32(left_value, left_value->getType()),
+        convertToInt32(right_value, right_value->getType()),
+        "less_than_result");
   }
 
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpSLT(

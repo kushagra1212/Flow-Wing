@@ -24,6 +24,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundNirastLiteralExpression/BoundNirastLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 
 // clang-format off
 #include "llvm/IR/Constants.h"
@@ -35,11 +36,32 @@ namespace ir_gen {
 
 void IRGenerator::visit(
     binding::BoundIntegerLiteralExpression *integer_literal_expression) {
-  m_last_value = llvm::ConstantInt::get(
-      *m_ir_gen_context.getLLVMContext(),
-      llvm::APInt(64,
-                  static_cast<uint64_t>(integer_literal_expression->getValue()),
-                  true));
+
+  if (integer_literal_expression->getType() ==
+      analysis::Builtins::m_int64_type_instance) {
+    m_last_value = llvm::ConstantInt::get(
+        *m_ir_gen_context.getLLVMContext(),
+        llvm::APInt(
+            64, static_cast<uint64_t>(integer_literal_expression->getValue()),
+            true));
+  } else if (integer_literal_expression->getType() ==
+             analysis::Builtins::m_int32_type_instance) {
+    m_last_value = llvm::ConstantInt::get(
+        *m_ir_gen_context.getLLVMContext(),
+        llvm::APInt(
+            32, static_cast<uint32_t>(integer_literal_expression->getValue()),
+            true));
+  } else if (integer_literal_expression->getType() ==
+             analysis::Builtins::m_int8_type_instance) {
+    m_last_value = llvm::ConstantInt::get(
+        *m_ir_gen_context.getLLVMContext(),
+        llvm::APInt(
+            8, static_cast<uint8_t>(integer_literal_expression->getValue()),
+            true));
+  } else {
+    assert(false && "Unsupported integer literal type");
+    return;
+  }
 }
 
 void IRGenerator::visit(
