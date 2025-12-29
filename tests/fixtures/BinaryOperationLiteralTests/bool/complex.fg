@@ -1,0 +1,11 @@
+print("Bool Complex Expressions Tests\n")
+print((true && true) || false, "\n")
+print((true || false) && true, "\n")
+print((false || false) && true, "\n")
+print((true && false) || (false && true), "\n")
+print((true || true) && (false || true), "\n")
+print(true && (false || true), "\n")
+print(false || (true && true), "\n")
+print((true == true) && (false == false), "\n")
+print((true != false) || (false != true), "\n")
+

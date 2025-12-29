@@ -1,0 +1,10 @@
+print("String Concatenation Tests\n")
+print("" + "", "\n")
+print("Hello" + "", "\n")
+print("" + "World", "\n")
+print("Hello" + "World", "\n")
+print("Hello" + " " + "World", "\n")
+print("a" + "b" + "c" + "d", "\n")
+print("The answer is: " + "42", "\n")
+print("Line1\n" + "Line2", "\n")
+

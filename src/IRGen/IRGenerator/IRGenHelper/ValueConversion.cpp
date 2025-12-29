@@ -38,7 +38,6 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value, llvm::Type *type,
                                           bool is_char) {
   auto &builder = *m_ir_gen_context.getLLVMBuilder();
   auto *module = m_ir_gen_context.getLLVMModule();
-  auto *ctx = m_ir_gen_context.getLLVMContext();
 
   // 1. Boolean (i1) -> "true" / "false"
   if (type->isIntegerTy(1)) {
@@ -58,6 +57,7 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value, llvm::Type *type,
 
   // 3. Integer (i32) -> fg_itos(int)
   if (type->isIntegerTy(8) || (type->isIntegerTy(32))) {
+
     auto *func = module->getFunction(constants::functions::kItos_fn);
     // Safety check if declaration is missing
     assert(func && "Function fg_itos not found");
@@ -67,41 +67,23 @@ llvm::Value *IRGenerator::convertToString(llvm::Value *value, llvm::Type *type,
   // 4. Long Integer (i64) -> fg_lltos(long long)
   if (type->isIntegerTy(64)) {
     auto *func = module->getFunction(constants::functions::kLltos_fn);
-    if (!func) {
-      auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
-      auto *i64Ty = llvm::Type::getInt64Ty(*ctx);
-      func = llvm::Function::Create(
-          llvm::FunctionType::get(charPtrTy, {i64Ty}, false),
-          llvm::Function::ExternalLinkage, constants::functions::kLltos_fn,
-          module);
-    }
+
+    assert(func && "Function fg_lltos not found");
+
     return builder.CreateCall(func, {value}, "long_to_str");
   }
 
   // 5. Float (float) -> Cast to Double -> fg_dtos(double)
   if (type->isFloatTy()) {
     auto *func = module->getFunction(constants::functions::kFtos_fn);
-    if (!func) {
-      auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
-      func = llvm::Function::Create(
-          llvm::FunctionType::get(charPtrTy, {type}, false),
-          llvm::Function::ExternalLinkage, constants::functions::kFtos_fn,
-          module);
-    }
+    assert(func && "Function fg_ftos not found");
     return builder.CreateCall(func, {value}, "float_to_str");
   }
 
   // 6. Double (double) -> fg_dtos(double)
   if (type->isDoubleTy()) {
     auto *func = module->getFunction(constants::functions::kDtos_fn);
-    if (!func) {
-      auto *charPtrTy = llvm::Type::getInt8PtrTy(*ctx);
-      auto *dblTy = llvm::Type::getDoubleTy(*ctx);
-      func = llvm::Function::Create(
-          llvm::FunctionType::get(charPtrTy, {dblTy}, false),
-          llvm::Function::ExternalLinkage, constants::functions::kDtos_fn,
-          module);
-    }
+    assert(func && "Function fg_dtos not found");
     return builder.CreateCall(func, {value}, "dbl_to_str");
   }
 

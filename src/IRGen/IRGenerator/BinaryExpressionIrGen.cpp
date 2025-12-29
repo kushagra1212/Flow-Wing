@@ -40,7 +40,9 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
                             right_type);
   }
 
-  if (result_type == analysis::Builtins::m_int32_type_instance.get()) {
+  if (result_type == analysis::Builtins::m_int32_type_instance.get() ||
+      result_type == analysis::Builtins::m_int8_type_instance.get() ||
+      result_type == analysis::Builtins::m_int64_type_instance.get()) {
     return getIntResult(left_value, right_value, operator_kind);
   }
 

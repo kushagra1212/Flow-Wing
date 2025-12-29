@@ -37,8 +37,8 @@ void IRGenerator::visit(
     binding::BoundIntegerLiteralExpression *integer_literal_expression) {
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
-      llvm::APInt(32,
-                  static_cast<uint32_t>(integer_literal_expression->getValue()),
+      llvm::APInt(64,
+                  static_cast<uint64_t>(integer_literal_expression->getValue()),
                   true));
 }
 

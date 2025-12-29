@@ -41,11 +41,11 @@ inline std::string formatMessage(std::string template_string,
 
 inline std::string
 getErrorCodeString([[maybe_unused]] const DiagnosticCode &code) {
-#if TEST_ENABLED
+  // #if TEST_ENABLED
   return ":" + DiagnosticMessageDatabase::toString(code);
-#else
-  return "";
-#endif
+  // #else
+  //   return "";
+  // #endif
 }
 
 } // namespace diagnostic

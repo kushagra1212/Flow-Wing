@@ -1,0 +1,19 @@
+Int64 Comparison Tests
+Equality:
+true
+false
+Inequality:
+false
+true
+Less Than:
+true
+false
+Less Than or Equal:
+true
+true
+Greater Than:
+true
+false
+Greater Than or Equal:
+true
+true

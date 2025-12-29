@@ -1,0 +1,11 @@
+print("Char Greater Than or Equal Tests\n")
+print('a' >= 'a', "\n")
+print('a' >= 'b', "\n")
+print('b' >= 'a', "\n")
+print('A' >= 'Z', "\n")
+print('Z' >= 'A', "\n")
+print('A' >= 'a', "\n")
+print('a' >= 'A', "\n")
+print('9' >= '0', "\n")
+print('9' >= '9', "\n")
+

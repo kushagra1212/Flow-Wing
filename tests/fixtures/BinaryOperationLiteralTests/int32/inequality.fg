@@ -1,0 +1,12 @@
+print("Int32 Inequality Tests\n")
+print(0 != 0, "\n")
+print(1 != 1, "\n")
+print(1 != 0, "\n")
+print(0 != 1, "\n")
+print(5 != 5, "\n")
+print(5 != 3, "\n")
+print(-1 != -1, "\n")
+print(-1 != 1, "\n")
+print(100 != 100, "\n")
+print(100 != 200, "\n")
+

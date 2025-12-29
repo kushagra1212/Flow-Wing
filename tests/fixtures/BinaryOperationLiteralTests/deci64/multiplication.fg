@@ -1,0 +1,13 @@
+print("Deci (Double) Multiplication Tests\n")
+print(0.0 * 0.0, "\n")
+print(1.0 * 0.0, "\n")
+print(0.0 * 1.0, "\n")
+print(1.0 * 1.0, "\n")
+print(2.0 * 3.0, "\n")
+print(1.5 * 2.0, "\n")
+print(-1.5 * 2.0, "\n")
+print(-2.0 * -3.0, "\n")
+print(3.14159265359 * 2.0, "\n")
+print(0.5 * 0.5, "\n")
+print(1000000.0 * 1000000.0, "\n")
+

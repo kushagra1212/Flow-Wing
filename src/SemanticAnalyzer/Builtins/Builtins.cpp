@@ -398,6 +398,14 @@ void Builtins::initializeInternalFunctions() {
   createInternalFunction(std::string(ir_gen::constants::functions::kCtos_fn),
                          {Builtins::m_char_type_instance},
                          {Builtins::m_str_type_instance});
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kLltos_fn),
+                         {Builtins::m_int64_type_instance},
+                         {Builtins::m_str_type_instance});
+
+  createInternalFunction(std::string(ir_gen::constants::functions::kFtos_fn),
+                         {Builtins::m_deci32_type_instance},
+                         {Builtins::m_str_type_instance});
 }
 
 bool Builtins::isBuiltInFunction(const std::string &name) {

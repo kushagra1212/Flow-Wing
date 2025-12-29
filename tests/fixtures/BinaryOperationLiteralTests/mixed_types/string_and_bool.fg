@@ -1,0 +1,8 @@
+print("String and Bool Mixed Operations\n")
+print("Value: " + true, "\n")
+print(true + " is true", "\n")
+print("Value: " + false, "\n")
+print(false + " is false", "\n")
+print("Result: " + (1 == 1), "\n")
+print((1 != 1) + " is false", "\n")
+

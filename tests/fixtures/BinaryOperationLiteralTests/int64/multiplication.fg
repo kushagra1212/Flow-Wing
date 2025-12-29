@@ -1,0 +1,8 @@
+print("Int64 Multiplication Tests (using large numbers)\n")
+print(3000000000 * 0, "\n")
+print(3000000000 * 1, "\n")
+print(3000000000 * 2, "\n")
+print(100000 * 100000, "\n")
+print(-3000000000 * 2, "\n")
+print(-3000000000 * -2, "\n")
+

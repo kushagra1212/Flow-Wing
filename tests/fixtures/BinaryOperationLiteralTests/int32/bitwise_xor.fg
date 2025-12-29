@@ -1,0 +1,13 @@
+print("Int32 Bitwise XOR Tests\n")
+print(0 ^ 0, "\n")
+print(1 ^ 0, "\n")
+print(0 ^ 1, "\n")
+print(1 ^ 1, "\n")
+print(5 ^ 3, "\n")
+print(15 ^ 7, "\n")
+print(255 ^ 128, "\n")
+print(170 ^ 85, "\n")
+print(0xFF ^ 0xFF, "\n")
+print(0xF0 ^ 0x0F, "\n")
+print(12 ^ 10, "\n")
+

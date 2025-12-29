@@ -1,0 +1,7 @@
+print("Int64 Bitwise XOR Tests\n")
+print(3000000000 ^ 0, "\n")
+print(3000000000 ^ 3000000000, "\n")
+print(3000000000 ^ 1500000000, "\n")
+print(0xF0F0F0F0F0 ^ 0x0F0F0F0F0F, "\n")
+print(4294967295 ^ 4294967295, "\n")
+

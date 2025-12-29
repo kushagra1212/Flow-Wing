@@ -1,0 +1,12 @@
+print("Deci32 (Float) Addition Tests\n")
+print(0.0f + 0.0f, "\n")
+print(1.0f + 0.0f, "\n")
+print(0.0f + 1.0f, "\n")
+print(1.5f + 1.5f, "\n")
+print(3.14f + 2.86f, "\n")
+print(-1.5f + 1.5f, "\n")
+print(-3.14f + -2.86f, "\n")
+print(100.25f + 200.75f, "\n")
+print(0.001f + 0.001f, "\n")
+print(1234.5678f + 0.0f, "\n")
+

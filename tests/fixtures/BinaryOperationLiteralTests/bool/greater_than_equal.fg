@@ -1,0 +1,6 @@
+print("Bool Greater Than or Equal Tests\n")
+print(true >= true, "\n")
+print(true >= false, "\n")
+print(false >= true, "\n")
+print(false >= false, "\n")
+

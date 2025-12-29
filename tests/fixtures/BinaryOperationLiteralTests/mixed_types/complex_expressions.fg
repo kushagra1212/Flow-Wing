@@ -1,0 +1,9 @@
+print("Complex Mixed Type Expressions\n")
+print((1 + 2) * (3.0 + 4.0), "\n")
+print((10 / 3) * 2.0f, "\n")
+print("Result: " + (1 + 2 + 3), "\n")
+print("Pi * 2 = " + (3.14 * 2), "\n")
+print("1 + 2 = " + (1 + 2), "\n")
+print((true && false) + " is the result", "\n")
+print("Sum: " + (1 + 2 + 3 + 4 + 5), "\n")
+

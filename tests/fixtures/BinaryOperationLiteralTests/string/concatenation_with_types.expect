@@ -1,0 +1,13 @@
+String Concatenation with Other Types Tests
+Value: 42
+Value: -42
+Value: 3.14
+Value: 3.1400001
+Value: true
+Value: false
+42 is the answer
+-42 is negative
+3.14 is pi
+3.1400001 is float pi
+true is true
+false is false

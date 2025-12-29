@@ -1,0 +1,12 @@
+print("Deci32 (Float) Multiplication Tests\n")
+print(0.0f * 0.0f, "\n")
+print(1.0f * 0.0f, "\n")
+print(0.0f * 1.0f, "\n")
+print(1.0f * 1.0f, "\n")
+print(2.0f * 3.0f, "\n")
+print(1.5f * 2.0f, "\n")
+print(-1.5f * 2.0f, "\n")
+print(-2.0f * -3.0f, "\n")
+print(3.14f * 2.0f, "\n")
+print(0.5f * 0.5f, "\n")
+

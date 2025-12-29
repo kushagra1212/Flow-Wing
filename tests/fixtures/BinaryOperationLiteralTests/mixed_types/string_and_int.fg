@@ -1,0 +1,9 @@
+print("String and Int Mixed Operations\n")
+print("Hello" + 42, "\n")
+print(42 + "World", "\n")
+print("Number: " + 0, "\n")
+print(0 + " is zero", "\n")
+print("Negative: " + -1, "\n")
+print(-1 + " is negative", "\n")
+print("Large: " + 2147483647, "\n")
+

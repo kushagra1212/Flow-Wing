@@ -116,7 +116,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
       BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
 
-      if ((expression_type != variable_type && !variable_type->isDynamic() &&
+      if ((expression_type > variable_type && !variable_type->isDynamic() &&
            !expression_type->isDynamic()) ||
           (!variable_type->isDynamic() && expression_type->isDynamic())) {
 

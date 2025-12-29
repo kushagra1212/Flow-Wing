@@ -1,0 +1,13 @@
+print("Int32 Less Than Tests\n")
+print(0 < 0, "\n")
+print(0 < 1, "\n")
+print(1 < 0, "\n")
+print(1 < 1, "\n")
+print(5 < 10, "\n")
+print(10 < 5, "\n")
+print(-5 < 5, "\n")
+print(5 < -5, "\n")
+print(-10 < -5, "\n")
+print(-5 < -10, "\n")
+print(0 < -1, "\n")
+

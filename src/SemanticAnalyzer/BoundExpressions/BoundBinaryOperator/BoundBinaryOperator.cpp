@@ -129,6 +129,20 @@ BoundBinaryOperator::ExplicitConversionMap initializeExplicitConversionMap() {
 } // namespace type_conversion
 
 namespace type_conversion {
+
+void updateWithBothOperandTypes(std::vector<BoundBinaryOperator> &operators,
+                                lexer::TokenKind token,
+                                std::shared_ptr<types::Type> type,
+                                std::shared_ptr<types::Type> other_type,
+                                std::shared_ptr<types::Type> result_type) {
+
+  operators.emplace_back(token, type, other_type, result_type);
+  if (type == other_type) {
+    return;
+  }
+  operators.emplace_back(token, other_type, type, result_type);
+}
+
 void initializeNirastOperators(std::vector<BoundBinaryOperator> &operators) {
   for (const auto &token : {lexer::TokenKind::kEqualsEqualsToken,
                             lexer::TokenKind::kBangEqualsToken}) {
@@ -141,10 +155,20 @@ void initializeNirastOperators(std::vector<BoundBinaryOperator> &operators) {
 
 void initializeStringOperators(std::vector<BoundBinaryOperator> &operators) {
 
-  operators.emplace_back(lexer::TokenKind::kPlusToken,
-                         analysis::Builtins::m_str_type_instance,
-                         analysis::Builtins::m_str_type_instance,
-                         analysis::Builtins::m_str_type_instance);
+  for (const auto &other_type : {analysis::Builtins::m_int32_type_instance,
+                                 analysis::Builtins::m_int8_type_instance,
+                                 analysis::Builtins::m_str_type_instance,
+                                 analysis::Builtins::m_char_type_instance,
+                                 analysis::Builtins::m_int64_type_instance,
+                                 analysis::Builtins::m_deci32_type_instance,
+                                 analysis::Builtins::m_deci_type_instance,
+                                 analysis::Builtins::m_bool_type_instance}) {
+
+    updateWithBothOperandTypes(operators, lexer::TokenKind::kPlusToken,
+                               analysis::Builtins::m_str_type_instance,
+                               other_type,
+                               analysis::Builtins::m_str_type_instance);
+  }
 
   for (const auto &token :
        {lexer::TokenKind::kEqualsEqualsToken,
@@ -158,16 +182,21 @@ void initializeStringOperators(std::vector<BoundBinaryOperator> &operators) {
   }
 }
 
-void initializeDecimalOperators(std::vector<BoundBinaryOperator> &operators,
-                                std::shared_ptr<types::Type> type) {
+void initializeCharOperators(std::vector<BoundBinaryOperator> &operators) {
 
-  for (const auto &token : {
-           lexer::TokenKind::kPlusToken,
-           lexer::TokenKind::kMinusToken,
-           lexer::TokenKind::kStarToken,
-           lexer::TokenKind::kSlashToken,
-       }) {
-    operators.emplace_back(token, type, type, type);
+  for (const auto &other_type : {analysis::Builtins::m_int32_type_instance,
+                                 analysis::Builtins::m_int8_type_instance,
+                                 analysis::Builtins::m_str_type_instance,
+                                 analysis::Builtins::m_char_type_instance,
+                                 analysis::Builtins::m_int64_type_instance,
+                                 analysis::Builtins::m_deci32_type_instance,
+                                 analysis::Builtins::m_deci_type_instance,
+                                 analysis::Builtins::m_bool_type_instance}) {
+
+    updateWithBothOperandTypes(operators, lexer::TokenKind::kPlusToken,
+                               analysis::Builtins::m_char_type_instance,
+                               other_type,
+                               analysis::Builtins::m_str_type_instance);
   }
 
   for (const auto &token :
@@ -175,8 +204,45 @@ void initializeDecimalOperators(std::vector<BoundBinaryOperator> &operators,
         lexer::TokenKind::kBangEqualsToken, lexer::TokenKind::kLessToken,
         lexer::TokenKind::kLessOrEqualsToken, lexer::TokenKind::kGreaterToken,
         lexer::TokenKind::kGreaterOrEqualsToken}) {
-    operators.emplace_back(token, type, type,
+
+    operators.emplace_back(token, analysis::Builtins::m_char_type_instance,
+                           analysis::Builtins::m_char_type_instance,
                            analysis::Builtins::m_bool_type_instance);
+  }
+}
+
+void initializeDecimalOperators(std::vector<BoundBinaryOperator> &operators) {
+
+  auto deci32_type = analysis::Builtins::m_deci32_type_instance;
+  auto deci_type = analysis::Builtins::m_deci_type_instance;
+
+  std::vector<std::shared_ptr<types::Type>> decimal_types = {deci32_type,
+                                                             deci_type};
+
+  for (size_t i = 0; i < decimal_types.size(); ++i) {
+    for (size_t j = i; j < decimal_types.size(); ++j) {
+      auto t1 = decimal_types[i];
+      auto t2 = decimal_types[j];
+
+      for (const auto &token : {
+               lexer::TokenKind::kPlusToken,
+               lexer::TokenKind::kMinusToken,
+               lexer::TokenKind::kStarToken,
+               lexer::TokenKind::kSlashToken,
+           }) {
+        updateWithBothOperandTypes(operators, token, t1, t2, t1);
+      }
+
+      for (const auto &token :
+           {lexer::TokenKind::kEqualsEqualsToken,
+            lexer::TokenKind::kBangEqualsToken, lexer::TokenKind::kLessToken,
+            lexer::TokenKind::kLessOrEqualsToken,
+            lexer::TokenKind::kGreaterToken,
+            lexer::TokenKind::kGreaterOrEqualsToken}) {
+        updateWithBothOperandTypes(operators, token, t1, t2,
+                                   analysis::Builtins::m_bool_type_instance);
+      }
+    }
   }
 }
 
@@ -193,103 +259,64 @@ void initializeBoolOperators(std::vector<BoundBinaryOperator> &operators) {
   }
 }
 
-void initializeIntegerOperators(
-    std::vector<BoundBinaryOperator> &operators,
-    std::shared_ptr<types::Type> type,
-    std::shared_ptr<types::Type> decimal_result_type) {
+void initializeIntegerOperators(std::vector<BoundBinaryOperator> &operators) {
+  // 1. Get Type Instances
+  auto int8 = analysis::Builtins::m_int8_type_instance;
+  auto int32 = analysis::Builtins::m_int32_type_instance;
+  auto int64 = analysis::Builtins::m_int64_type_instance;
+  auto deci32 = analysis::Builtins::m_deci32_type_instance;
+  auto deci = analysis::Builtins::m_deci_type_instance;
+  auto boolean = analysis::Builtins::m_bool_type_instance;
 
-  if (type == analysis::Builtins::m_int8_type_instance ||
-      type == analysis::Builtins::m_char_type_instance) {
+  std::vector<std::shared_ptr<types::Type>> intTypes = {int8, int32, int64};
 
-    operators.emplace_back(lexer::TokenKind::kPlusToken, type, type,
-                           analysis::Builtins::m_str_type_instance);
+  std::vector<lexer::TokenKind> arithmetic_operators = {
+      lexer::TokenKind::kPlusToken,    lexer::TokenKind::kMinusToken,
+      lexer::TokenKind::kStarToken,    lexer::TokenKind::kSlashSlashToken,
+      lexer::TokenKind::kPercentToken, lexer::TokenKind::kAmpersandToken,
+      lexer::TokenKind::kPipeToken,    lexer::TokenKind::kCaretToken};
 
-  } else {
+  std::vector<lexer::TokenKind> comparison_operators = {
+      lexer::TokenKind::kEqualsEqualsToken,
+      lexer::TokenKind::kBangEqualsToken,
+      lexer::TokenKind::kLessToken,
+      lexer::TokenKind::kLessOrEqualsToken,
+      lexer::TokenKind::kGreaterToken,
+      lexer::TokenKind::kGreaterOrEqualsToken};
+
+  for (size_t i = 0; i < intTypes.size(); ++i) {
+    for (size_t j = i; j < intTypes.size(); ++j) {
+      auto t1 = intTypes[i];
+      auto t2 = intTypes[j];
+
+      auto resultType = (t1 == int64 || t2 == int64) ? int64 : int32;
+
+      for (auto op : arithmetic_operators) {
+        updateWithBothOperandTypes(operators, op, t1, t2, resultType);
+      }
+
+      auto divResultType = (t1 == int64 || t2 == int64) ? deci : deci32;
+      updateWithBothOperandTypes(operators, lexer::TokenKind::kSlashToken, t1,
+                                 t2, divResultType);
+
+      for (auto op : comparison_operators) {
+        updateWithBothOperandTypes(operators, op, t1, t2, boolean);
+      }
+    }
+  }
+
+  for (auto t : intTypes) {
     for (const auto &token : {
              lexer::TokenKind::kPlusToken,
              lexer::TokenKind::kMinusToken,
              lexer::TokenKind::kStarToken,
-             lexer::TokenKind::kSlashSlashToken,
-             lexer::TokenKind::kPercentToken,
-             lexer::TokenKind::kAmpersandToken,
-             lexer::TokenKind::kPipeToken,
-             lexer::TokenKind::kCaretToken,
+             lexer::TokenKind::kSlashToken,
          }) {
-      operators.emplace_back(token, type, type, type);
+      updateWithBothOperandTypes(operators, token, t, deci32,
+                                 t != int64 ? deci32 : deci);
+
+      updateWithBothOperandTypes(operators, token, t, deci, deci);
     }
-  }
-
-  operators.emplace_back(lexer::TokenKind::kSlashToken, type, type,
-                         decimal_result_type);
-
-  for (const auto &token :
-       {lexer::TokenKind::kEqualsEqualsToken,
-        lexer::TokenKind::kBangEqualsToken, lexer::TokenKind::kLessToken,
-        lexer::TokenKind::kLessOrEqualsToken, lexer::TokenKind::kGreaterToken,
-        lexer::TokenKind::kGreaterOrEqualsToken}) {
-    operators.emplace_back(token, type, type,
-                           analysis::Builtins::m_bool_type_instance);
-  }
-}
-
-void initializeIntAndDecimalOperators(
-    std::vector<BoundBinaryOperator> &operators) {
-  for (const auto &token : {
-           lexer::TokenKind::kPlusToken,
-           lexer::TokenKind::kMinusToken,
-           lexer::TokenKind::kStarToken,
-           lexer::TokenKind::kSlashToken,
-       }) {
-
-    for (const auto &operand_type :
-         {analysis::Builtins::m_int32_type_instance,
-          analysis::Builtins::m_int8_type_instance}) {
-
-      for (const auto &result_type :
-           {analysis::Builtins::m_deci32_type_instance,
-            analysis::Builtins::m_deci_type_instance}) {
-
-        operators.emplace_back(token, operand_type, result_type, result_type);
-        operators.emplace_back(token, result_type, operand_type, result_type);
-      }
-    }
-
-    operators.emplace_back(token, analysis::Builtins::m_deci_type_instance,
-                           analysis::Builtins::m_deci32_type_instance,
-                           analysis::Builtins::m_deci_type_instance);
-
-    operators.emplace_back(token, analysis::Builtins::m_deci32_type_instance,
-                           analysis::Builtins::m_deci_type_instance,
-                           analysis::Builtins::m_deci_type_instance);
-
-    for (const auto &other_type : {analysis::Builtins::m_deci32_type_instance,
-                                   analysis::Builtins::m_deci_type_instance}) {
-
-      operators.emplace_back(token, analysis::Builtins::m_int64_type_instance,
-                             other_type,
-                             analysis::Builtins::m_deci_type_instance);
-      operators.emplace_back(token, other_type,
-                             analysis::Builtins::m_int64_type_instance,
-                             analysis::Builtins::m_deci_type_instance);
-    }
-  }
-}
-
-void initializeStringAndOtherTypesOperators(
-    std::vector<BoundBinaryOperator> &operators) {
-
-  for (const auto &other_type : {analysis::Builtins::m_int32_type_instance,
-                                 analysis::Builtins::m_int8_type_instance,
-                                 analysis::Builtins::m_int64_type_instance,
-                                 analysis::Builtins::m_deci32_type_instance,
-                                 analysis::Builtins::m_deci_type_instance,
-                                 analysis::Builtins::m_bool_type_instance}) {
-    operators.emplace_back(lexer::TokenKind::kPlusToken,
-                           analysis::Builtins::m_str_type_instance, other_type,
-                           analysis::Builtins::m_str_type_instance);
-    operators.emplace_back(lexer::TokenKind::kPlusToken, other_type,
-                           analysis::Builtins::m_str_type_instance,
-                           analysis::Builtins::m_str_type_instance);
   }
 }
 
@@ -299,45 +326,23 @@ BoundBinaryOperator::OperatorMap initializeOperatorMap() {
   // Nirast
   initializeNirastOperators(operators);
 
-  // String
+  // String (str => +, Comparisons, and other types)
   initializeStringOperators(operators);
 
-  // Decimal32
-  initializeDecimalOperators(operators,
-                             analysis::Builtins::m_deci32_type_instance);
+  // Char (char => +, Comparisons, and other types)
+  initializeCharOperators(operators);
 
-  // Decimal
-  initializeDecimalOperators(operators,
-                             analysis::Builtins::m_deci_type_instance);
+  // Decimal (deci, deci32 => +, -, *, /, Comparisons)
+  initializeDecimalOperators(operators);
 
-  // Bool
+  // Bool (Comparisons)
   initializeBoolOperators(operators);
 
-  // Int8
-  initializeIntegerOperators(operators,
-                             analysis::Builtins::m_int8_type_instance,
-                             analysis::Builtins::m_deci32_type_instance);
+  // Char (char => +, Comparisons)
+  initializeCharOperators(operators);
 
-  // Char
-  initializeIntegerOperators(operators,
-                             analysis::Builtins::m_char_type_instance,
-                             analysis::Builtins::m_deci32_type_instance);
-
-  // Int32
-  initializeIntegerOperators(operators,
-                             analysis::Builtins::m_int32_type_instance,
-                             analysis::Builtins::m_deci32_type_instance);
-
-  // Int64
-  initializeIntegerOperators(operators,
-                             analysis::Builtins::m_int64_type_instance,
-                             analysis::Builtins::m_deci_type_instance);
-
-  // Int and Decimal
-  initializeIntAndDecimalOperators(operators);
-
-  // String and Other Types
-  initializeStringAndOtherTypesOperators(operators);
+  // Integer (int8, int32, int64)
+  initializeIntegerOperators(operators);
 
   BoundBinaryOperator::OperatorMap map;
   for (const auto &op : operators) {

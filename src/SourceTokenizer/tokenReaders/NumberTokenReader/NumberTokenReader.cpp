@@ -29,13 +29,32 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t start_pos = lexer.position();
   const size_t line_number = lexer.lineNumber();
 
-  while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
-    lexer.advancePosition();
+  bool isHex = false;
+
+  // Check for Hex Prefix '0x' or '0X'
+  if (lexer.currentChar() == '0') {
+    lexer.advancePosition(); // consume '0'
+    if (!lexer.isEOLorEOF() &&
+        (lexer.currentChar() == 'x' || lexer.currentChar() == 'X')) {
+      isHex = true;
+      lexer.advancePosition(); // consume 'x'
+    }
   }
 
-  //  Detect decimal number
-  if (lexer.currentChar() == '.') {
-    return readDecimal(lexer, start_pos);
+  if (isHex) {
+    // Hex: 0-9, a-f, A-F
+    while (!lexer.isEOLorEOF() && isxdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+  } else {
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+
+    // Check for float/double dot '.'
+    if (lexer.currentChar() == '.') {
+      return readDecimal(lexer, start_pos); // Your existing decimal function
+    }
   }
 
   const size_t &length = lexer.position() - start_pos;
@@ -45,7 +64,20 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
       diagnostic::SourceLocation(line_number, start_pos, text.size());
 
   try {
-    int64_t value = std::stoll(text);
+    int64_t value;
+    if (isHex) {
+      // Base 16 parsing
+      uint64_t u_val = std::stoull(text, nullptr, 16);
+      value = static_cast<int64_t>(u_val);
+    } else {
+      // Base 10 parsing (Your existing logic)
+      uint64_t u_val = std::stoull(text);
+      if (u_val > 9223372036854775807ULL && u_val != 9223372036854775808ULL) {
+        throw std::out_of_range("Overflow");
+      }
+      value = static_cast<int64_t>(u_val);
+    }
+
     return std::make_unique<syntax::SyntaxToken>(
         lexer::TokenKind::kIntegerLiteralToken, text, value, location);
   } catch (const std::out_of_range &) {

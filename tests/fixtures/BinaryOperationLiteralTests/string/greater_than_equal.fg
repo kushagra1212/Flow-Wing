@@ -1,0 +1,11 @@
+print("String Greater Than or Equal Tests\n")
+print("" >= "", "\n")
+print("" >= "a", "\n")
+print("a" >= "", "\n")
+print("a" >= "a", "\n")
+print("a" >= "b", "\n")
+print("b" >= "a", "\n")
+print("abc" >= "abc", "\n")
+print("abd" >= "abc", "\n")
+print("abcd" >= "abc", "\n")
+

@@ -1,0 +1,12 @@
+print("Deci32 (Float) Division Tests\n")
+print(0.0f / 1.0f, "\n")
+print(1.0f / 1.0f, "\n")
+print(6.0f / 2.0f, "\n")
+print(5.0f / 2.0f, "\n")
+print(10.0f / 3.0f, "\n")
+print(-6.0f / 2.0f, "\n")
+print(6.0f / -2.0f, "\n")
+print(-6.0f / -2.0f, "\n")
+print(3.14f / 2.0f, "\n")
+print(1.0f / 4.0f, "\n")
+

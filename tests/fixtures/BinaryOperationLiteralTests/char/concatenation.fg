@@ -1,0 +1,10 @@
+print("Char Concatenation Tests (returns string)\n")
+print('a' + 'b', "\n")
+print('A' + 'B', "\n")
+print('1' + '2', "\n")
+print(' ' + ' ', "\n")
+print('H' + 'i', "\n")
+print('0' + '0', "\n")
+print('a' + ' ', "\n")
+print(' ' + 'b', "\n")
+
