@@ -1,0 +1,4 @@
+print(Int32(String(42)), "\n")
+print(Int32(String(-100)), "\n")
+print(Int32(String(0)), "\n")
+

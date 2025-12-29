@@ -1,0 +1,3 @@
+/; EXPECT_RUNTIME_ERROR: Invalid input for Decimal
+print(Decimal("!@#$"))
+

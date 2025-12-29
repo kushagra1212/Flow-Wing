@@ -1,0 +1,4 @@
+print(Int32(Bool(42)), "\n")
+print(Int32(Bool(0)), "\n")
+print(Int32(Bool(-1)), "\n")
+

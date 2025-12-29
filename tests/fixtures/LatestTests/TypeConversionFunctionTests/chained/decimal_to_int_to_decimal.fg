@@ -1,0 +1,3 @@
+print(Decimal(Int32(3.99)), "\n")
+print(Decimal(Int32(-3.99)), "\n")
+

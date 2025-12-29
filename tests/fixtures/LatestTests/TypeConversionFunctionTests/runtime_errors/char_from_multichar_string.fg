@@ -1,0 +1,3 @@
+/; EXPECT_RUNTIME_ERROR: String contains more than one character
+print(Char("AB"))
+

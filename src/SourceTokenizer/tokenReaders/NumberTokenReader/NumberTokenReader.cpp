@@ -52,8 +52,9 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
     }
 
     // Check for float/double dot '.'
-    if (lexer.currentChar() == '.') {
-      return readDecimal(lexer, start_pos); // Your existing decimal function
+    if ((lexer.currentChar() == '.' || lexer.currentChar() == 'e' ||
+         lexer.currentChar() == 'E')) {
+      return readDecimal(lexer, start_pos);
     }
   }
 
@@ -108,10 +109,27 @@ std::unique_ptr<syntax::SyntaxToken>
 NumberTokenReader::readDecimal(SourceTokenizer &lexer,
                                const size_t &start_pos) {
   const size_t line_number = lexer.lineNumber();
-  lexer.advancePosition(); // consume the dot
+  if (lexer.currentChar() == '.') {
+    lexer.advancePosition(); // consume the dot
 
-  while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
-    lexer.advancePosition();
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+  }
+
+  // Check for scientific notation (e.g., 1.5e10, 1.5E-5)
+  if (lexer.currentChar() == 'e' || lexer.currentChar() == 'E') {
+    lexer.advancePosition(); // consume 'e' or 'E'
+
+    // Optional sign
+    if (lexer.currentChar() == '+' || lexer.currentChar() == '-') {
+      lexer.advancePosition();
+    }
+
+    // Exponent digits
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
   }
 
   int8_t is_deci32 = 0;
@@ -144,5 +162,6 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer,
                                                  std::any(), location);
   }
 }
+
 } // namespace lexer
 } // namespace flow_wing

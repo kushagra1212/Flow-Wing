@@ -1,0 +1,5 @@
+print(Int32(9.99), "\n")
+print(Int32(-9.99), "\n")
+print(Int32(0.1), "\n")
+print(Int32(-0.1), "\n")
+

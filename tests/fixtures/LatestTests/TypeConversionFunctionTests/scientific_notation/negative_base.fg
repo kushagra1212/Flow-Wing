@@ -1,0 +1,4 @@
+print(-1e5, "\n")
+print(-2.5e3, "\n")
+print(-1e-2, "\n")
+

@@ -1,0 +1,6 @@
+print(Int32("42"), "\n")
+print(Int32("-999"), "\n")
+print(Int64("9223372036854775807"), "\n")
+print(Decimal("3.14159265358979"), "\n")
+print(Decimal32("3.14"), "\n")
+

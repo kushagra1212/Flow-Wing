@@ -1,0 +1,3 @@
+/; EXPECT_RUNTIME_ERROR: Invalid input for Decimal32
+print(Decimal32("abc"))
+

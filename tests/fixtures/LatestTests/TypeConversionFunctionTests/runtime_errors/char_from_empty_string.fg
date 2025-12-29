@@ -1,0 +1,3 @@
+/; EXPECT_RUNTIME_ERROR: Cannot convert empty string to Char
+print(Char(""))
+
