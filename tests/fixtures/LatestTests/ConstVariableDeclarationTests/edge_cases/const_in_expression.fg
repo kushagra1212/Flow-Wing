@@ -1,0 +1,5 @@
+const x:int = 10
+const y:int = 20
+const sum:int = x + y
+print(sum, "\n")
+

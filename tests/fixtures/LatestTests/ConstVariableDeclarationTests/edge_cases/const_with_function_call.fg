@@ -1,0 +1,3 @@
+const x:str = String(42)
+print(x, "\n")
+

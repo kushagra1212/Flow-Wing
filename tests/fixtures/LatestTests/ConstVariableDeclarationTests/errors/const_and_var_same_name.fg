@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: VariableAlreadyDeclared
+const x:int = 5
+var x:int = 10
+

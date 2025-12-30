@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+const x:bool = 5
+

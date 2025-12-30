@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+const x:int = 5.5
+

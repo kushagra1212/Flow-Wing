@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+const x:deci32 = 5.2
+
