@@ -77,6 +77,8 @@ private:
   llvm::Value *convertToChar(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToFloat(llvm::Value *value, llvm::Type *type);
+  llvm::Value *convertToTargetType(llvm::Value *value,
+                                   flow_wing::types::Type *target_type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);
 
   llvm::Value *getBinaryResult(llvm::Value *left_value,

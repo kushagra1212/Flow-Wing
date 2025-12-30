@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/utils/LogConfig.h"
@@ -32,18 +30,25 @@ void IRGenerator::visit(
     const auto &variable_symbol =
         static_cast<const analysis::VariableSymbol *>(symbol.get());
 
-    auto llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(
-        variable_symbol->getType().get());
+    auto variable_type = variable_symbol->getType().get();
+    auto llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
 
     auto alloca =
         m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
 
     if (variable_symbol->getInitializerExpression()) {
       variable_symbol->getInitializerExpression()->accept(this);
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(m_last_value, alloca);
+
+      llvm::Value *value_to_store = m_last_value;
+      if (m_last_value->getType() != llvm_type) {
+        value_to_store = convertToTargetType(m_last_value, variable_type);
+      }
+
+      m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store, alloca);
     } else {
       m_ir_gen_context.getLLVMBuilder()->CreateStore(
-          getDefaultValue(variable_symbol->getType().get()), alloca);
+          getDefaultValue(variable_type), alloca);
     }
 
     m_ir_gen_context.setSymbol(variable_symbol->getName(), alloca);

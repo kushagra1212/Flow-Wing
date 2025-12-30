@@ -302,5 +302,46 @@ llvm::Value *IRGenerator::convertToBool(llvm::Value *value, llvm::Type *type) {
       "string_length_is_zero");
 }
 
+llvm::Value *IRGenerator::convertToTargetType(llvm::Value *value,
+                                              types::Type *target_type) {
+  auto *source_type = value->getType();
+
+  // Integer types
+  if (target_type == analysis::Builtins::m_int8_type_instance.get()) {
+    return convertToInt8(value, source_type);
+  }
+  if (target_type == analysis::Builtins::m_int32_type_instance.get()) {
+    return convertToInt32(value, source_type);
+  }
+  if (target_type == analysis::Builtins::m_int64_type_instance.get()) {
+    return convertToInt64(value, source_type);
+  }
+
+  // Decimal types
+  if (target_type == analysis::Builtins::m_deci32_type_instance.get()) {
+    return convertToFloat(value, source_type);
+  }
+  if (target_type == analysis::Builtins::m_deci_type_instance.get()) {
+    return convertToDouble(value, source_type);
+  }
+
+  // Char type
+  if (target_type == analysis::Builtins::m_char_type_instance.get()) {
+    return convertToChar(value, source_type);
+  }
+
+  // Bool type
+  if (target_type == analysis::Builtins::m_bool_type_instance.get()) {
+    return convertToBool(value, source_type);
+  }
+
+  // String type - handled separately
+  if (target_type == analysis::Builtins::m_str_type_instance.get()) {
+    return convertToString(value, source_type);
+  }
+
+  return value;
+}
+
 } // namespace ir_gen
 } // namespace flow_wing

@@ -4,6 +4,60 @@
 /; var x:int8 = 5
 /; print(x, "\n")
 
-/; EXPECT_ERROR: FunctionArgumentTypeMismatch
-print(Char(3.14))
+
+/; var x:int = 5
+/; print(x, "\n")
+
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+/; var x:int = 5l
+
+
+/; var x:int64 = 5l
+/; print(x, "\n")
+
+
+/; var x:deci = 5.2
+/; print(x, "\n")
+
+/; var x:deci = 5.2f
+/; print(x, "\n")
+
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+/; var x:deci32 = 5.2
+/; print(x, "\n")
+
+
+/; var x:deci32 = 5.2f
+/; print(x, "\n")
+
+/; var x:bool = true
+/; print(x, "\n")
+
+
+/; var x:bool = false
+/; print(x, "\n")
+
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+/; var x:bool = true + false
+/; print(x, "\n")
+
+
+/; var x:str = "Hello"
+/; print(x, "\n")
+
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+/; var x:str = 5
+/; print(x, "\n")
+
+/; var x:str = "Hello" + 5
+/; print(x, "\n")
+
+/; var x:str = "Hello" + "World"
+/; print(x, "\n")
+
+/; var x:str = String(10)
+/; print(x, "\n")
+
+/; var x:str = 'a'
+/; print(x, "\n")
 
