@@ -244,6 +244,10 @@ void Builtins::initializeInternalFunctions() {
                          {Builtins::m_int32_type_instance},
                          {Builtins::m_str_type_instance});
 
+  createInternalFunction(std::string(ir_gen::constants::functions::kI8tos_fn),
+                         {Builtins::m_int8_type_instance},
+                         {Builtins::m_str_type_instance});
+
   createInternalFunction(std::string(ir_gen::constants::functions::kDtos_fn),
                          {Builtins::m_deci_type_instance},
                          {Builtins::m_str_type_instance});

@@ -113,7 +113,9 @@ public:
     }
   }
 
-  CompilerOptions::OutputType getOutputType(const std::string &value) const {
+  CompilerOptions::OutputType
+  getOutputType(const std::string &value,
+                CompilerOptions::OutputType default_value) const {
     if (value == "tokens") {
       return CompilerOptions::OutputType::kTokensJson;
     } else if (value == "ast") {
@@ -126,13 +128,9 @@ public:
       return CompilerOptions::OutputType::kObj;
     } else if (value == "jit") {
       return CompilerOptions::OutputType::kJIT;
+    } else {
+      return default_value;
     }
-
-#if defined(AOT_MODE)
-    return CompilerOptions::OutputType::kExe;
-#else
-    return CompilerOptions::OutputType::kJIT;
-#endif
   };
 
   ParseResult parse(int argc, char *argv[]) {
@@ -192,7 +190,7 @@ public:
     auto emit_value = parseParam(cmdl, kOptEmit, "");
 
     if (!emit_value.empty()) {
-      opts.output_type = getOutputType(emit_value);
+      opts.output_type = getOutputType(emit_value, opts.output_type);
     }
 
     // Handle output directory

@@ -82,16 +82,36 @@ struct CompilerOptions {
     };
 
     const char *separator = " | ";
+
+    auto getOutputTypeString = [](OutputType type) -> std::string {
+      switch (type) {
+      case OutputType::kExe:
+        return "Executable";
+      case OutputType::kObj:
+        return "Object";
+      case OutputType::kLLVM_IR:
+        return "LLVM IR";
+      case OutputType::kAstJson:
+        return "AST JSON";
+      case OutputType::kTokensJson:
+        return "Tokens JSON";
+      case OutputType::kSemJson:
+        return "Semantic JSON";
+      case OutputType::kJIT:
+        return "JIT";
+      default:
+        break;
+      }
+      return "Unknown";
+    };
+
     ss << "Input file path: " << input_file_path << separator;
 
     if (!code_content->empty()) {
       ss << "Code content: " << code_content.value() << separator;
     }
 
-    if (!output_dir.empty()) {
-      ss << "Output directory: " << output_dir << separator;
-    }
-
+    ss << "Output type: " << getOutputTypeString(output_type) << separator;
     ss << "Show help: " << getString(show_help) << separator;
     ss << "Show version: " << getString(show_version) << separator;
     ss << "Format source: " << getString(format_source) << separator;

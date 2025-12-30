@@ -47,6 +47,7 @@ const std::string_view kPrintf_fn = "fg_pf";
 const std::string_view kConcat_strings_fn = "fg_cs";
 const std::string_view kString_length_fn = "fg_sl";
 const std::string_view kItos_fn = "fg_itos";
+const std::string_view kI8tos_fn = "fg_i8tos";
 const std::string_view kDtos_fn = "fg_dtos";
 const std::string_view kFtos_fn = "fg_ftos";
 const std::string_view kCtos_fn = "fg_ctos";

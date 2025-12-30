@@ -80,6 +80,14 @@ char* fg_itos(int num) {
     return buffer;
 }
 
+char* fg_i8tos(int8_t num) {
+    // -128 requires 4 chars + 1 null terminator = 5 bytes
+    char* buffer = (char*)GC_MALLOC(5); 
+    if (buffer == NULL) fg_re("Memory allocation failed in fg_i8tos");
+    snprintf(buffer, 5, "%d", num);
+    return buffer;
+}
+
 char* fg_lltos(long long num) {
     char* buffer = (char*)GC_MALLOC(24);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_lltos");

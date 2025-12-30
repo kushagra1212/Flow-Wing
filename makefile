@@ -243,7 +243,7 @@ run-jit-debug: build-jit-debug
 
 run-jit-release: build-jit-release
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS)
 
 #! ----- JIT Tests -----
 
@@ -312,7 +312,7 @@ run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
 	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
