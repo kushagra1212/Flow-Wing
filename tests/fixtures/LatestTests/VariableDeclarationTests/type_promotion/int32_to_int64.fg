@@ -1,0 +1,3 @@
+var x:int64 = 100000
+print(x, "\n")
+

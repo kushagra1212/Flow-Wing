@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+var x:char = "hello"
+

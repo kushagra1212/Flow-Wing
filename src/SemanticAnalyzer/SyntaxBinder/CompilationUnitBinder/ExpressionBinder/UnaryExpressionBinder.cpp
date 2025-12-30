@@ -20,11 +20,14 @@
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
+#include <cstdint>
 namespace flow_wing {
 namespace binding {
 
@@ -39,7 +42,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindUnaryExpression(
 
   auto operator_token_kind = syntax_node->getOperatorTokenKind();
 
-  const auto &[is_allowed, resolved_type] =
+  auto [is_allowed, resolved_type] =
       isUnaryAllowedType(operator_token_kind, bound_expression->getType());
 
   if (!is_allowed) {
@@ -51,6 +54,21 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindUnaryExpression(
 
     m_context->reportError(error_expression.get());
     return std::move(error_expression);
+  }
+
+  // Overriding resolved type for unary minus operator on integer literal
+  // -128 is parsed as -(128), where 128 is int32, but -128 fits in int8
+  if (operator_token_kind == lexer::TokenKind::kMinusToken &&
+      bound_expression->getKind() == NodeKind::kNumberLiteralExpression) {
+    auto *int_literal =
+        static_cast<BoundIntegerLiteralExpression *>(bound_expression.get());
+    int64_t negated_value = -int_literal->getValue();
+
+    if (negated_value >= INT8_MIN && negated_value <= INT8_MAX) {
+      resolved_type = analysis::Builtins::m_int8_type_instance;
+    } else if (negated_value >= INT32_MIN && negated_value <= INT32_MAX) {
+      resolved_type = analysis::Builtins::m_int32_type_instance;
+    }
   }
 
   return std::make_unique<BoundUnaryExpression>(

@@ -303,41 +303,44 @@ llvm::Value *IRGenerator::convertToBool(llvm::Value *value, llvm::Type *type) {
 }
 
 llvm::Value *IRGenerator::convertToTargetType(llvm::Value *value,
-                                              types::Type *target_type) {
-  auto *source_type = value->getType();
+                                              types::Type *target_type,
+                                              types::Type *source_type) {
+  auto *source_llvm_type = value->getType();
 
   // Integer types
   if (target_type == analysis::Builtins::m_int8_type_instance.get()) {
-    return convertToInt8(value, source_type);
+    return convertToInt8(value, source_llvm_type);
   }
   if (target_type == analysis::Builtins::m_int32_type_instance.get()) {
-    return convertToInt32(value, source_type);
+    return convertToInt32(value, source_llvm_type);
   }
   if (target_type == analysis::Builtins::m_int64_type_instance.get()) {
-    return convertToInt64(value, source_type);
+    return convertToInt64(value, source_llvm_type);
   }
 
   // Decimal types
   if (target_type == analysis::Builtins::m_deci32_type_instance.get()) {
-    return convertToFloat(value, source_type);
+    return convertToFloat(value, source_llvm_type);
   }
   if (target_type == analysis::Builtins::m_deci_type_instance.get()) {
-    return convertToDouble(value, source_type);
+    return convertToDouble(value, source_llvm_type);
   }
 
   // Char type
   if (target_type == analysis::Builtins::m_char_type_instance.get()) {
-    return convertToChar(value, source_type);
+    return convertToChar(value, source_llvm_type);
   }
 
   // Bool type
   if (target_type == analysis::Builtins::m_bool_type_instance.get()) {
-    return convertToBool(value, source_type);
+    return convertToBool(value, source_llvm_type);
   }
 
   // String type - handled separately
   if (target_type == analysis::Builtins::m_str_type_instance.get()) {
-    return convertToString(value, source_type);
+    bool is_char =
+        source_type == analysis::Builtins::m_char_type_instance.get();
+    return convertToString(value, source_llvm_type, is_char);
   }
 
   return value;

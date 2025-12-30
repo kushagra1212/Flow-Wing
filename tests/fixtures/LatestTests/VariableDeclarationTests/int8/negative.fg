@@ -1,0 +1,3 @@
+var x:int8 = -100
+print(x, "\n")
+

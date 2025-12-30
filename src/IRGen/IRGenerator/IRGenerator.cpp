@@ -232,6 +232,7 @@ void IRGenerator::visit(
   const auto &llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(symbol->getType().get());
 
+  m_last_type = symbol->getType().get();
   llvm::Value *load =
       m_ir_gen_context.getLLVMBuilder()->CreateLoad(llvm_type, llvm_value);
   m_last_value = load;

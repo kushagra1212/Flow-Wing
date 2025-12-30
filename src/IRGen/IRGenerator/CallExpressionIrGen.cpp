@@ -43,8 +43,6 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       std::vector<llvm::Value *> arguments;
 
       for (const auto &argument : call_expression->getArguments()) {
-        bool is_char = (argument->getType().get() ==
-                        analysis::Builtins::m_char_type_instance.get());
 
         DEBUG_LOG("Print function argument type: ",
                   argument->getType()->getName());
@@ -52,6 +50,10 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
         argument->accept(this);
 
         assert(m_last_value && "m_last_value is null");
+        assert(m_last_type && "m_last_type is null");
+
+        bool is_char =
+            (m_last_type == analysis::Builtins::m_char_type_instance.get());
 
         m_ir_gen_context.getLLVMBuilder()->CreateCall(
             printf_function,
@@ -62,13 +64,17 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
     auto stringFn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
-      bool is_char =
-          argument->getType() == analysis::Builtins::m_char_type_instance;
 
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
+      assert(m_last_type && "m_last_type is null");
+
+      bool is_char =
+          m_last_type == analysis::Builtins::m_char_type_instance.get();
+
       m_last_value =
           convertToString(m_last_value, m_last_value->getType(), is_char);
+      m_last_type = analysis::Builtins::m_str_type_instance.get();
     };
 
     auto boolFn = [&](binding::BoundCallExpression *call_expression) {
@@ -76,6 +82,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToBool(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_bool_type_instance.get();
     };
 
     auto deci32Fn = [&](binding::BoundCallExpression *call_expression) {
@@ -83,6 +90,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToFloat(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_deci32_type_instance.get();
     };
 
     auto deciFn = [&](binding::BoundCallExpression *call_expression) {
@@ -90,12 +98,14 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToDouble(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_deci_type_instance.get();
     };
     auto int8Fn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToInt8(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_int8_type_instance.get();
     };
 
     auto int32Fn = [&](binding::BoundCallExpression *call_expression) {
@@ -103,6 +113,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToInt32(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_int32_type_instance.get();
     };
 
     auto int64Fn = [&](binding::BoundCallExpression *call_expression) {
@@ -110,6 +121,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToInt64(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_int64_type_instance.get();
     };
 
     auto charFn = [&](binding::BoundCallExpression *call_expression) {
@@ -117,6 +129,7 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
       m_last_value = convertToChar(m_last_value, m_last_value->getType());
+      m_last_type = analysis::Builtins::m_char_type_instance.get();
     };
 
     CODEGEN_DEBUG_LOG("Visiting Built-In Function: ",

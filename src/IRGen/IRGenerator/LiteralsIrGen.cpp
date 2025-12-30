@@ -37,6 +37,8 @@ namespace ir_gen {
 void IRGenerator::visit(
     binding::BoundIntegerLiteralExpression *integer_literal_expression) {
 
+  m_last_type = integer_literal_expression->getType().get();
+
   if (integer_literal_expression->getType() ==
       analysis::Builtins::m_int64_type_instance) {
     m_last_value = llvm::ConstantInt::get(
@@ -66,6 +68,7 @@ void IRGenerator::visit(
 
 void IRGenerator::visit(
     binding::BoundDoubleLiteralExpression *double_literal_expression) {
+  m_last_type = double_literal_expression->getType().get();
   auto *double_type =
       llvm::Type::getDoubleTy(*m_ir_gen_context.getLLVMContext());
   m_last_value =
@@ -74,6 +77,7 @@ void IRGenerator::visit(
 
 void IRGenerator::visit(
     binding::BoundFloatLiteralExpression *float_literal_expression) {
+  m_last_type = float_literal_expression->getType().get();
   auto *float_type = llvm::Type::getFloatTy(*m_ir_gen_context.getLLVMContext());
   m_last_value =
       llvm::ConstantFP::get(float_type, float_literal_expression->getValue());
@@ -81,6 +85,7 @@ void IRGenerator::visit(
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNirastLiteralExpression *statement) {
+  m_last_type = statement->getType().get();
   auto *void_ptr_type =
       llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext());
 
@@ -130,12 +135,14 @@ std::string IRGenerator::unescapeString(const std::string &value) {
 void IRGenerator::visit(
     binding::BoundStringLiteralExpression *string_literal_expression) {
 
+  m_last_type = string_literal_expression->getType().get();
   m_last_value = m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
       unescapeString(string_literal_expression->getValue()));
 }
 
 void IRGenerator::visit(
     binding::BoundBooleanLiteralExpression *boolean_literal_expression) {
+  m_last_type = boolean_literal_expression->getType().get();
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
       llvm::APInt(1, boolean_literal_expression->getValue() ? 1 : 0, false));
@@ -144,6 +151,7 @@ void IRGenerator::visit(
 void IRGenerator::visit(binding::BoundTemplateStringLiteralExpression
                             *template_string_literal_expression) {
 
+  m_last_type = template_string_literal_expression->getType().get();
   m_last_value = m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
       template_string_literal_expression->getValue());
 }
@@ -151,6 +159,7 @@ void IRGenerator::visit(binding::BoundTemplateStringLiteralExpression
 void IRGenerator::visit(
     binding::BoundCharacterLiteralExpression *character_literal_expression) {
 
+  m_last_type = character_literal_expression->getType().get();
   m_last_value = llvm::ConstantInt::get(
       *m_ir_gen_context.getLLVMContext(),
       llvm::APInt(32, character_literal_expression->getValue(), true));

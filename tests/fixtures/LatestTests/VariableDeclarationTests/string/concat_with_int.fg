@@ -1,0 +1,3 @@
+var x:str = "Value: " + 42
+print(x, "\n")
+

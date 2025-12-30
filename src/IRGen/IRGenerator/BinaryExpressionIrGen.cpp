@@ -90,6 +90,7 @@ void IRGenerator::visit(binding::BoundBinaryExpression *binary_expression) {
                       binary_operator->getLeftType().get(),
                       binary_operator->getRightType().get(),
                       binary_operator->getResultType().get());
+  m_last_type = binary_operator->getResultType().get();
   m_last_value = binary_operator_result;
 }
 } // namespace flow_wing::ir_gen

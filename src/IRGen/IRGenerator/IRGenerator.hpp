@@ -61,11 +61,15 @@ public:
   void
   visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
 
-  void clearLastValue() { m_last_value = nullptr; }
+  void clearLastValue() {
+    m_last_value = nullptr;
+    m_last_type = nullptr;
+  }
 
 private:
   IRGenContext &m_ir_gen_context;
   llvm::Value *m_last_value = nullptr;
+  types::Type *m_last_type = nullptr;
 
   llvm::Function *createEntryPointFunction();
   llvm::Value *convertToString(llvm::Value *value, llvm::Type *type,
@@ -78,7 +82,8 @@ private:
   llvm::Value *convertToDouble(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToFloat(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToTargetType(llvm::Value *value,
-                                   flow_wing::types::Type *target_type);
+                                   flow_wing::types::Type *target_type,
+                                   flow_wing::types::Type *source_type);
   llvm::Value *getDefaultValue(flow_wing::types::Type *type);
 
   llvm::Value *getBinaryResult(llvm::Value *left_value,

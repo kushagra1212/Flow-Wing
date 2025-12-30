@@ -42,7 +42,8 @@ void IRGenerator::visit(
 
       llvm::Value *value_to_store = m_last_value;
       if (m_last_value->getType() != llvm_type) {
-        value_to_store = convertToTargetType(m_last_value, variable_type);
+        value_to_store =
+            convertToTargetType(m_last_value, variable_type, m_last_type);
       }
 
       m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store, alloca);

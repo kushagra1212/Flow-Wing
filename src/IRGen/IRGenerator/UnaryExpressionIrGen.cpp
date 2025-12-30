@@ -69,5 +69,6 @@ void IRGenerator::visit(binding::BoundUnaryExpression *unary_expression) {
   auto unary_operator_result = getUnaryOperationResult(
       expression_value, unary_operator_kind, result_type, expression_type);
   m_last_value = unary_operator_result;
+  m_last_type = result_type;
 }
 } // namespace flow_wing::ir_gen

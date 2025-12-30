@@ -1,0 +1,2 @@
+var x:deci = 5.2f
+print(x, "\n")
