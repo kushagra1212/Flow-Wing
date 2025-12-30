@@ -60,7 +60,7 @@
       "cacheVariables": {
         "BUILD_AOT": "OFF",
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_LOGGING": "OFF"
+        "ENABLE_LOGGING": "ON"
       }
     },
     {

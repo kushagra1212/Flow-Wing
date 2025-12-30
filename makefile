@@ -332,7 +332,7 @@ run-aot-release: build-aot-release
 
 #? Configured AOT Tests
 .PHONY: test-aot
-test-aot: build-aot-debug
+test-aot: build-aot-release
 	$(ECHO_MSG) "--> Running AOT Integration Tests..."
 	@python3 tests/runner.py \
 		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
