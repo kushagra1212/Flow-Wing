@@ -89,7 +89,7 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
       auto return_expression = return_expressions[i].get();
       auto return_type = function_type->getReturnTypes()[i]->type;
 
-      if (return_expression->getType() != return_type) {
+      if (*return_expression->getType() > *return_type) {
 
         auto error_statement = std::make_unique<BoundErrorStatement>(
             return_statement->getSourceLocation(),

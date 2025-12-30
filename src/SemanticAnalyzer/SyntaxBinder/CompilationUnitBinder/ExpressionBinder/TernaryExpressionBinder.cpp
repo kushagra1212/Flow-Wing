@@ -52,7 +52,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindTernaryExpression(
     return false_expression;
   }
 
-  if (true_expression->getType() != false_expression->getType()) {
+  if (*true_expression->getType() != *false_expression->getType()) {
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
         expression->getSourceLocation(),

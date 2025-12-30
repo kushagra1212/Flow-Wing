@@ -69,9 +69,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     auto &left_expression = left_expressions[i];
     auto &right_expression = right_expressions[i];
 
-    if (left_expression->getType() != right_expression->getType() &&
-        !left_expression->getType()->isDynamic() &&
-        !right_expression->getType()->isDynamic()) {
+    if (*right_expression->getType() > *left_expression->getType()) {
 
       auto error_expression = std::make_unique<BoundErrorExpression>(
           expression->getSourceLocation(),

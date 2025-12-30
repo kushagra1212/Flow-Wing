@@ -111,15 +111,11 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       const auto &variable_type = variable_symbols[i]->getType();
 
       BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
-
       BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
       BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
       BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
 
-      if ((expression_type > variable_type && !variable_type->isDynamic() &&
-           !expression_type->isDynamic()) ||
-          (!variable_type->isDynamic() && expression_type->isDynamic())) {
-
+      if (*expression_type > *variable_type) {
         auto error_expression = std::make_unique<BoundErrorExpression>(
             initializer_expression->getSourceLocation(),
             diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
@@ -132,7 +128,6 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
         static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
             ->setInitializerExpression(std::move(error_expression));
       } else {
-
         static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
             ->setInitializerExpression(
                 std::move(bound_initializer_expressions[i]));

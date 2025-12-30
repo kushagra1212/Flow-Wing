@@ -943,6 +943,11 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     // Internal Errors
   case DiagnosticCode::kInternalIRGenerationError:
     return "InternalIRGenerationError";
+
+    // Initializer Expression Errors
+  case DiagnosticCode::kInitializerExpressionTypeMismatch:
+    return "InitializerExpressionTypeMismatch";
+
   default:
     return "Unknown diagnostic code";
   }

@@ -103,7 +103,7 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
 
       auto case_expression_type = bound_case_expression->getType();
 
-      if (case_expression_type != condition_type) {
+      if (*case_expression_type > *condition_type) {
         auto error_statement = std::make_unique<BoundErrorStatement>(
             case_statement->getSourceLocation(),
             diagnostic::DiagnosticCode::kCaseExpressionTypeMismatch,

@@ -173,7 +173,6 @@ bool Builtins::initialize(binding::BinderContext *context) {
            Builtins::m_deci32_type_instance,
            Builtins::m_deci_type_instance,
            Builtins::m_bool_type_instance,
-           Builtins::m_dynamic_type_instance,
        }) {
     createBuiltinFunctionOverloads(int8Fn, param_type,
                                    Builtins::m_int8_type_instance);
@@ -202,7 +201,6 @@ bool Builtins::initialize(binding::BinderContext *context) {
            Builtins::m_int8_type_instance,
            Builtins::m_char_type_instance,
            Builtins::m_int64_type_instance,
-           Builtins::m_dynamic_type_instance,
        }) {
 
     createBuiltinFunctionOverloads(charFn, param_type,

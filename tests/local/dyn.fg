@@ -4,8 +4,6 @@
 /; var x:int8 = 5
 /; print(x, "\n")
 
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+print(Char(3.14))
 
-print("Tilting Prefix Operator for Int\n")
-print(~1 , "\n")
-print(~3 , "\n")
-print(~0 , "\n")

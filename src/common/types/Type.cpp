@@ -40,7 +40,41 @@ bool Type::operator==(const Type &other) const {
 }
 bool Type::operator!=(const Type &other) const { return !(*this == other); }
 
-bool Type::operator<=(const Type &other) const { return *this == other; }
+bool Type::operator<=(const Type &other) const {
+  // If types are equal, they are compatible
+  if (*this == other) {
+    return true;
+  }
+
+  // Only primitives have implicit conversion rules
+  if (this->getKind() != TypeKind::kPrimitive ||
+      other.getKind() != TypeKind::kPrimitive) {
+    return false;
+  }
+
+  const std::string &this_name = this->getName();
+  const std::string &other_name = other.getName();
+
+  // Integer promotion: int8 <= int (int32) <= int64
+  if (this_name == "int8") {
+    return other_name == "int" || other_name == "int64";
+  }
+  if (this_name == "int") {
+    return other_name == "int64";
+  }
+
+  // Decimal promotion: deci32 <= deci
+  if (this_name == "deci32") {
+    return other_name == "deci";
+  }
+
+  // String promotion: char <= str
+  if (this_name == "char") {
+    return other_name == "str";
+  }
+
+  return false;
+}
 bool Type::operator>(const Type &other) const { return !(*this <= other); }
 
 bool Type::isNthg() const {
