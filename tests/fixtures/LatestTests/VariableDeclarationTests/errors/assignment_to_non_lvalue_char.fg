@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentToNonLValue
+var x:char = 'a'
+'b' = x
+

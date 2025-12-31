@@ -1,0 +1,5 @@
+var x:deci = 1.1
+print(x, "\n")
+x <- 2.2
+print(x, "\n")
+

@@ -77,19 +77,6 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     auto right_type = right_expression->getType();
     auto left_type = left_expression->getType();
 
-    if (*right_type > *left_type) {
-
-      auto error_expression = std::make_unique<BoundErrorExpression>(
-          expression->getSourceLocation(),
-          diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
-          std::vector<flow_wing::diagnostic::DiagnosticArg>{
-              left_expression->getType()->getName(),
-              right_expression->getType()->getName()});
-
-      m_context->reportError(error_expression.get());
-      return std::move(error_expression);
-    }
-
     switch (left_expression->getKind()) {
     case NodeKind::kIdentifierExpression: {
       auto id_expr =
@@ -136,6 +123,19 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       m_context->reportError(error.get());
       return std::move(error);
     }
+    }
+
+    if (*right_type > *left_type) {
+
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{
+              left_expression->getType()->getName(),
+              right_expression->getType()->getName()});
+
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
     }
   }
 

@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+const x:int64 = 10l
+x <- 20l
+

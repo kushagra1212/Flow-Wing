@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentToNonLValue
+var x:int = 10
+5 <- x
+

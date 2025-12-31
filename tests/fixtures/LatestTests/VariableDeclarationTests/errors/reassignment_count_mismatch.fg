@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: AssignmentExpressionCountMismatch
+var x:int = 10
+var y:int = 20
+x, y <- 30
+

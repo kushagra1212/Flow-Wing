@@ -1,0 +1,5 @@
+var x:int = 10
+var y:int = 20
+x <- y + 5
+print(x, "\n")
+

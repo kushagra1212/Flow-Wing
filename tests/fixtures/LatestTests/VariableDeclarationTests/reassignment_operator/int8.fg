@@ -1,0 +1,5 @@
+var x:int8 = 10
+print(x, "\n")
+x <- 20
+print(x, "\n")
+

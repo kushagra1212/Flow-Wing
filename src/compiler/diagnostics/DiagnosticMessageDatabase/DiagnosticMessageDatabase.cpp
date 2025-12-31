@@ -960,6 +960,10 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
   case DiagnosticCode::kInitializerExpressionTypeMismatch:
     return "InitializerExpressionTypeMismatch";
 
+    // Assignment Expression Errors
+  case DiagnosticCode::kAssignmentToNonLValue:
+    return "AssignmentToNonLValue";
+
   default:
     return "Unknown diagnostic code";
   }

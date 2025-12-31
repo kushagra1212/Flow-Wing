@@ -1,0 +1,6 @@
+var x:int = 10
+print(x, "\n")
+var y:int
+y <- 20
+print(y, "\n")
+

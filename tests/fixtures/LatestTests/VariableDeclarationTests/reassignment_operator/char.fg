@@ -1,0 +1,5 @@
+var x:char = 'a'
+print(x, "\n")
+x <- 'b'
+print(x, "\n")
+
