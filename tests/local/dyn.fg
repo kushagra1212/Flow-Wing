@@ -1,3 +1,16 @@
-const x:char = 'a'
+/; var x:int = 5
+/; var y:str = "Hello"
+/; print(x, " ",y, "\n")
+/; x , y <- 2, "Hi"
+/; print(x, " ",y, "\n")
+
+var x:int = 10
+print(x, "\n")
+{
+  var x:int
+  print(x, "\n")
+  x = 20
+  print(x, "\n")
+}
 print(x, "\n")
 

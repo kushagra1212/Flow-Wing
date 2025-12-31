@@ -1,0 +1,7 @@
+var x:deci
+var y:deci32
+print(x, " ", y, "\n")
+x = 3.14
+y = 2.5f
+print(x, " ", y, "\n")
+

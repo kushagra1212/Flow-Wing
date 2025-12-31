@@ -1,0 +1,4 @@
+var x:int
+var y:str
+print("x=", x, " y=", y, "\n")
+

@@ -1,0 +1,3 @@
+var x:int
+print(x, "\n")
+

@@ -121,10 +121,14 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundBlockStatement *block_statement) {
   CODEGEN_DEBUG_LOG("Visiting Bound Block Statement", "IR GENERATION");
 
+  m_ir_gen_context.pushScope();
+
   for (const auto &statement : block_statement->getStatements()) {
     statement->accept(this);
     clearLast();
   }
+
+  m_ir_gen_context.popScope();
 }
 
 void IRGenerator::visit([[maybe_unused]] binding::BoundParenthesizedExpression

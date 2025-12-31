@@ -1,0 +1,6 @@
+const x:int8
+const y:int
+const z:deci
+const w:bool
+print(x, " ", y, " ", z, " ", w, "\n")
+

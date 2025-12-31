@@ -1,0 +1,5 @@
+var x:int
+var y:int = 5
+print(x < y, "\n")
+print(x == 0, "\n")
+

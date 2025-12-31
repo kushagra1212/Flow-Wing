@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: VariableNotFound
+y = x
+var x:int = 10
+var y:int = 20
+

@@ -1,0 +1,7 @@
+var x:int
+var y:int
+print(x + y, "\n")
+x = 10
+y = 20
+print(x + y, "\n")
+
