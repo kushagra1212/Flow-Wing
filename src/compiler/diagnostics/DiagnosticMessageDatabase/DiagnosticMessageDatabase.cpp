@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,6 +173,17 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "intend to assign a value to it.",
       "Constant variables are immutable. To assign a value, use a regular "
       "(non-constant) variable declaration instead."}},
+
+    {(DiagnosticCode::kAssignmentToNonVariable),
+     {"The expression '{0}' is not a variable. Please use a variable to assign "
+      "a value to it.",
+      "", ""}},
+
+    {(DiagnosticCode::kAssignmentToNonLValue),
+     {"The expression is not an L-Value. Please use an L-Value to assign "
+      "a value to it.",
+      "", ""}},
+
     {(DiagnosticCode::kInvalidBracketedExpression),
      {"Invalid Bracketed Expression, Expected Fill Expression or Container "
       "Expression.",
@@ -693,6 +704,7 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
 
     {(DiagnosticCode::kInternalIRGenerationError),
      {"Internal IR generation error. Error: {0}", "", ""}},
+
 };
 
 const MessageTemplate &

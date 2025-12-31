@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+const x:char = 'a'
+x = 'b'
+

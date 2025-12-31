@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+var x:bool = true
+x = 42
+

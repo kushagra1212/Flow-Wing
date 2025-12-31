@@ -35,11 +35,14 @@ void IRGenerator::visit(
         m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
     llvm::Value *storage_ptr = nullptr;
 
-    llvm::Value *existing_global =
+    bool is_global_scope = m_ir_gen_context.isGlobalScope();
+
+    llvm::Value *existing_global_variable =
         m_ir_gen_context.getSymbol(variable_symbol->getName());
 
-    if (existing_global && llvm::isa<llvm::GlobalVariable>(existing_global)) {
-      storage_ptr = existing_global;
+    if (is_global_scope && existing_global_variable &&
+        llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
+      storage_ptr = existing_global_variable;
     } else {
       storage_ptr =
           m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
@@ -61,8 +64,6 @@ void IRGenerator::visit(
       m_ir_gen_context.getLLVMBuilder()->CreateStore(
           m_ir_gen_context.getDefaultValue(variable_type), storage_ptr);
     }
-
-    m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
 
     clearLast();
   }

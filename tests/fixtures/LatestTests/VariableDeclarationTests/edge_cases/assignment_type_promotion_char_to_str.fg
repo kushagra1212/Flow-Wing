@@ -1,0 +1,5 @@
+var x:str = "Hello"
+var y:char = 'a'
+x = y
+print(x, "\n")
+

@@ -1,0 +1,5 @@
+var x:int64 = 1000l
+var y:int8 = 50
+x = y
+print(x, "\n")
+

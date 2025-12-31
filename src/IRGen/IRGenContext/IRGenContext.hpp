@@ -8,6 +8,7 @@
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Value.h"
 #include "llvm/Target/TargetMachine.h"
 #include <vector>
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
@@ -85,6 +86,7 @@ public:
   void popScope();
   void setSymbol(const std::string &name, llvm::Value *value);
   llvm::Value *getSymbol(const std::string &name);
+  bool isGlobalScope() const;
   llvm::Constant *getDefaultValue(types::Type *type, bool is_global = false);
 
 private:

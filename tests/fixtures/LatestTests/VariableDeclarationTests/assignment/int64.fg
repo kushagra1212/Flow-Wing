@@ -1,0 +1,4 @@
+var x:int64
+x = 1000l
+print(x, "\n")
+

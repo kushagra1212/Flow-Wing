@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+const x:bool = true
+x = false
+

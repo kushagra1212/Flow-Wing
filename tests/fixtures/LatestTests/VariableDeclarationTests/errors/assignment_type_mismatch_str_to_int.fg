@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+var x:int = 10
+x = "Hello"
+

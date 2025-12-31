@@ -1,0 +1,4 @@
+var x:int
+x = 100
+print(x, "\n")
+

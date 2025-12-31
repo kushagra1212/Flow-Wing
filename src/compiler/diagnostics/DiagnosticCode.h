@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  */
 #pragma once
 
@@ -52,6 +52,8 @@ enum class DiagnosticCode : int16_t {
   kInvalidAssignment,
   kInvalidAssignmentToUndeclaredVariable,
   kInvalidAssignmentToConstantVariable,
+  kAssignmentToNonVariable,
+  kAssignmentToNonLValue,
   kVariableNotFound,
   kVariableAlreadyDeclared,
   kFunctionNotFound,

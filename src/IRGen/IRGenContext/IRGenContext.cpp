@@ -29,6 +29,7 @@
 
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
+#include "llvm/IR/Value.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
@@ -161,10 +162,23 @@ void IRGenContext::pushScope() { m_symbol_table.emplace_back(); }
 void IRGenContext::popScope() { m_symbol_table.pop_back(); }
 void IRGenContext::setSymbol(const std::string &name, llvm::Value *value) {
   m_symbol_table.back()[name] = value;
+
+  CODEGEN_DEBUG_LOG("Defined symbol '" + name + "' in Scope " +
+                        std::to_string(m_symbol_table.size() - 1),
+                    "IR GENERATION");
 }
+
 llvm::Value *IRGenContext::getSymbol(const std::string &name) {
-  return m_symbol_table.back()[name];
+  for (auto it = m_symbol_table.rbegin(); it != m_symbol_table.rend(); ++it) {
+    auto search = it->find(name);
+    if (search != it->end()) {
+      return search->second;
+    }
+  }
+  return nullptr;
 }
+
+bool IRGenContext::isGlobalScope() const { return m_symbol_table.size() == 1; }
 
 llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
                                               bool is_global) {

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,17 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
+#include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 
+#include "src/common/Symbol/VariableSymbol.hpp"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
+#include <cassert>
 namespace flow_wing {
 namespace binding {
 
@@ -69,7 +74,10 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     auto &left_expression = left_expressions[i];
     auto &right_expression = right_expressions[i];
 
-    if (*right_expression->getType() > *left_expression->getType()) {
+    auto right_type = right_expression->getType();
+    auto left_type = left_expression->getType();
+
+    if (*right_type > *left_type) {
 
       auto error_expression = std::make_unique<BoundErrorExpression>(
           expression->getSourceLocation(),
@@ -80,6 +88,54 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
 
       m_context->reportError(error_expression.get());
       return std::move(error_expression);
+    }
+
+    switch (left_expression->getKind()) {
+    case NodeKind::kIdentifierExpression: {
+      auto id_expr =
+          static_cast<BoundIdentifierExpression *>(left_expression.get());
+      auto symbol = id_expr->getSymbol();
+
+      // Variable Check
+      if (symbol->getKind() != analysis::SymbolKind::kVariable) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kAssignmentToNonVariable,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                symbol->getName()});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+
+      // Const Check
+      auto var_sym = static_cast<analysis::VariableSymbol *>(symbol);
+      if (var_sym->isConst()) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kInvalidAssignmentToConstantVariable,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                symbol->getName()});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+      break;
+    }
+    case NodeKind::kIndexExpression: {
+      assert(false && "Index expression is not supported for assignment");
+      break;
+    }
+    case NodeKind::kMemberAccessExpression:
+      assert(false &&
+             "Member access expression is not supported for assignment");
+      break;
+    default: {
+      auto error = std::make_unique<BoundErrorExpression>(
+          expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kAssignmentToNonLValue,
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{});
+      m_context->reportError(error.get());
+      return std::move(error);
+    }
     }
   }
 

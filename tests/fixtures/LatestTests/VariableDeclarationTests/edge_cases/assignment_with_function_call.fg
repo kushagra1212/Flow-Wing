@@ -1,0 +1,4 @@
+var x:str = "Test"
+x = String(42)
+print(x, "\n")
+
