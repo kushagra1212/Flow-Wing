@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: VariableNotFound
+print(x, "\n")
+const x:deci32 = 5.2f
+

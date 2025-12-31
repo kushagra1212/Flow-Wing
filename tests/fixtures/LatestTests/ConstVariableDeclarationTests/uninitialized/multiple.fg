@@ -1,6 +1,8 @@
 const x:int8
 const y:int
 const z:deci
+const z2:deci32
 const w:bool
-print(x, " ", y, " ", z, " ", w, "\n")
+const c:char
+print(x, " ", y, " ", z, " ", z2, " ", w, " ", c, "\n")
 
