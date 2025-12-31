@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,6 @@ void IRGenerator::visit(
   auto entry_block = llvm::BasicBlock::Create(
       *m_ir_gen_context.getLLVMContext(), "entry", entry_point_function);
   m_ir_gen_context.setInsertPoint(entry_block);
-  m_ir_gen_context.pushScope();
 
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
@@ -124,7 +123,7 @@ void IRGenerator::visit(
 
   for (const auto &statement : block_statement->getStatements()) {
     statement->accept(this);
-    clearLastValue();
+    clearLast();
   }
 }
 
@@ -203,10 +202,6 @@ void IRGenerator::visit(
 }
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundAssignmentExpression *statement) {
-  assert(false && "Assignment expression not supported");
-}
-void IRGenerator::visit(
     [[maybe_unused]] binding::BoundExpressionStatement *expression_statement) {
   CODEGEN_DEBUG_LOG("Visiting Bound Expression Statement", "IR GENERATION");
 
@@ -220,22 +215,47 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundMemberAccessExpression *statement) {
   assert(false && "Member access expression not supported");
 }
+llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 
-void IRGenerator::visit(
-    binding::BoundIdentifierExpression *identifier_expression) {
-  CODEGEN_DEBUG_LOG("Visiting Bound Identifier Expression", "IR GENERATION");
+  // Literal Null check (Nir)
+  if (llvm::isa<llvm::ConstantPointerNull>(value)) {
+    return value;
+  }
 
-  auto symbol = identifier_expression->getSymbol();
-  auto llvm_value = m_ir_gen_context.getSymbol(symbol->getName());
-  assert(llvm_value && "Symbol not found [BoundIdentifierExpression::visit]");
+  if (llvm::isa<llvm::AllocaInst>(value)) {
+    auto expected_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+    return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
+                                                         value, "load_var");
+  }
 
-  const auto &llvm_type =
-      m_ir_gen_context.getTypeBuilder()->getLLVMType(symbol->getType().get());
+  if (auto *globalVar = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
+    // It is a String Literal / Array Constant (e.g., @0 = "Hello")
+    if (globalVar->getValueType()->isArrayTy()) {
+      // Equivalent to: &array[0]
+      std::vector<llvm::Value *> indices = {
+          m_ir_gen_context.getLLVMBuilder()->getInt32(0),
+          m_ir_gen_context.getLLVMBuilder()->getInt32(0)};
+      return m_ir_gen_context.getLLVMBuilder()->CreateInBoundsGEP(
+          globalVar->getValueType(), globalVar, indices, "str_ptr");
+    }
 
-  m_last_type = symbol->getType().get();
-  llvm::Value *load =
-      m_ir_gen_context.getLLVMBuilder()->CreateLoad(llvm_type, llvm_value);
-  m_last_value = load;
+    // It is a true Global Variable (e.g., @x)
+    auto expected_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+    return m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+        expected_llvm_type, globalVar, "global_load");
+  }
+
+  auto expected_llvm_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+  if (value->getType()->isPointerTy() &&
+      value->getType() != expected_llvm_type) {
+    return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
+                                                         value, "load_val");
+  }
+
+  return value;
 }
 
 } // namespace ir_gen

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,13 +52,15 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
         assert(m_last_value && "m_last_value is null");
         assert(m_last_type && "m_last_type is null");
 
+        auto last_value = resolveValue(m_last_value, m_last_type);
+
         bool is_char =
             (m_last_type == analysis::Builtins::m_char_type_instance.get());
 
         m_ir_gen_context.getLLVMBuilder()->CreateCall(
             printf_function,
-            {convertToString(m_last_value, m_last_value->getType(), is_char)});
-        clearLastValue();
+            {convertToString(last_value, last_value->getType(), is_char)});
+        clearLast();
       }
     };
 
@@ -69,11 +71,13 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       assert(m_last_value && "m_last_value is null");
       assert(m_last_type && "m_last_type is null");
 
+      auto last_value = resolveValue(m_last_value, m_last_type);
+
       bool is_char =
           m_last_type == analysis::Builtins::m_char_type_instance.get();
 
       m_last_value =
-          convertToString(m_last_value, m_last_value->getType(), is_char);
+          convertToString(last_value, last_value->getType(), is_char);
       m_last_type = analysis::Builtins::m_str_type_instance.get();
     };
 
@@ -81,7 +85,9 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToBool(m_last_value, m_last_value->getType());
+
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToBool(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_bool_type_instance.get();
     };
 
@@ -89,7 +95,8 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToFloat(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToFloat(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_deci32_type_instance.get();
     };
 
@@ -97,14 +104,16 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToDouble(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToDouble(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_deci_type_instance.get();
     };
     auto int8Fn = [&](binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToInt8(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToInt8(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_int8_type_instance.get();
     };
 
@@ -112,7 +121,8 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToInt32(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToInt32(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_int32_type_instance.get();
     };
 
@@ -120,7 +130,8 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToInt64(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToInt64(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_int64_type_instance.get();
     };
 
@@ -128,7 +139,8 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
       const auto &argument = call_expression->getArguments()[0];
       argument->accept(this);
       assert(m_last_value && "m_last_value is null");
-      m_last_value = convertToChar(m_last_value, m_last_value->getType());
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      m_last_value = convertToChar(last_value, last_value->getType());
       m_last_type = analysis::Builtins::m_char_type_instance.get();
     };
 

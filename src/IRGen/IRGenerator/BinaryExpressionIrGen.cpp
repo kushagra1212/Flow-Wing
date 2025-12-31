@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,11 +77,13 @@ void IRGenerator::visit(binding::BoundBinaryExpression *binary_expression) {
   CODEGEN_DEBUG_LOG("Visiting Bound Binary Expression", "IR GENERATION");
 
   binary_expression->getLeft()->accept(this);
-  llvm::Value *left_value = m_last_value;
-  clearLastValue();
+  assert(m_last_value && "m_last_value is null");
+  llvm::Value *left_value = resolveValue(m_last_value, m_last_type);
+  clearLast();
   binary_expression->getRight()->accept(this);
-  llvm::Value *right_value = m_last_value;
-  clearLastValue();
+  assert(m_last_value && "m_last_value is null");
+  llvm::Value *right_value = resolveValue(m_last_value, m_last_type);
+  clearLast();
 
   auto binary_operator = binary_expression->getBinaryOperator();
   auto binary_operator_kind = binary_operator->getSyntaxKind();

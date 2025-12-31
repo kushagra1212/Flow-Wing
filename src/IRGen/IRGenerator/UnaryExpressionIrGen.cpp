@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,8 +59,8 @@ void IRGenerator::visit(binding::BoundUnaryExpression *unary_expression) {
   CODEGEN_DEBUG_LOG("Visiting Bound Unary Expression", "IR GENERATION");
 
   unary_expression->getExpression()->accept(this);
-  llvm::Value *expression_value = m_last_value;
-  clearLastValue();
+  llvm::Value *expression_value = resolveValue(m_last_value, m_last_type);
+  clearLast();
 
   auto unary_operator_kind = unary_expression->getOperatorTokenKind();
   const auto result_type = unary_expression->getType().get();

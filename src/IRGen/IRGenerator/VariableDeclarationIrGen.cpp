@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,28 +33,38 @@ void IRGenerator::visit(
     auto variable_type = variable_symbol->getType().get();
     auto llvm_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
+    llvm::Value *storage_ptr = nullptr;
 
-    auto alloca =
-        m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
+    llvm::Value *existing_global =
+        m_ir_gen_context.getSymbol(variable_symbol->getName());
+
+    if (existing_global && llvm::isa<llvm::GlobalVariable>(existing_global)) {
+      storage_ptr = existing_global;
+    } else {
+      storage_ptr =
+          m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
+      m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
+    }
 
     if (variable_symbol->getInitializerExpression()) {
       variable_symbol->getInitializerExpression()->accept(this);
 
-      llvm::Value *value_to_store = m_last_value;
-      if (m_last_value->getType() != llvm_type) {
+      llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
+      if (value_to_store->getType() != llvm_type) {
         value_to_store =
-            convertToTargetType(m_last_value, variable_type, m_last_type);
+            convertToTargetType(value_to_store, variable_type, m_last_type);
       }
 
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store, alloca);
+      m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store,
+                                                     storage_ptr);
     } else {
       m_ir_gen_context.getLLVMBuilder()->CreateStore(
-          getDefaultValue(variable_type), alloca);
+          m_ir_gen_context.getDefaultValue(variable_type), storage_ptr);
     }
 
-    m_ir_gen_context.setSymbol(variable_symbol->getName(), alloca);
+    m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
 
-    clearLastValue();
+    clearLast();
   }
 }
 } // namespace flow_wing::ir_gen

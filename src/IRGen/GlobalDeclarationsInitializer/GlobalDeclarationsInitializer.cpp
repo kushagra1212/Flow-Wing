@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 
@@ -100,6 +101,38 @@ void GlobalDeclarationsInitializer::visit(
   }
 }
 
+// Global Variable Declarations
+void GlobalDeclarationsInitializer::visit(
+    binding::BoundVariableDeclaration *variable_declaration) {
+
+  auto *module = m_ir_gen_context.getLLVMModule();
+
+  for (const auto &symbol : variable_declaration->getSymbols()) {
+    const auto &variable_symbol =
+        static_cast<const analysis::VariableSymbol *>(symbol.get());
+
+    auto variable_type = variable_symbol->getType().get();
+    auto llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
+
+    // Already handled in SemanticAnalyzer
+    bool is_llvm_constant = false;
+
+    auto default_value = m_ir_gen_context.getDefaultValue(variable_type, true);
+
+    auto globalVar = new llvm::GlobalVariable(
+        *module, llvm_type, is_llvm_constant,
+        llvm::GlobalValue::InternalLinkage, // Internal = private to this module
+        default_value,                      // Initializer: 0, 0.0, or null
+        variable_symbol->getName());
+
+    m_ir_gen_context.setSymbol(variable_symbol->getName(), globalVar);
+  }
+}
+
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundNewExpression *new_expression) {}
+
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundBlockStatement *block_statement) {}
 void GlobalDeclarationsInitializer::visit(
@@ -107,8 +140,6 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
 }
-void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundVariableDeclaration *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundFunctionStatement *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(
@@ -166,8 +197,6 @@ void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundCallExpression *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundTernaryExpression *variable_declaration) {}
-void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundNewExpression *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundUnaryExpression *variable_declaration) {}
 void GlobalDeclarationsInitializer::visit(

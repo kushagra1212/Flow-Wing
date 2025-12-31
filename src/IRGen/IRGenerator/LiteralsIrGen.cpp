@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,11 +86,10 @@ void IRGenerator::visit(
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNirastLiteralExpression *statement) {
   m_last_type = statement->getType().get();
-  auto *void_ptr_type =
-      llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext());
 
   // Create the actual 'null' literal
-  m_last_value = llvm::ConstantPointerNull::get(void_ptr_type);
+  m_last_value = llvm::ConstantPointerNull::get(
+      llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext()));
 }
 
 std::string IRGenerator::unescapeString(const std::string &value) {

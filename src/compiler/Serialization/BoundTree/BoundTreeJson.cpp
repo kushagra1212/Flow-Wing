@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 
 #include "BoundTreeJson.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -238,12 +239,6 @@ void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundNewExpression *new_expression) {
   PARSER_DEBUG_LOG("Visiting Bound New Expression", "BOUND TREE");
   assert(false && "New expression not supported");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundAssignmentExpression
-                              *assignment_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Assignment Expression", "BOUND TREE");
-  assert(false && "Assignment expression not supported");
 }
 
 } // namespace flow_wing::compiler::serializer

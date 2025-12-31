@@ -61,7 +61,7 @@ public:
   void
   visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
 
-  void clearLastValue() {
+  void clearLast() {
     m_last_value = nullptr;
     m_last_type = nullptr;
   }
@@ -84,7 +84,6 @@ private:
   llvm::Value *convertToTargetType(llvm::Value *value,
                                    flow_wing::types::Type *target_type,
                                    flow_wing::types::Type *source_type);
-  llvm::Value *getDefaultValue(flow_wing::types::Type *type);
 
   llvm::Value *getBinaryResult(llvm::Value *left_value,
                                llvm::Value *right_value,
@@ -172,6 +171,9 @@ private:
                                   lexer::TokenKind operator_kind);
   llvm::Value *getDecimalResult(llvm::Value *value,
                                 lexer::TokenKind operator_kind);
+
+  // Restore
+  llvm::Value *resolveValue(llvm::Value *potential_ptr, types::Type *type);
 
   void handleReturn();
   void verifyModule();

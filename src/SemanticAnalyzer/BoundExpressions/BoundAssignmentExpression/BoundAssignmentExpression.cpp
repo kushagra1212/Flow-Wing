@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,20 @@ void BoundAssignmentExpression::accept(visitor::BoundTreeVisitor *visitor) {
 
 bool BoundAssignmentExpression::isMultiTargetAssignment() const {
   return m_left.size() > 1;
+}
+
+bool BoundAssignmentExpression::isFullReAssignment() const {
+  return m_is_full_re_assignment;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundAssignmentExpression::getLeft() const {
+  return m_left;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundAssignmentExpression::getRight() const {
+  return m_right;
 }
 
 std::shared_ptr<types::Type> BoundAssignmentExpression::getType() const {

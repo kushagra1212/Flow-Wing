@@ -85,6 +85,7 @@ public:
   void popScope();
   void setSymbol(const std::string &name, llvm::Value *value);
   llvm::Value *getSymbol(const std::string &name);
+  llvm::Constant *getDefaultValue(types::Type *type, bool is_global = false);
 
 private:
   CompilationContext &m_context;

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,11 +41,14 @@ public:
   // Getters
   std::shared_ptr<types::Type> getType() const override;
   bool isMultiTargetAssignment() const;
+  bool isFullReAssignment() const;
+  const std::vector<std::unique_ptr<BoundExpression>> &getLeft() const;
+  const std::vector<std::unique_ptr<BoundExpression>> &getRight() const;
 
 private:
   std::vector<std::unique_ptr<BoundExpression>> m_left;
   std::vector<std::unique_ptr<BoundExpression>> m_right;
-  [[maybe_unused]] bool m_is_full_re_assignment;
+  bool m_is_full_re_assignment;
 };
 } // namespace binding
 } // namespace flow_wing

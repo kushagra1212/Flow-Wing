@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IRGenContext.hpp"
 #include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
@@ -42,6 +42,7 @@ namespace ir_gen {
 
 IRGenContext::IRGenContext(CompilationContext &context) : m_context(context) {
   initializeLLVM();
+  pushScope();
 }
 
 void IRGenContext::storeLLVMIr() {
@@ -163,6 +164,79 @@ void IRGenContext::setSymbol(const std::string &name, llvm::Value *value) {
 }
 llvm::Value *IRGenContext::getSymbol(const std::string &name) {
   return m_symbol_table.back()[name];
+}
+
+llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
+                                              bool is_global) {
+
+  if (type == analysis::Builtins::m_int32_type_instance.get()) {
+    return getLLVMBuilder()->getInt32(0);
+  }
+  if (type == analysis::Builtins::m_int64_type_instance.get()) {
+    return getLLVMBuilder()->getInt64(0);
+  }
+
+  if (type == analysis::Builtins::m_int8_type_instance.get()) {
+    return getLLVMBuilder()->getInt8(0);
+  }
+
+  if (type == analysis::Builtins::m_deci_type_instance.get()) {
+    return llvm::ConstantFP::get(*getLLVMContext(), llvm::APFloat(0.0));
+  }
+  if (type == analysis::Builtins::m_deci32_type_instance.get()) {
+    return llvm::ConstantFP::get(*getLLVMContext(),
+                                 llvm::APFloat(static_cast<float>(0.0)));
+  }
+  if (type == analysis::Builtins::m_bool_type_instance.get()) {
+    return getLLVMBuilder()->getInt1(false);
+  }
+
+  if (type == analysis::Builtins::m_int8_type_instance.get() ||
+      type == analysis::Builtins::m_str_type_instance.get()) {
+
+    if (!is_global) {
+
+      return llvm::cast<llvm::Constant>(
+          getLLVMBuilder()->CreateGlobalStringPtr(""));
+    }
+
+    llvm::Constant *strConstant =
+        llvm::ConstantDataArray::getString(*getLLVMContext(), "");
+
+    auto *globalVar =
+        new llvm::GlobalVariable(*getLLVMModule(), strConstant->getType(),
+                                 true, // isConstant
+                                 llvm::GlobalValue::PrivateLinkage, strConstant,
+                                 ".str" // Name
+        );
+
+    // Ensure it can be merged with other strings
+    globalVar->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+
+    std::vector<llvm::Constant *> indices;
+    indices.push_back(
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()), 0));
+    indices.push_back(
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()), 0));
+
+    return llvm::ConstantExpr::getInBoundsGetElementPtr(strConstant->getType(),
+                                                        globalVar, indices);
+  }
+
+  if (type == analysis::Builtins::m_nthg_type_instance.get()) {
+    return nullptr;
+  }
+  if (type == analysis::Builtins::m_nirast_type_instance.get()) {
+    return llvm::ConstantPointerNull::get(
+        llvm::Type::getInt8PtrTy(*getLLVMContext()));
+  }
+
+  if (type == analysis::Builtins::m_char_type_instance.get()) {
+    return getLLVMBuilder()->getInt32(0);
+  }
+
+  assert(false && "Unsupported type [getDefaultValue]");
+  return nullptr;
 }
 
 } // namespace ir_gen
