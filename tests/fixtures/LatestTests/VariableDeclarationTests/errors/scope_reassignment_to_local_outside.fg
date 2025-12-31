@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+{
+  var x:int = 100
+}
+x <- 200
+

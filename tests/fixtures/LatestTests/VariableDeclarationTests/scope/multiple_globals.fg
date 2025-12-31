@@ -1,0 +1,13 @@
+var a:int = 10
+var b:int = 20
+var c:int = 30
+print(a, " ", b, " ", c, "\n")
+{
+  print(a, " ", b, " ", c, "\n")
+  a = 100
+  b = 200
+  c = 300
+  print(a, " ", b, " ", c, "\n")
+}
+print(a, " ", b, " ", c, "\n")
+

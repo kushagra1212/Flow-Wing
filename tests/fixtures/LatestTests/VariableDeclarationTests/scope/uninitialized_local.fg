@@ -1,0 +1,7 @@
+{
+  var x:int
+  print(x, "\n")
+  x = 100
+  print(x, "\n")
+}
+

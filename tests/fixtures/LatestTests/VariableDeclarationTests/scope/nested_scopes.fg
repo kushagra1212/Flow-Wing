@@ -1,0 +1,17 @@
+var x:int = 100
+print(x, "\n")
+{
+  var y:int = 200
+  print(x, " ", y, "\n")
+  {
+    var z:int = 300
+    print(x, " ", y, " ", z, "\n")
+    x = 150
+    y = 250
+    z = 350
+    print(x, " ", y, " ", z, "\n")
+  }
+  print(x, " ", y, "\n")
+}
+print(x, "\n")
+

@@ -4,6 +4,8 @@
 /; x , y <- 2, "Hi"
 /; print(x, " ",y, "\n")
 
-var x:int = 10
-print(x, "\n")
-5 = x
+var x:int = 100
+{
+  print(x, "\n")
+}
+

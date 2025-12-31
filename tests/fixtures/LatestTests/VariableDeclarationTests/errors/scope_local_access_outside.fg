@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+{
+  var x:int = 100
+}
+print(x, "\n")
+

@@ -1,0 +1,13 @@
+var x:int = 100
+print(x, "\n")
+{
+  var x:int = 200
+  print(x, "\n")
+  {
+    var x:int = 300
+    print(x, "\n")
+  }
+  print(x, "\n")
+}
+print(x, "\n")
+
