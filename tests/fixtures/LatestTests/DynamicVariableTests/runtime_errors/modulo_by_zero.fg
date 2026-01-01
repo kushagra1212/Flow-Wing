@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: Modulo by zero
+var x = 10
+var y = x % 0
+print(y, "\n")
+

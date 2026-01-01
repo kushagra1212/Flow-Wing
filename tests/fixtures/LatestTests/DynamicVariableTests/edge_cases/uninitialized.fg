@@ -1,0 +1,3 @@
+var x
+print(x, "\n")
+

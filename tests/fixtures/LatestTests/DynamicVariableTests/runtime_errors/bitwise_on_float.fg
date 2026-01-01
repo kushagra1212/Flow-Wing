@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: Invalid operator for floating point numbers
+var x = 5.5
+var y = x & 3
+print(y, "\n")
+

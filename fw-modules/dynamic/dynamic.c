@@ -133,6 +133,29 @@
      }
      return v->value; // Works for Int8/32/64/Bool
  }
+
+char* to_string_op_code(int op) {
+    switch (op) {
+        case OP_ADD: return "add";
+        case OP_SUB: return "sub";
+        case OP_MUL: return "mul";
+        case OP_DIV: return "div";
+        case OP_MOD: return "mod";
+        case OP_EQ: return "eq";
+        case OP_NEQ: return "neq";
+        case OP_LT: return "lt";
+        case OP_LTE: return "lte";
+        case OP_GT: return "gt";
+        case OP_GTE: return "gte";
+        case OP_BITWISE_AND: return "bitwise_and";
+        case OP_BITWISE_OR: return "bitwise_or";
+        case OP_BITWISE_XOR: return "bitwise_xor";
+        case OP_SLASH_SLASH: return "int_div";
+        case OP_LOGICAL_AND: return "logical_and";
+        case OP_LOGICAL_OR: return "logical_or";
+        default: return "unknown";
+    }
+}
  
  // ==========================================
  // MASTER DYNAMIC OPERATION FUNCTION
@@ -162,7 +185,7 @@
      // Exception: Bitwise ops on floats are illegal, but let's assume binder caught that. 
      // If checking runtime errors strictly:
      if (is_float_op && (op >= OP_BITWISE_AND && op <= OP_BITWISE_XOR)) {
-          fg_panic("Runtime Error: Invalid operator for floating point numbers.", "");
+          fg_panic("Runtime Error: Invalid operator for floating point numbers. %s\n", to_string_op_code(op));
      }
  
      if (is_float_op) {
@@ -232,14 +255,6 @@
          // Bitwise
          // Note: C bitwise ops (&, |) work on integers natively
          // Logical Operators (Returns Boolean)
-        case OP_LOGICAL_AND: // &&
-            res = (left && right); 
-            is_bool_res = true; 
-            break;
-        case OP_LOGICAL_OR:  // ||
-            res = (left || right); 
-            is_bool_res = true; 
-            break;
 
         // Bitwise Operators (Returns Integer)
         case OP_BITWISE_AND: // &
@@ -261,8 +276,7 @@
          case OP_GT:  res = (left > right);  is_bool_res = true; break;
          case OP_GTE: res = (left >= right); is_bool_res = true; break;
          
-         
-         default: fg_panic("Runtime Error: Unknown integer operator.", "");
+         default: fg_panic("Runtime Error: Unknown integer operator. %s\n", to_string_op_code(op));
      }
  
      result.tag = is_bool_res ? DYN_TAG_BOOLEAN : DYN_TAG_INT64;
@@ -347,7 +361,7 @@ DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
         return result;
     }
 
-    fg_panic("Runtime Error: Unknown unary operator.", "");
+    fg_panic("Runtime Error: Unknown unary operator. %s\n", to_string_op_code(op));
     return result;
 }
  

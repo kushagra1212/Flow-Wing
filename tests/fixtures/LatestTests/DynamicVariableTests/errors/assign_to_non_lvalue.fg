@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentToNonLValue
+5 = 10
+print(5, "\n")
+

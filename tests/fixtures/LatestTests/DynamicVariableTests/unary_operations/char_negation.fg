@@ -1,4 +1,4 @@
 var x = 'a'
-var y = +x
+var y = -x
 print(y, "\n")
 

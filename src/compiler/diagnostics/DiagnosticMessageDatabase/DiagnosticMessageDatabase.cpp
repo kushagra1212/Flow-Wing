@@ -964,6 +964,8 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
   case DiagnosticCode::kAssignmentToNonLValue:
     return "AssignmentToNonLValue";
 
+  case DiagnosticCode::kAssignmentToNonVariable:
+    return "AssignmentToNonVariable";
   default:
     return "Unknown diagnostic code";
   }

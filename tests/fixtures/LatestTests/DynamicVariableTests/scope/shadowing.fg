@@ -1,0 +1,8 @@
+var x = 100
+print(x, "\n")
+{
+  var x = 200
+  print(x, "\n")
+}
+print(x, "\n")
+

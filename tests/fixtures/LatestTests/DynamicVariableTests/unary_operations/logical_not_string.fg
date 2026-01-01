@@ -1,0 +1,4 @@
+var x = "hello"
+var y = !x
+print(y, "\n")
+

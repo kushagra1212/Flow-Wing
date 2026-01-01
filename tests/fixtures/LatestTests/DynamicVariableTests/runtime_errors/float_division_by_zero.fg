@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: Division by zero
+var x = 10.5
+var y = x / 0.0
+print(y, "\n")
+
