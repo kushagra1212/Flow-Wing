@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,9 +35,15 @@ std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
     return getSymbolId(static_cast<const analysis::ParameterSymbol *>(symbol));
   case analysis::SymbolKind::kModule:
     return getSymbolId(static_cast<const analysis::ModuleSymbol *>(symbol));
-  default:
-    assert(false && "Unknown Symbol Kind");
-    return "Unknown Symbol Kind";
+  default: {
+    nlohmann::json object_symbol_json;
+    object_symbol_json["kind"] = analysis::Symbol::toString(symbol->getKind());
+    object_symbol_json["name"] = symbol->getName();
+    object_symbol_json["typeId"] = getTypeId(symbol->getType().get());
+    const auto &object_symbol_id = getShortId(symbol);
+    m_symbols_json[object_symbol_id] = object_symbol_json;
+    return object_symbol_id;
+  }
   }
   return "Unknown Symbol Kind";
 }

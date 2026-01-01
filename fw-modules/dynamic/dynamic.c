@@ -364,6 +364,163 @@ DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
     fg_panic("Runtime Error: Unknown unary operator. %s\n", to_string_op_code(op));
     return result;
 }
+
+// ==========================================
+// DYNAMIC UNBOXING (Dynamic -> Static)
+// ==========================================
+
+// Helper: Enforce that the value is actually a number
+void ensure_number(DynamicValue* v, const char* targetType) {
+    if (v->tag == DYN_TAG_STRING || v->tag == DYN_TAG_NIRAST) {
+        fg_panic("Runtime Error: Cannot cast %s to Number.", fg_dyn_to_string_ptr(v));
+    }
+}
+
+//Unbox to Int32
+int32_t fg_unbox_int32(DynamicValue* v) {
+    switch (v->tag) {
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:   return (int32_t)v->value;
+        case DYN_TAG_CHAR:    return (int32_t)v->value;
+        case DYN_TAG_BOOLEAN: return (int32_t)v->value; // true=1, false=0
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return (int32_t)f;
+        }
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return (int32_t)d;
+        }
+        default: 
+            fg_panic("Runtime Error: Cannot cast Dynamic value to Int32.", "");
+            return 0;
+    }
+}
+
+//Unbox to Int64
+int64_t fg_unbox_int64(DynamicValue* v) {
+    switch (v->tag) {
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:   return v->value;
+        case DYN_TAG_CHAR:    return v->value;
+        case DYN_TAG_BOOLEAN: return v->value;
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return (int64_t)f;
+        }
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return (int64_t)d;
+        }
+        default: 
+            fg_panic("Runtime Error: Cannot cast Dynamic value to Int64.", "");
+            return 0;
+    }
+}
+
+//Unbox to Bool (i1 returned as i8/int for C ABI compatibility)
+bool fg_unbox_bool(DynamicValue* v) {
+    // Truthiness logic
+    switch (v->tag) {
+        case DYN_TAG_BOOLEAN: return (v->value != 0);
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:   return (v->value != 0);
+        case DYN_TAG_CHAR:    return (v->value != 0);
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return (f != 0.0f);
+        }
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return (d != 0.0);
+        }
+        case DYN_TAG_STRING:  return true; // Non-null strings are true
+        case DYN_TAG_NIRAST:  return false;
+        default: return false;
+    }
+}
+
+//Unbox to Float (Deci32)
+float fg_unbox_float32(DynamicValue* v) {
+    switch (v->tag) {
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return f;
+        }
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return (float)d;
+        }
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:
+        case DYN_TAG_CHAR:    return (float)v->value;
+        default: 
+            fg_panic("Runtime Error: Cannot cast Dynamic value to Float.", "");
+            return 0.0f;
+    }
+}
+
+//Unbox to Double (Deci)
+double fg_unbox_float64(DynamicValue* v) {
+    switch (v->tag) {
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return d;
+        }
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return (double)f;
+        }
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:
+        case DYN_TAG_CHAR:    return (double)v->value;
+        default: 
+            fg_panic("Runtime Error: Cannot cast Dynamic value to Decimal.", "");
+            return 0.0;
+    }
+}
+
+//Unbox to String
+char* fg_unbox_string(DynamicValue* v) {
+    // Reuse existing helper
+    return fg_dyn_to_string_ptr(v); 
+}
+
+//Unbox to Char
+int32_t fg_unbox_char(DynamicValue* v) {
+    if (v->tag == DYN_TAG_CHAR) return (int32_t)v->value;
+    if (v->tag == DYN_TAG_INT32 || v->tag == DYN_TAG_INT8) return (int32_t)v->value;
+    
+    fg_panic("Runtime Error: Cannot cast Dynamic value to Char.", "");
+    return 0;
+}
+
+int8_t fg_unbox_int8(DynamicValue* v) {
+    switch (v->tag) {
+        case DYN_TAG_INT8:
+        case DYN_TAG_INT32:
+        case DYN_TAG_INT64:   return (int8_t)v->value;
+        case DYN_TAG_CHAR:    return (int8_t)v->value;
+        case DYN_TAG_BOOLEAN: return (int8_t)v->value; // true=1, false=0
+        case DYN_TAG_FLOAT32: {
+            float f; memcpy(&f, &v->value, sizeof(float));
+            return (int8_t)f;
+        }
+        case DYN_TAG_FLOAT64: {
+            double d; memcpy(&d, &v->value, sizeof(double));
+            return (int8_t)d;
+        }
+        default: 
+            fg_panic("Runtime Error: Cannot cast Dynamic value to Int8.", "");
+            return 0;
+    }
+}
+
  
  // Dynamic Print Function
 

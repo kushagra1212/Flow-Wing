@@ -2,6 +2,7 @@
 
 #include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 
@@ -36,6 +37,7 @@ private:
 
   llvm::Type *convertArray(const types::ArrayType *type);
   llvm::Type *convertClass(const types::ClassType *type);
+  llvm::Type *convertObject(const types::CustomObjectType *type);
 };
 
 } // namespace ir_gen

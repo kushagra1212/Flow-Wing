@@ -63,12 +63,14 @@ public:
 
   void clearLast() {
     m_last_value = nullptr;
+    m_last_llvm_type = nullptr;
     m_last_type = nullptr;
   }
 
 private:
   IRGenContext &m_ir_gen_context;
   llvm::Value *m_last_value = nullptr;
+  llvm::Type *m_last_llvm_type = nullptr;
   types::Type *m_last_type = nullptr;
 
   llvm::Function *createEntryPointFunction();

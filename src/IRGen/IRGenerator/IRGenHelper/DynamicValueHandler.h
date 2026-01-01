@@ -75,7 +75,7 @@ llvm::Value *castStoredValueToType(llvm::Value *stored_value,
 
 // Generate a dispatch block that extracts and casts a dynamic value,
 // then calls the handler with the casted value and its type tag
-void generateDynamicDispatch(
+[[deprecated]] void generateDynamicDispatch(
     llvm::Value *dynamic_value_ptr, llvm::Type *dynamic_struct_type,
     llvm::IRBuilder<> *builder, llvm::LLVMContext *context,
     const std::function<void(llvm::Value *, DynamicValueType)> &handler);

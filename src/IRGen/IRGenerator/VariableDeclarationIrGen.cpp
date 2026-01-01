@@ -78,26 +78,21 @@ void IRGenerator::visit(
                  "Non-primitive type cannot be assigned to dynamic variable");
         }
       } else if (m_last_type->isDynamic()) {
-        // Dynamic to primitive: use dynamic dispatch to extract and convert
-        llvm::Type *dynamic_struct_type =
-            m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
         llvm::Value *dynamic_ptr = m_last_value; // Keep pointer, don't resolve
 
-        // Use dispatch to extract value and convert to target type
-        DynamicValueHandler::generateDynamicDispatch(
-            dynamic_ptr, dynamic_struct_type,
-            m_ir_gen_context.getLLVMBuilder().get(),
-            m_ir_gen_context.getLLVMContext(),
-            [&](llvm::Value *casted_value, DynamicValueType type_tag) {
-              // Get the actual primitive type from the type tag
-              types::Type *source_type =
-                  DynamicValueHandler::getTypeFromDynamicValueType(type_tag);
-              // Convert the casted value to the target variable type
-              llvm::Value *converted_value =
-                  convertToTargetType(casted_value, variable_type, source_type);
-              m_ir_gen_context.getLLVMBuilder()->CreateStore(converted_value,
-                                                             storage_ptr);
-            });
+        auto unboxing_function_name =
+            analysis::Builtins::getUnboxingFunctionName(variable_type);
+
+        llvm::FunctionCallee func =
+            m_ir_gen_context.getLLVMModule()->getFunction(
+                unboxing_function_name);
+
+        llvm::Value *unboxed_val =
+            m_ir_gen_context.getLLVMBuilder()->CreateCall(func, {dynamic_ptr});
+
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(unboxed_val,
+                                                       storage_ptr);
+
       } else {
         // Primitive to primitive: normal conversion
         llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);

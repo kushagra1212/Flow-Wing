@@ -20,6 +20,7 @@
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
 
@@ -81,26 +82,20 @@ void IRGenerator::visit(
                  "Non-primitive type cannot be assigned to dynamic variable");
         }
       } else if (right_type->isDynamic()) {
-        // Dynamic to primitive: use dynamic dispatch to extract and convert
-        llvm::Type *dynamic_struct_type =
-            m_ir_gen_context.getTypeBuilder()->getLLVMType(right_type);
-        llvm::Value *dynamic_ptr = m_last_value; // Keep pointer, don't resolve
+        llvm::Value *dyn_ptr = m_last_value;
 
-        // Use dispatch to extract value and convert to target type
-        DynamicValueHandler::generateDynamicDispatch(
-            dynamic_ptr, dynamic_struct_type,
-            m_ir_gen_context.getLLVMBuilder().get(),
-            m_ir_gen_context.getLLVMContext(),
-            [&](llvm::Value *casted_value, DynamicValueType type_tag) {
-              // Get the actual primitive type from the type tag
-              types::Type *source_type =
-                  DynamicValueHandler::getTypeFromDynamicValueType(type_tag);
-              // Convert the casted value to the target type
-              llvm::Value *converted_value =
-                  convertToTargetType(casted_value, left_type, source_type);
-              m_ir_gen_context.getLLVMBuilder()->CreateStore(converted_value,
-                                                             left_pointer);
-            });
+        auto unboxing_function_name =
+            analysis::Builtins::getUnboxingFunctionName(left_type);
+
+        llvm::FunctionCallee func =
+            m_ir_gen_context.getLLVMModule()->getFunction(
+                unboxing_function_name);
+
+        llvm::Value *unboxed_val =
+            m_ir_gen_context.getLLVMBuilder()->CreateCall(func, {dyn_ptr});
+
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(unboxed_val,
+                                                       left_pointer);
       } else {
         // Primitive to primitive: normal conversion
         llvm::Value *right_value = resolveValue(m_last_value, right_type);

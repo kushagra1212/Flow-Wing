@@ -20,7 +20,9 @@
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "llvm/IR/DerivedTypes.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -47,6 +49,10 @@ llvm::Type *LLVMTypeBuilder::getLLVMType(const types::Type *type) {
     break;
   case types::TypeKind::kClass:
     llvmType = convertClass(static_cast<const types::ClassType *>(type));
+    break;
+  case types::TypeKind::kObject:
+    llvmType =
+        convertObject(static_cast<const types::CustomObjectType *>(type));
     break;
   default:
     assert(false && "Unsupported type conversion");
@@ -81,6 +87,22 @@ llvm::Type *LLVMTypeBuilder::convertPrimitive(const types::Type *type) {
 
   assert(false && "Unsupported primitive type");
   return nullptr;
+}
+
+llvm::Type *
+LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
+  llvm::StructType *object_type =
+      llvm::StructType::create(m_context, type->getCustomTypeName());
+
+  std::vector<llvm::Type *> elements;
+
+  for (const auto &[field_name, field_type] : type->getFields()) {
+    auto field_llvm_type = getLLVMType(field_type.get());
+    assert(field_llvm_type && "Field LLVM type is null");
+    elements.push_back(field_llvm_type);
+  }
+  object_type->setBody(elements);
+  return object_type;
 }
 
 llvm::Type *LLVMTypeBuilder::createDynamicValueType() {

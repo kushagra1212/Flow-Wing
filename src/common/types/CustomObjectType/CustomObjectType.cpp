@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/Type.hpp"
@@ -59,6 +58,15 @@ bool CustomObjectType::operator==(const Type &other) const {
   return true;
 }
 
+const std::map<std::string, std::shared_ptr<Type>> &
+CustomObjectType::getFields() const {
+  return m_fields;
+}
+
+const std::string &CustomObjectType::getCustomTypeName() const {
+  return m_custom_type_name;
+}
+
 bool CustomObjectType::operator<=(const Type &other) const {
   if (other.getKind() != TypeKind::kObject) {
     return false;
@@ -99,9 +107,17 @@ std::string CustomObjectType::buildCustomObjectTypeName(
     const std::map<std::string, std::shared_ptr<Type>> &fields) {
   std::stringstream ss;
   ss << "Object: <" << custom_type_name << " {";
+  size_t count = 0, total_fields = fields.size();
   for (const auto &[field_name, field_type] : fields) {
-    ss << field_name << ": " << field_type->getName() << ", ";
+    ss << " " << field_name << ": " << field_type->getName();
+    count++;
+    if (count < total_fields - 1) {
+      ss << ",";
+    } else {
+      ss << " ";
+    }
   }
+
   ss << "}>";
   return ss.str();
 }

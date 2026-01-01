@@ -1,4 +1,36 @@
-var x = 'a'
-var y = +x
-print(y, "\n")
 
+/; var x = 2
+/; print(x, "\n")
+/; var y = x
+/; print(y, "\n")
+
+/; y = 5
+
+/; print(y, "\n")
+/; print(x, "\n")
+
+var z: deci32 = 3.14f
+print(z, "\n")
+
+var x = 5.5
+print(x, "\n")
+z = x
+print(z, "\n")
+var k = "Hello"
+z = k
+print(z, "\n")
+
+
+
+/; type type_test = {
+/;     _string_name: str
+/;     _int_age: int
+/;     _int64: int64
+/;     _int8: int8
+/;     _char: char
+/;     _bool: bool
+/;     _deci_age: deci
+/;     _deci32_age: deci32
+/; }
+
+/; var x: type_test 

@@ -93,12 +93,6 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
-  PARSER_DEBUG_LOG("Visiting Bound Custom Type Statement", "BOUND TREE");
-  assert(false && "Custom type statement not supported");
-}
-
-void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Function Statement", "BOUND TREE");
   assert(false && "Function statement not supported");

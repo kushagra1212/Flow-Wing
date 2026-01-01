@@ -140,10 +140,6 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {
   assert(false && "Expose statement not supported");
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
-  assert(false && "Custom type statement not supported");
-}
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundFunctionStatement *statement) {

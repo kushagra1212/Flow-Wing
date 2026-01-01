@@ -74,6 +74,16 @@ const std::string_view kPerform_dynamic_unary_op_fn =
     "fg_perform_dynamic_unary_op";
 const std::string_view kPrint_dynamic_fn = "fg_print_dynamic";
 
+// Unboxing Functions
+const std::string_view kUnbox_int8_fn = "fg_unbox_int8";
+const std::string_view kUnbox_int32_fn = "fg_unbox_int32";
+const std::string_view kUnbox_int64_fn = "fg_unbox_int64";
+const std::string_view kUnbox_bool_fn = "fg_unbox_bool";
+const std::string_view kUnbox_float32_fn = "fg_unbox_float32";
+const std::string_view kUnbox_float64_fn = "fg_unbox_float64";
+const std::string_view kUnbox_string_fn = "fg_unbox_string";
+const std::string_view kUnbox_char_fn = "fg_unbox_char";
+
 const std::string_view kMalloc_fn = "malloc";
 
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)

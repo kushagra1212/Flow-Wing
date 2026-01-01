@@ -49,6 +49,9 @@ std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
 std::unordered_map<std::string, std::shared_ptr<Symbol>>
     Builtins::m_types_symbols_map;
 
+std::unordered_map<std::string, std::shared_ptr<types::Type>>
+    Builtins::m_unboxing_types_map;
+
 } // namespace analysis
 } // namespace flow_wing
 
@@ -207,6 +210,8 @@ bool Builtins::initialize(binding::BinderContext *context) {
                                    Builtins::m_char_type_instance);
   }
 
+  initializeUnboxingTypesMap();
+
   // Internal Functions
   initializeInternalFunctions();
 
@@ -216,6 +221,45 @@ bool Builtins::initialize(binding::BinderContext *context) {
 
   return true;
 }
+
+void Builtins::initializeUnboxingTypesMap() {
+
+  m_unboxing_types_map = {{
+      {
+          std::string(ir_gen::constants::functions::kUnbox_int8_fn),
+          Builtins::m_int8_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_int32_fn),
+          Builtins::m_int32_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_int64_fn),
+          Builtins::m_int64_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_bool_fn),
+          Builtins::m_bool_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_float32_fn),
+          Builtins::m_deci32_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_float64_fn),
+          Builtins::m_deci_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_string_fn),
+          Builtins::m_str_type_instance,
+      },
+      {
+          std::string(ir_gen::constants::functions::kUnbox_char_fn),
+          Builtins::m_char_type_instance,
+      },
+  }};
+
+} // namespace analysis
 
 void Builtins::initializeInternalFunctions() {
 
@@ -354,6 +398,11 @@ void Builtins::initializeInternalFunctions() {
       std::string(ir_gen::constants::functions::kPerform_dynamic_unary_op_fn),
       {Builtins::m_dynamic_type_instance, Builtins::m_int32_type_instance},
       {Builtins::m_dynamic_type_instance}, false);
+
+  for (const auto &[function_name, return_type] : m_unboxing_types_map) {
+    createInternalFunction(function_name, {Builtins::m_dynamic_type_instance},
+                           {return_type}, false);
+  }
 }
 
 bool Builtins::isBuiltInFunction(const std::string &name) {
@@ -368,5 +417,14 @@ const std::vector<std::shared_ptr<Symbol>> &Builtins::getAll() {
   return m_all_symbols;
 }
 
+std::string Builtins::getUnboxingFunctionName(types::Type *type) {
+  for (const auto &[function_name, return_type] : m_unboxing_types_map) {
+    if (*return_type.get() == *type) {
+      return function_name;
+    }
+  }
+  assert(false && "No unboxing function found for type");
+  return "";
+}
 } // namespace analysis
 } // namespace flow_wing

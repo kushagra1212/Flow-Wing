@@ -18,6 +18,8 @@ public:
   bool operator<=(const Type &other) const override;
 
   std::shared_ptr<Type> getFieldType(const std::string &name) const;
+  const std::map<std::string, std::shared_ptr<Type>> &getFields() const;
+  const std::string &getCustomTypeName() const;
 
 private:
   std::string m_custom_type_name;

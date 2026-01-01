@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: Cannot cast Dynamic value to Int8
+var z: int8 = 22
+print(z, "\n")
+
+var x = 55
+print(x, "\n")
+z = x
+print(z, "\n")
+var k = "Hello"
+z = k
+print(z, "\n")
+

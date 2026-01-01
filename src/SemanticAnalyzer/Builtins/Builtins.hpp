@@ -42,6 +42,8 @@ public:
   static std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
       m_functions_symbols_map;
 
+  static std::string getUnboxingFunctionName(types::Type *type);
+
 private:
   static std::shared_ptr<types::Type>
   createBuiltinType(const std::string &name);
@@ -64,6 +66,11 @@ private:
   static std::vector<std::shared_ptr<Symbol>> m_all_symbols;
   static std::unordered_map<std::string, std::shared_ptr<Symbol>>
       m_types_symbols_map;
+
+  static std::unordered_map<std::string, std::shared_ptr<types::Type>>
+      m_unboxing_types_map;
+
+  static void initializeUnboxingTypesMap();
 };
 
 } // namespace analysis

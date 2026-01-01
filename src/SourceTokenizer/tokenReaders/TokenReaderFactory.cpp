@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
   if (isdigit(lexer.currentChar()))
     return std::make_unique<NumberTokenReader>();
 
-  if (isalpha(lexer.currentChar()))
+  if (isalpha(lexer.currentChar()) || lexer.currentChar() == '_')
     return std::make_unique<KeywordTokenReader>();
 
   if (lexer.currentChar() == '\'')
