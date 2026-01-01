@@ -32,80 +32,37 @@ void IRGenerator::visit(
     const auto &variable_symbol =
         static_cast<const analysis::VariableSymbol *>(symbol.get());
 
-    auto variable_type = variable_symbol->getType().get();
-    auto llvm_type =
-        m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
+    auto *var_type = variable_symbol->getType().get();
+    auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
     llvm::Value *storage_ptr = nullptr;
 
-    bool is_global_scope = m_ir_gen_context.isGlobalScope();
+    if (m_ir_gen_context.isGlobalScope()) {
+      llvm::Value *existing_global_variable =
+          m_ir_gen_context.getSymbol(variable_symbol->getName());
+      if (existing_global_variable &&
+          llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
+        storage_ptr = existing_global_variable;
+      }
+    }
 
-    llvm::Value *existing_global_variable =
-        m_ir_gen_context.getSymbol(variable_symbol->getName());
-
-    if (is_global_scope && existing_global_variable &&
-        llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
-      storage_ptr = existing_global_variable;
-    } else {
+    // Fallback for locals or new globals
+    if (!storage_ptr) {
       storage_ptr =
           m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
       m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
     }
 
-    if (variable_symbol->getInitializerExpression()) {
-      variable_symbol->getInitializerExpression()->accept(this);
+    // 2. Handle Initialization
+    if (auto *init_expression =
+            variable_symbol->getInitializerExpression().get()) {
+      init_expression->accept(this);
 
-      // Handle dynamic type initialization
-      if (variable_type == analysis::Builtins::m_dynamic_type_instance.get()) {
-        if (m_last_type->isDynamic()) {
-          // Dynamic to dynamic: just copy the struct
-          // m_last_value is already the pointer to the dynamic value
-          llvm::Value *dynamic_value = resolveValue(m_last_value, m_last_type);
-          m_ir_gen_context.getLLVMBuilder()->CreateStore(dynamic_value,
-                                                         storage_ptr);
-        } else if (m_last_type->isPrimitive()) {
-          // Primitive to dynamic: store primitive into dynamic struct
-          llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
-          llvm::Value *dynamic_struct =
-              DynamicValueHandler::storePrimitiveToDynamic(
-                  value_to_store, value_to_store->getType(), llvm_type,
-                  m_ir_gen_context.getLLVMBuilder().get(), m_last_type);
-          m_ir_gen_context.getLLVMBuilder()->CreateStore(dynamic_struct,
-                                                         storage_ptr);
-        } else {
-          // Non-primitive to dynamic: should have been caught by semantic
-          // analyzer
-          assert(false &&
-                 "Non-primitive type cannot be assigned to dynamic variable");
-        }
-      } else if (m_last_type->isDynamic()) {
-        llvm::Value *dynamic_ptr = m_last_value; // Keep pointer, don't resolve
-
-        auto unboxing_function_name =
-            analysis::Builtins::getUnboxingFunctionName(variable_type);
-
-        llvm::FunctionCallee func =
-            m_ir_gen_context.getLLVMModule()->getFunction(
-                unboxing_function_name);
-
-        llvm::Value *unboxed_val =
-            m_ir_gen_context.getLLVMBuilder()->CreateCall(func, {dynamic_ptr});
-
-        m_ir_gen_context.getLLVMBuilder()->CreateStore(unboxed_val,
-                                                       storage_ptr);
-
-      } else {
-        // Primitive to primitive: normal conversion
-        llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
-        if (value_to_store->getType() != llvm_type) {
-          value_to_store =
-              convertToTargetType(value_to_store, variable_type, m_last_type);
-        }
-        m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store,
-                                                       storage_ptr);
-      }
+      emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
     } else {
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(
-          m_ir_gen_context.getDefaultValue(variable_type), storage_ptr);
+      // Default Initialization
+      auto *default_value = m_ir_gen_context.getDefaultValue(var_type);
+      m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value,
+                                                     storage_ptr);
     }
 
     clearLast();

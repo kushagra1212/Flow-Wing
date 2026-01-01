@@ -186,6 +186,9 @@ private:
   // Restore
   llvm::Value *resolveValue(llvm::Value *potential_ptr, types::Type *type);
 
+  void emitTypedStore(llvm::Value *target_addr, types::Type *target_type,
+                      llvm::Value *source_raw_value, types::Type *source_type);
+
   void handleReturn();
   void verifyModule();
 
