@@ -1,0 +1,6 @@
+var x = 5
+var y = x
+print(y, "\n")
+y = 10
+print(x, " ", y, "\n")
+

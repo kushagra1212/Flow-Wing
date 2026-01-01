@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@
 
 #include "LibUtils.h"
 
-const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "flowwing_string",
-                                           "gc", "gccpp", "atomic_ops"};
+const char *STATIC_LINKING_LIBRARIES[6] = {"built_in_module", "dynamic",
+                                           "flowwing_string", "gc",
+                                           "gccpp",           "atomic_ops"};
 
 const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vector", "flowwing_map"};

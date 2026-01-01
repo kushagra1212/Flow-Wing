@@ -84,11 +84,6 @@ public:
     return exePath.parent_path().parent_path() / FLOWWING_PLATFORM_LIB_DIR;
   }
 
-  // Helper to get the full path to the crucial built-in bitcode file.
-  static std::filesystem::path getBuiltInBCPath() {
-    return getLibrariesPath() / "libbuilt_in_module.bc";
-  }
-
   // Gets the path to the AOT linker.(Clang)
   static std::string getAOTLinkerPath() { return AOT_LINKER_PATH; }
 };

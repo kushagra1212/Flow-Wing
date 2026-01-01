@@ -1,40 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <math.h>
-#include <gc.h> // Header for the Boehm Garbage Collector
+/*
+ * FlowWing Runtime Library
+ * Copyright (C) 2023-2026 Kushagra Rathore
+ *
+ * This file provides the C runtime support for the FlowWing compiler,
+ * including memory management (GC), dynamic typing, string manipulation,
+ * and standard I/O wrappers.
+ */
 
-// --- Function Declarations (Forward declarations) ---
-void fg_pf(const char* str);
-char* fg_cs(const char* str1, const char* str2);
-int fg_sl(const char* str);
-char* fg_itos(int num);
-char* fg_dtos(double f);
-char* fg_ftos(float f);
-char* fg_gmosc(const char* str);
-int fg_cmp(const char* str1, const char* str2);
-bool fg_lt(const char* str1, const char* str2);
-bool fg_lte(const char* str1, const char* str2);
-bool fg_gt(const char* str1, const char* str2);
-bool fg_gte(const char* str1, const char* str2);
-bool fg_eq(const char* str1, const char* str2);
-char* fg_gi();
-int fg_sti(const char* str);
-int fg_stc(const char* str);
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <math.h>
+ #include <gc.h> // Boehm GC
+ 
 
-long long fg_stl(const char* str);
-double fg_std(const char* str);
-float fg_stf(const char* str);
-char* fg_lltos(long long num);
-char* fg_ctos(int c);
-
-// Error Handling
-void fg_panic(const char* fmt, const char* val);
-void fg_re(const char* errorMsg); // Legacy/Generic handler
-
-// --- Helper Implementation ---
-
+ // ==========================================
+ // Forward Declarations
+ // ==========================================
+ 
+ void fg_panic(const char* fmt, const char* val);
+ void fg_re(const char* errorMsg);
+ 
+ // String Utils
+ char* fg_cs(const char* str1, const char* str2);
+ char* fg_itos(int num);
+ char* fg_lltos(long long num);
+ char* fg_i8tos(int8_t num);
+ char* fg_dtos(double f);
+ char* fg_ftos(float f);
+ char* fg_ctos(int c);
+ 
+ 
+ // ==========================================
+ // Error Handling
+ // ==========================================
+ 
 void fg_panic(const char* fmt, const char* val) {
     fprintf(stderr, "\033[91m"); // Start Red Color
     fprintf(stderr, fmt, val);
@@ -50,9 +52,6 @@ void fg_re(const char* errorMsg) {
 
 // --- Function Implementations ---
 
-void fg_pf(const char* str) {
-    printf("%s", str); 
-}
 
 char* fg_cs(const char* str1, const char* str2) {
     size_t len1 = strlen(str1);
@@ -298,3 +297,16 @@ float fg_stf(const char* str) {
     }
     return val;
 }
+ // ==========================================
+ // Public Print Functions
+ // ==========================================
+ 
+ void fg_pf(const char* str) {
+     if (!str) printf("(null)");
+     else printf("%s", str);
+ }
+ 
+ // Initializer for GC (Call this at start of main if needed, or rely on auto-init)
+ void fg_init_runtime() {
+     GC_INIT();
+ }

@@ -8,6 +8,7 @@ class Flowwing < Formula
   def install
     bin.install "bin/FlowWing"
     (lib/"FlowWing/lib").install "lib/libbuilt_in_module.a"
+    (lib/"FlowWing/lib").install "lib/libdynamic.a"
     (lib/"FlowWing/lib").install "lib/libflowwing_string.a"
     (lib/"FlowWing/lib").install "lib/libraylib.a"
     (lib/"FlowWing/lib").install "lib/libflowwing_vector.so"

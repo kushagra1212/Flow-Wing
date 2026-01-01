@@ -18,7 +18,6 @@
  */
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
-#include "IRGenerator.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"

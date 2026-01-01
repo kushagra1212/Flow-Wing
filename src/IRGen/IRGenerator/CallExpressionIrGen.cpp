@@ -52,14 +52,26 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
         assert(m_last_value && "m_last_value is null");
         assert(m_last_type && "m_last_type is null");
 
-        auto last_value = resolveValue(m_last_value, m_last_type);
+        if (m_last_type->isDynamic()) {
+          // function type: void fg_print_dynamic(DynamicValue*)
+          llvm::Function *print_dynamic_fn =
+              m_ir_gen_context.getLLVMModule()->getFunction(
+                  std::string(ir_gen::constants::functions::kPrint_dynamic_fn));
 
-        bool is_char =
-            (m_last_type == analysis::Builtins::m_char_type_instance.get());
+          assert(print_dynamic_fn && "kPrint_dynamic_fn function not found");
 
-        m_ir_gen_context.getLLVMBuilder()->CreateCall(
-            printf_function,
-            {convertToString(last_value, last_value->getType(), is_char)});
+          llvm::Value *dynamic_ptr = m_last_value;
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(print_dynamic_fn,
+                                                        {dynamic_ptr});
+        } else {
+          auto last_value = resolveValue(m_last_value, m_last_type);
+          bool is_char =
+              (m_last_type == analysis::Builtins::m_char_type_instance.get());
+
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {convertToString(last_value, last_value->getType(), is_char)});
+        }
         clearLast();
       }
     };

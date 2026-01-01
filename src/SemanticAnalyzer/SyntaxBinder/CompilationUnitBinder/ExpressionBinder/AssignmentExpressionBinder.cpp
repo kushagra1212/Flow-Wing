@@ -125,8 +125,27 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     }
     }
 
-    if (*right_type > *left_type) {
-
+    // Special handling for dynamic types
+    if (left_type->isDynamic()) {
+      // Left is dynamic: right must be dynamic or primitive
+      if (!right_type->isDynamic() && !right_type->isPrimitive()) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                left_expression->getType()->getName(),
+                right_expression->getType()->getName()});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+      // Dynamic can hold any primitive or dynamic, so allow it
+    } else if (right_type->isDynamic()) {
+      // Right is dynamic: left must be a type that can hold the dynamic value
+      // This will be checked at runtime via dispatch, but we allow it
+      // semantically (the dynamic value will be extracted and converted to left
+      // type)
+    } else if (*right_type > *left_type) {
+      // Normal type mismatch check
       auto error_expression = std::make_unique<BoundErrorExpression>(
           expression->getSourceLocation(),
           diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,

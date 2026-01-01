@@ -154,5 +154,5 @@
     "--compile-commands-dir=${workspaceFolder}",
     "--query-driver=${command:cmake.compilerPath}"
   ],
-  "cSpell.words": ["cmdl", "Kushagra", "Nirast", "Nthg", "Rathore"]
+  "cSpell.words": ["cmdl", "flowwing", "Kushagra", "Nirast", "Nthg", "Rathore"]
 }

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -338,6 +338,22 @@ void Builtins::initializeInternalFunctions() {
   createInternalFunction(std::string(ir_gen::constants::functions::kFtos_fn),
                          {Builtins::m_deci32_type_instance},
                          {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kPrint_dynamic_fn),
+      {Builtins::m_dynamic_type_instance}, {Builtins::m_nthg_type_instance},
+      false);
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kPerform_dynamic_op_fn),
+      {Builtins::m_dynamic_type_instance, Builtins::m_dynamic_type_instance,
+       Builtins::m_int32_type_instance},
+      {Builtins::m_dynamic_type_instance}, false);
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kPerform_dynamic_unary_op_fn),
+      {Builtins::m_dynamic_type_instance, Builtins::m_int32_type_instance},
+      {Builtins::m_dynamic_type_instance}, false);
 }
 
 bool Builtins::isBuiltInFunction(const std::string &name) {

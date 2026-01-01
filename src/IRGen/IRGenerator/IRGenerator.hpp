@@ -156,6 +156,15 @@ private:
                                lexer::TokenKind operator_kind,
                                types::Type *left_type, types::Type *right_type);
 
+  llvm::Value *getDynamicBinaryResult(llvm::Value *left_value,
+                                      llvm::Value *right_value,
+                                      lexer::TokenKind operator_kind,
+                                      types::Type *left_type,
+                                      types::Type *right_type);
+  llvm::Value *getDynamicUnaryResult(llvm::Value *value,
+                                     lexer::TokenKind operator_kind,
+                                     types::Type *expression_type);
+
   // Unary Result
 
   llvm::Value *getUnaryOperationResult(llvm::Value *value,
@@ -179,6 +188,10 @@ private:
   void verifyModule();
 
   std::string unescapeString(const std::string &value);
+
+  // Dynamic Result
+  llvm::Value *ensureDynamic(llvm::Value *value, types::Type *type);
+  uint32_t getRuntimeOpCode(lexer::TokenKind kind);
 };
 } // namespace ir_gen
 } // namespace flow_wing

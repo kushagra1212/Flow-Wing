@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,6 +98,10 @@ llvm::Type *LLVMTypeBuilder::convertFunctionParameter(
     const types::ParameterType *param_type) {
   if (param_type->type_convention == types::TypeConvention::kFlowWing) {
     return llvm::Type::getInt8PtrTy(m_context);
+  }
+
+  if (param_type->type == analysis::Builtins::m_dynamic_type_instance) {
+    return createDynamicValueType()->getPointerTo();
   }
 
   return getLLVMType(param_type->type.get());

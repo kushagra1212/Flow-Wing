@@ -30,7 +30,7 @@ fi
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."
-export LD_LIBRARY_PATH=$OTHER_LIB_PATH:$LD_LIBRARY_PATH && $FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_map -L=$OTHER_LIB_PATH -lbuilt_in_module
+export LD_LIBRARY_PATH=$OTHER_LIB_PATH:$LD_LIBRARY_PATH && $FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_map -L=$OTHER_LIB_PATH -lbuilt_in_module -ldynamic
 
 # Check if the executable was created successfully
 if [ ! -f "$OUTPUT_EXECUTABLE" ]; then

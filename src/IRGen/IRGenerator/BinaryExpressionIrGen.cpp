@@ -18,6 +18,7 @@
  */
 
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
@@ -34,6 +35,12 @@ llvm::Value *IRGenerator::getBinaryResult(llvm::Value *left_value,
                                           types::Type *left_type,
                                           types::Type *right_type,
                                           types::Type *result_type) {
+
+  // Handle dynamic type result
+  if (result_type->isDynamic()) {
+    return getDynamicBinaryResult(left_value, right_value, operator_kind,
+                                  left_type, right_type);
+  }
 
   if (result_type == analysis::Builtins::m_bool_type_instance.get()) {
 
@@ -78,21 +85,32 @@ void IRGenerator::visit(binding::BoundBinaryExpression *binary_expression) {
 
   binary_expression->getLeft()->accept(this);
   assert(m_last_value && "m_last_value is null");
-  llvm::Value *left_value = resolveValue(m_last_value, m_last_type);
+  llvm::Value *left_value = m_last_value;
+  types::Type *left_type = m_last_type;
   clearLast();
   binary_expression->getRight()->accept(this);
   assert(m_last_value && "m_last_value is null");
-  llvm::Value *right_value = resolveValue(m_last_value, m_last_type);
+  llvm::Value *right_value = m_last_value;
+  types::Type *right_type = m_last_type;
   clearLast();
 
   auto binary_operator = binary_expression->getBinaryOperator();
   auto binary_operator_kind = binary_operator->getSyntaxKind();
+  auto result_type = binary_operator->getResultType().get();
+
+  // For dynamic types, keep pointers; for primitives, resolve values
+  if (!left_type->isDynamic()) {
+    left_value = resolveValue(left_value, left_type);
+  }
+  if (!right_type->isDynamic()) {
+    right_value = resolveValue(right_value, right_type);
+  }
+
   auto binary_operator_result =
       getBinaryResult(left_value, right_value, binary_operator_kind,
                       binary_operator->getLeftType().get(),
-                      binary_operator->getRightType().get(),
-                      binary_operator->getResultType().get());
-  m_last_type = binary_operator->getResultType().get();
+                      binary_operator->getRightType().get(), result_type);
+  m_last_type = result_type;
   m_last_value = binary_operator_result;
 }
 } // namespace flow_wing::ir_gen

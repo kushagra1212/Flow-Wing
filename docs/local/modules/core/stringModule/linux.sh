@@ -29,7 +29,7 @@ fi
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."
-$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_string -L=$OTHER_LIB_PATH -l=built_in_module
+$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_string -L=$OTHER_LIB_PATH -l=built_in_module -ldynamic
 # Check if the executable was created successfully
 if [ ! -f "$OUTPUT_EXECUTABLE" ]; then
     echo "Error: Executable not created."

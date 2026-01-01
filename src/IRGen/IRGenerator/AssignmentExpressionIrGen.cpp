@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
+#include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
@@ -49,17 +49,69 @@ void IRGenerator::visit(
       clearLast();
 
       right_expression->accept(this);
-      auto right_value = resolveValue(m_last_value, m_last_type);
       auto right_type = m_last_type;
 
-      assert(right_value && "right_value is null");
+      assert(m_last_value && "m_last_value is null");
       assert(right_type && "right_type is null");
-      clearLast();
 
-      if (left_type != right_type) {
-        right_value = convertToTargetType(right_value, left_type, right_type);
+      auto left_llvm_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(left_type);
+
+      // Handle assignment to dynamic variable
+      if (left_type->isDynamic()) {
+        if (right_type->isDynamic()) {
+          // Dynamic to dynamic: just copy the struct
+          // m_last_value is already the pointer, resolveValue will load it
+          llvm::Value *right_dynamic = resolveValue(m_last_value, right_type);
+          m_ir_gen_context.getLLVMBuilder()->CreateStore(right_dynamic,
+                                                         left_pointer);
+        } else if (right_type->isPrimitive()) {
+          // Primitive to dynamic: store primitive into dynamic struct
+          llvm::Value *right_value = resolveValue(m_last_value, right_type);
+          llvm::Value *dynamic_struct =
+              DynamicValueHandler::storePrimitiveToDynamic(
+                  right_value, right_value->getType(), left_llvm_type,
+                  m_ir_gen_context.getLLVMBuilder().get(), right_type);
+          m_ir_gen_context.getLLVMBuilder()->CreateStore(dynamic_struct,
+                                                         left_pointer);
+        } else {
+          // Non-primitive to dynamic: should have been caught by semantic
+          // analyzer
+          assert(false &&
+                 "Non-primitive type cannot be assigned to dynamic variable");
+        }
+      } else if (right_type->isDynamic()) {
+        // Dynamic to primitive: use dynamic dispatch to extract and convert
+        llvm::Type *dynamic_struct_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(right_type);
+        llvm::Value *dynamic_ptr = m_last_value; // Keep pointer, don't resolve
+
+        // Use dispatch to extract value and convert to target type
+        DynamicValueHandler::generateDynamicDispatch(
+            dynamic_ptr, dynamic_struct_type,
+            m_ir_gen_context.getLLVMBuilder().get(),
+            m_ir_gen_context.getLLVMContext(),
+            [&](llvm::Value *casted_value, DynamicValueType type_tag) {
+              // Get the actual primitive type from the type tag
+              types::Type *source_type =
+                  DynamicValueHandler::getTypeFromDynamicValueType(type_tag);
+              // Convert the casted value to the target type
+              llvm::Value *converted_value =
+                  convertToTargetType(casted_value, left_type, source_type);
+              m_ir_gen_context.getLLVMBuilder()->CreateStore(converted_value,
+                                                             left_pointer);
+            });
+      } else {
+        // Primitive to primitive: normal conversion
+        llvm::Value *right_value = resolveValue(m_last_value, right_type);
+        if (left_type != right_type) {
+          right_value = convertToTargetType(right_value, left_type, right_type);
+        }
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(right_value,
+                                                       left_pointer);
       }
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(right_value, left_pointer);
+
+      clearLast();
     }
   }
 }

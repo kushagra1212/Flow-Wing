@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 # - Define the custom library targets to be installed ---
 set(SDK_LIBRARY_TARGETS
     built_in_module
+    dynamic
     flowwing_string
 
     # Add other custom library target names here as you create them

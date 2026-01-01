@@ -249,6 +249,20 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
     return getLLVMBuilder()->getInt32(0);
   }
 
+  if (type == analysis::Builtins::m_dynamic_type_instance.get()) {
+    // Create a default dynamic value: type tag = INT32, value = 0
+    llvm::Type *dynamic_struct_type = getTypeBuilder()->getLLVMType(type);
+    llvm::ConstantInt *type_tag = llvm::ConstantInt::get(
+        llvm::Type::getInt32Ty(*getLLVMContext()), 1); // INT32
+    llvm::ConstantInt *zero_value =
+        llvm::ConstantInt::get(llvm::Type::getInt64Ty(*getLLVMContext()), 0);
+
+    // Create the struct constant by creating an aggregate constant
+    std::vector<llvm::Constant *> elements = {type_tag, zero_value};
+    return llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(dynamic_struct_type), elements);
+  }
+
   assert(false && "Unsupported type [getDefaultValue]");
   return nullptr;
 }

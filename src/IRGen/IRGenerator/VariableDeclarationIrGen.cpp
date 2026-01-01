@@ -17,7 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/utils/LogConfig.h"
 
@@ -52,14 +54,60 @@ void IRGenerator::visit(
     if (variable_symbol->getInitializerExpression()) {
       variable_symbol->getInitializerExpression()->accept(this);
 
-      llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
-      if (value_to_store->getType() != llvm_type) {
-        value_to_store =
-            convertToTargetType(value_to_store, variable_type, m_last_type);
-      }
+      // Handle dynamic type initialization
+      if (variable_type == analysis::Builtins::m_dynamic_type_instance.get()) {
+        if (m_last_type->isDynamic()) {
+          // Dynamic to dynamic: just copy the struct
+          // m_last_value is already the pointer to the dynamic value
+          llvm::Value *dynamic_value = resolveValue(m_last_value, m_last_type);
+          m_ir_gen_context.getLLVMBuilder()->CreateStore(dynamic_value,
+                                                         storage_ptr);
+        } else if (m_last_type->isPrimitive()) {
+          // Primitive to dynamic: store primitive into dynamic struct
+          llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
+          llvm::Value *dynamic_struct =
+              DynamicValueHandler::storePrimitiveToDynamic(
+                  value_to_store, value_to_store->getType(), llvm_type,
+                  m_ir_gen_context.getLLVMBuilder().get(), m_last_type);
+          m_ir_gen_context.getLLVMBuilder()->CreateStore(dynamic_struct,
+                                                         storage_ptr);
+        } else {
+          // Non-primitive to dynamic: should have been caught by semantic
+          // analyzer
+          assert(false &&
+                 "Non-primitive type cannot be assigned to dynamic variable");
+        }
+      } else if (m_last_type->isDynamic()) {
+        // Dynamic to primitive: use dynamic dispatch to extract and convert
+        llvm::Type *dynamic_struct_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+        llvm::Value *dynamic_ptr = m_last_value; // Keep pointer, don't resolve
 
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store,
-                                                     storage_ptr);
+        // Use dispatch to extract value and convert to target type
+        DynamicValueHandler::generateDynamicDispatch(
+            dynamic_ptr, dynamic_struct_type,
+            m_ir_gen_context.getLLVMBuilder().get(),
+            m_ir_gen_context.getLLVMContext(),
+            [&](llvm::Value *casted_value, DynamicValueType type_tag) {
+              // Get the actual primitive type from the type tag
+              types::Type *source_type =
+                  DynamicValueHandler::getTypeFromDynamicValueType(type_tag);
+              // Convert the casted value to the target variable type
+              llvm::Value *converted_value =
+                  convertToTargetType(casted_value, variable_type, source_type);
+              m_ir_gen_context.getLLVMBuilder()->CreateStore(converted_value,
+                                                             storage_ptr);
+            });
+      } else {
+        // Primitive to primitive: normal conversion
+        llvm::Value *value_to_store = resolveValue(m_last_value, m_last_type);
+        if (value_to_store->getType() != llvm_type) {
+          value_to_store =
+              convertToTargetType(value_to_store, variable_type, m_last_type);
+        }
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(value_to_store,
+                                                       storage_ptr);
+      }
     } else {
       m_ir_gen_context.getLLVMBuilder()->CreateStore(
           m_ir_gen_context.getDefaultValue(variable_type), storage_ptr);

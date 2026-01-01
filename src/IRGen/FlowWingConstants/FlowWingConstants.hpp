@@ -68,6 +68,12 @@ const std::string_view kString_to_double_fn = "fg_std";
 const std::string_view kString_to_float_fn = "fg_stf";
 const std::string_view kRaise_exception_fn = "fg_re";
 
+// Dynamic Functions
+const std::string_view kPerform_dynamic_op_fn = "fg_perform_dynamic_op";
+const std::string_view kPerform_dynamic_unary_op_fn =
+    "fg_perform_dynamic_unary_op";
+const std::string_view kPrint_dynamic_fn = "fg_print_dynamic";
+
 const std::string_view kMalloc_fn = "malloc";
 
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,33 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
       BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
 
-      if (*expression_type > *variable_type) {
+      // Special handling for dynamic types
+      if (variable_type->isDynamic()) {
+        // Variable is dynamic: expression must be dynamic or primitive
+        if (!expression_type->isDynamic() && !expression_type->isPrimitive()) {
+          auto error_expression = std::make_unique<BoundErrorExpression>(
+              initializer_expression->getSourceLocation(),
+              diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
+              diagnostic::DiagnosticArgs{variable_type->getName(),
+                                         expression_type->getName(),
+                                         variable_symbols[i]->getName()});
+          m_context->reportError(error_expression.get());
+          static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+              ->setInitializerExpression(std::move(error_expression));
+        } else {
+          // Dynamic can hold any primitive or dynamic
+          static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+              ->setInitializerExpression(
+                  std::move(bound_initializer_expressions[i]));
+        }
+      } else if (expression_type->isDynamic()) {
+        // Expression is dynamic: variable can hold it (will be extracted at
+        // runtime)
+        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+            ->setInitializerExpression(
+                std::move(bound_initializer_expressions[i]));
+      } else if (*expression_type > *variable_type) {
+        // Normal type mismatch check
         auto error_expression = std::make_unique<BoundErrorExpression>(
             initializer_expression->getSourceLocation(),
             diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,

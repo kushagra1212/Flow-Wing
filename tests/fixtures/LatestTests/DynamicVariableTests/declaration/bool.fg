@@ -1,0 +1,5 @@
+var x = true
+print(x, "\n")
+var y = false
+print(y, "\n")
+

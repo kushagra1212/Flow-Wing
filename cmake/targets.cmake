@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -194,6 +194,7 @@ if(NOT BUILD_AOT)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,-all_load"
             "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
+            "-Wl,-force_load,$<TARGET_FILE:dynamic>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
@@ -203,6 +204,7 @@ if(NOT BUILD_AOT)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,--whole-archive"
             built_in_module
+            dynamic
             "${DEPS_LIB_DIR}/libgc.a"
             "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
@@ -217,6 +219,7 @@ if(NOT BUILD_AOT)
        # On Windows (MSVC), force inclusion of all static lib objects
          target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             built_in_module
+            dynamic
             "${DEPS_LIB_DIR}/gc.lib"
             "${DEPS_LIB_DIR}/gccpp.lib"
             "${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -224,6 +227,7 @@ if(NOT BUILD_AOT)
 
         target_link_options(${EXECUTABLE_NAME} PRIVATE
             "/WHOLEARCHIVE:$<TARGET_FILE:built_in_module>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:dynamic>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"

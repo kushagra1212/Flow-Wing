@@ -1,0 +1,5 @@
+var x = 2
+var k = x + 2
+print(k, "\n")
+print((k + 2), "\n")
+

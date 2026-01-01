@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -252,7 +252,9 @@ ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
     // The result type of '!' is always boolean
     return {type->getKind() == types::TypeKind::kClass ||
                 isAllowedType(allowed_types_for_bang_operator),
-            analysis::Builtins::m_bool_type_instance};
+            type == analysis::Builtins::m_dynamic_type_instance
+                ? type
+                : analysis::Builtins::m_bool_type_instance};
   }
   case lexer::TokenKind::kTildeToken: {
     return {isAllowedType(allowed_types_for_tilde_operator), type};
