@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  */
 #include "NodeKind.h"
 #include <cassert>
@@ -92,6 +92,12 @@ const std::string &toString(NodeKind kind) {
 
       // ---- Bound Assignment Expressions ----
       {NodeKind::kAssignmentExpression, "AssignmentExpression"},
+
+      // ---- Bound Object Expressions ----
+      {NodeKind::kObjectExpression, "ObjectExpression"},
+
+      // ---- Bound Colon Expressions ----
+      {NodeKind::kColonExpression, "ColonExpression"},
 
   };
 

@@ -3,6 +3,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
@@ -17,6 +18,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundModuleAccessExpression/BoundModuleAccessExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundNewExpression/BoundNewExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.hpp"
@@ -101,8 +103,10 @@ public:
   virtual void visit(binding::BoundBinaryExpression *variable_declaration) = 0;
   virtual void
   visit(binding::BoundParenthesizedExpression *variable_declaration) = 0;
+  virtual void visit(binding::BoundObjectExpression *variable_declaration) = 0;
   virtual void
   visit(binding::BoundAssignmentExpression *variable_declaration) = 0;
+  virtual void visit(binding::BoundColonExpression *variable_declaration) = 0;
 };
 
 } // namespace visitor

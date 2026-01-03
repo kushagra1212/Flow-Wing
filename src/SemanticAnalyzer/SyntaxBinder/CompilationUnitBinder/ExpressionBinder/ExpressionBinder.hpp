@@ -7,6 +7,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
 // Forward declare all syntax nodes
 namespace flow_wing {
 
@@ -58,6 +59,9 @@ class AssignmentExpressionSyntax;
 
 // -- Parenthesized Expression --
 class ParenthesizedExpressionSyntax;
+
+// -- Object Expression --
+class ObjectExpressionSyntax;
 } // namespace syntax
 
 namespace binding {
@@ -143,6 +147,14 @@ private:
   // -- Parenthesized Expression --
   std::unique_ptr<BoundExpression> bindParenthesizedExpression(
       syntax::ParenthesizedExpressionSyntax *expression);
+
+  // -- Object Expression --
+  std::unique_ptr<BoundExpression>
+  bindObjectExpression(syntax::ObjectExpressionSyntax *expression);
+
+  // -- Colon Expression --
+  std::unique_ptr<BoundExpression>
+  bindColonExpression(syntax::ColonExpressionSyntax *expression);
 
   // -- Binary Expression --
   std::unique_ptr<BoundExpression>

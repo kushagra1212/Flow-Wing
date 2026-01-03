@@ -115,6 +115,8 @@ void GlobalDeclarationsInitializer::visit(
     auto llvm_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
 
+    assert(llvm_type && "LLVM type is null");
+
     // Already handled in SemanticAnalyzer
     bool is_llvm_constant = false;
 
@@ -219,6 +221,12 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundParenthesizedExpression
         *variable_declaration) {}
+
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundObjectExpression *variable_declaration) {}
+
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundColonExpression *colon_expression) {}
 
 } // namespace ir_gen
 } // namespace flow_wing

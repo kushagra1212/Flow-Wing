@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "OperatorPrecedence.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 
@@ -33,7 +30,7 @@ int OperatorPrecedence::getPrefixPrecedence(lexer::TokenKind kind) {
   case lexer::TokenKind::kBangToken:
   case lexer::TokenKind::kTildeToken:
   case lexer::TokenKind::kNewKeyword:
-    return 12;
+    return 13;
   default:
     return 0;
   }
@@ -44,27 +41,29 @@ int OperatorPrecedence::getInfixPrecedence(lexer::TokenKind kind) {
   case lexer::TokenKind::kSlashSlashToken:
   case lexer::TokenKind::kSlashToken:
   case lexer::TokenKind::kPercentToken:
-    return 11;
+    return 12;
   case lexer::TokenKind::kPlusToken:
   case lexer::TokenKind::kMinusToken:
-    return 10;
+    return 11;
   case lexer::TokenKind::kLessToken:
   case lexer::TokenKind::kLessOrEqualsToken:
   case lexer::TokenKind::kGreaterToken:
   case lexer::TokenKind::kGreaterOrEqualsToken:
-    return 9;
+    return 10;
   case lexer::TokenKind::kEqualsEqualsToken:
   case lexer::TokenKind::kBangEqualsToken:
-    return 8;
+    return 9;
   case lexer::TokenKind::kAmpersandToken:
-    return 7;
+    return 8;
   case lexer::TokenKind::kCaretToken:
-    return 6;
+    return 7;
   case lexer::TokenKind::kPipeToken:
-    return 5;
+    return 6;
   case lexer::TokenKind::kAmpersandAmpersandToken:
-    return 4;
+    return 5;
   case lexer::TokenKind::kPipePipeToken:
+    return 4;
+  case lexer::TokenKind::kColonToken:
     return 3;
   case lexer::TokenKind::kCommaToken:
   case lexer::TokenKind::kQuestionToken:

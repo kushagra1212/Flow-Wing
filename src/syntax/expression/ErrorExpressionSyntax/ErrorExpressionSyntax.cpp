@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,9 @@ namespace flow_wing {
 namespace syntax {
 
 ErrorExpressionSyntax::ErrorExpressionSyntax(
-    const std::vector<const SyntaxToken *> &skipped_tokens)
-    : m_skipped_tokens(skipped_tokens) {}
+    const std::vector<const SyntaxToken *> &skipped_tokens,
+    flow_wing::diagnostic::Diagnostic diagnostic)
+    : m_diagnostic(diagnostic), m_skipped_tokens(skipped_tokens) {}
 
 // Overrides
 NodeKind ErrorExpressionSyntax::getKind() const {
@@ -38,6 +39,11 @@ void ErrorExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
 const std::vector<const SyntaxToken *> &
 ErrorExpressionSyntax::getSkippedTokens() const {
   return m_skipped_tokens;
+}
+
+const flow_wing::diagnostic::Diagnostic &
+ErrorExpressionSyntax::getDiagnostic() const {
+  return m_diagnostic;
 }
 
 const std::vector<const SyntaxNode *> &

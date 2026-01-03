@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
@@ -255,6 +256,11 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
   }
 
   return value;
+}
+
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundColonExpression *colon_expression) {
+  assert(false && "Colon expression not supported");
 }
 
 } // namespace ir_gen

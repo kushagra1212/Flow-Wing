@@ -32,6 +32,8 @@ void IRGenerator::visit(
   assert(symbol_type && "Symbol type is null");
   auto llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(symbol_type.get());
+
+  CODEGEN_DEBUG_LOG("LLVM Type", llvm_type->getStructName().str());
   m_last_llvm_type = llvm_type;
   m_last_type = symbol_type.get();
 }

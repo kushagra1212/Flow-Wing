@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
 
 #include "AstJson.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/compiler/diagnostics/Diagnostic.h"
+#include "src/compiler/diagnostics/DiagnosticMessageDatabase/DiagnosticMessageDatabase.h"
+#include "src/compiler/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "src/syntax/CompilationUnitSyntax.h"
 #include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/SyntaxToken.h"
@@ -28,6 +31,7 @@
 #include "src/syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/CharacterLiteralExpressionSyntax/CharacterLiteralExpressionSyntax.h"
+#include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
 #include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 #include "src/syntax/expression/DeclaratorExpressionSyntax/DeclaratorExpressionSyntax.h"
 #include "src/syntax/expression/DimensionClauseExpressionSyntax/DimensionClauseExpressionSyntax.h"
@@ -47,7 +51,6 @@
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
-#include "src/syntax/expression/ObjectMemberSyntax/ObjectMemberSyntax.h"
 #include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
@@ -150,6 +153,18 @@ void AstJson::visit([[maybe_unused]] syntax::ErrorExpressionSyntax *node) {
     skipped.push_back(text);
   }
   error_expression_json["skipped_tokens"] = skipped;
+  error_expression_json["message"] = node->getDiagnostic().getMessage();
+  error_expression_json["help"] = node->getDiagnostic().getHelp();
+  error_expression_json["note"] = node->getDiagnostic().getNote();
+  error_expression_json["code"] =
+      diagnostic::DiagnosticMessageDatabase::toString(
+          node->getDiagnostic().getCode());
+  error_expression_json["type"] =
+      diagnostic::utils::toString(node->getDiagnostic().getType());
+  error_expression_json["level"] =
+      diagnostic::utils::toString(node->getDiagnostic().getLevel());
+  error_expression_json["location"] =
+      toJsonRange(node->getDiagnostic().getLocation());
 
   error_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(error_expression_json);
@@ -450,18 +465,19 @@ void AstJson::visit([[maybe_unused]] syntax::ObjectExpressionSyntax *node) {
 
   nlohmann::json object_expression_json;
   object_expression_json["kind"] = syntax::toString(node->getKind());
-  serializeArray(node->getMembers(), object_expression_json, "members");
+  serializeChild(node->getColonExpression(), object_expression_json,
+                 "colon_expression");
   object_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(object_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ObjectMemberSyntax *node) {
+void AstJson::visit([[maybe_unused]] syntax::ColonExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ObjectMemberSyntax", "AST");
 
   nlohmann::json object_member_json;
   object_member_json["kind"] = syntax::toString(node->getKind());
-  serializeChild(node->getIdentifierExpression(), object_member_json,
+  serializeChild(node->getLeftExpression(), object_member_json,
                  "key_expression");
-  serializeChild(node->getValueExpression(), object_member_json,
+  serializeChild(node->getRightExpression(), object_member_json,
                  "value_expression");
   object_member_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(object_member_json);

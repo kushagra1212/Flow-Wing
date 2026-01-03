@@ -19,32 +19,31 @@
 
 #pragma once
 
-#include "src/compiler/diagnostics/Diagnostic.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 namespace flow_wing {
-namespace syntax {
+namespace binding {
 
-class ErrorExpressionSyntax : public ExpressionSyntax {
+class BoundColonExpression : public BoundExpression {
 
 public:
-  ErrorExpressionSyntax(const std::vector<const SyntaxToken *> &skipped_tokens,
-                        flow_wing::diagnostic::Diagnostic diagnostic);
+  BoundColonExpression(const std::string &field_name,
+                       std::unique_ptr<BoundExpression> right_expression,
+                       const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundColonExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
-  const std::vector<const SyntaxNode *> &getChildren() const override;
-  void accept(visitor::ASTVisitor *visitor) override;
-
+  void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
-  const std::vector<const SyntaxToken *> &getSkippedTokens() const;
-  const flow_wing::diagnostic::Diagnostic &getDiagnostic() const;
+  std::shared_ptr<types::Type> getType() const override;
+
+  const std::string &getFieldName() const;
+  const std::unique_ptr<BoundExpression> &getRightExpression() const;
 
 private:
-  mutable std::vector<const SyntaxNode *> m_children;
-  flow_wing::diagnostic::Diagnostic m_diagnostic;
-  std::vector<const SyntaxToken *> m_skipped_tokens;
+  std::string m_field_name;
+  std::unique_ptr<BoundExpression> m_right_expression;
 };
-} // namespace syntax
+} // namespace binding
 } // namespace flow_wing

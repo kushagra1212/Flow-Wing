@@ -21,8 +21,10 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -188,6 +190,7 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundErrorStatement *error_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Error Statement", "BOUND TREE");
+
   assert(false && "Error statement not supported");
 }
 
@@ -235,4 +238,16 @@ void BoundTreeJson::visit(
   assert(false && "New expression not supported");
 }
 
+void BoundTreeJson::visit(
+    [[maybe_unused]] binding::BoundColonExpression *colon_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Colon Expression", "BOUND TREE");
+  nlohmann::json colon_expression_json;
+  colon_expression_json["kind"] = toString(colon_expression->getKind());
+  colon_expression_json["field_name"] = colon_expression->getFieldName();
+  serializeChild(colon_expression->getRightExpression(), colon_expression_json,
+                 "right");
+  colon_expression_json["range"] =
+      toJsonRange(colon_expression->getSourceLocation());
+  m_last_node_json = std::move(colon_expression_json);
+}
 } // namespace flow_wing::compiler::serializer

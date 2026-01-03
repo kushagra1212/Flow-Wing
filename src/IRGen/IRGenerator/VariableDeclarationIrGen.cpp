@@ -52,7 +52,7 @@ void IRGenerator::visit(
       m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
     }
 
-    // 2. Handle Initialization
+    // Handle Initialization
     if (auto *init_expression =
             variable_symbol->getInitializerExpression().get()) {
       init_expression->accept(this);

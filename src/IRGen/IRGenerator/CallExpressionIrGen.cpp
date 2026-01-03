@@ -40,6 +40,104 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
       assert(printf_function && "kPrintf_fn function not found");
 
+      std::function<void(llvm::Value *, types::Type *, bool is_nested)>
+          emitPrintRecursive;
+
+      emitPrintRecursive = [&](llvm::Value *value, types::Type *type,
+                               bool is_nested) {
+        if (type->isDynamic()) {
+
+          llvm::Function *print_dynamic_fn =
+              m_ir_gen_context.getLLVMModule()->getFunction(
+                  std::string(ir_gen::constants::functions::kPrint_dynamic_fn));
+          assert(print_dynamic_fn && "kPrint_dynamic_fn not found");
+
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(print_dynamic_fn,
+                                                        {value});
+
+          return;
+        }
+
+        if (type->getKind() == types::TypeKind::kObject) {
+          auto *custom_type = static_cast<types::CustomObjectType *>(type);
+
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr("{ ")});
+
+          const auto &field_types_map = custom_type->getFieldTypesMap();
+          size_t total_fields = field_types_map.size();
+
+          size_t field_count = 0;
+          for (const auto &[field_name, field_type] : field_types_map) {
+
+            // Print Field Name: "name: "
+            std::string label = field_name + ": ";
+            m_ir_gen_context.getLLVMBuilder()->CreateCall(
+                printf_function,
+                {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
+                    label)});
+
+            llvm::Value *field_ptr =
+                m_ir_gen_context.getLLVMBuilder()->CreateStructGEP(
+                    m_ir_gen_context.getTypeBuilder()->getLLVMType(custom_type),
+                    value, static_cast<unsigned int>(field_count));
+
+            llvm::Value *loaded_field =
+                m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+                    m_ir_gen_context.getTypeBuilder()->getLLVMType(
+                        field_type.get()),
+                    field_ptr, field_name + "_val_ptr");
+
+            emitPrintRecursive(loaded_field, field_type.get(), true);
+
+            if (field_count < total_fields - 1) {
+              m_ir_gen_context.getLLVMBuilder()->CreateCall(
+                  printf_function,
+                  {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(
+                      ", ")});
+            }
+            field_count++;
+          }
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr(" }")});
+          return;
+        }
+
+        bool is_string =
+            (type == analysis::Builtins::m_str_type_instance.get());
+        bool is_char = (type == analysis::Builtins::m_char_type_instance.get());
+
+        if (is_nested && is_string) {
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr("\"")});
+        }
+        if (is_nested && is_char) {
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr("'")});
+        }
+
+        llvm::Value *stringified_value =
+            convertToString(value, value->getType(), is_char);
+
+        m_ir_gen_context.getLLVMBuilder()->CreateCall(printf_function,
+                                                      {stringified_value});
+
+        if (is_nested && is_string) {
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr("\"")});
+        }
+        if (is_nested && is_char) {
+          m_ir_gen_context.getLLVMBuilder()->CreateCall(
+              printf_function,
+              {m_ir_gen_context.getLLVMBuilder()->CreateGlobalStringPtr("'")});
+        }
+      };
+
       std::vector<llvm::Value *> arguments;
 
       for (const auto &argument : call_expression->getArguments()) {
@@ -52,26 +150,14 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
         assert(m_last_value && "m_last_value is null");
         assert(m_last_type && "m_last_type is null");
 
-        if (m_last_type->isDynamic()) {
-          // function type: void fg_print_dynamic(DynamicValue*)
-          llvm::Function *print_dynamic_fn =
-              m_ir_gen_context.getLLVMModule()->getFunction(
-                  std::string(ir_gen::constants::functions::kPrint_dynamic_fn));
-
-          assert(print_dynamic_fn && "kPrint_dynamic_fn function not found");
-
-          llvm::Value *dynamic_ptr = m_last_value;
-          m_ir_gen_context.getLLVMBuilder()->CreateCall(print_dynamic_fn,
-                                                        {dynamic_ptr});
-        } else {
-          auto last_value = resolveValue(m_last_value, m_last_type);
-          bool is_char =
-              (m_last_type == analysis::Builtins::m_char_type_instance.get());
-
-          m_ir_gen_context.getLLVMBuilder()->CreateCall(
-              printf_function,
-              {convertToString(last_value, last_value->getType(), is_char)});
+        llvm::Value *value_to_print = m_last_value;
+        if (m_last_type->getKind() != types::TypeKind::kObject &&
+            !m_last_type->isDynamic()) {
+          value_to_print = resolveValue(m_last_value, m_last_type);
         }
+
+        emitPrintRecursive(value_to_print, m_last_type, false);
+
         clearLast();
       }
     };

@@ -37,49 +37,40 @@ private:
   void visit(binding::BoundBlockStatement *block_statement) override;
   void visit(binding::BoundExposeStatement *expose_statement) override;
   void visit(binding::BoundCustomTypeStatement *custom_type_statement) override;
-  void visit(binding::BoundVariableDeclaration *variable_declaration) override;
-  void visit(binding::BoundFunctionStatement *variable_declaration) override;
-  void visit(binding::BoundIfStatement *variable_declaration) override;
-  void visit(binding::BoundWhileStatement *variable_declaration) override;
-  void visit(binding::BoundForStatement *variable_declaration) override;
-  void visit(binding::BoundBreakStatement *variable_declaration) override;
-  void visit(binding::BoundContinueStatement *variable_declaration) override;
-  void visit(binding::BoundReturnStatement *variable_declaration) override;
-  void visit(binding::BoundSwitchStatement *variable_declaration) override;
-  void visit(binding::BoundClassStatement *variable_declaration) override;
-  void visit(binding::BoundIdentifierExpression *variable_declaration) override;
-  void visit(binding::BoundIndexExpression *variable_declaration) override;
-  void
-  visit(binding::BoundIntegerLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundDoubleLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundFloatLiteralExpression *variable_declaration) override;
-  void visit(
-      binding::BoundCharacterLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundStringLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundBooleanLiteralExpression *variable_declaration) override;
-  void visit(binding::BoundTemplateStringLiteralExpression
-                 *variable_declaration) override;
-  void
-  visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
-  void visit(binding::BoundErrorStatement *variable_declaration) override;
-  void visit(binding::BoundErrorExpression *variable_declaration) override;
-  void
-  visit(binding::BoundModuleAccessExpression *variable_declaration) override;
-  void visit(binding::BoundCallExpression *variable_declaration) override;
-  void
-  visit(binding::BoundMemberAccessExpression *variable_declaration) override;
-  void visit(binding::BoundTernaryExpression *variable_declaration) override;
-  void visit(binding::BoundNewExpression *variable_declaration) override;
-  void
-  visit(binding::BoundParenthesizedExpression *variable_declaration) override;
-  void visit(binding::BoundUnaryExpression *variable_declaration) override;
-  void visit(binding::BoundBinaryExpression *variable_declaration) override;
-  void visit(binding::BoundAssignmentExpression *variable_declaration) override;
-  void visit(binding::BoundExpressionStatement *variable_declaration) override;
+  void visit(binding::BoundVariableDeclaration *node) override;
+  void visit(binding::BoundFunctionStatement *node) override;
+  void visit(binding::BoundIfStatement *node) override;
+  void visit(binding::BoundWhileStatement *node) override;
+  void visit(binding::BoundForStatement *node) override;
+  void visit(binding::BoundBreakStatement *node) override;
+  void visit(binding::BoundContinueStatement *node) override;
+  void visit(binding::BoundReturnStatement *node) override;
+  void visit(binding::BoundSwitchStatement *node) override;
+  void visit(binding::BoundClassStatement *node) override;
+  void visit(binding::BoundIdentifierExpression *node) override;
+  void visit(binding::BoundIndexExpression *node) override;
+  void visit(binding::BoundIntegerLiteralExpression *node) override;
+  void visit(binding::BoundDoubleLiteralExpression *node) override;
+  void visit(binding::BoundFloatLiteralExpression *node) override;
+  void visit(binding::BoundCharacterLiteralExpression *node) override;
+  void visit(binding::BoundStringLiteralExpression *node) override;
+  void visit(binding::BoundBooleanLiteralExpression *node) override;
+  void visit(binding::BoundTemplateStringLiteralExpression *node) override;
+  void visit(binding::BoundNirastLiteralExpression *node) override;
+  void visit(binding::BoundErrorStatement *node) override;
+  void visit(binding::BoundErrorExpression *node) override;
+  void visit(binding::BoundModuleAccessExpression *node) override;
+  void visit(binding::BoundCallExpression *node) override;
+  void visit(binding::BoundMemberAccessExpression *node) override;
+  void visit(binding::BoundTernaryExpression *node) override;
+  void visit(binding::BoundNewExpression *node) override;
+  void visit(binding::BoundParenthesizedExpression *node) override;
+  void visit(binding::BoundObjectExpression *node) override;
+  void visit(binding::BoundUnaryExpression *node) override;
+  void visit(binding::BoundBinaryExpression *node) override;
+  void visit(binding::BoundAssignmentExpression *node) override;
+  void visit(binding::BoundExpressionStatement *node) override;
+  void visit(binding::BoundColonExpression *colon_expression) override;
 
   // Symbols
   std::string getSymbolId(const analysis::FunctionSymbol *function_symbol);

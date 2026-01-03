@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,12 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/ErrorExpressionParser/ErrorExpressionParser.hpp"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/diagnostics/Diagnostic.h"
+#include "src/compiler/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ErrorExpressionSyntax/ErrorExpressionSyntax.hpp"
 #include "src/utils/LogConfig.h"
-
 namespace flow_wing {
 namespace parser {
 
@@ -45,7 +47,18 @@ std::unique_ptr<syntax::ExpressionSyntax> ErrorExpressionParser::parse() {
   skipped_tokens.push_back(m_ctx->nextToken());
 
   if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kEndOfFileToken) {
-    return std::make_unique<syntax::ErrorExpressionSyntax>(skipped_tokens);
+
+    flow_wing::diagnostic::Diagnostic diagnostic =
+        m_ctx->getCompilationContext()
+            .getDiagnostics()
+            ->getDiagnostics()[m_ctx->getCompilationContext()
+                                   .getDiagnostics()
+                                   ->getDiagnostics()
+                                   .size() -
+                               1];
+
+    return std::make_unique<syntax::ErrorExpressionSyntax>(skipped_tokens,
+                                                           diagnostic);
   }
 
   while (!isExpressionDelimiter(m_ctx->getCurrentTokenKind())) {
@@ -58,7 +71,17 @@ std::unique_ptr<syntax::ExpressionSyntax> ErrorExpressionParser::parse() {
     }
   }
 
-  return std::make_unique<syntax::ErrorExpressionSyntax>(skipped_tokens);
+  flow_wing::diagnostic::Diagnostic diagnostic =
+      m_ctx->getCompilationContext()
+          .getDiagnostics()
+          ->getDiagnostics()[m_ctx->getCompilationContext()
+                                 .getDiagnostics()
+                                 ->getDiagnostics()
+                                 .size() -
+                             1];
+
+  return std::make_unique<syntax::ErrorExpressionSyntax>(skipped_tokens,
+                                                         diagnostic);
 }
 
 bool ErrorExpressionParser::isExpressionDelimiter(

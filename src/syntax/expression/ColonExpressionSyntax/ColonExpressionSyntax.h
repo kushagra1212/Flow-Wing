@@ -25,12 +25,12 @@
 namespace flow_wing {
 namespace syntax {
 
-class ObjectMemberSyntax : public ExpressionSyntax {
+class ColonExpressionSyntax : public ExpressionSyntax {
 
 public:
-  ObjectMemberSyntax(std::unique_ptr<ExpressionSyntax> identifier_expression,
-                     const SyntaxToken *colon_token,
-                     std::unique_ptr<ExpressionSyntax> value_expression);
+  ColonExpressionSyntax(std::unique_ptr<ExpressionSyntax> left_expression,
+                        const SyntaxToken *colon_token,
+                        std::unique_ptr<ExpressionSyntax> right_expression);
 
   // Overrides
   NodeKind getKind() const override;
@@ -38,13 +38,13 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  const std::unique_ptr<ExpressionSyntax> &getIdentifierExpression() const;
-  const std::unique_ptr<ExpressionSyntax> &getValueExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getLeftExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getRightExpression() const;
 
 private:
-  std::unique_ptr<ExpressionSyntax> m_identifier_expression;
+  std::unique_ptr<ExpressionSyntax> m_left_expression;
   const SyntaxToken *m_colon_token;
-  std::unique_ptr<ExpressionSyntax> m_value_expression;
+  std::unique_ptr<ExpressionSyntax> m_right_expression;
   mutable std::vector<const SyntaxNode *> m_children;
 };
 } // namespace syntax

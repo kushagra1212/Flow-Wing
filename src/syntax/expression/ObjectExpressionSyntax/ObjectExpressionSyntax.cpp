@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,11 @@ namespace syntax {
 
 ObjectExpressionSyntax::ObjectExpressionSyntax(
     const SyntaxToken *open_brace_token,
-    std::vector<std::unique_ptr<ObjectMemberSyntax>> members,
-    std::vector<const SyntaxToken *> comma_tokens,
+    std::unique_ptr<ExpressionSyntax> colon_expression,
     const SyntaxToken *close_brace_token)
     : ExpressionSyntax(open_brace_token->getSourceLocation()),
-      m_open_brace_token(open_brace_token), m_members(std::move(members)),
-      m_comma_tokens(std::move(comma_tokens)),
+      m_open_brace_token(open_brace_token),
+      m_colon_expression(std::move(colon_expression)),
       m_close_brace_token(close_brace_token) {}
 
 NodeKind ObjectExpressionSyntax::getKind() const {
@@ -41,9 +40,9 @@ void ObjectExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
-const std::vector<std::unique_ptr<ObjectMemberSyntax>> &
-ObjectExpressionSyntax::getMembers() const {
-  return m_members;
+const std::unique_ptr<ExpressionSyntax> &
+ObjectExpressionSyntax::getColonExpression() const {
+  return m_colon_expression;
 }
 
 const std::vector<const SyntaxNode *> &
@@ -52,16 +51,8 @@ ObjectExpressionSyntax::getChildren() const {
 
     m_children.push_back(m_open_brace_token);
 
-    size_t size = std::max(m_members.size(), m_comma_tokens.size());
+    m_children.push_back(m_colon_expression.get());
 
-    for (size_t i = 0; i < size; i++) {
-      if (i < m_members.size() && m_members[i]) {
-        m_children.push_back(m_members[i].get());
-      }
-      if (i < m_comma_tokens.size() && m_comma_tokens[i]) {
-        m_children.push_back(m_comma_tokens[i]);
-      }
-    }
     m_children.push_back(m_close_brace_token);
   }
 

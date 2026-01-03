@@ -26,10 +26,11 @@ namespace types {
 
 CustomObjectType::CustomObjectType(
     const std::string &custom_type_name,
-    std::map<std::string, std::shared_ptr<Type>> fields)
-    : Type(buildCustomObjectTypeName(custom_type_name, fields),
+    const std::map<std::string, std::shared_ptr<Type>> &field_types_map)
+    : Type(buildCustomObjectTypeName(custom_type_name, field_types_map),
            TypeKind::kObject),
-      m_custom_type_name(custom_type_name), m_fields(std::move(fields)) {}
+      m_custom_type_name(custom_type_name),
+      m_field_types_map(std::move(field_types_map)) {}
 
 bool CustomObjectType::operator==(const Type &other) const {
   if (other.getKind() != TypeKind::kObject) {
@@ -39,18 +40,16 @@ bool CustomObjectType::operator==(const Type &other) const {
   const auto *other_custom_object =
       static_cast<const CustomObjectType *>(&other);
 
-  if (m_fields.size() != other_custom_object->m_fields.size()) {
+  if (m_field_types_map.size() !=
+      other_custom_object->m_field_types_map.size()) {
     return false;
   }
 
-  for (const auto &[field_name, field_type] : m_fields) {
-
-    auto it = other_custom_object->m_fields.find(field_name);
-    if (it == other_custom_object->m_fields.end()) {
-      return false; // Field name not found
-    }
-
-    if (*field_type != *it->second) {
+  for (const auto &[field_name, field_type] : m_field_types_map) {
+    const auto &other_field_type =
+        other_custom_object->m_field_types_map.find(field_name);
+    if (other_field_type == other_custom_object->m_field_types_map.end() ||
+        *field_type != *other_field_type->second) {
       return false;
     }
   }
@@ -59,8 +58,8 @@ bool CustomObjectType::operator==(const Type &other) const {
 }
 
 const std::map<std::string, std::shared_ptr<Type>> &
-CustomObjectType::getFields() const {
-  return m_fields;
+CustomObjectType::getFieldTypesMap() const {
+  return m_field_types_map;
 }
 
 const std::string &CustomObjectType::getCustomTypeName() const {
@@ -75,40 +74,28 @@ bool CustomObjectType::operator<=(const Type &other) const {
   const auto *other_custom_object =
       static_cast<const CustomObjectType *>(&other);
 
-  if (m_fields.size() > other_custom_object->m_fields.size()) {
+  if (m_field_types_map.size() >
+      other_custom_object->m_field_types_map.size()) {
     return false;
   }
 
-  for (const auto &[field_name, field_type] : m_fields) {
-    auto it = other_custom_object->m_fields.find(field_name);
-    if (it == other_custom_object->m_fields.end()) {
-      return false;
-    }
-
-    if (*field_type > *it->second) {
+  for (const auto &[field_name, field_type] : m_field_types_map) {
+    const auto &other_field_type =
+        other_custom_object->m_field_types_map.find(field_name);
+    if (other_field_type == other_custom_object->m_field_types_map.end() ||
+        *field_type > *other_field_type->second) {
       return false;
     }
   }
-
   return true;
 }
-
-std::shared_ptr<Type>
-CustomObjectType::getFieldType(const std::string &name) const {
-  auto it = m_fields.find(name);
-  if (it == m_fields.end()) {
-    return nullptr;
-  }
-  return it->second;
-}
-
 std::string CustomObjectType::buildCustomObjectTypeName(
     const std::string &custom_type_name,
-    const std::map<std::string, std::shared_ptr<Type>> &fields) {
+    const std::map<std::string, std::shared_ptr<Type>> &field_types_map) {
   std::stringstream ss;
   ss << "Object: <" << custom_type_name << " {";
-  size_t count = 0, total_fields = fields.size();
-  for (const auto &[field_name, field_type] : fields) {
+  size_t count = 0, total_fields = field_types_map.size();
+  for (const auto &[field_name, field_type] : field_types_map) {
     ss << " " << field_name << ": " << field_type->getName();
     count++;
     if (count < total_fields - 1) {

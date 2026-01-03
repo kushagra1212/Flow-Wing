@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/ObjectMemberSyntax/ObjectMemberSyntax.h"
 
 namespace flow_wing {
 namespace syntax {
@@ -29,11 +28,9 @@ namespace syntax {
 class ObjectExpressionSyntax : public ExpressionSyntax {
 
 public:
-  ObjectExpressionSyntax(
-      const SyntaxToken *open_brace_token,
-      std::vector<std::unique_ptr<ObjectMemberSyntax>> members,
-      std::vector<const SyntaxToken *> comma_tokens,
-      const SyntaxToken *close_brace_token);
+  ObjectExpressionSyntax(const SyntaxToken *open_brace_token,
+                         std::unique_ptr<ExpressionSyntax> colon_expression,
+                         const SyntaxToken *close_brace_token);
 
   // Overrides
   NodeKind getKind() const override;
@@ -41,12 +38,11 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
   // Getters
 
-  const std::vector<std::unique_ptr<ObjectMemberSyntax>> &getMembers() const;
+  const std::unique_ptr<ExpressionSyntax> &getColonExpression() const;
 
 private:
   const SyntaxToken *m_open_brace_token;
-  std::vector<std::unique_ptr<ObjectMemberSyntax>> m_members;
-  std::vector<const SyntaxToken *> m_comma_tokens;
+  std::unique_ptr<ExpressionSyntax> m_colon_expression;
   const SyntaxToken *m_close_brace_token;
 
   mutable std::vector<const SyntaxNode *> m_children;

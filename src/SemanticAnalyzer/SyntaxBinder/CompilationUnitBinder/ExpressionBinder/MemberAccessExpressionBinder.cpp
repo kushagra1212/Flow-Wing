@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,9 +63,9 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
       expression->getRightExpression().get());
   const auto &member_name = member_identifier->getValue();
 
-  auto field_type = object_type->getFieldType(member_name);
+  const auto &field_type_it = object_type->getFieldTypesMap().find(member_name);
 
-  if (field_type == nullptr) {
+  if (field_type_it == object_type->getFieldTypesMap().end()) {
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
         member_identifier->getSourceLocation(),
@@ -77,7 +77,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
   }
 
   return std::make_unique<BoundMemberAccessExpression>(
-      object_type, member_name, field_type, expression->getSourceLocation());
+      object_type, member_name, field_type_it->second,
+      expression->getSourceLocation());
 
   /*
      x.y => (x).y

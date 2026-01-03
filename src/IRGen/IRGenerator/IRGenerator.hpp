@@ -17,49 +17,54 @@ public:
   void visit(binding::BoundBlockStatement *block_statement) override;
   void visit(binding::BoundExposeStatement *expose_statement) override;
   void visit(binding::BoundCustomTypeStatement *custom_type_statement) override;
-  void visit(binding::BoundVariableDeclaration *variable_declaration) override;
-  void visit(binding::BoundFunctionStatement *variable_declaration) override;
-  void visit(binding::BoundIfStatement *variable_declaration) override;
-  void visit(binding::BoundWhileStatement *variable_declaration) override;
-  void visit(binding::BoundForStatement *variable_declaration) override;
-  void visit(binding::BoundBreakStatement *variable_declaration) override;
-  void visit(binding::BoundContinueStatement *variable_declaration) override;
-  void visit(binding::BoundReturnStatement *variable_declaration) override;
-  void visit(binding::BoundSwitchStatement *variable_declaration) override;
-  void visit(binding::BoundClassStatement *variable_declaration) override;
-  void visit(binding::BoundIdentifierExpression *variable_declaration) override;
-  void visit(binding::BoundIndexExpression *variable_declaration) override;
+  void visit(binding::BoundVariableDeclaration *variable_declaration_statement)
+      override;
+  void visit(binding::BoundFunctionStatement *function_statement) override;
+  void visit(binding::BoundIfStatement *if_statement) override;
+  void visit(binding::BoundWhileStatement *while_statement) override;
+  void visit(binding::BoundForStatement *for_statement) override;
+  void visit(binding::BoundBreakStatement *break_statement) override;
+  void visit(binding::BoundContinueStatement *continue_statement) override;
+  void visit(binding::BoundReturnStatement *return_statement) override;
+  void visit(binding::BoundSwitchStatement *switch_statement) override;
+  void visit(binding::BoundClassStatement *class_statement) override;
   void
-  visit(binding::BoundIntegerLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundDoubleLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundFloatLiteralExpression *variable_declaration) override;
+  visit(binding::BoundIdentifierExpression *identifier_expression) override;
+  void visit(binding::BoundIndexExpression *index_expression) override;
+  void visit(binding::BoundIntegerLiteralExpression *integer_literal_expression)
+      override;
+  void visit(binding::BoundDoubleLiteralExpression *double_literal_expression)
+      override;
   void visit(
-      binding::BoundCharacterLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundStringLiteralExpression *variable_declaration) override;
-  void
-  visit(binding::BoundBooleanLiteralExpression *variable_declaration) override;
+      binding::BoundFloatLiteralExpression *float_literal_expression) override;
+  void visit(binding::BoundCharacterLiteralExpression
+                 *character_literal_expression) override;
+  void visit(binding::BoundStringLiteralExpression *string_literal_expression)
+      override;
+  void visit(binding::BoundBooleanLiteralExpression *boolean_literal_expression)
+      override;
   void visit(binding::BoundTemplateStringLiteralExpression
-                 *variable_declaration) override;
-  void visit(binding::BoundErrorStatement *variable_declaration) override;
-  void visit(binding::BoundErrorExpression *variable_declaration) override;
-  void visit(binding::BoundCallExpression *variable_declaration) override;
-  void visit(binding::BoundTernaryExpression *variable_declaration) override;
-  void visit(binding::BoundNewExpression *variable_declaration) override;
+                 *template_string_literal_expression) override;
+  void visit(binding::BoundErrorStatement *error_statement) override;
+  void visit(binding::BoundErrorExpression *error_expression) override;
+  void visit(binding::BoundCallExpression *call_expression) override;
+  void visit(binding::BoundTernaryExpression *ternary_expression) override;
+  void visit(binding::BoundNewExpression *new_expression) override;
+  void visit(
+      binding::BoundParenthesizedExpression *parenthesized_expression) override;
+  void visit(binding::BoundObjectExpression *object_expression) override;
+  void visit(binding::BoundUnaryExpression *unary_expression) override;
+  void visit(binding::BoundBinaryExpression *binary_expression) override;
   void
-  visit(binding::BoundParenthesizedExpression *variable_declaration) override;
-  void visit(binding::BoundUnaryExpression *variable_declaration) override;
-  void visit(binding::BoundBinaryExpression *variable_declaration) override;
-  void visit(binding::BoundAssignmentExpression *variable_declaration) override;
-  void visit(binding::BoundExpressionStatement *variable_declaration) override;
-  void
-  visit(binding::BoundModuleAccessExpression *variable_declaration) override;
-  void
-  visit(binding::BoundMemberAccessExpression *variable_declaration) override;
-  void
-  visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
+  visit(binding::BoundAssignmentExpression *assignment_expression) override;
+  void visit(binding::BoundExpressionStatement *expression_statement) override;
+  void visit(
+      binding::BoundModuleAccessExpression *module_access_expression) override;
+  void visit(
+      binding::BoundMemberAccessExpression *member_access_expression) override;
+  void visit(binding::BoundNirastLiteralExpression *nirast_literal_expression)
+      override;
+  void visit(binding::BoundColonExpression *colon_expression) override;
 
   void clearLast() {
     m_last_value = nullptr;
@@ -188,6 +193,10 @@ private:
 
   void emitTypedStore(llvm::Value *target_addr, types::Type *target_type,
                       llvm::Value *source_raw_value, types::Type *source_type);
+  void emitStructuralCopy(llvm::Value *dest_ptr,
+                          types::CustomObjectType *dest_type,
+                          llvm::Value *src_ptr,
+                          types::CustomObjectType *src_type);
 
   void handleReturn();
   void verifyModule();

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ enum class NodeKind : int {
   kBracketedExpression,
   kNewExpression,
   kTernaryExpression,
-  kObjectMemberExpression,
+  kColonExpression,
   kInt32TypeExpression,
   kInt64TypeExpression,
   kDeci32TypeExpression,

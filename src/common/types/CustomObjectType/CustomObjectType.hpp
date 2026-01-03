@@ -11,23 +11,23 @@ namespace types {
 
 class CustomObjectType : public Type {
 public:
-  CustomObjectType(const std::string &custom_type_name,
-                   std::map<std::string, std::shared_ptr<Type>> fields);
+  CustomObjectType(
+      const std::string &custom_type_name,
+      const std::map<std::string, std::shared_ptr<Type>> &field_types_map);
 
   bool operator==(const Type &other) const override;
   bool operator<=(const Type &other) const override;
 
-  std::shared_ptr<Type> getFieldType(const std::string &name) const;
-  const std::map<std::string, std::shared_ptr<Type>> &getFields() const;
   const std::string &getCustomTypeName() const;
+  const std::map<std::string, std::shared_ptr<Type>> &getFieldTypesMap() const;
 
 private:
   std::string m_custom_type_name;
-  std::map<std::string, std::shared_ptr<Type>> m_fields;
+  std::map<std::string, std::shared_ptr<Type>> m_field_types_map;
 
   std::string buildCustomObjectTypeName(
       const std::string &custom_type_name,
-      const std::map<std::string, std::shared_ptr<Type>> &fields);
+      const std::map<std::string, std::shared_ptr<Type>> &field_types_map);
 };
 
 } // namespace types

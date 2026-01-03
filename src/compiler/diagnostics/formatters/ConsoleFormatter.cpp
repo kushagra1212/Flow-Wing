@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -166,23 +166,31 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
   auto end = diagnostic.getLocation().m_end;
   const size_t delta_length = 4;
 
-  size_t start_line =
-      start.line_number > delta_length ? start.line_number - delta_length : 0;
-  size_t end_line = end.line_number + delta_length > line_count
-                        ? line_count
-                        : end.line_number + delta_length;
+  size_t start_line = std::max(
+      (start.line_number > delta_length ? start.line_number - delta_length : 0),
+      static_cast<size_t>(0));
+
+  size_t end_line = std::min(end.line_number + delta_length > line_count
+                                 ? line_count
+                                 : end.line_number + delta_length,
+                             line_count - 1);
 
   DEBUG_LOG("start_line: ", start.line_number, ":", start.column_number);
   DEBUG_LOG("end_line: ", end.line_number, ":", end.column_number);
 
   for (size_t line_number = start_line; line_number <= end_line;
        line_number++) {
-    snippet += YELLOW_TEXT + std::to_string(line_number) + "| " + RESET;
+    std::string line_number_string =
+        YELLOW_TEXT + std::to_string(line_number) + "| " + RESET;
+    snippet += line_number_string;
 
     size_t column_count = lines[line_number].size();
 
     std::string arrow = GREEN_TEXT;
-    arrow += "  ";
+
+    for (size_t i = 0; i < start.column_number; i++) {
+      arrow += " ";
+    }
 
     for (size_t column_number = 0; column_number < column_count;
          column_number++) {

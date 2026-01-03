@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 #include <map>
 
@@ -47,8 +48,8 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
 
   const auto &custom_type_name = identifier_expression->getValue();
 
-  auto custom_type_fields =
-      std::map<std::string, std::shared_ptr<types::Type>>();
+  std::map<std::string, std::shared_ptr<types::Type>>
+      custom_type_field_types_map;
 
   for (const auto &field_declaration : statement->getFieldDeclarations()) {
     auto field_name = static_cast<syntax::IdentifierExpressionSyntax *>(
@@ -61,12 +62,11 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
     if (result.second != nullptr) {
       return std::make_unique<BoundErrorStatement>(std::move(result.second));
     }
-
-    custom_type_fields.insert({field_name_value, result.first});
+    custom_type_field_types_map.insert({field_name_value, result.first});
   }
 
   auto custom_type_type = std::make_shared<types::CustomObjectType>(
-      custom_type_name, custom_type_fields);
+      custom_type_name, custom_type_field_types_map);
 
   auto symbol = std::make_shared<analysis::Symbol>(
       custom_type_name, analysis::SymbolKind::kObject, custom_type_type);

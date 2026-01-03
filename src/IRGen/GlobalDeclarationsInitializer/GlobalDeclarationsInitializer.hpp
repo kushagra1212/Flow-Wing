@@ -49,6 +49,7 @@ public:
   void visit(binding::BoundNewExpression *variable_declaration) override;
   void
   visit(binding::BoundParenthesizedExpression *variable_declaration) override;
+  void visit(binding::BoundObjectExpression *variable_declaration) override;
   void visit(binding::BoundUnaryExpression *variable_declaration) override;
   void visit(binding::BoundBinaryExpression *variable_declaration) override;
   void visit(binding::BoundAssignmentExpression *variable_declaration) override;
@@ -59,6 +60,7 @@ public:
   visit(binding::BoundMemberAccessExpression *variable_declaration) override;
   void
   visit(binding::BoundNirastLiteralExpression *variable_declaration) override;
+  void visit(binding::BoundColonExpression *colon_expression) override;
 
 private:
   IRGenContext &m_ir_gen_context;

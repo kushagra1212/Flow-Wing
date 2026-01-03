@@ -237,9 +237,6 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
                                                         globalVar, indices);
   }
 
-  if (type == analysis::Builtins::m_nthg_type_instance.get()) {
-    return nullptr;
-  }
   if (type == analysis::Builtins::m_nirast_type_instance.get()) {
     return llvm::ConstantPointerNull::get(
         llvm::Type::getInt8PtrTy(*getLLVMContext()));
@@ -261,6 +258,27 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
     std::vector<llvm::Constant *> elements = {type_tag, zero_value};
     return llvm::ConstantStruct::get(
         llvm::cast<llvm::StructType>(dynamic_struct_type), elements);
+  }
+
+  if (type->getKind() == types::TypeKind::kObject) {
+
+    auto *customType = static_cast<types::CustomObjectType *>(type);
+
+    auto *llvmStructType =
+        llvm::dyn_cast<llvm::StructType>(getTypeBuilder()->getLLVMType(type));
+    assert(llvmStructType && "LLVM type for Object must be a StructType");
+
+    std::vector<llvm::Constant *> elementConstants;
+
+    for (const auto &[field_name, field_type] :
+         customType->getFieldTypesMap()) {
+      llvm::Constant *fieldDefault =
+          getDefaultValue(field_type.get(), is_global);
+      elementConstants.push_back(fieldDefault);
+    }
+
+    // 4. Create the Aggregate Constant
+    return llvm::ConstantStruct::get(llvmStructType, elementConstants);
   }
 
   assert(false && "Unsupported type [getDefaultValue]");

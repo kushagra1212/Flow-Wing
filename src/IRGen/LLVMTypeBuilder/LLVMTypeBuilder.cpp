@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/utils/LogConfig.h"
 #include "llvm/IR/DerivedTypes.h"
 
 namespace flow_wing {
@@ -50,10 +51,11 @@ llvm::Type *LLVMTypeBuilder::getLLVMType(const types::Type *type) {
   case types::TypeKind::kClass:
     llvmType = convertClass(static_cast<const types::ClassType *>(type));
     break;
-  case types::TypeKind::kObject:
+  case types::TypeKind::kObject: {
     llvmType =
         convertObject(static_cast<const types::CustomObjectType *>(type));
     break;
+  }
   default:
     assert(false && "Unsupported type conversion");
     return nullptr;
@@ -96,20 +98,31 @@ LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
 
   std::vector<llvm::Type *> elements;
 
-  for (const auto &[field_name, field_type] : type->getFields()) {
+  assert(type && "Object type has no fields");
+
+  for (const auto &[field_name, field_type] : type->getFieldTypesMap()) {
     auto field_llvm_type = getLLVMType(field_type.get());
     assert(field_llvm_type && "Field LLVM type is null");
     elements.push_back(field_llvm_type);
   }
+
   object_type->setBody(elements);
   return object_type;
 }
 
 llvm::Type *LLVMTypeBuilder::createDynamicValueType() {
+
+  auto dynamic_type = llvm::StructType::getTypeByName(
+      m_context, constants::types::kDynamic_type_name);
+
+  if (dynamic_type) {
+    return dynamic_type;
+  }
+
   llvm::Type *tag_type = llvm::IntegerType::get(m_context, 32);   // i32
   llvm::Type *value_type = llvm::IntegerType::get(m_context, 64); // i64
 
-  llvm::StructType *dynamic_type =
+  dynamic_type =
       llvm::StructType::create(m_context, constants::types::kDynamic_type_name);
 
   dynamic_type->setBody({tag_type, value_type});

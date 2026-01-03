@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,10 @@ std::unique_ptr<syntax::StatementSyntax> CustomTypeStatementParser::parse() {
         std::make_unique<syntax::FieldDeclarationSyntax>(
             std::move(key_identifier_expression), colon_token,
             std::move(value_expression))); // field_name: field_value
+
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCommaToken) {
+      m_ctx->match(lexer::TokenKind::kCommaToken); // ,
+    }
   }
 
   auto close_brace_token =

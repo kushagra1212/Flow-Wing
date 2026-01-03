@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,10 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/syntax/NodeKind/NodeKind.h"
@@ -210,10 +213,24 @@ TypeResolver::resolveObjectType(
   assert(syntax != nullptr &&
          "TypeResolver::resolveObjectType: syntax is null");
 
-  return {
-      std::make_shared<types::Type>(syntax->getObjectIdentifier()->getValue(),
-                                    types::TypeKind::kObject),
-      nullptr};
+  auto custom_type_symbol = m_ctx->getSymbolTable()->lookup(
+      syntax->getObjectIdentifier()->getValue());
+
+  if (custom_type_symbol == nullptr) {
+    return {nullptr,
+            std::make_unique<binding::BoundErrorExpression>(
+                syntax->getObjectIdentifier()->getSourceLocation(),
+                flow_wing::diagnostic::DiagnosticCode::kCustomTypeNotFound,
+                diagnostic::DiagnosticArgs{
+                    syntax->getObjectIdentifier()->getValue()})};
+  }
+
+  auto custom_type_type = std::dynamic_pointer_cast<types::CustomObjectType>(
+      custom_type_symbol->getType());
+
+  assert(custom_type_type && "Custom type type is null");
+
+  return {custom_type_type, nullptr};
 }
 
 std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(

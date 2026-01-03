@@ -189,6 +189,7 @@ enum class DiagnosticCode : int16_t {
 
   // Internal Errors
   kInternalIRGenerationError,
+
 };
 
 } // namespace diagnostic

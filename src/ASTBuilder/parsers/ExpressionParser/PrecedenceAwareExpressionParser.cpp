@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,9 @@
 #include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 #include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
+#include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
 #include <cassert>
@@ -122,6 +124,12 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
             std::move(left), operator_token, std::move(right));
         break;
       }
+      case lexer::TokenKind::kColonToken: {
+        auto right = parseAssignmentExpression(ctx);
+        left = std::make_unique<syntax::ColonExpressionSyntax>(
+            std::move(left), operator_token, std::move(right));
+        break;
+      }
 
       default: {
 
@@ -129,7 +137,8 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
         auto right = parse(ctx, infix_precedence);
         left = std::make_unique<syntax::BinaryExpressionSyntax>(
             std::move(left), operator_token, std::move(right));
-      } break;
+        break;
+      }
       }
 
       continue;
@@ -139,6 +148,15 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
   }
 
   return left;
+}
+
+std::unique_ptr<syntax::ExpressionSyntax>
+PrecedenceAwareExpressionParser::parseAssignmentExpression(ParserContext *ctx) {
+
+  int comma_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+      lexer::TokenKind::kCommaToken);
+
+  return parse(ctx, comma_precedence);
 }
 } // namespace parser
 } // namespace flow_wing

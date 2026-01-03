@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ObjectExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
-    [[maybe_unused]] syntax::ObjectMemberSyntax *node) {}
+    [[maybe_unused]] syntax::ColonExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ParenthesizedExpressionSyntax *node) {}

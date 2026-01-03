@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
+#include "src/utils/LogConfig.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -33,6 +32,17 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto *llvm_target_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type);
+
+  // CASE: Struct to Struct Assignment (with different types)
+  if (target_type->getKind() == types::TypeKind::kObject &&
+      source_type->getKind() == types::TypeKind::kObject &&
+      target_type != source_type) {
+
+    emitStructuralCopy(
+        target_addr, static_cast<types::CustomObjectType *>(target_type),
+        source_raw_value, static_cast<types::CustomObjectType *>(source_type));
+    return;
+  }
 
   if (target_type->isDynamic()) {
     if (source_type->isDynamic()) {
@@ -81,6 +91,52 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   }
 
   builder->CreateStore(val_to_store, target_addr);
+}
+
+void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
+                                     types::CustomObjectType *dest_type,
+                                     [[maybe_unused]] llvm::Value *src_ptr,
+                                     types::CustomObjectType *src_type) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto *llvm_dest_type = static_cast<llvm::StructType *>(
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type));
+  [[maybe_unused]] auto *llvm_src_type = static_cast<llvm::StructType *>(
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(src_type));
+
+  size_t field_index = 0;
+
+  for (const auto &[field_name, field_type] : dest_type->getFieldTypesMap()) {
+
+    auto it = src_type->getFieldTypesMap().find(field_name);
+
+    llvm::Value *dest_field_ptr = builder->CreateStructGEP(
+        llvm_dest_type, dest_ptr, static_cast<unsigned int>(field_index),
+        field_name + "_ptr");
+
+    if (it != src_type->getFieldTypesMap().end()) {
+      CODEGEN_DEBUG_LOG("Structural copy", "IR GENERATION", field_name,
+                        field_type->getName(), it->second->getName());
+
+      size_t src_index = static_cast<size_t>(
+          std::distance(src_type->getFieldTypesMap().begin(), it));
+
+      llvm::Value *src_field_ptr = builder->CreateStructGEP(
+          llvm_src_type, src_ptr, static_cast<unsigned int>(src_index),
+          field_name + "_src_ptr");
+
+      llvm::Value *val = builder->CreateLoad(
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(field_type.get()),
+          src_field_ptr, field_name + "_val");
+
+      emitTypedStore(dest_field_ptr, field_type.get(), val, field_type.get());
+    } else {
+      auto *default_value = m_ir_gen_context.getDefaultValue(field_type.get());
+      m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value,
+                                                     dest_field_ptr);
+    }
+
+    field_index++;
+  }
 }
 } // namespace ir_gen
 } // namespace flow_wing

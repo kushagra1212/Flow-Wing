@@ -19,6 +19,7 @@
 
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
@@ -29,6 +30,7 @@
 #include "src/syntax/expression/BooleanLiteralExpressionSyntax/BooleanLiteralExpressionSyntax.h"
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/CharacterLiteralExpressionSyntax/CharacterLiteralExpressionSyntax.h"
+#include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
@@ -39,6 +41,7 @@
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
+#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
@@ -142,6 +145,16 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kParenthesizedExpression:
     return bindParenthesizedExpression(
         static_cast<syntax::ParenthesizedExpressionSyntax *>(expression));
+
+    // ---- Object Expression ----
+  case syntax::NodeKind::kObjectExpression:
+    return bindObjectExpression(
+        static_cast<syntax::ObjectExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kColonExpression:
+    return bindColonExpression(
+        static_cast<syntax::ColonExpressionSyntax *>(expression));
+
   default:
     BINDER_DEBUG_LOG("Unexpected expression kind for ExpressionBinder: ",
                      toString(expression->getKind()));

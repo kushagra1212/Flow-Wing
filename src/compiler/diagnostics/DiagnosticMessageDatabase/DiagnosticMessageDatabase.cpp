@@ -135,11 +135,7 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "context. Using an unrecognized type like '<{0}>' will result in "
       "this error."}},
     {(DiagnosticCode::kUnexpectedToken),
-     {"Unexpected token '<{0}>'. Expected '<{1}>'.",
-      "Please use a valid token. The expected token is '<{1}>'.",
-      "Ensure that the token used is correct and supported in this "
-      "context. An unexpected token like '<{0}>' can cause syntax or "
-      "parsing errors."}},
+     {"Unexpected token '<{0}>'. Expected '<{1}>'.", "", ""}},
     {(DiagnosticCode::kUnexpectedCharacter),
      {"Unexpected character '<{0}>'. Please use a valid character.",
       "Please use a valid character.",

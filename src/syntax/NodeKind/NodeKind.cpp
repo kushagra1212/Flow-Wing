@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  */
 #include "NodeKind.h"
 #include <unordered_map>
@@ -53,7 +53,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kModuleAccessExpression, "ModuleAccessExpression"},
       {NodeKind::kModuleAccessTypeExpression, "ModuleAccessTypeExpression"},
       {NodeKind::kNewExpression, "NewExpression"},
-      {NodeKind::kObjectMemberExpression, "ObjectMemberExpression"},
+      {NodeKind::kColonExpression, "ColonExpression"},
       {NodeKind::kMemberAccessExpression, "MemberAccessExpression"},
       {NodeKind::kDeclaratorExpression, "DeclaratorExpression"},
       {NodeKind::kFieldDeclarationExpression, "FieldDeclarationExpression"},

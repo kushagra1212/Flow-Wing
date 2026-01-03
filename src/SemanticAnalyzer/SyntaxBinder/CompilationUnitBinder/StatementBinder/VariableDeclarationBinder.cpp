@@ -21,6 +21,7 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
@@ -108,7 +109,16 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
       const auto &expression_type = bound_initializer_expressions[i]->getType();
 
-      const auto &variable_type = variable_symbols[i]->getType();
+      auto *raw_expr = bound_initializer_expressions[i].get();
+      auto variable_type = variable_symbols[i]->getType();
+
+      if (raw_expr->getKind() == NodeKind::kObjectExpression) {
+
+        auto *obj_expr = static_cast<BoundObjectExpression *>(raw_expr);
+
+        // Force the Object Expression to adopt the Variable's Type
+        obj_expr->setType(variable_type);
+      }
 
       BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
       BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
@@ -120,7 +130,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
         // Variable is dynamic: expression must be dynamic or primitive
         if (!expression_type->isDynamic() && !expression_type->isPrimitive()) {
           auto error_expression = std::make_unique<BoundErrorExpression>(
-              initializer_expression->getSourceLocation(),
+              bound_initializer_expressions[i]->getSourceLocation(),
               diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
               diagnostic::DiagnosticArgs{variable_type->getName(),
                                          expression_type->getName(),
@@ -143,7 +153,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       } else if (*expression_type > *variable_type) {
         // Normal type mismatch check
         auto error_expression = std::make_unique<BoundErrorExpression>(
-            initializer_expression->getSourceLocation(),
+            bound_initializer_expressions[i]->getSourceLocation(),
             diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
             diagnostic::DiagnosticArgs{variable_type->getName(),
                                        expression_type->getName(),
