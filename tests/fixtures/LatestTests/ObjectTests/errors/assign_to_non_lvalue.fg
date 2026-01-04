@@ -1,0 +1,16 @@
+/; EXPECT_ERROR: UnexpectedToken
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+{
+    name: "Jane",
+    age: 25
+} = p
+

@@ -306,7 +306,7 @@ run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))  
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE)) 
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
@@ -340,7 +340,26 @@ test-aot: build-aot-release
 		--filter "$(FILTER)" \
 		--mode aot $(ARGS)
 
-#! ----- Clean -----
+
+
+#! ----- Visualization -----
+
+#? Visualization Output Directory
+VIZ_DIR := flow-wing-viz/build
+
+.PHONY: viz
+viz: build-aot-debug
+	$(ECHO_MSG) "--> Generating Visualization Data for $(FILE)..."
+	@$(call MKDIR_P, $(VIZ_DIR))
+	$(ECHO_MSG) "    [1/3] Generating Tokens..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=tokens -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "    [2/3] Generating AST..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=ast -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "    [3/3] Generating Semantic Tree..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=sem -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "--> Viz data ready in $(VIZ_DIR)"
+
+#! ----- Clean ----- DANGER
 
 .PHONY: clean clean-all
 #? Clean Targets (Only Build Artifacts)

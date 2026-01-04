@@ -69,6 +69,6 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
 
   m_last_value = object_alloc;
   m_last_llvm_type = llvm_obj_type;
-  m_last_type = flow_type.get();
+  m_last_type = object_expression->getType().get();
 }
 } // namespace flow_wing::ir_gen

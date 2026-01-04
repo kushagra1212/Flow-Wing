@@ -30,6 +30,7 @@
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
+#include <cassert>
 namespace flow_wing {
 namespace binding {
 
@@ -37,8 +38,11 @@ std::unique_ptr<BoundExpression>
 ExpressionBinder::bindObjectExpression(syntax::ObjectExpressionSyntax *node) {
 
   std::map<std::string, std::shared_ptr<types::Type>> field_types_map;
+  std::vector<std::unique_ptr<BoundExpression>> colon_expressions;
 
-  auto colon_expressions = bindExpressionList(node->getColonExpression().get());
+  if (node->getColonExpression().get()) {
+    colon_expressions = bindExpressionList(node->getColonExpression().get());
+  }
 
   for (auto &member : colon_expressions) {
     if (member->getKind() == NodeKind::kErrorExpression) {
@@ -70,7 +74,7 @@ ExpressionBinder::bindObjectExpression(syntax::ObjectExpressionSyntax *node) {
 
   return std::make_unique<BoundObjectExpression>(
       std::move(field_types_map), std::move(colon_expressions), object_type,
-      node->getColonExpression()->getSourceLocation());
+      node->getSourceLocation());
 
 } // namespace binding
 } // namespace binding

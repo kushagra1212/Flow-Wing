@@ -1,0 +1,9 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person
+
+print(p, "\n")
+

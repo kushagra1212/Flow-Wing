@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,10 +32,10 @@ void BoundTreeJson::visit(binding::BoundUnaryExpression *unary_expression) {
   auto expression_type_id =
       getTypeId(unary_expression->getExpression()->getType().get());
 
-  unary_expression_json["unaryOperator"] = {
+  unary_expression_json["unary_operator"] = {
       {"kind", operator_token_kind},
-      {"typeId", expression_type_id},
-      {"resultTypeId", result_type_id},
+      {"type_id", expression_type_id},
+      {"result_type_id", result_type_id},
   };
 
   serializeChild(unary_expression->getExpression(), unary_expression_json,

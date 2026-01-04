@@ -1,0 +1,6 @@
+Before assignment:
+p1: { address: { city: "New York", street: "123 Main St" }, age: 30, name: "John" }
+p2: { address: { city: "", street: "" }, age: 0, name: "" }
+After assignment:
+p1: { address: { city: "New York", street: "123 Main St" }, age: 30, name: "John" }
+p2: { address: { city: "New York", street: "123 Main St" }, age: 30, name: "John" }

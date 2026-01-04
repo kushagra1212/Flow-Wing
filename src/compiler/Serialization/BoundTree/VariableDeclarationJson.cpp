@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ void BoundTreeJson::visit(
     if (variable_symbol->getInitializerExpression())
       variable_symbol->getInitializerExpression()->accept(this);
 
-    m_last_node_json["symbolId"] = symbol_id;
-    variable_declaration_json["initializerExpressions"].push_back(
+    m_last_node_json["symbol_id"] = symbol_id;
+    variable_declaration_json["initializer_expressions"].push_back(
         std::move(m_last_node_json));
   }
 

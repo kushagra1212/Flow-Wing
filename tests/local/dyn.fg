@@ -1,60 +1,6 @@
-
-/; Partial + object to object declaration / assignemnt
-/; type type_test = {
-/;     _string_name: str
-/;     _int_age: int
-/;     _int64: int64
-/;     _int8: int8
-/;     _char: char
-/;     _bool: bool
-/;     _deci_age: deci
-/;     _deci32_age: deci32
-/; }
-
-
-
-/; type sub_type_test = {
-/;     _int_age: int
-/;     _int64: int64
-/;     _string_name: str
-/; }
-
-/; var y: sub_type_test = {
-/;     _string_name: "John",
-/;     _int_age: 20
-/; }
-
-/; var x: type_test 
-/; /; x = y
-
-/; print("X: ", x, "\n")
-/; print("Y: ", y, "\n")
-
-
-type type_test = {
-    _string_name: str
-    _int_age: int
-    _int64: int64
-    _int8: int8
-    _char: char
-    _bool: bool
-    _deci_age: deci
-    _deci32_age: deci32
+/; EXPECT_ERROR: VariableNotFound
+var p: UnknownType = {
+    name: "John",
+    age: 30
 }
 
-
-
-type sub_type_test = {
-    _int_age: int
-    _int64: int64
-    _string_name: str,
-    _parent: type_test
-}
-
-var y: sub_type_test = {
-    _string_name: "John",
-    _int_age: 20,
-}
-
-/; x = y
-print(y, "\n")

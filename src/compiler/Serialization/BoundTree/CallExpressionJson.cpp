@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ void BoundTreeJson::visit(binding::BoundCallExpression *call_expression) {
   nlohmann::json call_expression_json;
   call_expression_json["kind"] = toString(call_expression->getKind());
 
-  call_expression_json["symbolId"] = getSymbolId(call_expression->getSymbol());
+  call_expression_json["symbol_id"] = getSymbolId(call_expression->getSymbol());
 
   serializeArray(call_expression->getArguments(), call_expression_json,
                  "arguments");

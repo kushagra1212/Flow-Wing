@@ -1,0 +1,35 @@
+type type_test = {
+    _string_name: str
+    _int_age: int
+    _int64: int64
+    _int8: int8
+    _char: char
+    _bool: bool
+    _deci_age: deci
+    _deci32_age: deci32
+}
+
+type sub_type_test = {
+    _int_age: int
+    _int64: int64
+    _string_name: str
+}
+
+var y: sub_type_test = {
+    _string_name: "John",
+    _int_age: 20
+}
+
+var x: type_test
+
+print("Before assignment:\n")
+print("x: ", x, "\n")
+print("y: ", y, "\n")
+
+x = y
+
+print("After assignment:\n")
+print("x: ", x, "\n")
+print("y: ", y, "\n")
+
+

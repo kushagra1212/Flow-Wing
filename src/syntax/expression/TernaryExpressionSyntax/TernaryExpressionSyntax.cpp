@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,7 @@ TernaryExpressionSyntax::TernaryExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> true_expression,
     const SyntaxToken *colon_token,
     std::unique_ptr<ExpressionSyntax> false_expression)
-    : ExpressionSyntax(condition_expression->getSourceLocation()),
-      m_condition_expression(std::move(condition_expression)),
+    : m_condition_expression(std::move(condition_expression)),
       m_question_token(question_token),
       m_true_expression(std::move(true_expression)), m_colon_token(colon_token),
       m_false_expression(std::move(false_expression)) {}

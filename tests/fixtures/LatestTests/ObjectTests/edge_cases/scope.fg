@@ -1,0 +1,30 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var global: Person = {
+    name: "Global",
+    age: 100
+}
+
+{
+    var local: Person = {
+        name: "Local",
+        age: 50
+    }
+    
+    print("Inside scope:\n")
+    print("local: ", local, "\n")
+    print("global: ", global, "\n")
+    
+    local = global
+    
+    print("After assignment:\n")
+    print("local: ", local, "\n")
+    print("global: ", global, "\n")
+}
+
+print("Outside scope:\n")
+print("global: ", global, "\n")
+

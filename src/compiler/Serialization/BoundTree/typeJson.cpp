@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
@@ -30,10 +29,10 @@ BoundTreeJson::getTypeId(const types::ParameterType *parameter_type) {
   nlohmann::json parameter_type_json;
 
   parameter_type_json["kind"] = "ParameterType";
-  parameter_type_json["baseTypeId"] = getTypeId(parameter_type->type.get());
-  parameter_type_json["valueKind"] =
+  parameter_type_json["base_type_id"] = getTypeId(parameter_type->type.get());
+  parameter_type_json["value_kind"] =
       types::toString(parameter_type->value_kind);
-  parameter_type_json["typeConvention"] =
+  parameter_type_json["type_convention"] =
       types::toString(parameter_type->type_convention);
   parameter_type_json["constness"] = types::toString(parameter_type->constness);
 
@@ -46,8 +45,8 @@ std::string BoundTreeJson::getTypeId(const types::ReturnType *return_type) {
   PARSER_DEBUG_LOG("Visiting Return Type", "BOUND TREE");
   nlohmann::json return_type_json;
   return_type_json["kind"] = "ReturnType";
-  return_type_json["baseTypeId"] = getTypeId(return_type->type.get());
-  return_type_json["typeConvention"] =
+  return_type_json["base_type_id"] = getTypeId(return_type->type.get());
+  return_type_json["type_convention"] =
       types::toString(return_type->type_convention);
 
   const auto &return_type_id = getShortId(return_type);
@@ -76,11 +75,13 @@ std::string BoundTreeJson::getTypeId(const types::FunctionType *function_type) {
   function_type_json["name"] = function_type->getName();
 
   for (const auto &parameter : function_type->getParameterTypes()) {
-    function_type_json["parameter_types"].push_back(getTypeId(parameter.get()));
+    function_type_json["parameter_type_ids"].push_back(
+        getTypeId(parameter.get()));
   }
 
   for (const auto &return_type : function_type->getReturnTypes()) {
-    function_type_json["return_types"].push_back(getTypeId(return_type.get()));
+    function_type_json["return_type_ids"].push_back(
+        getTypeId(return_type.get()));
   }
 
   const auto &type_id = getShortId(function_type);

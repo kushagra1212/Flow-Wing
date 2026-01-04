@@ -35,8 +35,7 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
 
   // CASE: Struct to Struct Assignment (with different types)
   if (target_type->getKind() == types::TypeKind::kObject &&
-      source_type->getKind() == types::TypeKind::kObject &&
-      target_type != source_type) {
+      source_type->getKind() == types::TypeKind::kObject) {
 
     emitStructuralCopy(
         target_addr, static_cast<types::CustomObjectType *>(target_type),
@@ -85,8 +84,10 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   // Primitive->Primitive, Object->Object
   llvm::Value *val_to_store = resolveValue(source_raw_value, source_type);
 
-  if (target_type != source_type) {
-    // Handles implicit casts (e.g., int -> float, or Derived* -> Base*)
+  CODEGEN_DEBUG_LOG("Implicit cast", "IR GENERATION", source_type->getName(),
+                    target_type->getName());
+  if (*target_type != *source_type) {
+
     val_to_store = convertToTargetType(val_to_store, target_type, source_type);
   }
 
@@ -95,8 +96,9 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
 
 void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
                                      types::CustomObjectType *dest_type,
-                                     [[maybe_unused]] llvm::Value *src_ptr,
+                                     [[maybe_unused]] llvm::Value *src_raw,
                                      types::CustomObjectType *src_type) {
+  llvm::Value *src_ptr = ensurePointer(src_raw, src_type, "struct_copy");
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto *llvm_dest_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type));
@@ -105,32 +107,38 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
 
   size_t field_index = 0;
 
-  for (const auto &[field_name, field_type] : dest_type->getFieldTypesMap()) {
+  for (const auto &[dest_field_name, dest_field_type] :
+       dest_type->getFieldTypesMap()) {
 
-    auto it = src_type->getFieldTypesMap().find(field_name);
+    auto it = src_type->getFieldTypesMap().find(dest_field_name);
 
     llvm::Value *dest_field_ptr = builder->CreateStructGEP(
         llvm_dest_type, dest_ptr, static_cast<unsigned int>(field_index),
-        field_name + "_ptr");
+        dest_field_name + "_ptr");
 
     if (it != src_type->getFieldTypesMap().end()) {
-      CODEGEN_DEBUG_LOG("Structural copy", "IR GENERATION", field_name,
-                        field_type->getName(), it->second->getName());
+      CODEGEN_DEBUG_LOG("Structural copy", "IR GENERATION", dest_field_name,
+                        dest_field_type->getName(), it->second->getName());
+
+      auto src_field_type = it->second;
+      auto src_field_name = it->first;
 
       size_t src_index = static_cast<size_t>(
           std::distance(src_type->getFieldTypesMap().begin(), it));
 
       llvm::Value *src_field_ptr = builder->CreateStructGEP(
           llvm_src_type, src_ptr, static_cast<unsigned int>(src_index),
-          field_name + "_src_ptr");
+          src_field_name + "_src_ptr");
 
       llvm::Value *val = builder->CreateLoad(
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(field_type.get()),
-          src_field_ptr, field_name + "_val");
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(src_field_type.get()),
+          src_field_ptr, src_field_name + "_val");
 
-      emitTypedStore(dest_field_ptr, field_type.get(), val, field_type.get());
+      emitTypedStore(dest_field_ptr, dest_field_type.get(), val,
+                     src_field_type.get());
     } else {
-      auto *default_value = m_ir_gen_context.getDefaultValue(field_type.get());
+      auto *default_value =
+          m_ir_gen_context.getDefaultValue(dest_field_type.get());
       m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value,
                                                      dest_field_ptr);
     }

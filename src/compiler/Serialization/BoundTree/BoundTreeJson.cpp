@@ -158,7 +158,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression
   identifier_expression_json["name"] =
       identifier_expression->getSymbol()->getName();
 
-  identifier_expression_json["symbolId"] =
+  identifier_expression_json["symbol_id"] =
       getSymbolId(identifier_expression->getSymbol());
 
   identifier_expression_json["range"] =
@@ -217,13 +217,6 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundParenthesizedExpression
   parenthesized_expression_json["range"] =
       toJsonRange(parenthesized_expression->getSourceLocation());
   m_last_node_json = std::move(parenthesized_expression_json);
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundMemberAccessExpression
-                              *member_access_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Member Access Expression", "BOUND TREE");
-
-  assert(false && "Member access expression not supported");
 }
 
 void BoundTreeJson::visit(

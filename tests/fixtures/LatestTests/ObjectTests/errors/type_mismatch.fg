@@ -1,0 +1,25 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+type AllTypes = {
+    _string_name: str
+    _int_age: int
+    _int64: int64
+    _int8: int8
+    _char: char
+    _bool: bool
+    _deci_age: deci
+    _deci32_age: deci32
+}
+
+var x: AllTypes = {
+    _string_name: "Test",
+    _int_age: 20,
+    _int64: 1000000000000,
+    _int8: 127,
+    _char: 'A',
+    _bool: true,
+    _deci_age: 3.14,
+    _deci32_age: 2.5
+}
+
+print(x, "\n")
+

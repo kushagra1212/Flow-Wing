@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,6 @@ void BoundObjectExpression::accept(visitor::BoundTreeVisitor *visitor) {
 std::shared_ptr<types::Type> BoundObjectExpression::getType() const {
   assert(m_type && "Object Expression type is null");
   return m_type;
-}
-
-void BoundObjectExpression::setType(std::shared_ptr<types::Type> type) {
-  m_type = type;
 }
 
 const std::map<std::string, std::shared_ptr<types::Type>> &

@@ -111,10 +111,12 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       assert(false && "Index expression is not supported for assignment");
       break;
     }
-    case NodeKind::kMemberAccessExpression:
-      assert(false &&
-             "Member access expression is not supported for assignment");
+    case NodeKind::kMemberAccessExpression: {
+      // Member access expressions are valid lvalues for assignment
+      // No additional checks needed - the type checking below will handle
+      // compatibility
       break;
+    }
     default: {
       auto error = std::make_unique<BoundErrorExpression>(
           expression->getSourceLocation(),

@@ -180,15 +180,15 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
 
   for (size_t line_number = start_line; line_number <= end_line;
        line_number++) {
-    std::string line_number_string =
-        YELLOW_TEXT + std::to_string(line_number) + "| " + RESET;
-    snippet += line_number_string;
+    std::string line_number_string = std::to_string(line_number) + "| ";
+    snippet += YELLOW_TEXT + line_number_string + RESET;
 
     size_t column_count = lines[line_number].size();
 
     std::string arrow = GREEN_TEXT;
 
-    for (size_t i = 0; i < start.column_number; i++) {
+    size_t line_number_string_length = std::to_string(line_number).length();
+    for (size_t i = 0; i <= line_number_string_length; i++) {
       arrow += " ";
     }
 

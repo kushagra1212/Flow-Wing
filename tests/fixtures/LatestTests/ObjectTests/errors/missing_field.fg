@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: MemberNotFoundInObject
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+var x = p.nonexistent
+

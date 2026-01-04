@@ -205,7 +205,19 @@ private:
 
   // Dynamic Result
   llvm::Value *ensureDynamic(llvm::Value *value, types::Type *type);
+  llvm::Value *ensurePointer(llvm::Value *value, types::Type *type,
+                             const std::string &name_suffix = "");
   uint32_t getRuntimeOpCode(lexer::TokenKind kind);
+
+  // CallExpression Handlers
+  void dispatchBuiltinFunction(binding::BoundCallExpression *call_expression);
+  void emitRecursivePrint(llvm::Value *value, types::Type *type,
+                          bool is_nested);
+  void emitPrint(binding::BoundCallExpression *call_expression);
+  void
+  emitCast(binding::BoundCallExpression *call_expression,
+           types::Type *target_type,
+           std::function<llvm::Value *(llvm::Value *, llvm::Type *)> converter);
 };
 } // namespace ir_gen
 } // namespace flow_wing

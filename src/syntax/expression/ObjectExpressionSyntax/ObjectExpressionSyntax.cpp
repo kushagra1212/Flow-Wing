@@ -27,8 +27,7 @@ ObjectExpressionSyntax::ObjectExpressionSyntax(
     const SyntaxToken *open_brace_token,
     std::unique_ptr<ExpressionSyntax> colon_expression,
     const SyntaxToken *close_brace_token)
-    : ExpressionSyntax(open_brace_token->getSourceLocation()),
-      m_open_brace_token(open_brace_token),
+    : m_open_brace_token(open_brace_token),
       m_colon_expression(std::move(colon_expression)),
       m_close_brace_token(close_brace_token) {}
 

@@ -1,0 +1,2 @@
+Before: { age: 30, name: "John" }
+After self-assignment: { age: 30, name: "John" }

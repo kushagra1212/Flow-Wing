@@ -1,0 +1,8 @@
+Initial:
+p1: { age: 20, name: "Alice" }
+p2: { age: 25, name: "Bob" }
+p3: { age: 30, name: "Charlie" }
+After chained assignment:
+p1: { age: 30, name: "Charlie" }
+p2: { age: 30, name: "Charlie" }
+p3: { age: 30, name: "Charlie" }

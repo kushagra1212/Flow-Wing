@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: CustomTypeNotFound
+var p: UnknownType = {
+    name: "John",
+    age: 30
+}
+

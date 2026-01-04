@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@ namespace flow_wing {
 namespace binding {
 
 BoundMemberAccessExpression::BoundMemberAccessExpression(
-    types::CustomObjectType *object_type, const std::string &member_name,
-    std::shared_ptr<types::Type> field_type,
+    std::unique_ptr<BoundExpression> left_expression,
+    const std::string &member_name, std::shared_ptr<types::Type> field_type,
     const flow_wing::diagnostic::SourceLocation &location)
-    : BoundExpression(location), m_object_type(object_type),
-      m_member_name(member_name), m_field_type(field_type) {}
+    : BoundExpression(location), m_left_expression(std::move(left_expression)),
+      m_member_name(member_name), m_field_type(std::move(field_type)) {}
 
 NodeKind BoundMemberAccessExpression::getKind() const {
   return NodeKind::kMemberAccessExpression;
@@ -40,6 +40,15 @@ void BoundMemberAccessExpression::accept(visitor::BoundTreeVisitor *visitor) {
 
 std::shared_ptr<types::Type> BoundMemberAccessExpression::getType() const {
   return m_field_type;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundMemberAccessExpression::getLeftExpression() const {
+  return m_left_expression;
+}
+
+std::string BoundMemberAccessExpression::getMemberName() const {
+  return m_member_name;
 }
 
 } // namespace binding

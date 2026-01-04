@@ -1,0 +1,15 @@
+{
+  "name": "flow-wing-viz",
+  "module": "src/server.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "d3": "^7.9.0"
+  }
+}

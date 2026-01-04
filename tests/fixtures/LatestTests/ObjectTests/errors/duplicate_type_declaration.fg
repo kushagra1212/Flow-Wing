@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: CustomTypeAlreadyDeclared
+type Person = {
+    name: str
+    age: int
+}
+
+type Person = {
+    name: str
+    age: int
+}
+

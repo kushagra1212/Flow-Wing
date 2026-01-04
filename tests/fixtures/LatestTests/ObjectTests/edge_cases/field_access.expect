@@ -1,0 +1,6 @@
+Name: John
+Age: 30
+After field updates:
+Name: Jane
+Age: 25
+Full object: { age: 25, name: "Jane" }

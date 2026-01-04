@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@ nlohmann::json BoundTreeJson::getBinaryOperatorJson(
   PARSER_DEBUG_LOG("Visiting Bound Binary Operator", "BOUND TREE");
   nlohmann::json binary_operator_json;
   binary_operator_json["kind"] = toString(binary_operator->getSyntaxKind());
-  binary_operator_json["leftTypeId"] =
+  binary_operator_json["left_type_id"] =
       getTypeId(binary_operator->getLeftType().get());
-  binary_operator_json["rightTypeId"] =
+  binary_operator_json["right_type_id"] =
       getTypeId(binary_operator->getRightType().get());
-  binary_operator_json["resultTypeId"] =
+  binary_operator_json["result_type_id"] =
       getTypeId(binary_operator->getResultType().get());
 
   return binary_operator_json;
@@ -41,13 +41,13 @@ void BoundTreeJson::visit(binding::BoundBinaryExpression *binary_expression) {
   nlohmann::json binary_expression_json;
   binary_expression_json["kind"] = toString(binary_expression->getKind());
   serializeChild(binary_expression->getLeft(), binary_expression_json,
-                 "leftExpression");
+                 "left_expression");
 
-  binary_expression_json["binaryOperator"] =
+  binary_expression_json["binary_operator"] =
       getBinaryOperatorJson(binary_expression->getBinaryOperator().get());
 
   serializeChild(binary_expression->getRight(), binary_expression_json,
-                 "rightExpression");
+                 "right_expression");
 
   binary_expression_json["range"] =
       toJsonRange(binary_expression->getSourceLocation());

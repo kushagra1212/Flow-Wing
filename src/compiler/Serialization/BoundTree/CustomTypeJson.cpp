@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ void BoundTreeJson::visit(
   for (const auto &symbol : custom_type_statement->getSymbols()) {
     nlohmann::json symbol_json;
     DEBUG_LOG("Symbol: %s", symbol->toString(symbol->getKind()).c_str());
-    custom_type_statement_json["symbolIds"].push_back(
+    custom_type_statement_json["symbol_ids"].push_back(
         getSymbolId(symbol.get()));
   }
 

@@ -29,8 +29,8 @@ class BoundMemberAccessExpression : public BoundExpression {
 
 public:
   BoundMemberAccessExpression(
-      types::CustomObjectType *object_type, const std::string &member_name,
-      std::shared_ptr<types::Type> field_type,
+      std::unique_ptr<BoundExpression> left_expression,
+      const std::string &member_name, std::shared_ptr<types::Type> field_type,
       const flow_wing::diagnostic::SourceLocation &location);
   ~BoundMemberAccessExpression() = default;
 
@@ -40,9 +40,11 @@ public:
   void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
+  const std::unique_ptr<BoundExpression> &getLeftExpression() const;
+  std::string getMemberName() const;
 
 private:
-  [[maybe_unused]] types::CustomObjectType *m_object_type;
+  std::unique_ptr<BoundExpression> m_left_expression;
   std::string m_member_name;
   std::shared_ptr<types::Type> m_field_type;
 };

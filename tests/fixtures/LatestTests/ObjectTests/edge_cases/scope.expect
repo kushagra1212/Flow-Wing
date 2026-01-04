@@ -1,0 +1,8 @@
+Inside scope:
+local: { age: 50, name: "Local" }
+global: { age: 100, name: "Global" }
+After assignment:
+local: { age: 100, name: "Global" }
+global: { age: 100, name: "Global" }
+Outside scope:
+global: { age: 100, name: "Global" }

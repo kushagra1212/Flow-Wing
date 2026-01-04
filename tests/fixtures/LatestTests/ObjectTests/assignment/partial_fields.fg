@@ -1,0 +1,30 @@
+type FullPerson = {
+    name: str
+    age: int
+    height: deci
+    weight: deci
+    isEmployed: bool
+}
+
+type PartialPerson = {
+    name: str
+    age: int
+}
+
+var partial: PartialPerson = {
+    name: "Alice",
+    age: 28
+}
+
+var full: FullPerson
+
+print("Before assignment:\n")
+print("partial: ", partial, "\n")
+print("full: ", full, "\n")
+
+full = partial
+
+print("After assignment:\n")
+print("partial: ", partial, "\n")
+print("full: ", full, "\n")
+

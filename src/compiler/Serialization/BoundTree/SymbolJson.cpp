@@ -39,7 +39,7 @@ std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
     nlohmann::json object_symbol_json;
     object_symbol_json["kind"] = analysis::Symbol::toString(symbol->getKind());
     object_symbol_json["name"] = symbol->getName();
-    object_symbol_json["typeId"] = getTypeId(symbol->getType().get());
+    object_symbol_json["type_id"] = getTypeId(symbol->getType().get());
     const auto &object_symbol_id = getShortId(symbol);
     m_symbols_json[object_symbol_id] = object_symbol_json;
     return object_symbol_id;
@@ -62,7 +62,7 @@ BoundTreeJson::getSymbolId(const analysis::FunctionSymbol *function_symbol) {
   function_symbol_json["kind"] =
       analysis::Symbol::toString(function_symbol->getKind());
   function_symbol_json["name"] = function_symbol->getName();
-  function_symbol_json["typeId"] =
+  function_symbol_json["type_id"] =
       getTypeId(static_cast<const types::FunctionType *>(
           function_symbol->getType().get()));
   const auto &symbol_id = getShortId(function_symbol);
@@ -87,7 +87,7 @@ BoundTreeJson::getSymbolId(const analysis::ParameterSymbol *parameter_symbol) {
   parameter_symbol_json["kind"] =
       analysis::Symbol::toString(parameter_symbol->getKind());
   parameter_symbol_json["name"] = parameter_symbol->getName();
-  parameter_symbol_json["typeId"] =
+  parameter_symbol_json["type_id"] =
       getTypeId(parameter_symbol->getType().get());
 
   const auto &parameter_symbol_id = getShortId(parameter_symbol);
@@ -105,7 +105,7 @@ BoundTreeJson::getSymbolId(const analysis::VariableSymbol *variable_symbol) {
   variable_symbol_json["kind"] =
       analysis::Symbol::toString(variable_symbol->getKind());
   variable_symbol_json["name"] = variable_symbol->getName();
-  variable_symbol_json["typeId"] = getTypeId(variable_symbol->getType().get());
+  variable_symbol_json["type_id"] = getTypeId(variable_symbol->getType().get());
   variable_symbol_json["isConst"] = variable_symbol->isConst();
 
   const auto &variable_symbol_id = getShortId(variable_symbol);

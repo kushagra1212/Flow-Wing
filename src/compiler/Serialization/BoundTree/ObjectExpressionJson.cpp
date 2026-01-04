@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,8 @@ void BoundTreeJson::visit(
   object_expression_json["kind"] = toString(object_expression->getKind());
   size_t total_members = object_expression->getColonExpressions().size();
   for (size_t member_index = 0; member_index < total_members; ++member_index) {
-    nlohmann::json member_json;
-
     object_expression->getColonExpressions()[member_index]->accept(this);
-    member_json["expression"] = m_last_node_json;
-
-    object_expression_json["members"].push_back(std::move(member_json));
+    object_expression_json["members"].push_back(std::move(m_last_node_json));
   }
   object_expression_json["type"] =
       getTypeId(object_expression->getType().get());

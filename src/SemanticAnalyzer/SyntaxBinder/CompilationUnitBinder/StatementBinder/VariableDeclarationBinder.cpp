@@ -58,6 +58,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
             declarator->getTypeExpression().get());
 
     if (result.second != nullptr) {
+      m_context->reportError(result.second.get());
       return std::make_unique<BoundErrorStatement>(std::move(result.second));
     }
 
@@ -109,23 +110,22 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
       const auto &expression_type = bound_initializer_expressions[i]->getType();
 
-      auto *raw_expr = bound_initializer_expressions[i].get();
       auto variable_type = variable_symbols[i]->getType();
 
-      if (raw_expr->getKind() == NodeKind::kObjectExpression) {
+      // auto *raw_expr = bound_initializer_expressions[i].get();
+      // if (raw_expr->getKind() == NodeKind::kObjectExpression) {
 
-        auto *obj_expr = static_cast<BoundObjectExpression *>(raw_expr);
+      //   auto *obj_expr = static_cast<BoundObjectExpression *>(raw_expr);
 
-        // Force the Object Expression to adopt the Variable's Type
-        obj_expr->setType(variable_type);
-      }
+      //   // Force the Object Expression to adopt the Variable's Type
+      //   obj_expr->setType(variable_type);
+      // }
 
       BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
       BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
       BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
       BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
 
-      // Special handling for dynamic types
       if (variable_type->isDynamic()) {
         // Variable is dynamic: expression must be dynamic or primitive
         if (!expression_type->isDynamic() && !expression_type->isPrimitive()) {
@@ -151,7 +151,6 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
             ->setInitializerExpression(
                 std::move(bound_initializer_expressions[i]));
       } else if (*expression_type > *variable_type) {
-        // Normal type mismatch check
         auto error_expression = std::make_unique<BoundErrorExpression>(
             bound_initializer_expressions[i]->getSourceLocation(),
             diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,

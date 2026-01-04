@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ void BoundTreeJson::visit(
       integer_literal_expression->getValue();
   integer_literal_expression_json["range"] =
       toJsonRange(integer_literal_expression->getSourceLocation());
-  integer_literal_expression_json["typeId"] =
+  integer_literal_expression_json["type_id"] =
       getTypeId(integer_literal_expression->getType().get());
 
   m_last_node_json = std::move(integer_literal_expression_json);
@@ -56,7 +56,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
       double_literal_expression->getValue();
   double_literal_expression_json["range"] =
       toJsonRange(double_literal_expression->getSourceLocation());
-  double_literal_expression_json["typeId"] =
+  double_literal_expression_json["type_id"] =
       getTypeId(double_literal_expression->getType().get());
 
   m_last_node_json = std::move(double_literal_expression_json);
@@ -72,7 +72,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
   float_literal_expression_json["value"] = float_literal_expression->getValue();
   float_literal_expression_json["range"] =
       toJsonRange(float_literal_expression->getSourceLocation());
-  float_literal_expression_json["typeId"] =
+  float_literal_expression_json["type_id"] =
       getTypeId(float_literal_expression->getType().get());
 
   m_last_node_json = std::move(float_literal_expression_json);
@@ -90,7 +90,7 @@ void BoundTreeJson::visit(
       character_literal_expression->getValue();
   character_literal_expression_json["range"] =
       toJsonRange(character_literal_expression->getSourceLocation());
-  character_literal_expression_json["typeId"] =
+  character_literal_expression_json["type_id"] =
       getTypeId(character_literal_expression->getType().get());
 
   m_last_node_json = std::move(character_literal_expression_json);
@@ -107,7 +107,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundStringLiteralExpression
       string_literal_expression->getValue();
   string_literal_expression_json["range"] =
       toJsonRange(string_literal_expression->getSourceLocation());
-  string_literal_expression_json["typeId"] =
+  string_literal_expression_json["type_id"] =
       getTypeId(string_literal_expression->getType().get());
 
   m_last_node_json = std::move(string_literal_expression_json);
@@ -125,7 +125,7 @@ void BoundTreeJson::visit(
       boolean_literal_expression->getValue();
   boolean_literal_expression_json["range"] =
       toJsonRange(boolean_literal_expression->getSourceLocation());
-  boolean_literal_expression_json["typeId"] =
+  boolean_literal_expression_json["type_id"] =
       getTypeId(boolean_literal_expression->getType().get());
 
   m_last_node_json = std::move(boolean_literal_expression_json);
@@ -144,7 +144,7 @@ void BoundTreeJson::visit(
       template_string_literal_expression->getValue();
   template_string_literal_expression_json["range"] =
       toJsonRange(template_string_literal_expression->getSourceLocation());
-  template_string_literal_expression_json["typeId"] =
+  template_string_literal_expression_json["type_id"] =
       getTypeId(template_string_literal_expression->getType().get());
 
   m_last_node_json = std::move(template_string_literal_expression_json);
@@ -159,7 +159,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundNirastLiteralExpression
       toString(nirast_literal_expression->getKind());
   nirast_literal_expression_json["range"] =
       toJsonRange(nirast_literal_expression->getSourceLocation());
-  nirast_literal_expression_json["typeId"] =
+  nirast_literal_expression_json["type_id"] =
       getTypeId(nirast_literal_expression->getType().get());
 
   m_last_node_json = std::move(nirast_literal_expression_json);

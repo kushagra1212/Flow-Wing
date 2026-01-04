@@ -211,15 +211,18 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundModuleAccessExpression *statement) {
   assert(false && "Module access expression not supported");
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundMemberAccessExpression *statement) {
-  assert(false && "Member access expression not supported");
-}
 llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 
   // Literal Null check (Nir)
   if (llvm::isa<llvm::ConstantPointerNull>(value)) {
     return value;
+  }
+
+  if (type->getKind() == types::TypeKind::kObject) {
+    if (value->getType()->isPointerTy()) {
+      return value;
+    }
+    return ensurePointer(value, type, "aggregate_spill");
   }
 
   if (llvm::isa<llvm::AllocaInst>(value)) {
@@ -229,10 +232,37 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
                                                          value, "load_var");
   }
 
+  // Handle GEPs (Both Instructions and Constant Expressions)
+  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(value)) {
+    // Determine what type of data the GEP points to
+
+    // Determine what type we actually want
+    auto expected_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+
+    if (gep->getSourceElementType()->isStructTy()) {
+      return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
+                                                           value, "field_load");
+    }
+
+    if (gep->getSourceElementType()->isArrayTy()) {
+
+      auto *array_type =
+          llvm::cast<llvm::ArrayType>(gep->getSourceElementType());
+      llvm::Type *element_type =
+          array_type->getElementType(); // e.g., i8 or i32
+
+      if (element_type->isIntegerTy(8) && expected_llvm_type->isPointerTy()) {
+        return value;
+      }
+
+      return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
+                                                           value, "array_load");
+    }
+  }
+
   if (auto *globalVar = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
-    // It is a String Literal / Array Constant (e.g., @0 = "Hello")
     if (globalVar->getValueType()->isArrayTy()) {
-      // Equivalent to: &array[0]
       std::vector<llvm::Value *> indices = {
           m_ir_gen_context.getLLVMBuilder()->getInt32(0),
           m_ir_gen_context.getLLVMBuilder()->getInt32(0)};
@@ -240,7 +270,6 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
           globalVar->getValueType(), globalVar, indices, "str_ptr");
     }
 
-    // It is a true Global Variable (e.g., @x)
     auto expected_llvm_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
     return m_ir_gen_context.getLLVMBuilder()->CreateLoad(
@@ -261,6 +290,23 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundColonExpression *colon_expression) {
   assert(false && "Colon expression not supported");
+}
+
+llvm::Value *IRGenerator::ensurePointer(llvm::Value *value, types::Type *type,
+                                        const std::string &name_suffix) {
+
+  if (value->getType()->isPointerTy()) {
+    return value;
+  }
+
+  //  Value (Register) to Pointer conversion
+  auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+  auto *alloca_inst =
+      m_ir_gen_context.createAlloca(llvm_type, "spill_" + name_suffix);
+
+  m_ir_gen_context.getLLVMBuilder()->CreateStore(value, alloca_inst);
+
+  return alloca_inst;
 }
 
 } // namespace ir_gen

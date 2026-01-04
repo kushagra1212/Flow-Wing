@@ -1,0 +1,14 @@
+type Person = {
+    name: str
+    age: int
+    height: deci
+}
+
+var p: Person = {
+    height: 5.10,
+    name: "John",
+    age: 30
+}
+
+print(p, "\n")
+

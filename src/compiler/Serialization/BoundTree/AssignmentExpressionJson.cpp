@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,10 +39,10 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundAssignmentExpression
   assignment_expression_json["range"] =
       toJsonRange(assignment_expression->getSourceLocation());
 
-  assignment_expression_json["isFullReAssignment"] =
+  assignment_expression_json["is_full_re_assignment"] =
       assignment_expression->isFullReAssignment();
 
-  assignment_expression_json["isMultiTargetAssignment"] =
+  assignment_expression_json["is_multi_target_assignment"] =
       assignment_expression->isMultiTargetAssignment();
 
   m_last_node_json = std::move(assignment_expression_json);

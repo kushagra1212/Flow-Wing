@@ -44,7 +44,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
     return left_expression;
   }
 
-  const auto &left_type = left_expression->getType();
+  auto left_type = left_expression->getType();
 
   if (left_type->getKind() != types::TypeKind::kObject) {
 
@@ -77,7 +77,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
   }
 
   return std::make_unique<BoundMemberAccessExpression>(
-      object_type, member_name, field_type_it->second,
+      std::move(left_expression), member_name, field_type_it->second,
       expression->getSourceLocation());
 
   /*
