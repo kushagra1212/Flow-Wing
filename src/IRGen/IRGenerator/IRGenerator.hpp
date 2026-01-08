@@ -218,6 +218,9 @@ private:
   emitCast(binding::BoundCallExpression *call_expression,
            types::Type *target_type,
            std::function<llvm::Value *(llvm::Value *, llvm::Type *)> converter);
+
+  llvm::Function *getOrCreateObjectPrinter(types::CustomObjectType *type);
+  llvm::Function *getOrCreateStructCopier(types::CustomObjectType *type);
 };
 } // namespace ir_gen
 } // namespace flow_wing

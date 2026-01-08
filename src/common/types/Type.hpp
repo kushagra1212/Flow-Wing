@@ -41,11 +41,14 @@ public:
   virtual bool isNthg() const;
   virtual bool isDynamic() const;
   virtual bool isPrimitive() const;
+  virtual bool isNirast() const;
 
   static std::string toString(TypeKind kind);
 
-private:
+protected:
   std::string m_name;
+
+private:
   TypeKind m_kind;
 };
 

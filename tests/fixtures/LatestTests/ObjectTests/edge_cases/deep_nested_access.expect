@@ -1,0 +1,12 @@
+Full shape: { name: "MyShape", rect: { bottomRight: { x: 100, y: 100 }, topLeft: { x: 0, y: 0 } } }
+Top-left x: 0
+Top-left y: 0
+Bottom-right x: 100
+Bottom-right y: 100
+After field updates:
+Top-left x: 10
+Top-left y: 20
+Bottom-right x: 200
+Bottom-right y: 300
+Full shape: { name: "MyShape", rect: { bottomRight: { x: 200, y: 300 }, topLeft: { x: 10, y: 20 } } }
+

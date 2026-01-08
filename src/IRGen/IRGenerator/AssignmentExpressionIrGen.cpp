@@ -55,8 +55,21 @@ void IRGenerator::visit(
 
       assert(source_val && "Assignment source value is null");
 
-      emitTypedStore(target_ptr, target_type, source_val, source_type);
+      bool is_field_assignment = (left_expression->getKind() ==
+                                  binding::NodeKind::kMemberAccessExpression);
 
+      if (is_field_assignment &&
+          target_type->getKind() == types::TypeKind::kObject) {
+
+        llvm::Value *ptr_to_store = resolveValue(source_val, source_type);
+
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(ptr_to_store,
+                                                       target_ptr);
+      }
+      // Case B: Value Copy / Primitive Assignment
+      else {
+        emitTypedStore(target_ptr, target_type, source_val, source_type);
+      }
       clearLast();
     }
   }

@@ -1,0 +1,6 @@
+Before:
+rect1.topLeft: { x: 0, y: 0}
+rect2.topLeft: { x: 20, y: 20}
+After nested member assignment:
+rect1.topLeft: { x: 20, y: 20}
+rect2.topLeft: { x: 20, y: 20}

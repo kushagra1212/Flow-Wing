@@ -18,27 +18,15 @@
  */
 
 #include "BoundTreeJson.hpp"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
-#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
-#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
-#include "src/common/Symbol/FunctionSymbol.hpp"
-#include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
-#include "src/common/Symbol/VariableSymbol.hpp"
-#include "src/common/types/FunctionType/FunctionType.hpp"
-#include "src/common/types/Type.hpp"
-#include "src/common/utils/stringUtils/StringUtils.hpp"
 #include "src/utils/LogConfig.h"
 #include <memory>
-#include <vector>
 
 namespace flow_wing::compiler::serializer {
 

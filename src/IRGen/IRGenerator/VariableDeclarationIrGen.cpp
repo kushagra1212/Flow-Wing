@@ -32,6 +32,8 @@ void IRGenerator::visit(
     const auto &variable_symbol =
         static_cast<const analysis::VariableSymbol *>(symbol.get());
 
+    CODEGEN_DEBUG_LOG("Variable Symbol", variable_symbol->getName());
+
     auto *var_type = variable_symbol->getType().get();
     auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
     llvm::Value *storage_ptr = nullptr;

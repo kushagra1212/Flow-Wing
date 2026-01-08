@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 #include "src/common/types/Type.hpp"
+#include <cassert>
 
 namespace flow_wing {
 namespace binding {
 
 std::shared_ptr<types::Type> BoundExpression::getType() const {
+  assert(false && "BoundExpression::getType() is not implemented");
   return nullptr;
 }
 std::vector<std::shared_ptr<types::Type>>

@@ -1,0 +1,10 @@
+Before:
+rect1.topLeft: { x: 0, y: 0 }
+rect2.topLeft: { x: 20, y: 20 }
+After assignment:
+rect1.topLeft: { x: 20, y: 20 }
+rect2.topLeft: { x: 20, y: 20 }
+After modifying rect1.topLeft:
+rect1.topLeft: { x: 100, y: 200 }
+rect2.topLeft: { x: 20, y: 20 }
+

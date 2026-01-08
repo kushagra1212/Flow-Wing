@@ -1,0 +1,20 @@
+/; EXPECT_ERROR: AssignmentExpressionCountMismatch
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "John",
+    age: 30
+}
+
+var p2: Person = {
+    name: "Jane",
+    age: 25
+}
+
+var p3: Person
+
+p1, p2 = p3
+

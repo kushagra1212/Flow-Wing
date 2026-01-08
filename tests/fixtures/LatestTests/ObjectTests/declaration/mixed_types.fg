@@ -1,0 +1,23 @@
+type Person = {
+    name: str
+    age: int
+}
+
+type Point = {
+    x: int
+    y: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+var pt: Point = {
+    x: 10,
+    y: 20
+}
+
+print("Person: ", p, "\n")
+print("Point: ", pt, "\n")
+

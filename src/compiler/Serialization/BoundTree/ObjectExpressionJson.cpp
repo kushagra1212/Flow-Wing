@@ -33,7 +33,7 @@ void BoundTreeJson::visit(
     object_expression->getColonExpressions()[member_index]->accept(this);
     object_expression_json["members"].push_back(std::move(m_last_node_json));
   }
-  object_expression_json["type"] =
+  object_expression_json["type_id"] =
       getTypeId(object_expression->getType().get());
   object_expression_json["range"] =
       toJsonRange(object_expression->getSourceLocation());

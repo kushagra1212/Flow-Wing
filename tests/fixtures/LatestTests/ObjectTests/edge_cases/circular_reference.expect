@@ -1,0 +1,7 @@
+node1: { next: { next: {  }, value: 0 }, value: 1 }
+node2: { next: { next: {  }, value: 0 }, value: 2 }
+After circular assignment:
+node1: { next: { next: {  }, value: 2 }, value: 1 }
+node2: { next: { next: {  }, value: 1 }, value: 2 }
+node1.next: { next: {  }, value: 2 }
+node2.next: { next: {  }, value: 1 }

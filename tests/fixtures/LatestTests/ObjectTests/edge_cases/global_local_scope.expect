@@ -1,0 +1,15 @@
+Global scope - global: { age: 100, name: "Global" }
+Local scope - local: { age: 50, name: "Local" }
+Local scope - global: { age: 100, name: "Global" }
+After assignment in local scope:
+local: { age: 100, name: "Global" }
+global: { age: 100, name: "Global" }
+Nested scope - nested: { age: 25, name: "Nested" }
+Nested scope - local: { age: 100, name: "Global" }
+Nested scope - global: { age: 100, name: "Global" }
+After assignment in nested scope:
+nested: { age: 100, name: "Global" }
+local: { age: 100, name: "Global" }
+global: { age: 100, name: "Global" }
+Back to global scope - global: { age: 100, name: "Global" }
+

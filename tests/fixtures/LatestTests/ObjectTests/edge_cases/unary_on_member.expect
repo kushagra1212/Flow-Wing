@@ -1,0 +1,5 @@
+Age: 30
+Negated age: -30
+Bitwise not age: -31
+Logical not (age == 0): true
+

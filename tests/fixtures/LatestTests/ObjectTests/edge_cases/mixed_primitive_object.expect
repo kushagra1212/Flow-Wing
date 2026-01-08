@@ -1,0 +1,8 @@
+Person: { age: 30, name: "John" }
+x: 10
+y: test
+After assignments:
+x: 30
+y: John
+p: { age: 30, name: "John" }
+

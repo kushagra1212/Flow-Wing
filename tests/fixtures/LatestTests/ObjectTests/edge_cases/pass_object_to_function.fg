@@ -1,0 +1,23 @@
+type Person = {
+    name: str
+    age: int
+}
+
+fun printPerson(p: Person) -> nthg {
+    print("Person: ", p, "\n")
+    print("Name: ", p.name, "\n")
+    print("Age: ", p.age, "\n")
+}
+
+var person: Person = {
+    name: "John",
+    age: 30
+}
+
+printPerson(person)
+
+person.age = 31
+person.name = "Jane"
+
+printPerson(person)
+

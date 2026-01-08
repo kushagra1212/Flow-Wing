@@ -18,6 +18,7 @@
  */
 
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
 #include <sstream>
 
@@ -27,18 +28,25 @@ namespace types {
 CustomObjectType::CustomObjectType(
     const std::string &custom_type_name,
     const std::map<std::string, std::shared_ptr<Type>> &field_types_map)
-    : Type(buildCustomObjectTypeName(custom_type_name, field_types_map),
-           TypeKind::kObject),
+    : Type(custom_type_name, TypeKind::kObject),
       m_custom_type_name(custom_type_name),
       m_field_types_map(std::move(field_types_map)) {}
 
 bool CustomObjectType::operator==(const Type &other) const {
+  // if (other.isNirast()) {
+  //   return true;
+  // }
+
   if (other.getKind() != TypeKind::kObject) {
     return false;
   }
 
   const auto *other_custom_object =
       static_cast<const CustomObjectType *>(&other);
+
+  if (this == other_custom_object) {
+    return true;
+  }
 
   if (m_field_types_map.size() !=
       other_custom_object->m_field_types_map.size()) {
@@ -67,12 +75,21 @@ const std::string &CustomObjectType::getCustomTypeName() const {
 }
 
 bool CustomObjectType::operator<=(const Type &other) const {
+
+  // if (other.isNirast()) {
+  //   return true;
+  // }
+
   if (other.getKind() != TypeKind::kObject) {
     return false;
   }
 
   const auto *other_custom_object =
       static_cast<const CustomObjectType *>(&other);
+
+  if (this == other_custom_object) {
+    return true;
+  }
 
   if (m_field_types_map.size() >
       other_custom_object->m_field_types_map.size()) {
@@ -89,6 +106,13 @@ bool CustomObjectType::operator<=(const Type &other) const {
   }
   return true;
 }
+
+void CustomObjectType::setFieldTypesMap(
+    std::map<std::string, std::shared_ptr<Type>> field_types_map) {
+  m_field_types_map = std::move(field_types_map);
+  m_name = buildCustomObjectTypeName(m_custom_type_name, m_field_types_map);
+}
+
 std::string CustomObjectType::buildCustomObjectTypeName(
     const std::string &custom_type_name,
     const std::map<std::string, std::shared_ptr<Type>> &field_types_map) {

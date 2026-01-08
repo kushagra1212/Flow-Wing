@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,15 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
   std::stringstream ss;
   ((ss << " => " << std::forward<Args>(args)), ...);
 
+  std::string only_file_name = " " +
+                               (file.substr(file.find_last_of("/") + 1))
+                                   .substr(0, file.find_last_of(".")) +
+                               " ";
+
   std::cout << BOLD_TEXT << "[DEBUG]" << BLUE_TEXT
-            << (type.empty() ? "" : " [" + type + "]") << GREEN_TEXT << " => "
-            << format << HIGHLIGHT_TEXT << ss.str() << " \n"
+            << (type.empty() ? "" : " [" + type + "]") << only_file_name
+            << GREEN_TEXT << " => " << format << HIGHLIGHT_TEXT << ss.str()
+            << " \n"
             << GRAY_TEXT << file << ":" << line << " in " << func << "\n "
             << RESET << std::endl;
 }

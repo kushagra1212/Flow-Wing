@@ -1,0 +1,5 @@
+Initial age: 30
+After += 5: 35
+After -= 3: 32
+After *= 2: 64
+After /= 4: 16

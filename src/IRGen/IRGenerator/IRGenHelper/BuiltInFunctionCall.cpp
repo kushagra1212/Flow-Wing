@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
@@ -45,40 +44,17 @@ void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
   }
 
   if (type->getKind() == types::TypeKind::kObject) {
+
+    CODEGEN_DEBUG_LOG("Printing Object", type->getName());
     auto *custom_type = static_cast<types::CustomObjectType *>(type);
 
-    // Open brace
-    builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr("{ ")});
+    llvm::Value *obj_ptr = ensurePointer(value, type, "print_tmp");
 
-    const auto &field_types_map = custom_type->getFieldTypesMap();
-    size_t total_fields = field_types_map.size();
-    size_t field_count = 0;
+    llvm::Function *printer = getOrCreateObjectPrinter(custom_type);
+    llvm::Value *void_ptr =
+        builder->CreateBitCast(obj_ptr, builder->getInt8PtrTy());
 
-    for (const auto &[field_name, field_type] : field_types_map) {
-      // Label: "name: "
-      builder->CreateCall(printf_fn,
-                          {builder->CreateGlobalStringPtr(field_name + ": ")});
-
-      llvm::Value *struct_ptr = ensurePointer(value, custom_type, "print_tmp");
-
-      llvm::Value *field_ptr = builder->CreateStructGEP(
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(custom_type),
-          struct_ptr, static_cast<unsigned int>(field_count));
-
-      llvm::Value *loaded_field = builder->CreateLoad(
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(field_type.get()),
-          field_ptr, field_name + "_val_ptr");
-
-      // Recursive call for field
-      emitRecursivePrint(loaded_field, field_type.get(), true);
-
-      if (field_count < total_fields - 1) {
-        builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr(", ")});
-      }
-      field_count++;
-    }
-
-    builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr(" }")});
+    builder->CreateCall(printer, {void_ptr});
     return;
   }
 
@@ -107,6 +83,106 @@ void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
   }
 }
 
+llvm::Function *
+IRGenerator::getOrCreateObjectPrinter(types::CustomObjectType *type) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto mod = m_ir_gen_context.getLLVMModule();
+
+  std::string func_name = "fg_print_struct_" + type->getCustomTypeName();
+  if (auto existing_fn = mod->getFunction(func_name)) {
+    return existing_fn;
+  }
+
+  llvm::FunctionType *fn_type = llvm::FunctionType::get(
+      builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
+
+  llvm::Function *printer_fn = llvm::Function::Create(
+      fn_type, llvm::Function::ExternalLinkage, func_name, mod);
+
+  auto prev_block = builder->GetInsertBlock();
+  auto prev_insert_point = builder->GetInsertPoint();
+
+  llvm::BasicBlock *entry_block = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "entry", printer_fn);
+  builder->SetInsertPoint(entry_block);
+
+  llvm::Value *obj_void_ptr = printer_fn->getArg(0);
+
+  // Cast i8* back to typed pointer (Node*) for GEP access
+  llvm::Type *llvm_struct_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+  llvm::Value *obj_typed_ptr = builder->CreateBitCast(
+      obj_void_ptr, llvm_struct_type->getPointerTo(), "typed_ptr");
+
+  auto enter_fn = mod->getOrInsertFunction(
+      "fg_print_enter_object",
+      llvm::FunctionType::get(builder->getInt1Ty(), {builder->getInt8PtrTy()},
+                              false));
+  auto exit_fn = mod->getOrInsertFunction(
+      "fg_print_exit_object",
+      llvm::FunctionType::get(builder->getVoidTy(), {}, false));
+  auto printf_fn = mod->getOrInsertFunction(
+      std::string(constants::functions::kPrintf_fn),
+      llvm::FunctionType::get(builder->getInt32Ty(), {builder->getInt8PtrTy()},
+                              true));
+
+  llvm::Value *can_print = builder->CreateCall(enter_fn, {obj_void_ptr});
+
+  llvm::BasicBlock *print_body = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "body", printer_fn);
+  llvm::BasicBlock *exit_block = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "exit", printer_fn);
+
+  builder->CreateCondBr(can_print, print_body, exit_block);
+
+  builder->SetInsertPoint(print_body);
+
+  const auto &field_types_map = type->getFieldTypesMap();
+  size_t field_index = 0;
+  size_t total_fields = field_types_map.size();
+
+  for (const auto &[field_name, field_type] : field_types_map) {
+    // Print "key: "
+    builder->CreateCall(printf_fn,
+                        {builder->CreateGlobalStringPtr(field_name + ": ")});
+
+    // Get Field Address
+    llvm::Value *field_ptr =
+        builder->CreateStructGEP(llvm_struct_type, obj_typed_ptr,
+                                 static_cast<unsigned int>(field_index));
+
+    llvm::Value *val_to_print;
+
+    if (field_type->getKind() == types::TypeKind::kObject) {
+      val_to_print = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                             ->getLLVMType(field_type.get())
+                                             ->getPointerTo(),
+                                         field_ptr, field_name + "_ptr");
+    } else {
+      val_to_print = resolveValue(field_ptr, field_type.get());
+    }
+
+    emitRecursivePrint(val_to_print, field_type.get(), true);
+
+    if (field_index < total_fields - 1) {
+      builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr(", ")});
+    }
+    field_index++;
+  }
+
+  builder->CreateCall(exit_fn, {});
+  builder->CreateBr(exit_block);
+
+  builder->SetInsertPoint(exit_block);
+  builder->CreateRetVoid();
+
+  if (prev_block) {
+    builder->SetInsertPoint(prev_block, prev_insert_point);
+  }
+
+  return printer_fn;
+}
+
 void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
 
   for (const auto &argument : call_expression->getArguments()) {
@@ -117,14 +193,33 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
     assert(m_last_value && "m_last_value is null");
     assert(m_last_type && "m_last_type is null");
 
+    CODEGEN_DEBUG_LOG("Last Type", m_last_type->getName());
+
     llvm::Value *value_to_print = m_last_value;
 
-    // Resolve variable references unless it's an object or dynamic
-    if (m_last_type->getKind() != types::TypeKind::kObject &&
-        !m_last_type->isDynamic()) {
+    bool is_field_access =
+        (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
+    bool is_object = (m_last_type->getKind() == types::TypeKind::kObject);
+
+    if (is_object && is_field_access) {
+      // CASE: node1.next
+      // 'value_to_print' is the address of the field (Node**).
+      // We MUST load it to get the actual object reference (Node*).
+      // Note: We cast to pointer-to-pointer before loading to be safe with
+      // opaque pointers.
+
+      llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
+                                     ->getLLVMType(m_last_type)
+                                     ->getPointerTo();
+
+      value_to_print = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+          ptr_ptr_type, value_to_print, "field_obj_load");
+
+    } else {
+      // CASE: node1 (Variable) or Primitives
+      // Use standard resolution (handle Alloca loading etc.)
       value_to_print = resolveValue(m_last_value, m_last_type);
     }
-
     emitRecursivePrint(value_to_print, m_last_type, false);
     clearLast();
   }

@@ -1,0 +1,3 @@
+Initial: { age: 30, name: "John"}
+After literal assignment: { age: 25, name: "Jane"}
+After second literal assignment: { age: 40, name: "Bob"}

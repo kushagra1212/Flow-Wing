@@ -20,6 +20,8 @@ public:
 
   const std::string &getCustomTypeName() const;
   const std::map<std::string, std::shared_ptr<Type>> &getFieldTypesMap() const;
+  void setFieldTypesMap(
+      std::map<std::string, std::shared_ptr<Type>> field_types_map);
 
 private:
   std::string m_custom_type_name;

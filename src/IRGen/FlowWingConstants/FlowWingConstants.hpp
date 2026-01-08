@@ -74,6 +74,10 @@ const std::string_view kPerform_dynamic_unary_op_fn =
     "fg_perform_dynamic_unary_op";
 const std::string_view kPrint_dynamic_fn = "fg_print_dynamic";
 
+// Object Print Functions
+const std::string_view kPrint_enter_object_fn = "fg_print_enter_object";
+const std::string_view kPrint_exit_object_fn = "fg_print_exit_object";
+
 // Unboxing Functions
 const std::string_view kUnbox_int8_fn = "fg_unbox_int8";
 const std::string_view kUnbox_int32_fn = "fg_unbox_int32";

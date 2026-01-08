@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -34,8 +35,17 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type);
 
   // CASE: Struct to Struct Assignment (with different types)
-  if (target_type->getKind() == types::TypeKind::kObject &&
-      source_type->getKind() == types::TypeKind::kObject) {
+  if (target_type->getKind() == types::TypeKind::kObject) {
+
+    bool is_source_null =
+        llvm::isa<llvm::ConstantPointerNull>(source_raw_value) ||
+        source_type == analysis::Builtins::m_nirast_type_instance.get();
+
+    if (is_source_null) {
+      auto *default_value = m_ir_gen_context.getDefaultValue(target_type);
+      builder->CreateStore(default_value, target_addr);
+      return;
+    }
 
     emitStructuralCopy(
         target_addr, static_cast<types::CustomObjectType *>(target_type),
@@ -47,6 +57,13 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
     if (source_type->isDynamic()) {
       // Dynamic -> Dynamic: Direct struct copy
       llvm::Value *val_to_store = resolveValue(source_raw_value, source_type);
+
+      if (val_to_store->getType()->isPointerTy()) {
+        val_to_store = builder->CreateLoad(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type),
+            val_to_store, "load_val");
+      }
+
       builder->CreateStore(val_to_store, target_addr);
     } else if (source_type->isPrimitive()) {
       // Primitive -> Dynamic: Box the primitive
@@ -99,52 +116,205 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
                                      [[maybe_unused]] llvm::Value *src_raw,
                                      types::CustomObjectType *src_type) {
   llvm::Value *src_ptr = ensurePointer(src_raw, src_type, "struct_copy");
+
+  if (dest_type->getCustomTypeName() == src_type->getCustomTypeName()) {
+    llvm::Function *copier = getOrCreateStructCopier(dest_type);
+    m_ir_gen_context.getLLVMBuilder()->CreateCall(copier, {dest_ptr, src_ptr});
+    return;
+  }
+
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto *llvm_dest_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type));
-  [[maybe_unused]] auto *llvm_src_type = static_cast<llvm::StructType *>(
+  auto *llvm_src_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(src_type));
 
-  size_t field_index = 0;
-
-  for (const auto &[dest_field_name, dest_field_type] :
+  size_t dest_index = 0;
+  for (const auto &[field_name, dest_field_type] :
        dest_type->getFieldTypesMap()) {
 
-    auto it = src_type->getFieldTypesMap().find(dest_field_name);
-
+    // 1. Calculate Destination Address
     llvm::Value *dest_field_ptr = builder->CreateStructGEP(
-        llvm_dest_type, dest_ptr, static_cast<unsigned int>(field_index),
-        dest_field_name + "_ptr");
+        llvm_dest_type, dest_ptr, static_cast<unsigned int>(dest_index),
+        field_name + "_dest_ptr");
+
+    auto it = src_type->getFieldTypesMap().find(field_name);
 
     if (it != src_type->getFieldTypesMap().end()) {
-      CODEGEN_DEBUG_LOG("Structural copy", "IR GENERATION", dest_field_name,
-                        dest_field_type->getName(), it->second->getName());
-
+      // Field Found: Copy it
       auto src_field_type = it->second;
-      auto src_field_name = it->first;
 
       size_t src_index = static_cast<size_t>(
           std::distance(src_type->getFieldTypesMap().begin(), it));
 
       llvm::Value *src_field_ptr = builder->CreateStructGEP(
           llvm_src_type, src_ptr, static_cast<unsigned int>(src_index),
-          src_field_name + "_src_ptr");
+          field_name + "_src_ptr");
 
       llvm::Value *val = builder->CreateLoad(
           m_ir_gen_context.getTypeBuilder()->getLLVMType(src_field_type.get()),
-          src_field_ptr, src_field_name + "_val");
+          src_field_ptr, field_name + "_val");
 
-      emitTypedStore(dest_field_ptr, dest_field_type.get(), val,
-                     src_field_type.get());
+      if (dest_field_type->getKind() == types::TypeKind::kObject) {
+        auto *dest_custom_type =
+            static_cast<types::CustomObjectType *>(dest_field_type.get());
+        auto *src_custom_type =
+            static_cast<types::CustomObjectType *>(src_field_type.get());
+
+        bool needs_conversion = src_custom_type->getCustomTypeName() !=
+                                dest_custom_type->getCustomTypeName();
+
+        val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                      ->getLLVMType(src_field_type.get())
+                                      ->getPointerTo(),
+                                  src_field_ptr, field_name + "_val");
+
+        // Object Value Semantics
+        if (needs_conversion) {
+
+          llvm::Type *dest_llvm_type =
+              m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_custom_type);
+
+          auto fun = m_ir_gen_context.getLLVMModule()->getFunction(
+              std::string(constants::functions::kGC_malloc_fn));
+
+          assert(fun && "GC_malloc function not found");
+
+          const llvm::DataLayout &dl =
+              m_ir_gen_context.getLLVMModule()->getDataLayout();
+
+          uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
+
+          llvm::CallInst *malloc_call = builder->CreateCall(
+              fun,
+              llvm::ConstantInt::get(
+                  llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+                  type_size_bytes));
+          malloc_call->setTailCall(false);
+
+          // Cast the result of 'malloc' to a pointer to int
+          auto new_struct_alloc = builder->CreateBitCast(
+              malloc_call, dest_llvm_type->getPointerTo());
+
+          llvm::Value *default_val =
+              m_ir_gen_context.getDefaultValue(dest_custom_type);
+          builder->CreateStore(default_val, new_struct_alloc);
+
+          emitStructuralCopy(new_struct_alloc, dest_custom_type, val,
+                             src_custom_type);
+
+          builder->CreateStore(new_struct_alloc, dest_field_ptr);
+        } else {
+          // Object Reference Semantics
+          // (Node = Node)
+          builder->CreateStore(val, dest_field_ptr);
+        }
+      } else {
+
+        bool is_source_null =
+            llvm::isa<llvm::ConstantPointerNull>(val) ||
+            src_field_type.get() ==
+                analysis::Builtins::m_nirast_type_instance.get();
+
+        if (is_source_null) {
+          auto *default_value =
+              m_ir_gen_context.getDefaultValue(dest_field_type.get());
+          builder->CreateStore(default_value, dest_field_ptr);
+          continue;
+        }
+
+        // Value Semantics: Handle implicit casts (e.g. i8 -> i32)
+        emitTypedStore(dest_field_ptr, dest_field_type.get(), val,
+                       src_field_type.get());
+      }
     } else {
+
       auto *default_value =
           m_ir_gen_context.getDefaultValue(dest_field_type.get());
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value,
-                                                     dest_field_ptr);
+      builder->CreateStore(default_value, dest_field_ptr);
     }
+
+    dest_index++;
+  }
+}
+
+llvm::Function *
+IRGenerator::getOrCreateStructCopier(types::CustomObjectType *type) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto *mod = m_ir_gen_context.getLLVMModule();
+
+  // 1. Check Cache (e.g., "fg_copy_struct_Node")
+  std::string func_name = "fg_copy_struct_" + type->getCustomTypeName();
+  if (auto *existing_fn = mod->getFunction(func_name)) {
+    return existing_fn;
+  }
+
+  // 2. Define Function Signature: void copy(StructType* dest, StructType* src)
+  llvm::Type *llvm_struct_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+  llvm::Type *struct_ptr_type = llvm_struct_type->getPointerTo();
+
+  llvm::FunctionType *fn_type = llvm::FunctionType::get(
+      builder->getVoidTy(), {struct_ptr_type, struct_ptr_type}, false);
+
+  llvm::Function *copier_fn = llvm::Function::Create(
+      fn_type, llvm::Function::ExternalLinkage, func_name, mod);
+
+  // 3. Save Insert Point (So we don't break the main code generation)
+  auto prev_block = builder->GetInsertBlock();
+  auto prev_insert_point = builder->GetInsertPoint();
+
+  // 4. Generate Body
+  llvm::BasicBlock *entry_block = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "entry", copier_fn);
+  builder->SetInsertPoint(entry_block);
+
+  llvm::Value *dest_ptr = copier_fn->getArg(0);
+  llvm::Value *src_ptr = copier_fn->getArg(1);
+
+  // Iterate Fields
+  size_t field_index = 0;
+  for (const auto &[field_name, field_type] : type->getFieldTypesMap()) {
+
+    // GEP for Source and Dest
+    llvm::Value *src_field_gep = builder->CreateStructGEP(
+        llvm_struct_type, src_ptr, static_cast<unsigned int>(field_index));
+
+    llvm::Value *dest_field_gep = builder->CreateStructGEP(
+        llvm_struct_type, dest_ptr, static_cast<unsigned int>(field_index));
+
+    // Determine the LLVM type for the load
+    llvm::Type *field_llvm_type = nullptr;
+
+    if (field_type->getKind() == types::TypeKind::kObject) {
+      // If field is an Object, it's stored as a pointer (Node*).
+      // We copy the pointer itself (Shallow Copy of Reference).
+      field_llvm_type = m_ir_gen_context.getTypeBuilder()
+                            ->getLLVMType(field_type.get())
+                            ->getPointerTo();
+    } else {
+      // Primitives (int, float, etc.)
+      field_llvm_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(field_type.get());
+    }
+
+    // Perform the Copy: Load from Src -> Store to Dest
+    llvm::Value *val = builder->CreateLoad(field_llvm_type, src_field_gep,
+                                           field_name + "_val");
+    builder->CreateStore(val, dest_field_gep);
 
     field_index++;
   }
+
+  builder->CreateRetVoid();
+
+  // 5. Restore Insert Point
+  if (prev_block) {
+    builder->SetInsertPoint(prev_block, prev_insert_point);
+  }
+
+  return copier_fn;
 }
+
 } // namespace ir_gen
 } // namespace flow_wing

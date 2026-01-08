@@ -105,6 +105,8 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     binding::BoundVariableDeclaration *variable_declaration) {
 
+  CODEGEN_DEBUG_LOG("Visiting Bound Variable Declaration", "");
+
   auto *module = m_ir_gen_context.getLLVMModule();
 
   for (const auto &symbol : variable_declaration->getSymbols()) {
@@ -115,7 +117,11 @@ void GlobalDeclarationsInitializer::visit(
     auto llvm_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(variable_type);
 
+    CODEGEN_DEBUG_LOG("Variable Type", variable_type->getName());
+
     assert(llvm_type && "LLVM type is null");
+
+    CODEGEN_DEBUG_LOG("LLVM Type", llvm_type->getStructName().str());
 
     // Already handled in SemanticAnalyzer
     bool is_llvm_constant = false;

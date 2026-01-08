@@ -310,3 +310,80 @@ float fg_stf(const char* str) {
  void fg_init_runtime() {
      GC_INIT();
  }
+
+ // ==========================================
+// OBJECT PRINT CYCLE DETECTION (Thread-Safe)
+// ==========================================
+
+#define INITIAL_STACK_CAP 32
+#define HARD_DEPTH_LIMIT 20000 
+#define SHRINK_THRESHOLD 1024
+
+// Thread-Local Storage for safety in concurrent environments
+static __thread void** visited_stack = NULL;
+static __thread int visited_capacity = 0;
+static __thread int visited_count = 0;
+
+void ensure_visit_stack_capacity() {
+    if (visited_count >= visited_capacity) {
+        int new_cap = (visited_capacity == 0) ? INITIAL_STACK_CAP : visited_capacity * 2;
+        
+        // Use realloc (Manual memory management). 
+        // This memory is runtime infrastructure, not user garbage.
+        void** new_stack = (void**)realloc(visited_stack, new_cap * sizeof(void*));
+        
+        if (!new_stack) {
+            fg_panic("Runtime Error: Out of memory in printer cycle detection.", "");
+        }
+        
+        visited_stack = new_stack;
+        visited_capacity = new_cap;
+    }
+}
+
+bool fg_print_enter_object(void* ptr) {
+    if (ptr == NULL) {
+        fg_pf("null");
+        return false;
+    }
+
+    // 1. Cycle Check (Linear scan of current path)
+    for (int i = 0; i < visited_count; i++) {
+        if (visited_stack[i] == ptr) {
+            fg_pf("<Cycle>");
+            return false;
+        }
+    }
+
+    // 2. Hard Depth Limit (Prevent Segfault)
+    if (visited_count >= HARD_DEPTH_LIMIT) {
+        fg_pf("<Stack Depth Limit>"); 
+        return false;
+    }
+
+    // 3. Push to Stack
+    ensure_visit_stack_capacity();
+    visited_stack[visited_count++] = ptr;
+    fg_pf("{ ");
+    return true;
+}
+
+void fg_print_exit_object() {
+    if (visited_count > 0) {
+        visited_count--;
+    }
+    fg_pf(" }");
+
+    // --- SMART SHRINK STRATEGY ---
+    // If we are back at the top level (count == 0), check if we
+    // are hoarding too much memory.
+    if (visited_count == 0) {
+        if (visited_capacity > SHRINK_THRESHOLD) {
+            // Free excess memory to avoid ghost space
+            free(visited_stack);
+            visited_stack = NULL;
+            visited_capacity = 0;
+        }
+        // Otherwise, keep the small buffer allocated for performance (Warm Cache)
+    }
+}

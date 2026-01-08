@@ -1,0 +1,3 @@
+Result: { age: 20, name: "Alice" }
+Result after condition change: { age: 25, name: "Bob" }
+

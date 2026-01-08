@@ -21,6 +21,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
 #include "src/common/Symbol/Symbol.hpp"
@@ -30,6 +31,7 @@
 
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 namespace flow_wing {
 namespace binding {
@@ -105,6 +107,18 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
         m_context->reportError(error_expression.get());
         return std::move(error_expression);
       }
+
+      if ((*right_type.get() ==
+           *analysis::Builtins::m_nirast_type_instance.get()) &&
+          left_type->getKind() == types::TypeKind::kObject) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kInvalidAssignmentToAnObject,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                right_type->getName(), left_type->getName()});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
       break;
     }
     case NodeKind::kIndexExpression: {
@@ -147,6 +161,10 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       // semantically (the dynamic value will be extracted and converted to left
       // type)
     } else if (*right_type > *left_type) {
+
+      BINDER_DEBUG_LOG("Left Type: ", left_type->getName());
+      BINDER_DEBUG_LOG("Right Type: ", right_type->getName());
+
       // Normal type mismatch check
       auto error_expression = std::make_unique<BoundErrorExpression>(
           expression->getSourceLocation(),

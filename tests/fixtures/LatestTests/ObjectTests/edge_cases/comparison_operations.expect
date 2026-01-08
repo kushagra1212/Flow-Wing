@@ -1,0 +1,7 @@
+p1.age == 20: true
+p1.age != p2.age: true
+p1.age < p2.age: true
+p1.age > p2.age: false
+p1.age <= p2.age: true
+p1.age >= p2.age: false
+

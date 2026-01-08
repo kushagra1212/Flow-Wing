@@ -264,6 +264,8 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
 
     auto *customType = static_cast<types::CustomObjectType *>(type);
 
+    CODEGEN_DEBUG_LOG("Custom Type", customType->getName());
+
     auto *llvmStructType =
         llvm::dyn_cast<llvm::StructType>(getTypeBuilder()->getLLVMType(type));
     assert(llvmStructType && "LLVM type for Object must be a StructType");
@@ -272,9 +274,18 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
 
     for (const auto &[field_name, field_type] :
          customType->getFieldTypesMap()) {
-      llvm::Constant *fieldDefault =
-          getDefaultValue(field_type.get(), is_global);
-      elementConstants.push_back(fieldDefault);
+      if (field_type->getKind() == types::TypeKind::kObject) {
+
+        auto *obj_type = getTypeBuilder()->getLLVMType(field_type.get());
+
+        elementConstants.push_back(
+            llvm::ConstantPointerNull::get(obj_type->getPointerTo()));
+
+      } else {
+        llvm::Constant *fieldDefault =
+            getDefaultValue(field_type.get(), is_global);
+        elementConstants.push_back(fieldDefault);
+      }
     }
 
     // 4. Create the Aggregate Constant

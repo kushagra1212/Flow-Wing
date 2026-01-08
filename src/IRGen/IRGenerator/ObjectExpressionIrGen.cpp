@@ -57,12 +57,25 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
       }
       field_index++;
     }
-
+    types::Type *field_type =
+        colon_expression->getType().get(); // The type of the field
     auto *field_ptr = builder->CreateStructGEP(
         llvm_obj_type, object_alloc, static_cast<unsigned int>(field_index));
 
-    emitTypedStore(field_ptr, colon_expression->getType().get(), val_to_store,
-                   val_type);
+    // --- FIX START ---
+    // If the field is an Object, it is stored as a Pointer (Node*).
+    // We must LINK the pointer, not COPY the content.
+    if (field_type->getKind() == types::TypeKind::kObject) {
+
+      // Ensure we have the pointer value (Node*)
+      llvm::Value *ptr_val = resolveValue(val_to_store, val_type);
+
+      // Store Node* into Node** (the field slot)
+      builder->CreateStore(ptr_val, field_ptr);
+    } else {
+      // Primitives (Value Copy)
+      emitTypedStore(field_ptr, field_type, val_to_store, val_type);
+    }
 
     field_index++;
   }

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,9 @@ ExpressionBinder::bindObjectExpression(syntax::ObjectExpressionSyntax *node) {
   }
 
   auto object_type = std::make_shared<types::CustomObjectType>(
-      "object_expression", field_types_map);
+      "object_expression",
+      std::map<std::string, std::shared_ptr<types::Type>>{});
+  object_type->setFieldTypesMap(std::move(field_types_map));
 
   return std::make_unique<BoundObjectExpression>(
       std::move(field_types_map), std::move(colon_expressions), object_type,

@@ -1,6 +1,6 @@
 Before assignment:
-partial: { age: 28, name: "Alice" }
-full: { age: 0, height: 0, isEmployed: false, name: "", weight: 0 }
+partial: { age: 28, name: "Alice"}
+full: { age: 0, height: 0, isEmployed: false, name: "", weight: 0}
 After assignment:
-partial: { age: 28, name: "Alice" }
-full: { age: 28, height: 0, isEmployed: false, name: "Alice", weight: 0 }
+partial: { age: 28, name: "Alice"}
+full: { age: 28, height: 0, isEmployed: false, name: "Alice", weight: 0}

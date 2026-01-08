@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,11 @@ bool Type::operator==(const Type &other) const {
 bool Type::operator!=(const Type &other) const { return !(*this == other); }
 
 bool Type::operator<=(const Type &other) const {
+
+  if (this->isNirast() && other.getKind() == TypeKind::kObject) {
+    return true;
+  }
+
   // If types are equal, they are compatible
   if (*this == other) {
     return true;
@@ -83,6 +88,10 @@ bool Type::isNthg() const {
 
 bool Type::isDynamic() const {
   return this == analysis::Builtins::m_dynamic_type_instance.get();
+}
+
+bool Type::isNirast() const {
+  return this == analysis::Builtins::m_nirast_type_instance.get();
 }
 
 bool Type::isPrimitive() const { return m_kind == TypeKind::kPrimitive; }

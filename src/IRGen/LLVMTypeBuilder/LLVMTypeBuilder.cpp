@@ -86,6 +86,8 @@ llvm::Type *LLVMTypeBuilder::convertPrimitive(const types::Type *type) {
     return llvm::Type::getInt32Ty(m_context);
   if (type == analysis::Builtins::m_dynamic_type_instance.get())
     return createDynamicValueType();
+  if (type == analysis::Builtins::m_nirast_type_instance.get())
+    return llvm::Type::getInt8PtrTy(m_context);
 
   assert(false && "Unsupported primitive type");
   return nullptr;
@@ -93,9 +95,17 @@ llvm::Type *LLVMTypeBuilder::convertPrimitive(const types::Type *type) {
 
 llvm::Type *
 LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
+
+  if (m_type_cache.find(type) != m_type_cache.end()) {
+    return m_type_cache[type];
+  }
+
   llvm::StructType *object_type =
       llvm::StructType::create(m_context, type->getCustomTypeName());
 
+  m_type_cache[type] = object_type;
+  CODEGEN_DEBUG_LOG("Building Object Type", type->getName(),
+                    object_type->getStructName().str());
   std::vector<llvm::Type *> elements;
 
   assert(type && "Object type has no fields");
@@ -103,7 +113,11 @@ LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
   for (const auto &[field_name, field_type] : type->getFieldTypesMap()) {
     auto field_llvm_type = getLLVMType(field_type.get());
     assert(field_llvm_type && "Field LLVM type is null");
-    elements.push_back(field_llvm_type);
+    if (field_type->getKind() == types::TypeKind::kObject) {
+      elements.push_back(field_llvm_type->getPointerTo());
+    } else {
+      elements.push_back(field_llvm_type);
+    }
   }
 
   object_type->setBody(elements);

@@ -1,0 +1,27 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 20
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 25
+}
+
+var condition: bool = true
+
+var result: Person = condition ? p1 : p2
+
+print("Result: ", result, "\n")
+
+condition = false
+
+result = condition ? p1 : p2
+
+print("Result after condition change: ", result, "\n")
+

@@ -1,0 +1,26 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 20
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 25
+}
+
+print("Before:\n")
+print("p1.name: ", p1.name, ", p1.age: ", p1.age, "\n")
+print("p2.name: ", p2.name, ", p2.age: ", p2.age, "\n")
+
+p1.name = p2.name
+p1.age = p2.age
+
+print("After member-to-member assignment:\n")
+print("p1.name: ", p1.name, ", p1.age: ", p1.age, "\n")
+print("p2.name: ", p2.name, ", p2.age: ", p2.age, "\n")
+

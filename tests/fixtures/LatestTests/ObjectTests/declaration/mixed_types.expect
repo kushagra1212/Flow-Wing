@@ -1,0 +1,2 @@
+Person: { age: 30, name: "John"}
+Point: { x: 10, y: 20}

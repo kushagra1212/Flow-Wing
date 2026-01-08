@@ -48,6 +48,26 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
 
   const auto &custom_type_name = identifier_expression->getValue();
 
+  auto custom_type_type = std::make_shared<types::CustomObjectType>(
+      custom_type_name, std::map<std::string, std::shared_ptr<types::Type>>{});
+  auto symbol_table = m_context->getSymbolTable().get();
+
+  // --- STEP 2: Register it IMMEDIATELY ---
+  // This allows the inner fields to find "Node" while we are still binding
+  // them.
+  auto symbol = std::make_shared<analysis::Symbol>(
+      custom_type_name, analysis::SymbolKind::kObject, custom_type_type);
+
+  if (!symbol_table->define(symbol)) {
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kCustomTypeAlreadyDeclared,
+        diagnostic::DiagnosticArgs{custom_type_name});
+
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
+  }
+
   std::map<std::string, std::shared_ptr<types::Type>>
       custom_type_field_types_map;
 
@@ -60,28 +80,13 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
         field_declaration->getValue().get());
 
     if (result.second != nullptr) {
+      m_context->reportError(result.second.get());
       return std::make_unique<BoundErrorStatement>(std::move(result.second));
     }
     custom_type_field_types_map.insert({field_name_value, result.first});
   }
 
-  auto custom_type_type = std::make_shared<types::CustomObjectType>(
-      custom_type_name, custom_type_field_types_map);
-
-  auto symbol = std::make_shared<analysis::Symbol>(
-      custom_type_name, analysis::SymbolKind::kObject, custom_type_type);
-
-  auto symbol_table = m_context->getSymbolTable().get();
-
-  if (!symbol_table->define(symbol)) {
-    auto error_statement = std::make_unique<BoundErrorStatement>(
-        statement->getSourceLocation(),
-        diagnostic::DiagnosticCode::kCustomTypeAlreadyDeclared,
-        diagnostic::DiagnosticArgs{custom_type_name});
-
-    m_context->reportError(error_statement.get());
-    return std::move(error_statement);
-  }
+  custom_type_type->setFieldTypesMap(std::move(custom_type_field_types_map));
 
   return std::make_unique<BoundCustomTypeStatement>(
       std::vector<std::shared_ptr<analysis::Symbol>>({symbol}),

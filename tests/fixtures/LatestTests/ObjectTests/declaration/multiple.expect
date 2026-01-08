@@ -1,0 +1,3 @@
+p1: { age: 25, name: "Alice"}
+p2: { age: 30, name: "Bob"}
+p3: { age: 35, name: "Charlie"}

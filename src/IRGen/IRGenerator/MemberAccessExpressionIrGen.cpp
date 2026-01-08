@@ -30,14 +30,53 @@ void IRGenerator::visit(
 
   member_access_expression->getLeftExpression()->accept(this);
 
+  auto left_expression = member_access_expression->getLeftExpression().get();
+
   llvm::Value *object_value = m_last_value;
   types::Type *object_type = m_last_type;
 
-  object_value = resolveValue(object_value, object_type);
+  bool is_nested_access = (left_expression->getKind() ==
+                           binding::NodeKind::kMemberAccessExpression);
 
-  if (!object_value->getType()->isPointerTy()) {
-    object_value =
-        ensurePointer(object_value, object_type, "member_access_obj");
+  if (is_nested_access && object_type->getKind() == types::TypeKind::kObject) {
+    // Dereference: Node** -> Node*
+    object_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+        m_ir_gen_context.getTypeBuilder()
+            ->getLLVMType(object_type)
+            ->getPointerTo(),
+        object_value, "chain_load");
+  }
+
+  if (object_type->getKind() == types::TypeKind::kObject) {
+    auto &builder = m_ir_gen_context.getLLVMBuilder();
+
+    // A. Check if Pointer is Null
+    llvm::Value *is_null = builder->CreateIsNull(object_value, "is_null_check");
+
+    llvm::BasicBlock *error_block =
+        m_ir_gen_context.createBlock("null_access_error");
+    llvm::BasicBlock *continue_block =
+        m_ir_gen_context.createBlock("null_access_ok");
+
+    // Branch: If null -> Error, Else -> Continue
+    builder->CreateCondBr(is_null, error_block, continue_block);
+
+    // B. Generate Error Block
+    m_ir_gen_context.setInsertPoint(error_block);
+
+    auto *runtime_err_fn =
+        m_ir_gen_context.getLLVMModule()->getFunction("fg_re");
+    if (runtime_err_fn) {
+      // Pass a specific error message
+      llvm::Value *msg = builder->CreateGlobalStringPtr(
+          "Runtime Error: Cannot access member '" +
+          member_access_expression->getMemberName() + "' of null object.");
+      builder->CreateCall(runtime_err_fn, {msg});
+    }
+    builder->CreateUnreachable(); // Stop execution here
+
+    // C. Continue Normal Execution
+    m_ir_gen_context.setInsertPoint(continue_block);
   }
 
   auto *custom_object_type =

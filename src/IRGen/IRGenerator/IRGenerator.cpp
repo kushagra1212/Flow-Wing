@@ -213,15 +213,16 @@ void IRGenerator::visit(
 }
 llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 
+  if (type->isDynamic()) {
+    return value;
+  }
+
   // Literal Null check (Nir)
   if (llvm::isa<llvm::ConstantPointerNull>(value)) {
     return value;
   }
 
   if (type->getKind() == types::TypeKind::kObject) {
-    if (value->getType()->isPointerTy()) {
-      return value;
-    }
     return ensurePointer(value, type, "aggregate_spill");
   }
 

@@ -28,8 +28,14 @@ void IRGenerator::visit(
 
   auto custom_type_symbol = custom_type_statement->getSymbols().front();
   assert(custom_type_symbol && "Custom type symbol is null");
+
+  CODEGEN_DEBUG_LOG("Custom Type Symbol", custom_type_symbol->getName());
+
   auto symbol_type = custom_type_symbol->getType();
   assert(symbol_type && "Symbol type is null");
+
+  CODEGEN_DEBUG_LOG("Symbol Type", symbol_type->getName());
+
   auto llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(symbol_type.get());
 

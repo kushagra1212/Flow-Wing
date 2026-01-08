@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: InvalidAssignmentToAnObject
+
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = Nir
