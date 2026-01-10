@@ -99,6 +99,8 @@ void GlobalDeclarationsInitializer::visit(
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
   }
+
+  CODEGEN_DEBUG_LOG("Global Declarations Initialized", "");
 }
 
 // Global Variable Declarations
@@ -121,8 +123,6 @@ void GlobalDeclarationsInitializer::visit(
 
     assert(llvm_type && "LLVM type is null");
 
-    CODEGEN_DEBUG_LOG("LLVM Type", llvm_type->getStructName().str());
-
     // Already handled in SemanticAnalyzer
     bool is_llvm_constant = false;
 
@@ -135,6 +135,8 @@ void GlobalDeclarationsInitializer::visit(
         variable_symbol->getName());
 
     m_ir_gen_context.setSymbol(variable_symbol->getName(), globalVar);
+
+    CODEGEN_DEBUG_LOG("Global Variable Declared", variable_symbol->getName());
   }
 }
 

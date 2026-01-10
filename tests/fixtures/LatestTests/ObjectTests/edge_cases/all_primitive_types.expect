@@ -1,1 +1,1 @@
-{ _deci: 3.14, _deci32: 2.5, _str: "string", b: true, ch: 'A', i32: 32, i64: 64, i8: 8}
+{ _deci: 3.14, _deci32: 2.5, _str: "string", b: true, ch: 'A', i32: 32, i64: 64, i8: 8 }

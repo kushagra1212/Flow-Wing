@@ -1,4 +1,3 @@
 Const person: { age: 30, name: "John" }
 Name: John
 Age: 30
-

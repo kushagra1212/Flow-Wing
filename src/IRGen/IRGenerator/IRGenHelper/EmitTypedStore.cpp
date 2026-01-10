@@ -117,7 +117,7 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
                                      types::CustomObjectType *src_type) {
   llvm::Value *src_ptr = ensurePointer(src_raw, src_type, "struct_copy");
 
-  if (dest_type->getCustomTypeName() == src_type->getCustomTypeName()) {
+  if (*dest_type == *src_type) {
     llvm::Function *copier = getOrCreateStructCopier(dest_type);
     m_ir_gen_context.getLLVMBuilder()->CreateCall(copier, {dest_ptr, src_ptr});
     return;
@@ -128,6 +128,10 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
       m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type));
   auto *llvm_src_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(src_type));
+
+  CODEGEN_DEBUG_LOG("Destination type", llvm_dest_type->getName().str());
+
+  CODEGEN_DEBUG_LOG("Source type", llvm_src_type->getName().str());
 
   size_t dest_index = 0;
   for (const auto &[field_name, dest_field_type] :
@@ -155,14 +159,16 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
           m_ir_gen_context.getTypeBuilder()->getLLVMType(src_field_type.get()),
           src_field_ptr, field_name + "_val");
 
-      if (dest_field_type->getKind() == types::TypeKind::kObject) {
-        auto *dest_custom_type =
-            static_cast<types::CustomObjectType *>(dest_field_type.get());
-        auto *src_custom_type =
-            static_cast<types::CustomObjectType *>(src_field_type.get());
+      CODEGEN_DEBUG_LOG("Src Field Type", src_field_type->getName());
+      CODEGEN_DEBUG_LOG("Dest Field Type", dest_field_type->getName());
 
-        bool needs_conversion = src_custom_type->getCustomTypeName() !=
-                                dest_custom_type->getCustomTypeName();
+      if (dest_field_type->getKind() == types::TypeKind::kObject) {
+
+        bool needs_conversion = *src_field_type.get() != *dest_field_type.get();
+
+        CODEGEN_DEBUG_LOG("Needs Conversion", needs_conversion ? "Yes" : "No");
+        CODEGEN_DEBUG_LOG("Src Field Type", src_field_type->getName());
+        CODEGEN_DEBUG_LOG("Dest Field Type", dest_field_type->getName());
 
         val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
                                       ->getLLVMType(src_field_type.get())
@@ -171,44 +177,10 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
 
         // Object Value Semantics
         if (needs_conversion) {
-
-          llvm::Type *dest_llvm_type =
-              m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_custom_type);
-
-          auto fun = m_ir_gen_context.getLLVMModule()->getFunction(
-              std::string(constants::functions::kGC_malloc_fn));
-
-          assert(fun && "GC_malloc function not found");
-
-          const llvm::DataLayout &dl =
-              m_ir_gen_context.getLLVMModule()->getDataLayout();
-
-          uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
-
-          llvm::CallInst *malloc_call = builder->CreateCall(
-              fun,
-              llvm::ConstantInt::get(
-                  llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-                  type_size_bytes));
-          malloc_call->setTailCall(false);
-
-          // Cast the result of 'malloc' to a pointer to int
-          auto new_struct_alloc = builder->CreateBitCast(
-              malloc_call, dest_llvm_type->getPointerTo());
-
-          llvm::Value *default_val =
-              m_ir_gen_context.getDefaultValue(dest_custom_type);
-          builder->CreateStore(default_val, new_struct_alloc);
-
-          emitStructuralCopy(new_struct_alloc, dest_custom_type, val,
-                             src_custom_type);
-
-          builder->CreateStore(new_struct_alloc, dest_field_ptr);
-        } else {
-          // Object Reference Semantics
-          // (Node = Node)
-          builder->CreateStore(val, dest_field_ptr);
+          val = getTempObject(dest_field_type.get(), src_field_type.get(), val);
         }
+
+        builder->CreateStore(val, dest_field_ptr);
       } else {
 
         bool is_source_null =
@@ -223,6 +195,8 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
           continue;
         }
 
+        CODEGEN_DEBUG_LOG("Destination Field Type", dest_field_type->getName());
+
         // Value Semantics: Handle implicit casts (e.g. i8 -> i32)
         emitTypedStore(dest_field_ptr, dest_field_type.get(), val,
                        src_field_type.get());
@@ -236,6 +210,44 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
 
     dest_index++;
   }
+}
+
+llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
+                                        types::Type *src_type,
+                                        llvm::Value *src_val) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  llvm::Type *dest_llvm_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type);
+
+  auto fun = m_ir_gen_context.getLLVMModule()->getFunction(
+      std::string(constants::functions::kGC_malloc_fn));
+
+  assert(fun && "GC_malloc function not found");
+
+  const llvm::DataLayout &dl =
+      m_ir_gen_context.getLLVMModule()->getDataLayout();
+
+  uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
+
+  llvm::CallInst *malloc_call = builder->CreateCall(
+      fun, llvm::ConstantInt::get(
+               llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+               type_size_bytes));
+  malloc_call->setTailCall(false);
+
+  // Cast the result of 'malloc' to a pointer to int
+  auto new_struct_alloc =
+      builder->CreateBitCast(malloc_call, dest_llvm_type->getPointerTo());
+
+  llvm::Value *default_val = m_ir_gen_context.getDefaultValue(dest_type);
+  builder->CreateStore(default_val, new_struct_alloc);
+
+  emitStructuralCopy(new_struct_alloc,
+                     static_cast<types::CustomObjectType *>(dest_type), src_val,
+
+                     static_cast<types::CustomObjectType *>(src_type));
+
+  return new_struct_alloc;
 }
 
 llvm::Function *

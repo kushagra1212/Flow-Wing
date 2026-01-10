@@ -1,7 +1,7 @@
-p1: { age: 0, name: ""}
-p2: { age: 0, name: ""}
-p3: { age: 0, name: ""}
+p1: { age: 0, name: "" }
+p2: { age: 0, name: "" }
+p3: { age: 0, name: "" }
 After assignments:
-p1: { age: 20, name: "Alice"}
-p2: { age: 25, name: "Bob"}
-p3: { age: 30, name: "Charlie"}
+p1: { age: 20, name: "Alice" }
+p2: { age: 25, name: "Bob" }
+p3: { age: 30, name: "Charlie" }

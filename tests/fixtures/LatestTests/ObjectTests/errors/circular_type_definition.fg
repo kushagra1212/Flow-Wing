@@ -1,20 +1,9 @@
-/; EXPECT_ERROR: VariableNotFound
+/; EXPECT_ERROR: CustomTypeNotFound
 type A = {
     b: B
 }
 
 type B = {
     a: A
-}
-
-var a: A = {
-    b: {
-        a: {
-            b: {
-                a: {
-                }
-            }
-        }
-    }
 }
 

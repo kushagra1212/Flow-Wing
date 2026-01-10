@@ -1,8 +1,8 @@
 Initial:
-p1: { age: 20, name: "Alice"}
-p2: { age: 25, name: "Bob"}
-p3: { age: 30, name: "Charlie"}
+p1: { age: 20, name: "Alice" }
+p2: { age: 25, name: "Bob" }
+p3: { age: 30, name: "Charlie" }
 After assignments:
-p1: { age: 25, name: "Bob"}
-p2: { age: 30, name: "Charlie"}
-p3: { age: 30, name: "Charlie"}
+p1: { age: 25, name: "Bob" }
+p2: { age: 30, name: "Charlie" }
+p3: { age: 30, name: "Charlie" }

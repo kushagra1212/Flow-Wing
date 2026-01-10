@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -58,13 +59,43 @@ void IRGenerator::visit(
       bool is_field_assignment = (left_expression->getKind() ==
                                   binding::NodeKind::kMemberAccessExpression);
 
+      bool is_right_field_assignment =
+          (right_expression->getKind() ==
+           binding::NodeKind::kMemberAccessExpression);
+
+      [[maybe_unused]] bool is_right_object_expression =
+          (right_expression->getKind() == binding::NodeKind::kObjectExpression);
+
+      CODEGEN_DEBUG_LOG("Is Field Assignment",
+                        is_field_assignment ? "Yes" : "No");
+      CODEGEN_DEBUG_LOG("Is Right Field Assignment",
+                        is_right_field_assignment ? "Yes" : "No");
+      CODEGEN_DEBUG_LOG("Target Type", target_type->getName());
+      CODEGEN_DEBUG_LOG("Source Type", source_type->getName());
+
       if (is_field_assignment &&
-          target_type->getKind() == types::TypeKind::kObject) {
+          target_type->getKind() == types::TypeKind::kObject &&
+          source_type->getKind() == types::TypeKind::kObject) {
+
+        CODEGEN_DEBUG_LOG("Field Assignment", "IR GENERATION",
+                          target_type->getName(), source_type->getName());
 
         llvm::Value *ptr_to_store = resolveValue(source_val, source_type);
 
+        if (is_right_field_assignment) {
+
+          ptr_to_store = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+              m_ir_gen_context.getTypeBuilder()
+                  ->getLLVMType(source_type)
+                  ->getPointerTo(),
+              ptr_to_store, "load_ptr");
+        } else if (is_right_object_expression) {
+          ptr_to_store = getTempObject(target_type, source_type, ptr_to_store);
+        }
+
         m_ir_gen_context.getLLVMBuilder()->CreateStore(ptr_to_store,
                                                        target_ptr);
+
       }
       // Case B: Value Copy / Primitive Assignment
       else {

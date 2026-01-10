@@ -1,0 +1,15 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+type Person = {
+    name: str
+    age: int
+    email: str
+}
+
+const p: Person = {
+    name: "John",
+    age: 30,
+    email: "john@example.com"
+}
+
+p.name = "Jane"
+p.age = 25

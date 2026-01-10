@@ -1,3 +1,2 @@
 Zero values: { age: 0, height: 0, isActive: false, name: "" }
 After updates: { age: 30, height: 0, isActive: false, name: "John" }
-

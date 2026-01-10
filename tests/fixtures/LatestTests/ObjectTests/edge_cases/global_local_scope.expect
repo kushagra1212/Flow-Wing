@@ -12,4 +12,3 @@ nested: { age: 100, name: "Global" }
 local: { age: 100, name: "Global" }
 global: { age: 100, name: "Global" }
 Back to global scope - global: { age: 100, name: "Global" }
-

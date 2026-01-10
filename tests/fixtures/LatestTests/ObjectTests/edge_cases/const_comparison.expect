@@ -1,0 +1,3 @@
+p1.age > p2.age: true
+p1.name == p2.name: false
+p1 == p2: false

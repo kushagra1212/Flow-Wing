@@ -1,3 +1,2 @@
 Person with expression: { age: 30, name: "John" }
 After doubling age: { age: 60, name: "John" }
-

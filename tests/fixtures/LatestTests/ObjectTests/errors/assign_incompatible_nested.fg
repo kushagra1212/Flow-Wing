@@ -2,6 +2,7 @@
 type Point = {
     x: int
     y: int
+    j:int
 }
 
 type Point3D = {

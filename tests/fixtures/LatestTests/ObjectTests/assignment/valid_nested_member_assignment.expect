@@ -1,0 +1,4 @@
+Before assignment:
+rect.topLeft: { x: 0, y: 0 }
+After assignment:
+rect.topLeft: { x: 5, y: 5 }

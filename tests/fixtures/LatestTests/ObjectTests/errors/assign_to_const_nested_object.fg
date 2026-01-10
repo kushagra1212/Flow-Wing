@@ -1,0 +1,16 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+type Inner = {
+    data: str
+}
+
+type Outer = {
+    inner: Inner
+}
+
+const outer: Outer = {
+    inner: {
+        data: "test"
+    }
+}
+
+outer.inner.data = "modified"

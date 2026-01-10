@@ -62,10 +62,16 @@ bool Type::operator<=(const Type &other) const {
 
   // Integer promotion: int8 <= int (int32) <= int64
   if (this_name == "int8") {
-    return other_name == "int" || other_name == "int64";
+    return other_name == "int" || other_name == "int64" ||
+           other_name == "deci" || other_name == "deci32";
   }
   if (this_name == "int") {
-    return other_name == "int64";
+    return other_name == "int64" || other_name == "deci" ||
+           other_name == "deci32";
+  }
+
+  if (this_name == "int64") {
+    return other_name == "deci";
   }
 
   // Decimal promotion: deci32 <= deci

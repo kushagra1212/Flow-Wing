@@ -1,0 +1,4 @@
+Const person (read-only): { age: 25, name: "Alice" }
+Mutable person (before): { age: 30, name: "Bob" }
+Mutable person (after): { age: 35, name: "Charlie" }
+Const person (still unchanged): { age: 25, name: "Alice" }

@@ -1,7 +1,0 @@
-Person: { age: 30, name: "John" }
-Name: John
-Age: 30
-Person: { age: 31, name: "Jane" }
-Name: Jane
-Age: 31
-

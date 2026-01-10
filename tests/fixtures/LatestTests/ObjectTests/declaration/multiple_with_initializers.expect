@@ -1,2 +1,2 @@
-p1: { age: 20, name: "Alice"}
-p2: { age: 25, name: "Bob"}
+p1: { age: 20, name: "Alice" }
+p2: { age: 25, name: "Bob" }

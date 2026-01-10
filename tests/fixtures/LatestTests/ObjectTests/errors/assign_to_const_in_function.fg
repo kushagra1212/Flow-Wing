@@ -1,0 +1,16 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+type Point = {
+    x: int
+    y: int
+}
+
+const p: Point = {
+    x: 10,
+    y: 20
+}
+
+func modifyPoint() {
+    p.x = 5
+}
+
+modifyPoint()

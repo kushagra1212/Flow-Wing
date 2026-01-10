@@ -66,6 +66,7 @@ class ObjectExpressionSyntax;
 
 namespace binding {
 class BinderContext;
+class BoundErrorExpression;
 
 class ExpressionBinder {
 public:
@@ -164,6 +165,13 @@ private:
 
   std::unique_ptr<BoundExpression>
   bindAssignmentExpression(syntax::AssignmentExpressionSyntax *expression);
+
+  // -- Assignment Expression Helpers --
+  const BoundExpression *
+  getBaseIdentifierFromMemberAccess(const BoundExpression *expression);
+  std::unique_ptr<BoundErrorExpression>
+  checkConstantVariableAssignment(const BoundExpression *left_expression,
+                                  const diagnostic::SourceLocation &location);
 };
 
 } // namespace binding

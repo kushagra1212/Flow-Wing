@@ -1,2 +1,2 @@
-Initial: { age: 30, name: "John"}
-After reassignment: { age: 25, name: "Jane"}
+Initial: { age: 30, name: "John" }
+After reassignment: { age: 25, name: "Jane" }

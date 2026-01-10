@@ -221,6 +221,9 @@ private:
 
   llvm::Function *getOrCreateObjectPrinter(types::CustomObjectType *type);
   llvm::Function *getOrCreateStructCopier(types::CustomObjectType *type);
+
+  llvm::Value *getTempObject(types::Type *dest_type, types::Type *src_type,
+                             llvm::Value *src_val);
 };
 } // namespace ir_gen
 } // namespace flow_wing

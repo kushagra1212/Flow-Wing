@@ -49,16 +49,17 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
     types::Type *val_type = m_last_type;
 
     size_t field_index = 0;
+    types::Type *field_type = nullptr;
 
-    for (const auto &[field_name, field_type] :
+    for (const auto &[field_name, src_field_type] :
          fg_custom_type->getFieldTypesMap()) {
       if (field_name == colon_expression->getFieldName()) {
+        field_type = src_field_type.get();
         break;
       }
       field_index++;
     }
-    types::Type *field_type =
-        colon_expression->getType().get(); // The type of the field
+
     auto *field_ptr = builder->CreateStructGEP(
         llvm_obj_type, object_alloc, static_cast<unsigned int>(field_index));
 
@@ -73,6 +74,8 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
       // Store Node* into Node** (the field slot)
       builder->CreateStore(ptr_val, field_ptr);
     } else {
+      CODEGEN_DEBUG_LOG("Primitives (Value Copy)", "IR GENERATION",
+                        field_type->getName(), val_type->getName());
       // Primitives (Value Copy)
       emitTypedStore(field_ptr, field_type, val_to_store, val_type);
     }

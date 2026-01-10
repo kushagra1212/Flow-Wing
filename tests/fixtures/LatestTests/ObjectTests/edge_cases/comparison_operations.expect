@@ -4,4 +4,3 @@ p1.age < p2.age: true
 p1.age > p2.age: false
 p1.age <= p2.age: true
 p1.age >= p2.age: false
-

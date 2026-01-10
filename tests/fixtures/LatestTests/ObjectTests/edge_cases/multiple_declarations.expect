@@ -6,4 +6,3 @@ After assignments:
 p1: { age: 25, name: "Bob" }
 p2: { age: 30, name: "Charlie" }
 p3: { age: 30, name: "Charlie" }
-

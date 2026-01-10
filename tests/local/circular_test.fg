@@ -120,3 +120,247 @@ print("node2.next: ", node2.next, "\n")
 /; print("rect1.topLeft: ", rect1.topLeft, "\n")
 /; print("rect2.topLeft: ", rect2.topLeft, "\n")
 
+
+
+
+
+
+
+
+
+
+/; Ex 1
+
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var j:T
+
+/; j.z = {
+/;     x: 20
+/; }
+
+/; print(j, "\n")
+
+
+/; ex 2
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var j:T
+
+/; j.z = {
+/;     x: 20
+/; }
+
+/; j.l = 3.14
+/; j.y = 100
+
+/; print(j, "\n")
+
+
+/; ex 3
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var j:T = {
+/;     z: {
+/;         x: 20
+/;     },
+/;     l: 3.14,
+/;     y: 100
+/; }
+
+/; j.z = {
+/;     x: 20
+/; }
+
+/; print(j, "\n")
+
+
+/; ex 4
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var p1:P = {
+/;     x: 54
+/; }
+
+/; var j:T = {
+/;     z: p1,
+/;     l: 3.14,
+/;     y: 100
+/; }
+
+/; j.z = p1
+
+/; print(p1, "\n")
+/; print(j, "\n")
+
+/; /; After Modification
+/; p1.x = 100
+/; print(p1, "\n")
+/; print(j, "\n")
+
+
+/; /; After Modification via j
+/; j.z.x = 200
+/; print(p1, "\n")
+/; print(j, "\n")
+
+/;ex 5
+
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var p1:P = {
+/;     x: 54
+/; }
+
+/; var j1: T = {
+/;     z: p1,
+/;     l: 3.14,
+/;     y: 100
+/; }
+
+/; var j2: T = j1 
+
+/; print("Before modification:\n")
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+
+/; j2.l = 100.00   
+
+/; print("After modification:\n")
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+
+/; print("After modification of j2.z ref:\n")
+/; j2.z.x = 200
+
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+
+
+
+/; ex 6
+
+/; type P = {
+/;     x:int
+/; }
+/; type T = {
+/;     z: P 
+/;     l: deci
+/;     y:int
+/; }
+
+/; var p1:P = {
+/;     x: 54
+/; }
+
+/; var j1: T = {
+/;     z: p1,
+/;     l: 3.14,
+/;     y: 100
+/; }
+
+/; var j2: T 
+
+/; j2 = j1
+
+/; print("Before modification:\n")
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+
+/; j2.l = 100.00   
+
+/; print("After modification:\n")
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+
+/; print("After modification of j2.z ref:\n")
+/; j2.z.x = 200
+
+/; print("j1: ", j1, "\n")
+/; print("j2: ", j2, "\n")
+/#
+
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+var rect1: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+
+var rect2: Rectangle = {
+    topLeft: {
+        x: 20,
+        y: 20
+    },
+    bottomRight: {
+        x: 30,
+        y: 30
+    }
+}
+
+print("Before:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+
+rect1.topLeft = rect2.topLeft
+
+print("After assignment:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+
+rect1.topLeft.x = 100
+rect1.topLeft.y = 200
+
+print("After modifying rect1.topLeft:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+

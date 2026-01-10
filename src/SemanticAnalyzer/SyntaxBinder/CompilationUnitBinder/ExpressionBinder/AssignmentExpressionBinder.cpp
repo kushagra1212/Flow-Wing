@@ -21,6 +21,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
@@ -35,6 +36,62 @@
 #include <cassert>
 namespace flow_wing {
 namespace binding {
+
+const BoundExpression *ExpressionBinder::getBaseIdentifierFromMemberAccess(
+    const BoundExpression *expression) {
+  if (expression->getKind() != NodeKind::kMemberAccessExpression) {
+    return expression;
+  }
+
+  auto member_expr =
+      static_cast<const BoundMemberAccessExpression *>(expression);
+  auto current_expression = member_expr->getLeftExpression().get();
+
+  while (current_expression->getKind() == NodeKind::kMemberAccessExpression) {
+    auto nested_member_expr =
+        static_cast<const BoundMemberAccessExpression *>(current_expression);
+    current_expression = nested_member_expr->getLeftExpression().get();
+  }
+
+  return current_expression;
+}
+
+std::unique_ptr<BoundErrorExpression>
+ExpressionBinder::checkConstantVariableAssignment(
+    const BoundExpression *left_expression,
+    const diagnostic::SourceLocation &location) {
+  const BoundExpression *base_expression = left_expression;
+
+  if (left_expression->getKind() == NodeKind::kMemberAccessExpression) {
+    base_expression = getBaseIdentifierFromMemberAccess(left_expression);
+  }
+
+  if (base_expression->getKind() != NodeKind::kIdentifierExpression) {
+    return nullptr;
+  }
+
+  auto base_id_expr =
+      static_cast<const BoundIdentifierExpression *>(base_expression);
+  auto base_symbol =
+      const_cast<BoundIdentifierExpression *>(base_id_expr)->getSymbol();
+
+  if (base_symbol->getKind() != analysis::SymbolKind::kVariable) {
+    return nullptr;
+  }
+
+  auto base_var_sym =
+      static_cast<const analysis::VariableSymbol *>(base_symbol);
+
+  if (base_var_sym->isConst()) {
+    return std::make_unique<BoundErrorExpression>(
+        location,
+        diagnostic::DiagnosticCode::kInvalidAssignmentToConstantVariable,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            base_symbol->getName()});
+  }
+
+  return nullptr;
+}
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     syntax::AssignmentExpressionSyntax *expression) {
@@ -97,15 +154,11 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       }
 
       // Const Check
-      auto var_sym = static_cast<analysis::VariableSymbol *>(symbol);
-      if (var_sym->isConst()) {
-        auto error_expression = std::make_unique<BoundErrorExpression>(
-            expression->getSourceLocation(),
-            diagnostic::DiagnosticCode::kInvalidAssignmentToConstantVariable,
-            std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                symbol->getName()});
-        m_context->reportError(error_expression.get());
-        return std::move(error_expression);
+      auto const_error = checkConstantVariableAssignment(
+          left_expression.get(), expression->getSourceLocation());
+      if (const_error != nullptr) {
+        m_context->reportError(const_error.get());
+        return std::move(const_error);
       }
 
       if ((*right_type.get() ==
@@ -126,9 +179,13 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       break;
     }
     case NodeKind::kMemberAccessExpression: {
-      // Member access expressions are valid lvalues for assignment
-      // No additional checks needed - the type checking below will handle
-      // compatibility
+      // Check if the base object is a constant variable
+      auto const_error = checkConstantVariableAssignment(
+          left_expression.get(), expression->getSourceLocation());
+      if (const_error != nullptr) {
+        m_context->reportError(const_error.get());
+        return std::move(const_error);
+      }
       break;
     }
     default: {

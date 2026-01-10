@@ -1,0 +1,4 @@
+Person name: John
+Street: 123 Main St
+City: New York
+Full address: { city: "New York", street: "123 Main St" }

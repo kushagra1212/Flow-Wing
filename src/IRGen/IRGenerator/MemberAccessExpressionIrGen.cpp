@@ -108,6 +108,9 @@ void IRGenerator::visit(
   m_last_value = field_ptr;
   m_last_llvm_type = field_ptr->getType();
   m_last_type = field_type;
+
+  CODEGEN_DEBUG_LOG("Member Access Expression IR Generated", "Field Pointer",
+                    field_type->getName());
 }
 
 } // namespace flow_wing::ir_gen
