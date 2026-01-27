@@ -1,0 +1,21 @@
+type Point = {
+    x: int
+    y: int
+}
+
+const p1: Point = {
+    x: 10,
+    y: 20
+}
+
+const p2: Point = {
+    x: 5,
+    y: 15
+}
+
+print("p1.x + p2.x: ", p1.x + p2.x, "\n")
+print("p1.y - p2.y: ", p1.y - p2.y, "\n")
+print("p1.x * 2: ", p1.x * 2, "\n")
+print("p1.y / 2: ", p1.y / 2, "\n")
+print("p1.x % 3: ", p1.x % 3, "\n")
+print("p1.x + p2.y: ", p1.x + p2.y, "\n")

@@ -45,7 +45,7 @@ print(!('a' == 'a') , '\n')
 print(!('a' != 'b') , '\n')
 
 print("Bang Prefix Operator for Nir\n")
-print(!Nir , '\n')
+print(!null , '\n')
 
 
 print("Bang Bang Prefix Operator for Int\n")

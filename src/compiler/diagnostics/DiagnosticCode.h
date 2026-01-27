@@ -49,7 +49,6 @@ enum class DiagnosticCode : int16_t {
   kUnexpectedTypeExpression,
   kUnexpectedExpression,
   kInValidTypeExpression,
-  kInvalidAssignmentToAnObject,
   kInvalidAssignmentToUndeclaredVariable,
   kInvalidAssignmentToConstantVariable,
   kAssignmentToNonVariable,

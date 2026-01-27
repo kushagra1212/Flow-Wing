@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,14 @@ llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
           m_ir_gen_context.getLLVMBuilder()->CreateCall(string_length_function,
                                                         {value}),
           m_ir_gen_context.getLLVMBuilder()->getInt32(0), "is_zero_result");
+    }
+
+    if (expression_type->getKind() == types::TypeKind::kObject) {
+      if (operator_kind == lexer::TokenKind::kBangToken) {
+
+        return m_ir_gen_context.getLLVMBuilder()->CreateIsNull(
+            value, "is_null_result");
+      }
     }
   }
   default: {

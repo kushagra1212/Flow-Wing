@@ -154,9 +154,7 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Circular references can cause compilation errors and should be "
       "resolved by removing the reference to the module that causes the "
       "circular dependency."}},
-    {(DiagnosticCode::kInvalidAssignmentToAnObject),
-     {"Cannot assign a value of type '{0}' to an object of type '{1}'.", "",
-      ""}},
+
     {(DiagnosticCode::kInvalidAssignmentToUndeclaredVariable),
      {"The variable '{0}' is not declared. Please declare the variable "
       "before assigning a value to it.",
@@ -768,8 +766,6 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "UnexpectedExpression";
   case DiagnosticCode::kInValidTypeExpression:
     return "InValidTypeExpression";
-  case DiagnosticCode::kInvalidAssignmentToAnObject:
-    return "kInvalidAssignmentToAnObject";
   case DiagnosticCode::kInvalidAssignmentToUndeclaredVariable:
     return "InvalidAssignmentToUndeclaredVariable";
   case DiagnosticCode::kInvalidAssignmentToConstantVariable:
@@ -964,6 +960,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kCustomTypeAlreadyDeclared:
     return "CustomTypeAlreadyDeclared";
+
+  case DiagnosticCode::kTooManyInitializerExpressions:
+    return "TooManyInitializerExpressions";
 
   default:
     return "Unknown diagnostic code";

@@ -1,0 +1,37 @@
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+const rect1: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+
+const rect2: Rectangle = {
+    topLeft: {
+        x: 5,
+        y: 5
+    },
+    bottomRight: {
+        x: 15,
+        y: 15
+    }
+}
+
+print("rect1.topLeft.x + rect2.topLeft.x: ", rect1.topLeft.x + rect2.topLeft.x, "\n")
+print("rect1.bottomRight.y - rect2.bottomRight.y: ", rect1.bottomRight.y - rect2.bottomRight.y, "\n")
+print("-rect1.topLeft.x: ", -rect1.topLeft.x, "\n")
+print("rect1.topLeft.x == rect2.topLeft.x: ", rect1.topLeft.x == rect2.topLeft.x, "\n")
+print("rect1.topLeft.x < rect2.topLeft.x: ", rect1.topLeft.x < rect2.topLeft.x, "\n")

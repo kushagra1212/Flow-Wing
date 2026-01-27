@@ -19,6 +19,7 @@
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
@@ -28,16 +29,16 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto flow_type = object_expression->getType();
-  auto llvm_obj_type =
+  auto llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(flow_type.get());
 
   auto fg_custom_type = static_cast<types::CustomObjectType *>(flow_type.get());
 
-  llvm::Value *object_alloc =
-      m_ir_gen_context.createAlloca(llvm_obj_type, "obj_lit_tmp");
+  llvm::Value *tmp_obj = getTempObject(fg_custom_type, fg_custom_type, nullptr);
 
-  auto *default_value = m_ir_gen_context.getDefaultValue(flow_type.get());
-  m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value, object_alloc);
+  CODEGEN_DEBUG_LOG("Temp Object", fg_custom_type->getName());
+  CODEGEN_DEBUG_LOG("Object Expression Name",
+                    fg_custom_type->getCustomTypeName());
 
   for (const auto &prop : object_expression->getColonExpressions()) {
     auto colon_expression =
@@ -61,18 +62,29 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
     }
 
     auto *field_ptr = builder->CreateStructGEP(
-        llvm_obj_type, object_alloc, static_cast<unsigned int>(field_index));
+        llvm_type, tmp_obj, static_cast<unsigned int>(field_index));
 
-    // --- FIX START ---
-    // If the field is an Object, it is stored as a Pointer (Node*).
-    // We must LINK the pointer, not COPY the content.
-    if (field_type->getKind() == types::TypeKind::kObject) {
+    auto is_object = (field_type->getKind() == types::TypeKind::kObject);
 
-      // Ensure we have the pointer value (Node*)
-      llvm::Value *ptr_val = resolveValue(val_to_store, val_type);
+    if (is_object) {
 
-      // Store Node* into Node** (the field slot)
-      builder->CreateStore(ptr_val, field_ptr);
+      auto custom_object_type =
+          static_cast<types::CustomObjectType *>(val_type);
+
+      CODEGEN_DEBUG_LOG("Custom Object Name",
+                        custom_object_type->getCustomTypeName());
+
+      if (!custom_object_type->isObjectExpression()) {
+
+        val_to_store = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                               ->getLLVMType(custom_object_type)
+                                               ->getPointerTo(),
+                                           val_to_store,
+                                           "load_val_" + val_type->getName());
+      }
+
+      builder->CreateStore(val_to_store, field_ptr);
+
     } else {
       CODEGEN_DEBUG_LOG("Primitives (Value Copy)", "IR GENERATION",
                         field_type->getName(), val_type->getName());
@@ -83,8 +95,8 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
     field_index++;
   }
 
-  m_last_value = object_alloc;
-  m_last_llvm_type = llvm_obj_type;
+  m_last_value = tmp_obj;
+  m_last_llvm_type = llvm_type;
   m_last_type = object_expression->getType().get();
 }
 } // namespace flow_wing::ir_gen

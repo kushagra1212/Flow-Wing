@@ -1,0 +1,4 @@
+constPerson == mutablePerson: true
+constPerson != mutablePerson: false
+constPerson == differentPerson: false
+mutablePerson == differentPerson: false

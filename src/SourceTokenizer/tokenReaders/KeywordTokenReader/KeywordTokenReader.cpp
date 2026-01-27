@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static const std::unordered_map<std::string, lexer::TokenKind> kKeywords = {
     {"str", lexer::TokenKind::kStrKeyword},
     {"deci", lexer::TokenKind::kDeciKeyword},
     {"deci32", lexer::TokenKind::kDeci32Keyword},
-    {"Nir", lexer::TokenKind::kNirastKeyword},
+    {"null", lexer::TokenKind::kNirastKeyword},
     {"bring", lexer::TokenKind::kBringKeyword},
     {"expose", lexer::TokenKind::kExposeKeyword},
     {"from", lexer::TokenKind::kFromKeyword},

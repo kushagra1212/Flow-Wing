@@ -1,0 +1,6 @@
+p1.active && p2.active: false
+p1.active || p2.active: true
+!p1.active: false
+!p2.active: true
+p1.age > 20 && p2.age > 20: true
+p1.age > 30 || p2.age > 30: false

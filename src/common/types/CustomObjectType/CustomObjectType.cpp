@@ -74,6 +74,10 @@ const std::string &CustomObjectType::getCustomTypeName() const {
   return m_custom_type_name;
 }
 
+bool CustomObjectType::isObjectExpression() const {
+  return m_custom_type_name == "object_expression";
+}
+
 bool CustomObjectType::operator<=(const Type &other) const {
 
   // if (other.isNirast()) {

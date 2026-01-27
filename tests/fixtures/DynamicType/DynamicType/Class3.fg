@@ -5,8 +5,8 @@ class A {
     }
 }
 
-var a:A = Nir
+var a:A = null
 
-  if(a != Nir) {
+  if(a != null) {
     print("Is not Nir")
   }

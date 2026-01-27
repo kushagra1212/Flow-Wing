@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "BoundBinaryOperator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing {
@@ -393,6 +394,11 @@ BoundBinaryOperator::bind(lexer::TokenKind operator_kind,
     return bindClassType(operator_kind, left_type, right_type);
   }
 
+  if (left_type->getKind() == types::TypeKind::kObject ||
+      right_type->getKind() == types::TypeKind::kObject) {
+    return bindObjectType(operator_kind, left_type, right_type);
+  }
+
   // Handling Normal Cases
   BinaryOperatorKey key = {operator_kind, left_type.get(), right_type.get()};
   auto &operator_map = getOperatorMap();
@@ -483,6 +489,31 @@ BoundBinaryOperator::bindClassType(lexer::TokenKind operator_kind,
   case lexer::TokenKind::kPipePipeToken:
   case lexer::TokenKind::kAmpersandAmpersandToken: {
 
+    return std::make_shared<BoundBinaryOperator>(
+        operator_kind, left_type, right_type,
+        analysis::Builtins::m_bool_type_instance);
+  }
+  default:
+    return nullptr;
+  }
+}
+
+std::shared_ptr<BoundBinaryOperator>
+BoundBinaryOperator::bindObjectType(lexer::TokenKind operator_kind,
+                                    std::shared_ptr<types::Type> left_type,
+                                    std::shared_ptr<types::Type> right_type) {
+
+  if (!((left_type->getKind() == types::TypeKind::kObject ||
+         left_type == analysis::Builtins::m_nirast_type_instance) &&
+        (right_type->getKind() == types::TypeKind::kObject ||
+         right_type == analysis::Builtins::m_nirast_type_instance))) {
+
+    return nullptr;
+  }
+
+  switch (operator_kind) {
+  case lexer::TokenKind::kEqualsEqualsToken:
+  case lexer::TokenKind::kBangEqualsToken: {
     return std::make_shared<BoundBinaryOperator>(
         operator_kind, left_type, right_type,
         analysis::Builtins::m_bool_type_instance);

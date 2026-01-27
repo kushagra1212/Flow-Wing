@@ -80,9 +80,9 @@ int OperatorPrecedence::getPostfixPrecedence(lexer::TokenKind kind) {
   switch (kind) {
   case lexer::TokenKind::kOpenBracketToken:     // For array types/indexing
   case lexer::TokenKind::kOpenParenthesisToken: // For function calls
-  case lexer::TokenKind::kDotToken:             // For member access
   case lexer::TokenKind::kColonColonToken: // For module member access (value)
-    return 13;
+  case lexer::TokenKind::kDotToken:        // For member access
+    return 14;
   default:
     return 0;
   }

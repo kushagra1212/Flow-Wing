@@ -161,17 +161,6 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
         return std::move(const_error);
       }
 
-      if ((*right_type.get() ==
-           *analysis::Builtins::m_nirast_type_instance.get()) &&
-          left_type->getKind() == types::TypeKind::kObject) {
-        auto error_expression = std::make_unique<BoundErrorExpression>(
-            expression->getSourceLocation(),
-            diagnostic::DiagnosticCode::kInvalidAssignmentToAnObject,
-            std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                right_type->getName(), left_type->getName()});
-        m_context->reportError(error_expression.get());
-        return std::move(error_expression);
-      }
       break;
     }
     case NodeKind::kIndexExpression: {

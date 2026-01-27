@@ -60,6 +60,11 @@ public:
                 std::shared_ptr<types::Type> right_type);
 
   static std::shared_ptr<BoundBinaryOperator>
+  bindObjectType(lexer::TokenKind operator_kind,
+                 std::shared_ptr<types::Type> left_type,
+                 std::shared_ptr<types::Type> right_type);
+
+  static std::shared_ptr<BoundBinaryOperator>
   bindType(lexer::TokenKind operator_kind,
            std::shared_ptr<types::Type> left_type,
            std::shared_ptr<types::Type> right_type,

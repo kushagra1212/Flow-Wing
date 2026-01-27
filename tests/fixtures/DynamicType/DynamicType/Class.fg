@@ -6,6 +6,6 @@ class A {
 }
 
 var a:A = new A(2)
-  if(a == Nir) {
+  if(a == null) {
     print("")
   }

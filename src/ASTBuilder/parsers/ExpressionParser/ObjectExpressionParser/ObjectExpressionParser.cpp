@@ -38,6 +38,7 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
+#include "src/syntax/expression/ErrorExpressionSyntax/ErrorExpressionSyntax.hpp"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 
 namespace flow_wing {
@@ -65,8 +66,6 @@ std::unique_ptr<syntax::ExpressionSyntax> ObjectExpressionParser::parse() {
            m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
       auto comma_token = m_ctx->match(lexer::TokenKind::kCommaToken); //  ,
-
-      // TRAILING COMMA CHECK:
 
       if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCloseBraceToken) {
         break;

@@ -1,0 +1,5 @@
+rect1.topLeft.x + rect2.topLeft.x: 5
+rect1.bottomRight.y - rect2.bottomRight.y: -5
+-rect1.topLeft.x: 0
+rect1.topLeft.x == rect2.topLeft.x: false
+rect1.topLeft.x < rect2.topLeft.x: true

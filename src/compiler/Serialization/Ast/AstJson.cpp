@@ -466,7 +466,7 @@ void AstJson::visit([[maybe_unused]] syntax::ObjectExpressionSyntax *node) {
   nlohmann::json object_expression_json;
   object_expression_json["kind"] = syntax::toString(node->getKind());
   serializeChild(node->getColonExpression(), object_expression_json,
-                 "colon_expression");
+                 "expression");
   object_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(object_expression_json);
 }

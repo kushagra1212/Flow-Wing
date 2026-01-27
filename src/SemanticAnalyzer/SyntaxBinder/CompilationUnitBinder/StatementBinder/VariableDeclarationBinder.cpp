@@ -113,19 +113,6 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
       auto variable_type = variable_symbols[i]->getType();
 
-      if ((*expression_type.get() ==
-           *analysis::Builtins::m_nirast_type_instance.get()) &&
-          variable_type->getKind() == types::TypeKind::kObject) {
-        auto error_expression = std::make_unique<BoundErrorExpression>(
-            bound_initializer_expressions[i]->getSourceLocation(),
-            diagnostic::DiagnosticCode::kInvalidAssignmentToAnObject,
-            diagnostic::DiagnosticArgs{expression_type->getName(),
-                                       variable_type->getName()});
-        m_context->reportError(error_expression.get());
-        return std::make_unique<BoundErrorStatement>(
-            std::move(error_expression));
-      }
-
       BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
       BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
       BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());

@@ -60,6 +60,37 @@ const BUILD_DIR = join(process.cwd(), "../build");
 const PUBLIC_DIR = join(process.cwd(), "public");
 const SOURCE_FILE = join(process.cwd(), "../tests/local/dyn.fg");
 const TEMP_SOURCE_FILE = join(BUILD_DIR, "temp_source.fg");
+const LOGS_FILE = join(BUILD_DIR, "compiler_logs.txt");
+
+// Store compilation logs in memory for quick access
+let compilationLogs = "";
+
+// Helper function to delete old compilation artifacts
+async function deleteOldArtifacts() {
+  const artifacts = [
+    "tokens.json",
+    "ast.json",
+    "semantic_tree.json",
+    "llvm_ir.ll",
+    "compiler_logs.txt",
+  ];
+
+  for (const artifact of artifacts) {
+    const filePath = join(BUILD_DIR, artifact);
+    try {
+      if (existsSync(filePath)) {
+        await unlink(filePath);
+        console.log(`Deleted old artifact: ${artifact}`);
+      }
+    } catch (error) {
+      // Ignore errors deleting files (they might not exist)
+      console.warn(`Could not delete ${artifact}:`, error);
+    }
+  }
+  
+  // Also clear in-memory logs
+  compilationLogs = "";
+}
 
 const server = serve({
   port: 3000,
@@ -81,6 +112,27 @@ const server = serve({
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // 2.1 API: Clear old artifacts
+    if (url.pathname === "/api/clear-artifacts" && req.method === "POST") {
+      try {
+        await deleteOldArtifacts();
+        return new Response(
+          JSON.stringify({ success: true, message: "Artifacts cleared" }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      } catch (error: any) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
     }
 
     // 2. API: Save source code
@@ -126,6 +178,9 @@ const server = serve({
           );
         }
 
+        // Delete old artifacts before starting new compilation
+        await deleteOldArtifacts();
+
         // Run compilation commands
         const commands = [
           { emit: "tokens", output: "tokens.json" },
@@ -135,6 +190,8 @@ const server = serve({
         ];
 
         const results = [];
+        let allLogs = "";
+        
         for (const cmd of commands) {
           const proc = Bun.spawn(
             [binaryPath, sourceFile, `--emit=${cmd.emit}`, `-OD=${BUILD_DIR}`],
@@ -157,6 +214,10 @@ const server = serve({
             exitCodePromise,
           ]);
 
+          // Collect logs from stdout and stderr (debug logs go to stdout)
+          if (text) allLogs += text;
+          if (error) allLogs += error;
+
           results.push({
             emit: cmd.emit,
             success: exitCode === 0,
@@ -165,6 +226,10 @@ const server = serve({
             exitCode,
           });
         }
+
+        // Store logs in memory and save to file
+        compilationLogs = allLogs;
+        await writeFile(LOGS_FILE, allLogs, "utf-8");
 
         return new Response(JSON.stringify({ success: true, results }), {
           headers: {
@@ -178,6 +243,25 @@ const server = serve({
           headers: { "Content-Type": "application/json" },
         });
       }
+    }
+
+    // 3.1 API: Get compilation logs
+    if (url.pathname === "/api/logs") {
+      // Try to read from file first, then fall back to memory
+      let logs = compilationLogs;
+      if (existsSync(LOGS_FILE)) {
+        try {
+          logs = await readFile(LOGS_FILE, "utf-8");
+        } catch (e) {
+          // Use in-memory logs if file read fails
+        }
+      }
+      return new Response(JSON.stringify({ logs }), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     // 4. API: Run the compiled binary

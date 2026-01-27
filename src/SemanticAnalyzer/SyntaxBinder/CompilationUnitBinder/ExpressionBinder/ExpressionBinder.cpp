@@ -263,7 +263,9 @@ ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
   case lexer::TokenKind::kBangToken: {
 
     // The result type of '!' is always boolean
+    // Allow '!' on objects (for truthiness check)
     return {type->getKind() == types::TypeKind::kClass ||
+                type->getKind() == types::TypeKind::kObject ||
                 isAllowedType(allowed_types_for_bang_operator),
             type == analysis::Builtins::m_dynamic_type_instance
                 ? type

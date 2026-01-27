@@ -29,6 +29,7 @@
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "llvm/IR/Constant.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -126,7 +127,13 @@ void GlobalDeclarationsInitializer::visit(
     // Already handled in SemanticAnalyzer
     bool is_llvm_constant = false;
 
-    auto default_value = m_ir_gen_context.getDefaultValue(variable_type, true);
+    llvm::Constant *default_value =
+        m_ir_gen_context.getDefaultValue(variable_type, true);
+
+    if (variable_type->getKind() == types::TypeKind::kObject) {
+      llvm_type = llvm_type->getPointerTo();
+      default_value = llvm::ConstantPointerNull::get(llvm_type->getPointerTo());
+    }
 
     auto globalVar = new llvm::GlobalVariable(
         *module, llvm_type, is_llvm_constant,

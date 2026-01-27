@@ -11,11 +11,16 @@ class App {
       tokens: null,
       sem: null,
       llvmIr: null,
+      logs: null,
       activeView: "tokens",
       sourceCode: "",
       isEditMode: false,
       binaryPath: localStorage.getItem("flowWingBinaryPath") || "",
+      showJsonEditor: false,
     };
+
+    // JSON Editor instance
+    this.jsonEditor = null;
 
     // UI Components
     this.detailsContent = document.getElementById("details-content");
@@ -86,21 +91,46 @@ class App {
     }
   }
 
+  async fetchLogs() {
+    try {
+      const res = await fetch("/api/logs");
+      if (!res.ok) {
+        console.warn(`Failed to fetch logs: ${res.status} ${res.statusText}`);
+        return null;
+      }
+      const data = await res.json();
+      return data.logs || null;
+    } catch (e) {
+      console.error("Failed to fetch logs:", e);
+      return null;
+    }
+  }
+
   async init() {
     // Load saved code from localStorage first (if available)
     const savedCode = this.loadSavedCode();
 
+    // Show loading indicator while fetching initial data
+    this.showLoading("Loading initial data...");
+
     // Fetch Data
-    const [astData, tokenData, semData, llvmIrData, sourceCode] =
+    const [astData, tokenData, semData, llvmIrData, logsData, sourceCode] =
       await Promise.all([
         fetchJSON("ast.json"),
         fetchJSON("tokens.json"),
         fetchJSON("semantic_tree.json"),
         this.fetchLLVMIR(),
+        this.fetchLogs(),
         this.fetchSourceCode(),
       ]);
 
-    if (tokenData) {
+    // Be defensive about data structure - only set if data actually exists
+    if (
+      tokenData &&
+      tokenData.tokens &&
+      Array.isArray(tokenData.tokens) &&
+      tokenData.tokens.length > 0
+    ) {
       this.state.tokens = tokenData.tokens;
       // Prefer saved code over server code if it exists
       this.state.sourceCode = savedCode || sourceCode || "";
@@ -108,15 +138,39 @@ class App {
       if (this.state.sourceCode) {
         this.editor.render(this.state.sourceCode, this.state.tokens);
       }
+    } else {
+      this.state.tokens = null;
     }
 
-    if (astData) this.state.ast = astData.tree;
-    if (semData) {
+    if (astData && astData.tree !== null && astData.tree !== undefined) {
+      this.state.ast = astData.tree;
+    } else {
+      this.state.ast = null;
+    }
+
+    if (semData && semData.sem !== null && semData.sem !== undefined) {
       this.state.sem = semData.sem;
       // Store semantic data for tree visualization
       this.treeViz.setSemanticData(semData.sem);
+    } else {
+      this.state.sem = null;
     }
-    if (llvmIrData) this.state.llvmIr = llvmIrData;
+
+    if (
+      llvmIrData &&
+      typeof llvmIrData === "string" &&
+      llvmIrData.trim() !== ""
+    ) {
+      this.state.llvmIr = llvmIrData;
+    } else {
+      this.state.llvmIr = null;
+    }
+
+    if (logsData && typeof logsData === "string" && logsData.trim() !== "") {
+      this.state.logs = logsData;
+    } else {
+      this.state.logs = null;
+    }
 
     this.setupTabs();
     this.setupResizers();
@@ -124,7 +178,313 @@ class App {
     this.setupSettings();
     this.setupRunButton();
     this.setupCodeHistory();
+    this.setupResponsive();
+    this.setupJsonToggle();
+    this.updateTabVisibility();
+    // Initialize pane responsive styles
+    this.updatePaneResponsiveStyles();
     this.renderView();
+  }
+
+  setupJsonToggle() {
+    const jsonToggle = document.getElementById("json-toggle");
+    const jsonCopyBtn = document.getElementById("json-copy-btn");
+    const jsonFormatBtn = document.getElementById("json-format-btn");
+    const jsonCollapseBtn = document.getElementById("json-collapse-btn");
+    const jsonExpandBtn = document.getElementById("json-expand-btn");
+    const jsonSearchInput = document.getElementById("json-search-input");
+
+    if (!jsonToggle) {
+      console.warn("JSON toggle button not found");
+      return;
+    }
+
+    // Update toggle visibility based on current view
+    const updateToggleVisibility = () => {
+      const view = this.state.activeView;
+      // Only show for tokens, ast, and semantic views
+      const showToggle = ["tokens", "ast", "semantic"].includes(view);
+      jsonToggle.style.display = showToggle ? "flex" : "none";
+    };
+
+    // Initial visibility update
+    updateToggleVisibility();
+
+    // Update visibility when tabs change
+    const originalSetupTabs = this.setupTabs.bind(this);
+    this.setupTabs = () => {
+      // Not calling original since setupTabs is already done
+    };
+
+    // Listen for tab clicks to update JSON toggle visibility
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // Small delay to allow state update
+        setTimeout(() => {
+          updateToggleVisibility();
+          // Hide JSON view if switching to a non-supported tab
+          if (!["tokens", "ast", "semantic"].includes(this.state.activeView)) {
+            this.state.showJsonEditor = false;
+            this.updateJsonEditorVisibility();
+          }
+        }, 10);
+      });
+    });
+
+    // Toggle JSON view
+    jsonToggle.addEventListener("click", () => {
+      this.state.showJsonEditor = !this.state.showJsonEditor;
+      jsonToggle.classList.toggle("active", this.state.showJsonEditor);
+      this.updateJsonEditorVisibility();
+    });
+
+    // Copy JSON button
+    if (jsonCopyBtn) {
+      jsonCopyBtn.addEventListener("click", () => {
+        const json = this.getCurrentViewJson();
+        if (json) {
+          navigator.clipboard.writeText(JSON.stringify(json, null, 2)).then(() => {
+            this.showNotification("JSON copied to clipboard!");
+          }).catch((err) => {
+            console.error("Failed to copy:", err);
+            this.showNotification("Failed to copy JSON");
+          });
+        }
+      });
+    }
+
+    // Format JSON button
+    if (jsonFormatBtn) {
+      jsonFormatBtn.addEventListener("click", () => {
+        if (this.jsonEditor) {
+          const content = this.jsonEditor.getValue();
+          try {
+            const parsed = JSON.parse(content);
+            this.jsonEditor.setValue(JSON.stringify(parsed, null, 2));
+          } catch (e) {
+            console.error("Failed to format JSON:", e);
+          }
+        }
+      });
+    }
+
+    // Collapse all button
+    if (jsonCollapseBtn) {
+      jsonCollapseBtn.addEventListener("click", () => {
+        if (this.jsonEditor) {
+          this.jsonEditor.execCommand("foldAll");
+        }
+      });
+    }
+
+    // Expand all button
+    if (jsonExpandBtn) {
+      jsonExpandBtn.addEventListener("click", () => {
+        if (this.jsonEditor) {
+          this.jsonEditor.execCommand("unfoldAll");
+        }
+      });
+    }
+
+    // Search in JSON
+    if (jsonSearchInput) {
+      let searchTimeout = null;
+      jsonSearchInput.addEventListener("input", (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          this.searchInJson(e.target.value);
+        }, 200);
+      });
+    }
+  }
+
+  getCurrentViewJson() {
+    const view = this.state.activeView;
+    switch (view) {
+      case "tokens":
+        return { tokens: this.state.tokens };
+      case "ast":
+        return { tree: this.state.ast };
+      case "semantic":
+        return this.state.sem;
+      default:
+        return null;
+    }
+  }
+
+  updateJsonEditorVisibility() {
+    const vizContainer = document.getElementById("viz-container");
+    const jsonEditorContainer = document.getElementById("json-editor-container");
+    const jsonToggle = document.getElementById("json-toggle");
+    const title = document.getElementById("viz-title");
+
+    if (!vizContainer || !jsonEditorContainer) return;
+
+    if (this.state.showJsonEditor) {
+      vizContainer.style.display = "none";
+      jsonEditorContainer.style.display = "flex";
+      jsonToggle?.classList.add("active");
+      
+      // Update title to indicate JSON view
+      if (title) {
+        const viewName = this.getViewDisplayName(this.state.activeView);
+        title.textContent = `${viewName} (JSON)`;
+      }
+      
+      this.renderJsonEditor();
+    } else {
+      vizContainer.style.display = "";
+      jsonEditorContainer.style.display = "none";
+      jsonToggle?.classList.remove("active");
+      
+      // Restore original title
+      if (title) {
+        title.textContent = this.getViewDisplayName(this.state.activeView);
+      }
+      
+      // Cleanup JSON editor
+      if (this.jsonEditor) {
+        const editorElement = this.jsonEditor.getWrapperElement();
+        if (editorElement && editorElement.parentNode) {
+          editorElement.parentNode.removeChild(editorElement);
+        }
+        this.jsonEditor = null;
+      }
+    }
+  }
+
+  getViewDisplayName(view) {
+    switch (view) {
+      case "tokens": return "Token List";
+      case "ast": return "Abstract Syntax Tree";
+      case "semantic": return "Semantic Tree";
+      case "llvm-ir": return "LLVM IR";
+      case "logs": return "Compiler Logs";
+      default: return view;
+    }
+  }
+
+  renderJsonEditor() {
+    const jsonEditorDiv = document.getElementById("json-editor");
+    if (!jsonEditorDiv) return;
+
+    // Clear previous editor
+    if (this.jsonEditor) {
+      const editorElement = this.jsonEditor.getWrapperElement();
+      if (editorElement && editorElement.parentNode) {
+        editorElement.parentNode.removeChild(editorElement);
+      }
+      this.jsonEditor = null;
+    }
+    jsonEditorDiv.innerHTML = "";
+
+    const jsonData = this.getCurrentViewJson();
+    if (!jsonData) {
+      jsonEditorDiv.innerHTML = '<div class="empty-state">No JSON data available for this view</div>';
+      return;
+    }
+
+    const jsonString = JSON.stringify(jsonData, null, 2);
+
+    // Create CodeMirror editor for JSON
+    this.jsonEditor = CodeMirror(jsonEditorDiv, {
+      value: jsonString,
+      mode: { name: "javascript", json: true },
+      theme: "monokai",
+      readOnly: true,
+      lineNumbers: true,
+      lineWrapping: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+      matchBrackets: true,
+      autoCloseBrackets: true,
+      indentUnit: 2,
+      tabSize: 2,
+      extraKeys: {
+        "Ctrl-F": "findPersistent",
+        "Cmd-F": "findPersistent",
+      },
+    });
+
+    // Refresh editor after a short delay to ensure proper sizing
+    setTimeout(() => {
+      if (this.jsonEditor) {
+        this.jsonEditor.refresh();
+      }
+    }, 100);
+
+    // Setup resize observer
+    if (window.ResizeObserver) {
+      const jsonResizeObserver = new ResizeObserver(() => {
+        if (this.jsonEditor) {
+          this.jsonEditor.refresh();
+        }
+      });
+      jsonResizeObserver.observe(jsonEditorDiv);
+      this.jsonResizeObserver = jsonResizeObserver;
+    }
+  }
+
+  searchInJson(query) {
+    const searchCountSpan = document.getElementById("json-search-count");
+    
+    if (!this.jsonEditor || !query.trim()) {
+      if (searchCountSpan) searchCountSpan.textContent = "";
+      // Clear any existing search highlights
+      if (this.jsonEditor) {
+        this.jsonEditor.getAllMarks().forEach(mark => mark.clear());
+      }
+      return;
+    }
+
+    // Clear previous marks
+    this.jsonEditor.getAllMarks().forEach(mark => mark.clear());
+
+    const content = this.jsonEditor.getValue();
+    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    let match;
+    let count = 0;
+    let firstMatch = null;
+
+    while ((match = regex.exec(content)) !== null) {
+      count++;
+      const from = this.jsonEditor.posFromIndex(match.index);
+      const to = this.jsonEditor.posFromIndex(match.index + match[0].length);
+      
+      this.jsonEditor.markText(from, to, {
+        className: "json-search-highlight",
+      });
+
+      if (!firstMatch) {
+        firstMatch = from;
+      }
+    }
+
+    if (searchCountSpan) {
+      searchCountSpan.textContent = count > 0 ? `${count} match${count !== 1 ? 'es' : ''}` : 'No matches';
+    }
+
+    // Scroll to first match
+    if (firstMatch) {
+      this.jsonEditor.scrollIntoView(firstMatch, 100);
+    }
+  }
+
+  showNotification(message) {
+    // Create or reuse notification element
+    let notification = document.querySelector(".copy-notification");
+    if (!notification) {
+      notification = document.createElement("div");
+      notification.className = "copy-notification";
+      document.body.appendChild(notification);
+    }
+
+    notification.textContent = message;
+    notification.classList.add("show");
+
+    setTimeout(() => {
+      notification.classList.remove("show");
+    }, 2000);
   }
 
   setupEditMode() {
@@ -581,6 +941,10 @@ class App {
 
     const runBtn = document.getElementById("run-btn");
     runBtn.disabled = true;
+
+    // Reset all state except code editor
+    this.resetAllState();
+
     this.updateStatus("Running...");
     this.showOutput("", "Running code...\n");
 
@@ -600,6 +964,7 @@ class App {
       // 2. Compile and generate artifacts
       this.updateStatus("Compiling...");
       this.showOutput("", "Compiling and generating artifacts...\n");
+      this.showLoading("Compiling code...");
 
       const compileRes = await fetch("/api/compile", {
         method: "POST",
@@ -608,7 +973,9 @@ class App {
       });
 
       const compileData = await compileRes.json();
-      if (!compileRes.ok || !compileData.success) {
+      const compilationFailed = !compileRes.ok || !compileData.success;
+
+      if (compilationFailed) {
         // Show complete compilation error logs
         let errorMessage = "Compilation failed\n\n";
         if (!compileRes.ok) {
@@ -632,12 +999,56 @@ class App {
         }
         this.showOutput(errorMessage, "error");
         this.updateStatus("Compilation failed");
-        return;
+
+        // Clear data that shouldn't exist after failed compilation
+        // Keep tokens/logs as they might be available even on failure
+        this.state.ast = null;
+        this.state.sem = null;
+        this.state.llvmIr = null;
+        if (this.treeViz) {
+          this.treeViz.setSemanticData(null);
+        }
+
+        // Destroy LLVM IR CodeMirror editor if it exists
+        if (this.llvmIrEditor) {
+          const editorElement = this.llvmIrEditor.getWrapperElement();
+          if (editorElement && editorElement.parentNode) {
+            editorElement.parentNode.removeChild(editorElement);
+          }
+          this.llvmIrEditor = null;
+        }
+
+        // Explicitly disable IR tab immediately since compilation failed
+        const irTab = document.querySelector('.tab-btn[data-view="llvm-ir"]');
+        if (irTab) {
+          irTab.disabled = true;
+          irTab.classList.add("disabled");
+          irTab.setAttribute(
+            "title",
+            "No LLVM IR available. Compile your code successfully to generate IR."
+          );
+          irTab.classList.remove("active");
+        }
+
+        // If currently viewing IR tab, clear the container immediately
+        if (this.state.activeView === "llvm-ir") {
+          const container = document.getElementById("viz-container");
+          if (container) {
+            container.innerHTML = "";
+          }
+        }
       }
 
-      // 3. Reload artifacts
-      this.updateStatus("Reloading data...");
-      await this.reloadData();
+      // 3. Reload artifacts (even on failure - to load any partial data like logs/tokens)
+      this.updateStatus(
+        compilationFailed ? "Loading available data..." : "Reloading data..."
+      );
+      await this.reloadData(compilationFailed);
+
+      // Stop here if compilation failed
+      if (compilationFailed) {
+        return;
+      }
 
       // 4. Run the code
       this.updateStatus("Executing...");
@@ -706,34 +1117,135 @@ class App {
       }
       this.showOutput(errorMessage, "error");
       this.updateStatus("Error occurred");
+
+      // Clear data that shouldn't exist after an error (AST, semantic, IR)
+      // Keep tokens/logs as they might be available
+      this.state.ast = null;
+      this.state.sem = null;
+      this.state.llvmIr = null;
+      if (this.treeViz) {
+        this.treeViz.setSemanticData(null);
+      }
+
+      // Destroy LLVM IR CodeMirror editor if it exists
+      if (this.llvmIrEditor) {
+        const editorElement = this.llvmIrEditor.getWrapperElement();
+        if (editorElement && editorElement.parentNode) {
+          editorElement.parentNode.removeChild(editorElement);
+        }
+        this.llvmIrEditor = null;
+      }
+
+      // If currently viewing IR tab, clear the container immediately
+      if (this.state.activeView === "llvm-ir") {
+        const container = document.getElementById("viz-container");
+        if (container) {
+          container.innerHTML = "";
+        }
+      }
+
+      // Try to reload any available data (only tokens/logs) and update tab visibility
+      try {
+        await this.reloadData(true); // Pass true to skip fetching AST/semantic/IR
+      } catch (reloadError) {
+        // If reload also fails, at least update tab visibility to remove loading state
+        this.updateTabVisibility();
+      }
     } finally {
       runBtn.disabled = false;
     }
   }
 
-  async reloadData() {
-    // Fetch updated data
-    const [astData, tokenData, semData, llvmIrData] = await Promise.all([
-      fetchJSON("ast.json"),
-      fetchJSON("tokens.json"),
-      fetchJSON("semantic_tree.json"),
-      this.fetchLLVMIR(),
-    ]);
+  async reloadData(compilationFailed = false) {
+    // Show loading indicator
+    this.showLoading("Fetching compilation results...");
 
-    if (tokenData) {
-      this.state.tokens = tokenData.tokens;
-      // Re-render editor if not in edit mode
-      if (!this.state.isEditMode) {
-        this.editor.render(this.state.sourceCode, this.state.tokens);
+    // If compilation failed, only fetch tokens and logs (skip AST, semantic, IR)
+    // These files might contain stale data from previous successful runs
+    if (compilationFailed) {
+      const [tokenData, logsData] = await Promise.all([
+        fetchJSON("tokens.json"),
+        this.fetchLogs(),
+      ]);
+
+      // Update state with new data (or null if not available)
+      // Be more defensive about data structure
+      this.state.tokens =
+        tokenData &&
+        tokenData.tokens &&
+        Array.isArray(tokenData.tokens) &&
+        tokenData.tokens.length > 0
+          ? tokenData.tokens
+          : null;
+      this.state.logs =
+        logsData && typeof logsData === "string" && logsData.trim() !== ""
+          ? logsData
+          : null;
+
+      // Ensure AST, semantic, and IR remain null (already cleared before reloadData)
+      this.state.ast = null;
+      this.state.sem = null;
+      this.state.llvmIr = null;
+
+      // Explicitly disable IR tab immediately since compilation failed
+      const irTab = document.querySelector('.tab-btn[data-view="llvm-ir"]');
+      if (irTab) {
+        irTab.disabled = true;
+        irTab.classList.add("disabled");
+        irTab.setAttribute(
+          "title",
+          "No LLVM IR available. Compile your code successfully to generate IR."
+        );
+        irTab.classList.remove("active");
       }
+    } else {
+      // Fetch all data on successful compilation
+      const [astData, tokenData, semData, llvmIrData, logsData] =
+        await Promise.all([
+          fetchJSON("ast.json"),
+          fetchJSON("tokens.json"),
+          fetchJSON("semantic_tree.json"),
+          this.fetchLLVMIR(),
+          this.fetchLogs(),
+        ]);
+
+      // Update state with new data (or null if not available)
+      // Be more defensive about data structure
+      this.state.tokens =
+        tokenData &&
+        tokenData.tokens &&
+        Array.isArray(tokenData.tokens) &&
+        tokenData.tokens.length > 0
+          ? tokenData.tokens
+          : null;
+      this.state.ast =
+        astData && astData.tree !== null && astData.tree !== undefined
+          ? astData.tree
+          : null;
+      this.state.sem =
+        semData && semData.sem !== null && semData.sem !== undefined
+          ? semData.sem
+          : null;
+      this.state.llvmIr =
+        llvmIrData && typeof llvmIrData === "string" && llvmIrData.trim() !== ""
+          ? llvmIrData
+          : null;
+      this.state.logs =
+        logsData && typeof logsData === "string" && logsData.trim() !== ""
+          ? logsData
+          : null;
     }
 
-    if (astData) this.state.ast = astData.tree;
-    if (semData) {
-      this.state.sem = semData.sem;
-      this.treeViz.setSemanticData(semData.sem);
+    // Update semantic data in tree visualizer
+    this.treeViz.setSemanticData(this.state.sem);
+
+    // Re-render editor if not in edit mode and we have tokens
+    if (!this.state.isEditMode && this.state.tokens) {
+      this.editor.render(this.state.sourceCode, this.state.tokens);
     }
-    if (llvmIrData) this.state.llvmIr = llvmIrData;
+
+    // Update tab visibility based on available data
+    this.updateTabVisibility();
 
     // Re-render current view
     this.renderView();
@@ -775,8 +1287,24 @@ class App {
     let leftPane = null;
     let rightPane = null;
 
+    // Only enable resizers on desktop
+    const updateResizerVisibility = () => {
+      const isMobile = window.innerWidth <= 1024;
+      resizers.forEach((resizer) => {
+        resizer.style.display = isMobile ? "none" : "";
+      });
+    };
+
+    updateResizerVisibility();
+
     resizers.forEach((resizer) => {
       resizer.addEventListener("mousedown", (e) => {
+        // Don't allow resizing on mobile
+        if (window.innerWidth <= 1024) {
+          e.preventDefault();
+          return;
+        }
+
         isResizing = true;
         currentResizer = resizer;
         startX = e.clientX;
@@ -837,46 +1365,581 @@ class App {
         rightPane = null;
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
+
+        // Trigger responsive updates after resize
+        this.updatePaneResponsiveStyles();
       }
     });
+
+    // Update resizer visibility on resize
+    window.addEventListener("resize", updateResizerVisibility);
+
+    // Setup ResizeObserver for panes to handle dynamic responsive updates
+    this.setupPaneResizeObserver();
+  }
+
+  setupPaneResizeObserver() {
+    if (!window.ResizeObserver) return;
+
+    const panes = document.querySelectorAll(".pane");
+    const observer = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        const pane = entry.target;
+        this.updatePaneResponsiveStyles(pane);
+      });
+    });
+
+    panes.forEach((pane) => {
+      observer.observe(pane);
+    });
+
+    this.paneResizeObserver = observer;
+  }
+
+  updatePaneResponsiveStyles(pane = null) {
+    const panesToUpdate = pane ? [pane] : document.querySelectorAll(".pane");
+
+    panesToUpdate.forEach((p) => {
+      const width = p.offsetWidth;
+
+      // Remove existing responsive classes
+      p.classList.remove("pane-narrow", "pane-medium", "pane-wide");
+
+      // Add appropriate class based on width
+      if (width < 300) {
+        p.classList.add("pane-narrow");
+      } else if (width < 500) {
+        p.classList.add("pane-medium");
+      } else {
+        p.classList.add("pane-wide");
+      }
+
+      // Update editor if this is the source pane
+      if (
+        p.classList.contains("source-pane") &&
+        this.editor &&
+        this.editor.codeMirror
+      ) {
+        setTimeout(() => {
+          this.editor.codeMirror.refresh();
+        }, 100);
+      }
+
+      // Update LLVM IR editor if visible
+      if (p.classList.contains("viz-pane") && this.llvmIrEditor) {
+        setTimeout(() => {
+          this.llvmIrEditor.refresh();
+        }, 100);
+      }
+
+      // Force reflow for logs header to ensure proper layout
+      if (p.querySelector(".logs-header")) {
+        const logsHeader = p.querySelector(".logs-header");
+        // Trigger reflow to ensure CSS updates apply
+        logsHeader.offsetHeight;
+      }
+    });
+  }
+
+  setupResponsive() {
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        // Update pane responsive styles based on new sizes
+        this.updatePaneResponsiveStyles();
+
+        // Refresh CodeMirror editors on resize
+        if (this.editor && this.editor.codeMirror) {
+          this.editor.codeMirror.refresh();
+        }
+        if (this.llvmIrEditor) {
+          this.llvmIrEditor.refresh();
+        }
+
+        // Refresh tree visualization
+        if (this.treeViz && this.treeViz.render) {
+          const currentView = this.state.activeView;
+          if (currentView === "ast" || currentView === "semantic") {
+            // Trigger a re-render by calling renderView
+            this.renderView();
+          }
+        }
+
+        // Update output panel if visible
+        if (this.outputPanel && this.outputPanel.style.display !== "none") {
+          const outputContent = document.getElementById("output-content");
+          if (outputContent) {
+            // Trigger scroll position check
+            outputContent.dispatchEvent(new Event("scroll"));
+          }
+        }
+      }, 150);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", () => {
+      // Delay to allow orientation change to complete
+      setTimeout(() => {
+        handleResize();
+        // Force a full refresh after orientation change
+        if (this.editor && this.editor.codeMirror) {
+          setTimeout(() => this.editor.codeMirror.refresh(), 100);
+        }
+        if (this.llvmIrEditor) {
+          setTimeout(() => this.llvmIrEditor.refresh(), 100);
+        }
+      }, 200);
+    });
+
+    // Initial check
+    handleResize();
   }
 
   setupTabs() {
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
+        // Don't allow clicking disabled tabs
+        if (btn.disabled || btn.classList.contains("disabled")) {
+          return;
+        }
+
+        const view = btn.dataset.view;
+
         document
           .querySelectorAll(".tab-btn")
           .forEach((b) => b.classList.remove("active"));
         e.target.classList.add("active");
-        this.state.activeView = e.target.dataset.view;
+        this.state.activeView = view;
         this.renderView();
       });
+    });
+  }
+
+  // Update tab visibility based on available data - disable tabs without data instead of hiding
+  updateTabVisibility() {
+    const tabs = document.querySelectorAll(".tab-btn");
+    let hasEnabledTab = false;
+    let firstEnabledTab = null;
+    let currentTabEnabled = false;
+
+    // Remove loading shimmer from all tabs first
+    this.hideLoading();
+
+    tabs.forEach((tab) => {
+      const view = tab.dataset.view;
+      let hasData = false;
+      let tooltipMessage = "";
+
+      switch (view) {
+        case "tokens":
+          hasData =
+            this.state.tokens &&
+            Array.isArray(this.state.tokens) &&
+            this.state.tokens.length > 0;
+          tooltipMessage =
+            "No token data available. Run your code to generate tokens.";
+          break;
+        case "ast":
+          hasData = this.state.ast !== null && this.state.ast !== undefined;
+          tooltipMessage =
+            "No AST data available. Compile your code successfully to generate AST.";
+          break;
+        case "semantic":
+          hasData = this.state.sem !== null && this.state.sem !== undefined;
+          tooltipMessage =
+            "No semantic tree data available. Compile your code successfully to generate semantic tree.";
+          break;
+        case "llvm-ir":
+          // More strict check - must be non-null, non-undefined, non-empty string
+          hasData =
+            this.state.llvmIr !== null &&
+            this.state.llvmIr !== undefined &&
+            typeof this.state.llvmIr === "string" &&
+            this.state.llvmIr.trim() !== "";
+          tooltipMessage =
+            "No LLVM IR available. Compile your code successfully to generate IR.";
+          break;
+        case "logs":
+          hasData =
+            this.state.logs !== null &&
+            this.state.logs !== undefined &&
+            typeof this.state.logs === "string" &&
+            this.state.logs.trim() !== "";
+          tooltipMessage =
+            "No compiler logs available. Run your code to generate logs.";
+          break;
+        default:
+          hasData = true;
+      }
+
+      // Ensure tab is visible (not hidden)
+      tab.style.removeProperty("display");
+      tab.style.removeProperty("visibility");
+
+      if (hasData) {
+        // Enable tab - remove disabled state
+        tab.disabled = false;
+        tab.classList.remove("disabled");
+        tab.removeAttribute("title");
+        tab.removeAttribute("data-tooltip");
+
+        if (!firstEnabledTab) {
+          firstEnabledTab = view;
+        }
+        hasEnabledTab = true;
+        if (view === this.state.activeView) {
+          currentTabEnabled = true;
+        }
+      } else {
+        // Disable tab - mark as disabled and add tooltip
+        tab.disabled = true;
+        tab.classList.add("disabled");
+        tab.setAttribute("title", tooltipMessage);
+        tab.setAttribute("data-tooltip", tooltipMessage);
+        tab.classList.remove("active");
+      }
+    });
+
+    // If current tab is disabled, switch to first enabled tab
+    if (!currentTabEnabled && firstEnabledTab) {
+      // If switching away from IR tab, destroy the editor
+      if (this.state.activeView === "llvm-ir" && this.llvmIrEditor) {
+        const editorElement = this.llvmIrEditor.getWrapperElement();
+        if (editorElement && editorElement.parentNode) {
+          editorElement.parentNode.removeChild(editorElement);
+        }
+        this.llvmIrEditor = null;
+      }
+
+      this.state.activeView = firstEnabledTab;
+      tabs.forEach((tab) => {
+        if (tab.dataset.view === firstEnabledTab) {
+          tab.classList.add("active");
+        }
+      });
+      this.renderView();
+    }
+
+    // If no enabled tabs, show a message in the viz container
+    if (!hasEnabledTab) {
+      const container = document.getElementById("viz-container");
+      const title = document.getElementById("viz-title");
+      if (container && title) {
+        title.textContent = "No Data";
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 40px;">
+            <p>No data available yet.</p>
+            <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
+              Run your code to generate tokens, AST, semantic tree, IR, and logs.
+            </p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Reset all state except code editor when Run is clicked
+  resetAllState() {
+    // Clear all compilation data
+    this.state.ast = null;
+    this.state.tokens = null;
+    this.state.sem = null;
+    this.state.llvmIr = null;
+    this.state.logs = null;
+
+    // Reset active view to tokens (default)
+    this.state.activeView = "tokens";
+
+    // Clear semantic data from tree visualizer
+    if (this.treeViz) {
+      this.treeViz.setSemanticData(null);
+      // Clear any highlights in tree visualizer
+      if (this.treeViz.clearHighlights) {
+        this.treeViz.clearHighlights();
+      }
+    }
+
+    // Clear editor highlights (but keep the code)
+    if (this.editor && this.editor.highlightRange) {
+      this.editor.highlightRange(null);
+    }
+
+    // Destroy LLVM IR CodeMirror editor if it exists
+    if (this.llvmIrEditor) {
+      const editorElement = this.llvmIrEditor.getWrapperElement();
+      if (editorElement && editorElement.parentNode) {
+        editorElement.parentNode.removeChild(editorElement);
+      }
+      this.llvmIrEditor = null;
+    }
+
+    // Clear visualization container
+    const container = document.getElementById("viz-container");
+    const title = document.getElementById("viz-title");
+    if (container) {
+      container.innerHTML = "";
+    }
+    if (title) {
+      title.textContent = "";
+    }
+
+    // Clear details panel
+    if (this.detailsContent) {
+      this.detailsContent.innerHTML = `
+        <div class="empty-state">
+          Hover over code or tree nodes to see details
+        </div>
+      `;
+    }
+
+    // Clear output panel content (but keep panel visible for new output)
+    if (this.outputContent) {
+      this.outputContent.textContent = "";
+      this.outputContent.className = "output-content";
+    }
+
+    // Reset tab selection to tokens (default)
+    // Ensure all tabs are visible (not hidden) - they'll be disabled by updateTabVisibility() if no data
+    document.querySelectorAll(".tab-btn").forEach((tab) => {
+      tab.classList.remove("active");
+      tab.classList.remove("tab-loading");
+      tab.classList.remove("disabled");
+      tab.disabled = false;
+      tab.style.removeProperty("display");
+      tab.style.removeProperty("visibility");
+      tab.removeAttribute("title");
+      tab.removeAttribute("data-tooltip");
+      if (tab.dataset.view === "tokens") {
+        tab.classList.add("active");
+      }
+    });
+
+    // updateTabVisibility() will be called after data loads to enable/disable tabs appropriately
+  }
+
+  // Clear all compilation data
+  clearData() {
+    this.state.ast = null;
+    this.state.tokens = null;
+    this.state.sem = null;
+    this.state.llvmIr = null;
+    this.state.logs = null;
+
+    // Clear semantic data from tree visualizer
+    if (this.treeViz) {
+      this.treeViz.setSemanticData(null);
+    }
+
+    // Destroy LLVM IR CodeMirror editor if it exists
+    if (this.llvmIrEditor) {
+      const editorElement = this.llvmIrEditor.getWrapperElement();
+      if (editorElement && editorElement.parentNode) {
+        editorElement.parentNode.removeChild(editorElement);
+      }
+      this.llvmIrEditor = null;
+    }
+
+    // Destroy JSON editor if it exists
+    if (this.jsonEditor) {
+      const editorElement = this.jsonEditor.getWrapperElement();
+      if (editorElement && editorElement.parentNode) {
+        editorElement.parentNode.removeChild(editorElement);
+      }
+      this.jsonEditor = null;
+    }
+
+    // Reset JSON editor visibility
+    this.state.showJsonEditor = false;
+    this.updateJsonEditorVisibility();
+
+    // If currently viewing IR tab, clear the container
+    if (this.state.activeView === "llvm-ir") {
+      const container = document.getElementById("viz-container");
+      if (container) {
+        container.innerHTML = "";
+      }
+    }
+
+    // Don't call updateTabVisibility here - let showLoading handle showing tabs with shimmer
+    // updateTabVisibility will be called after data is loaded
+  }
+
+  // Show loading indicator in viz container and tabs
+  showLoading(message = "Loading data...") {
+    const container = document.getElementById("viz-container");
+    const title = document.getElementById("viz-title");
+    if (container && title) {
+      title.textContent = "Loading";
+      container.innerHTML = `
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">${message}</div>
+        </div>
+      `;
+    }
+
+    // Add shimmer effect to all tabs and ensure they're visible
+    const tabs = document.querySelectorAll(".tab-btn");
+    if (tabs.length === 0) {
+      console.warn("No tabs found when trying to show loading state");
+      return;
+    }
+
+    tabs.forEach((tab) => {
+      // Remove any inline display styles that might hide the tab
+      tab.style.removeProperty("display");
+      tab.style.removeProperty("visibility");
+      // Temporarily enable all tabs for loading shimmer
+      tab.disabled = false;
+      tab.classList.remove("disabled");
+      tab.classList.add("tab-loading");
+    });
+  }
+
+  // Hide loading indicator and remove shimmer from tabs
+  hideLoading() {
+    document.querySelectorAll(".tab-btn").forEach((tab) => {
+      tab.classList.remove("tab-loading");
     });
   }
 
   renderView() {
     const title = document.getElementById("viz-title");
     const container = document.getElementById("viz-container");
+    const jsonToggle = document.getElementById("json-toggle");
+
+    // Update JSON toggle visibility based on current view
+    const supportsJsonView = ["tokens", "ast", "semantic"].includes(this.state.activeView);
+    if (jsonToggle) {
+      jsonToggle.style.display = supportsJsonView ? "flex" : "none";
+    }
+
+    // If switching to a view that doesn't support JSON, hide the JSON editor
+    if (!supportsJsonView && this.state.showJsonEditor) {
+      this.state.showJsonEditor = false;
+      this.updateJsonEditorVisibility();
+    }
+
+    // If JSON editor is visible, re-render it with the new view's data
+    if (this.state.showJsonEditor && supportsJsonView) {
+      // Update title for JSON view
+      if (title) {
+        title.textContent = `${this.getViewDisplayName(this.state.activeView)} (JSON)`;
+      }
+      this.renderJsonEditor();
+      return; // Don't render the normal view
+    }
+
+    // Cleanup virtualized logs when switching away from logs tab
+    if (this.state.activeView !== "logs") {
+      this.cleanupVirtualizedLogs();
+    }
+
     container.innerHTML = ""; // Clear current view
 
-    if (this.state.activeView === "ast" && this.state.ast) {
+    // Check if current view has data, if not, find first available view
+    let viewToRender = this.state.activeView;
+    let hasData = false;
+
+    switch (viewToRender) {
+      case "tokens":
+        hasData = this.state.tokens && this.state.tokens.length > 0;
+        break;
+      case "ast":
+        hasData = this.state.ast !== null && this.state.ast !== undefined;
+        break;
+      case "semantic":
+        hasData = this.state.sem !== null && this.state.sem !== undefined;
+        break;
+      case "llvm-ir":
+        // More strict check - must be non-null, non-undefined, non-empty string
+        hasData =
+          this.state.llvmIr !== null &&
+          this.state.llvmIr !== undefined &&
+          typeof this.state.llvmIr === "string" &&
+          this.state.llvmIr.trim() !== "";
+        break;
+      case "logs":
+        hasData =
+          this.state.logs !== null &&
+          this.state.logs !== undefined &&
+          this.state.logs.trim() !== "";
+        break;
+      default:
+        hasData = true;
+    }
+
+    // If current view has no data, find first available view
+    if (!hasData) {
+      if (this.state.tokens && this.state.tokens.length > 0) {
+        viewToRender = "tokens";
+      } else if (this.state.ast !== null && this.state.ast !== undefined) {
+        viewToRender = "ast";
+      } else if (this.state.sem !== null && this.state.sem !== undefined) {
+        viewToRender = "semantic";
+      } else if (
+        this.state.logs !== null &&
+        this.state.logs !== undefined &&
+        this.state.logs.trim() !== ""
+      ) {
+        viewToRender = "logs";
+      } else {
+        // No data available, show empty state
+        if (title) title.textContent = "No Data";
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 40px;">
+            <p>No data available yet.</p>
+            <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
+              Run your code to generate tokens, AST, semantic tree, IR, and logs.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Update active view and tab if we switched
+      this.state.activeView = viewToRender;
+      document.querySelectorAll(".tab-btn").forEach((tab) => {
+        tab.classList.remove("active");
+        if (tab.dataset.view === viewToRender) {
+          tab.classList.add("active");
+        }
+      });
+    }
+
+    // Render the appropriate view
+    if (viewToRender === "ast" && this.state.ast) {
       title.textContent = "Abstract Syntax Tree";
       this.treeViz.render(this.state.ast);
-    } else if (this.state.activeView === "semantic" && this.state.sem) {
+    } else if (viewToRender === "semantic" && this.state.sem) {
       title.textContent = "Semantic Tree";
       this.treeViz.render(this.state.sem.tree);
-    } else if (this.state.activeView === "tokens" && this.state.tokens) {
+    } else if (viewToRender === "tokens" && this.state.tokens) {
       title.textContent = "Token List";
       this.tokenTable.render(this.state.tokens);
-    } else if (this.state.activeView === "llvm-ir") {
+    } else if (viewToRender === "llvm-ir" && this.state.llvmIr) {
       title.textContent = "LLVM IR";
       this.renderLLVMIR();
+    } else if (viewToRender === "logs") {
+      title.textContent = "Compiler Logs";
+      this.renderLogs();
     }
   }
 
   renderLLVMIR() {
     const container = document.getElementById("viz-container");
     container.innerHTML = "";
+
+    // Always destroy existing editor first, even if IR is null
+    // This ensures old content doesn't persist
+    if (this.llvmIrEditor) {
+      const editorElement = this.llvmIrEditor.getWrapperElement();
+      if (editorElement && editorElement.parentNode) {
+        editorElement.parentNode.removeChild(editorElement);
+      }
+      this.llvmIrEditor = null;
+    }
 
     if (!this.state.llvmIr) {
       const empty = document.createElement("div");
@@ -891,15 +1954,6 @@ class App {
       `;
       container.appendChild(empty);
       return;
-    }
-
-    // Destroy existing editor if it exists
-    if (this.llvmIrEditor) {
-      const editorElement = this.llvmIrEditor.getWrapperElement();
-      if (editorElement && editorElement.parentNode) {
-        editorElement.parentNode.removeChild(editorElement);
-      }
-      this.llvmIrEditor = null;
     }
 
     // Create CodeMirror editor for LLVM IR (read-only with syntax highlighting)
@@ -939,6 +1993,641 @@ class App {
         this.llvmIrEditor.refresh();
       }
     }, 100);
+  }
+
+  renderLogs() {
+    const container = document.getElementById("viz-container");
+
+    // Cleanup previous virtualized state
+    this.cleanupVirtualizedLogs();
+
+    container.innerHTML = "";
+
+    if (!this.state.logs || this.state.logs.trim() === "") {
+      const empty = document.createElement("div");
+      empty.className = "logs-empty";
+      empty.innerHTML = `
+        <div class="logs-empty-icon">📋</div>
+        <div class="logs-empty-title">No compiler logs available</div>
+        <div class="logs-empty-desc">
+          Run your code to generate compiler debug logs. Make sure the compiler was built with <code>ENABLE_LOGGING</code>.
+        </div>
+      `;
+      container.appendChild(empty);
+      return;
+    }
+
+    // Parse logs first to get stats
+    const parsedLogs = this.parseLogs(this.state.logs);
+    const stats = this.calculateLogStats(parsedLogs);
+
+    // Create logs container
+    const logsContainer = document.createElement("div");
+    logsContainer.className = "logs-container";
+
+    // Create header with stats
+    const header = document.createElement("div");
+    header.className = "logs-header";
+
+    // Stats section
+    const statsDiv = document.createElement("div");
+    statsDiv.className = "logs-stats";
+
+    const logTypes = [
+      "binder",
+      "codegen",
+      "lexer",
+      "parser",
+      "linking",
+      "info",
+      "debug",
+      "CLI Parser",
+    ];
+    logTypes.forEach((type) => {
+      if (stats[type.toUpperCase()] && stats[type.toUpperCase()] > 0) {
+        const stat = document.createElement("div");
+        stat.className = "logs-stat";
+        stat.innerHTML = `
+          <span class="logs-stat-dot ${type}"></span>
+          <span class="logs-stat-count">${stats[type.toUpperCase()]}</span>
+          <span>${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+        `;
+        statsDiv.appendChild(stat);
+      }
+    });
+
+    // Actions section
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "logs-actions";
+
+    // Expand/Collapse all button
+    const expandAllBtn = document.createElement("button");
+    expandAllBtn.className = "logs-action-btn";
+    expandAllBtn.innerHTML = "⬇ Expand All";
+    expandAllBtn.addEventListener("click", () => {
+      const entries = logsContainer.querySelectorAll(".log-entry");
+      const allExpanded = [...entries].every((e) =>
+        e.classList.contains("expanded")
+      );
+      entries.forEach((e) => {
+        if (allExpanded) {
+          e.classList.remove("expanded");
+        } else {
+          e.classList.add("expanded");
+        }
+      });
+      expandAllBtn.innerHTML = allExpanded ? "⬇ Expand All" : "⬆ Collapse All";
+      expandAllBtn.classList.toggle("active", !allExpanded);
+    });
+
+    // Copy all logs button
+    const copyAllBtn = document.createElement("button");
+    copyAllBtn.className = "logs-action-btn";
+    copyAllBtn.innerHTML = "📋 Copy";
+    copyAllBtn.addEventListener("click", () => {
+      this.copyLogsToClipboard(parsedLogs);
+    });
+
+    // Export logs button
+    const exportBtn = document.createElement("button");
+    exportBtn.className = "logs-action-btn";
+    exportBtn.innerHTML = "💾 Export";
+    exportBtn.addEventListener("click", () => {
+      this.exportLogs(parsedLogs);
+    });
+
+    actionsDiv.appendChild(expandAllBtn);
+    actionsDiv.appendChild(copyAllBtn);
+    actionsDiv.appendChild(exportBtn);
+
+    header.appendChild(statsDiv);
+    header.appendChild(actionsDiv);
+
+    // Create toolbar
+    const toolbar = document.createElement("div");
+    toolbar.className = "logs-toolbar";
+
+    // Filter group
+    const filterGroup = document.createElement("div");
+    filterGroup.className = "logs-toolbar-group";
+
+    const filterLabel = document.createElement("span");
+    filterLabel.className = "logs-toolbar-label";
+    filterLabel.textContent = "Filter";
+
+    const filterSelect = document.createElement("select");
+    filterSelect.className = "logs-filter-select";
+    filterSelect.innerHTML = `
+      <option value="all">All Types</option>
+      <option value="BINDER">Binder</option>
+      <option value="CODEGEN">CodeGen</option>
+      <option value="LEXER">Lexer</option>
+      <option value="PARSER">Parser</option>
+      <option value="LINKING">Linking</option>
+      <option value="INFO">Info</option>
+      <option value="DEBUG">Debug</option>
+      <option value="CLI PARSER">Cli Parser</option>
+    `;
+
+    filterGroup.appendChild(filterLabel);
+    filterGroup.appendChild(filterSelect);
+
+    // Search input
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search logs by message, file, or type...";
+    searchInput.className = "logs-search-input";
+
+    // Count badge
+    const countBadge = document.createElement("span");
+    countBadge.className = "logs-count-badge";
+    countBadge.textContent = `${parsedLogs.length} logs`;
+
+    toolbar.appendChild(filterGroup);
+    toolbar.appendChild(searchInput);
+    toolbar.appendChild(countBadge);
+
+    // Logs content area
+    const logsContent = document.createElement("div");
+    logsContent.className = "logs-content";
+
+    // Store references for filtering
+    this.logsData = {
+      parsedLogs,
+      logsContent,
+      countBadge,
+      filterSelect,
+      searchInput,
+    };
+
+    // Render logs
+    this.renderParsedLogs(logsContent, parsedLogs);
+
+    // Event listeners
+    filterSelect.addEventListener("change", () => {
+      this.applyLogFilters();
+    });
+
+    searchInput.addEventListener("input", () => {
+      this.applyLogFilters();
+    });
+
+    logsContainer.appendChild(header);
+    logsContainer.appendChild(toolbar);
+    logsContainer.appendChild(logsContent);
+    container.appendChild(logsContainer);
+  }
+
+  calculateLogStats(logs) {
+    const stats = {};
+    logs.forEach((log) => {
+      const type = log.type.toUpperCase();
+      stats[type] = (stats[type] || 0) + 1;
+    });
+    return stats;
+  }
+
+  applyLogFilters() {
+    if (!this.logsData) return;
+
+    const { parsedLogs, logsContent, countBadge, filterSelect, searchInput } =
+      this.logsData;
+    const filterType = filterSelect.value;
+    const searchTerm = searchInput.value.toLowerCase();
+
+    const filteredLogs = this.filterLogs(parsedLogs, filterType, searchTerm);
+    this.renderParsedLogs(logsContent, filteredLogs);
+    countBadge.textContent = `${filteredLogs.length} / ${parsedLogs.length} logs`;
+  }
+
+  copyLogsToClipboard(logs) {
+    const text = logs
+      .map((log, i) => {
+        let str = `[${log.type}] ${log.file} => ${log.message}`;
+        if (log.location) str += `\n  ${log.location}`;
+        return str;
+      })
+      .join("\n\n");
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        this.showCopyNotification("Logs copied to clipboard");
+      })
+      .catch((err) => {
+        console.error("Failed to copy logs:", err);
+      });
+  }
+
+  exportLogs(logs) {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      totalLogs: logs.length,
+      stats: this.calculateLogStats(logs),
+      logs: logs,
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `flowwing-logs-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.showCopyNotification("Logs exported successfully");
+  }
+
+  showCopyNotification(message) {
+    // Remove existing notification
+    const existing = document.querySelector(".copy-notification");
+    if (existing) existing.remove();
+
+    const notification = document.createElement("div");
+    notification.className = "copy-notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      notification.classList.add("show");
+    });
+
+    // Remove after delay
+    setTimeout(() => {
+      notification.classList.remove("show");
+      setTimeout(() => notification.remove(), 300);
+    }, 2000);
+  }
+
+  parseLogs(logsText) {
+    const logs = [];
+    // Strip ANSI escape codes
+    const cleanText = logsText.replace(/\x1b\[[0-9;]*m/g, "");
+    const lines = cleanText.split("\n");
+
+    let currentLog = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Match log header: [DEBUG] [[TYPE]] File.cpp  => Message => Details
+      const headerMatch = line.match(
+        /^\[DEBUG\]\s*(?:\[\[([^\]]+)\]\])?\s*([^\s]+)\s*=>\s*(.+)$/
+      );
+
+      if (headerMatch) {
+        // Save previous log
+        if (currentLog) {
+          logs.push(currentLog);
+        }
+
+        const [, type, file, message] = headerMatch;
+        currentLog = {
+          type: type || "DEBUG",
+          file: file.trim(),
+          message: message.trim(),
+          location: "",
+          details: [],
+          timestamp: Date.now() + i, // Use index to preserve order
+        };
+      } else if (currentLog && line.startsWith("/")) {
+        // Location line (file path with line number and function)
+        currentLog.location = line.trim();
+      } else if (currentLog && line.trim() && !line.startsWith("[DEBUG]")) {
+        // Additional details
+        currentLog.details.push(line.trim());
+      }
+    }
+
+    // Don't forget the last log
+    if (currentLog) {
+      logs.push(currentLog);
+    }
+
+    return logs;
+  }
+
+  renderParsedLogs(container, logs) {
+    container.innerHTML = "";
+
+    if (logs.length === 0) {
+      const noLogs = document.createElement("div");
+      noLogs.className = "logs-empty";
+      noLogs.innerHTML = `
+        <div class="logs-empty-icon">🔍</div>
+        <div class="logs-empty-title">No matching logs</div>
+        <div class="logs-empty-desc">Try adjusting your filter or search criteria.</div>
+      `;
+      container.appendChild(noLogs);
+      return;
+    }
+
+    // Use virtualized rendering for better performance with large logs
+    this.setupVirtualizedLogs(container, logs);
+  }
+
+  // Virtual scrolling configuration
+  getLogItemHeight() {
+    return 85; // Estimated height of each log entry in pixels
+  }
+
+  setupVirtualizedLogs(container, logs) {
+    const ITEM_HEIGHT = this.getLogItemHeight();
+    const BUFFER_SIZE = 5; // Number of items to render above/below viewport
+
+    // Create virtualized container structure
+    const virtualContainer = document.createElement("div");
+    virtualContainer.className = "logs-virtual-container";
+    virtualContainer.style.position = "relative";
+    virtualContainer.style.height = `${logs.length * ITEM_HEIGHT}px`;
+    virtualContainer.style.minHeight = "100%";
+
+    const viewportEl = document.createElement("div");
+    viewportEl.className = "logs-virtual-viewport";
+    viewportEl.style.position = "absolute";
+    viewportEl.style.top = "0";
+    viewportEl.style.left = "0";
+    viewportEl.style.right = "0";
+
+    virtualContainer.appendChild(viewportEl);
+    container.appendChild(virtualContainer);
+
+    // Store virtualization state
+    this.virtualLogsState = {
+      logs,
+      container,
+      virtualContainer,
+      viewportEl,
+      ITEM_HEIGHT,
+      BUFFER_SIZE,
+      lastStartIndex: -1,
+      lastEndIndex: -1,
+      renderedElements: new Map(), // Cache for rendered elements
+    };
+
+    // NEW: Handle window/pane resizing
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateVirtualizedLogs();
+    });
+    resizeObserver.observe(container);
+    this.virtualLogsResizeObserver = resizeObserver; // Store for cleanup
+
+    // Initial render - wrapped in rAF to ensure clientHeight is calculated
+    requestAnimationFrame(() => {
+      this.updateVirtualizedLogs();
+    });
+
+    // Setup scroll listener with throttling
+    let scrollTimeout;
+    const scrollHandler = () => {
+      if (scrollTimeout) return;
+      scrollTimeout = requestAnimationFrame(() => {
+        this.updateVirtualizedLogs();
+        scrollTimeout = null;
+      });
+    };
+
+    // Remove old scroll listener if exists
+    if (this.logsScrollHandler) {
+      container.removeEventListener("scroll", this.logsScrollHandler);
+    }
+    this.logsScrollHandler = scrollHandler;
+    container.addEventListener("scroll", scrollHandler, { passive: true });
+  }
+
+  updateVirtualizedLogs() {
+    if (!this.virtualLogsState) return;
+
+    const {
+      logs,
+      container,
+      viewportEl,
+      ITEM_HEIGHT,
+      BUFFER_SIZE,
+      lastStartIndex,
+      lastEndIndex,
+      renderedElements,
+    } = this.virtualLogsState;
+
+    const scrollTop = container.scrollTop;
+    const viewportHeight = container.clientHeight;
+
+    // Calculate visible range
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE
+    );
+    const endIndex = Math.min(
+      logs.length - 1,
+      Math.ceil((scrollTop + viewportHeight) / ITEM_HEIGHT) + BUFFER_SIZE
+    );
+
+    // Skip if the range hasn't changed significantly
+    if (startIndex === lastStartIndex && endIndex === lastEndIndex) {
+      return;
+    }
+
+    this.virtualLogsState.lastStartIndex = startIndex;
+    this.virtualLogsState.lastEndIndex = endIndex;
+
+    // Clear viewport and re-render visible items
+    viewportEl.innerHTML = "";
+
+    // Position the viewport at the correct scroll position
+    viewportEl.style.transform = `translateY(${startIndex * ITEM_HEIGHT}px)`;
+
+    // Render visible items
+    const fragment = document.createDocumentFragment();
+    for (let i = startIndex; i <= endIndex; i++) {
+      const log = logs[i];
+      if (!log) continue;
+
+      // Create or reuse cached element
+      let logEntry;
+      if (renderedElements.has(i)) {
+        logEntry = renderedElements.get(i);
+      } else {
+        logEntry = this.createLogEntry(log, i);
+        // Cache the element for reuse (limit cache size)
+        if (renderedElements.size < 200) {
+          renderedElements.set(i, logEntry);
+        }
+      }
+
+      fragment.appendChild(logEntry);
+    }
+
+    viewportEl.appendChild(fragment);
+  }
+
+  // Cleanup virtualized logs when switching tabs
+  cleanupVirtualizedLogs() {
+    if (this.logsScrollHandler && this.virtualLogsState?.container) {
+      this.virtualLogsState.container.removeEventListener(
+        "scroll",
+        this.logsScrollHandler
+      );
+    }
+
+    if (this.virtualLogsResizeObserver) {
+      this.virtualLogsResizeObserver.disconnect();
+      this.virtualLogsResizeObserver = null;
+    }
+
+    this.logsScrollHandler = null;
+    this.virtualLogsState = null;
+  }
+
+  createLogEntry(log, index) {
+    const entry = document.createElement("div");
+    entry.className = `log-entry log-type-${log.type.toLowerCase()}`;
+    entry.dataset.type = log.type;
+    entry.dataset.index = index;
+
+    // Main content wrapper
+    const main = document.createElement("div");
+    main.className = "log-entry-main";
+
+    // Header with type badge, file, index, and actions
+    const header = document.createElement("div");
+    header.className = "log-entry-header";
+
+    const typeBadge = document.createElement("span");
+    typeBadge.className = `log-type-badge log-badge-${log.type.toLowerCase()}`;
+    typeBadge.textContent = log.type;
+
+    const fileName = document.createElement("span");
+    fileName.className = "log-file-name";
+    fileName.textContent = log.file;
+
+    const indexSpan = document.createElement("span");
+    indexSpan.className = "log-entry-index";
+    indexSpan.textContent = `#${index + 1}`;
+
+    // Actions (copy single entry)
+    const actions = document.createElement("div");
+    actions.className = "log-entry-actions";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "log-entry-action";
+    copyBtn.textContent = "Copy";
+    copyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const text = `[${log.type}] ${log.file} => ${log.message}${
+        log.location ? "\n" + log.location : ""
+      }`;
+      navigator.clipboard.writeText(text).then(() => {
+        this.showCopyNotification("Log entry copied");
+      });
+    });
+
+    actions.appendChild(copyBtn);
+
+    // Expand indicator
+    const expandIndicator = document.createElement("span");
+    expandIndicator.className = "log-expand-indicator";
+    expandIndicator.textContent = "▶";
+    expandIndicator.title = "Click to expand/collapse";
+
+    header.appendChild(expandIndicator);
+    header.appendChild(typeBadge);
+    header.appendChild(fileName);
+    header.appendChild(indexSpan);
+    header.appendChild(actions);
+
+    // Message content
+    const messageContainer = document.createElement("div");
+    messageContainer.className = "log-message-container";
+
+    // Parse message for key => value pairs
+    const messageParts = log.message.split(" => ");
+    messageParts.forEach((part, i) => {
+      const span = document.createElement("span");
+      if (i % 2 === 0) {
+        span.className = "log-message-key";
+      } else {
+        span.className = "log-message-value";
+      }
+      span.textContent = part;
+      messageContainer.appendChild(span);
+
+      if (i < messageParts.length - 1) {
+        const arrow = document.createElement("span");
+        arrow.className = "log-message-arrow";
+        arrow.textContent = " → ";
+        messageContainer.appendChild(arrow);
+      }
+    });
+
+    main.appendChild(header);
+    main.appendChild(messageContainer);
+    entry.appendChild(main);
+
+    // Location (collapsible)
+    if (log.location) {
+      const locationContainer = document.createElement("div");
+      locationContainer.className = "log-location";
+
+      // Extract file path and function name
+      const locMatch = log.location.match(/^(.+):(\d+)\s+in\s+(.+)$/);
+      if (locMatch) {
+        const [, filePath, lineNum, funcName] = locMatch;
+
+        const pathSpan = document.createElement("span");
+        pathSpan.className = "log-location-path";
+        pathSpan.textContent = filePath;
+
+        const lineSpan = document.createElement("span");
+        lineSpan.className = "log-location-line";
+        lineSpan.textContent = `:${lineNum}`;
+
+        const funcSpan = document.createElement("span");
+        funcSpan.className = "log-location-func";
+        funcSpan.textContent = ` in ${funcName}`;
+
+        locationContainer.appendChild(pathSpan);
+        locationContainer.appendChild(lineSpan);
+        locationContainer.appendChild(funcSpan);
+      } else {
+        locationContainer.textContent = log.location;
+      }
+
+      entry.appendChild(locationContainer);
+    }
+
+    // Toggle location visibility on click
+    entry.addEventListener("click", (e) => {
+      // Don't toggle if clicking on action buttons
+      if (e.target.closest(".log-entry-actions")) return;
+      entry.classList.toggle("expanded");
+    });
+
+    return entry;
+  }
+
+  filterLogs(logs, filterType, searchTerm) {
+    return logs.filter((log) => {
+      // Type filter
+      if (filterType !== "all" && log.type !== filterType) {
+        return false;
+      }
+
+      // Search filter
+      if (searchTerm) {
+        const searchableText =
+          `${log.type} ${log.file} ${log.message} ${log.location}`.toLowerCase();
+        if (!searchableText.includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   // --- Unified Handler for Selection (Hover) ---

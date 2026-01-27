@@ -197,16 +197,14 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
 
     llvm::Value *value_to_print = m_last_value;
 
-    bool is_field_access =
-        (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
-    bool is_object = (m_last_type->getKind() == types::TypeKind::kObject);
+    // bool is_field_access =
+    //     (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
+    bool is_object = (m_last_type->getKind() == types::TypeKind::kObject) &&
+                     (llvm::isa<llvm::AllocaInst>(value_to_print) ||
+                      llvm::isa<llvm::GEPOperator>(value_to_print) ||
+                      llvm::isa<llvm::GlobalVariable>(value_to_print));
 
-    if (is_object && is_field_access) {
-      // CASE: node1.next
-      // 'value_to_print' is the address of the field (Node**).
-      // We MUST load it to get the actual object reference (Node*).
-      // Note: We cast to pointer-to-pointer before loading to be safe with
-      // opaque pointers.
+    if (is_object) {
 
       llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
                                      ->getLLVMType(m_last_type)
@@ -216,8 +214,6 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
           ptr_ptr_type, value_to_print, "field_obj_load");
 
     } else {
-      // CASE: node1 (Variable) or Primitives
-      // Use standard resolution (handle Alloca loading etc.)
       value_to_print = resolveValue(m_last_value, m_last_type);
     }
     emitRecursivePrint(value_to_print, m_last_type, false);

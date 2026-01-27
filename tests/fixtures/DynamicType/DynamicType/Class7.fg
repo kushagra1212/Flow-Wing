@@ -10,11 +10,11 @@ var x:int, a:A = 2, new A(2)
 print(x, "\n")
 print(a.x, "\n")
 
-if(a != Nir) {
+if(a != null) {
   print("Is not Nir")
 }
 
-if(a == Nir) {
+if(a == null) {
   print("Is Nir")
 }
 
@@ -27,7 +27,7 @@ if(a == b) {
   print("Is not equal")
 }
 
-if(c == Nir) {
+if(c == null) {
 }or if(c != Nir) {
   print("Is not Nir")
 }
@@ -67,7 +67,7 @@ if(p && q) {
   print("Is false")
 }
 
-var r:str, s:A = "Hello", Nir
+var r:str, s:A = "Hello", null
 
 if(r == s) {  
   print("Is equal")
@@ -75,15 +75,15 @@ if(r == s) {
   print("Is not equal")
 }
 
-if(r == Nir) {
+if(r == null) {
   print("Is Nir")
 }
 
-if(r != Nir) {  
+if(r != null) {  
   print("Is not Nir")
 }
 
-if(s == Nir) {
+if(s == null) {
   print("S is Nir")
 }
 

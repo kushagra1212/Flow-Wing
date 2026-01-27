@@ -2,7 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <title>Flow-Wing Inspector</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link
@@ -13,8 +22,38 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css"
     />
+    <!-- CodeMirror Fold Addon CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.css"
+    />
+    <!-- CodeMirror Search Addon CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/matchesonscrollbar.min.css"
+    />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <!-- CodeMirror Fold Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js"></script>
+    <!-- CodeMirror Edit Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+    <!-- CodeMirror Search Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/scroll/annotatescrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/matchesonscrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/jump-to-line.min.js"></script>
+    <!-- CodeMirror JavaScript/JSON Mode -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <script>
       // Ensure CodeMirror is loaded before defining mode
       if (typeof CodeMirror === "undefined") {
@@ -408,7 +447,12 @@
               return "variable-2";
             }
             // Check for type names (i32, i64, etc.)
-            if (/^i\d+$/.test(word) || /^(half|float|double|fp128|x86_fp80|ppc_fp128|void|label|metadata|x86_mmx|token)$/.test(word)) {
+            if (
+              /^i\d+$/.test(word) ||
+              /^(half|float|double|fp128|x86_fp80|ppc_fp128|void|label|metadata|x86_mmx|token)$/.test(
+                word
+              )
+            ) {
               return "atom";
             }
             return "variable";
@@ -447,14 +491,16 @@
   <body>
     <header>
       <div class="brand">
-        <span class="logo">FW</span> Flow-Wing
-        <span class="badge">AOT Debugger</span>
+        <span class="logo">FW</span>
+        <span>Flow-Wing</span>
+        <span class="badge">Inspector</span>
       </div>
       <div class="controls">
         <button class="tab-btn active" data-view="tokens">Tokens</button>
         <button class="tab-btn" data-view="ast">AST</button>
         <button class="tab-btn" data-view="semantic">Semantic</button>
         <button class="tab-btn" data-view="llvm-ir">IR</button>
+        <button class="tab-btn" data-view="logs">Logs</button>
       </div>
       <div class="status" id="status-bar">Ready</div>
     </header>
@@ -511,7 +557,11 @@
           </div>
           <div class="output-resizer" id="output-resizer"></div>
           <div id="output-content" class="output-content"></div>
-          <button id="scroll-to-bottom-btn" class="scroll-to-bottom-btn" title="Scroll to bottom">
+          <button
+            id="scroll-to-bottom-btn"
+            class="scroll-to-bottom-btn"
+            title="Scroll to bottom"
+          >
             ↓
           </button>
         </div>
@@ -521,8 +571,34 @@
       <section class="pane viz-pane">
         <div class="pane-header">
           <span id="viz-title">Abstract Syntax Tree</span>
+          <div class="viz-header-controls">
+            <button id="json-toggle" class="icon-btn json-toggle-btn" title="Toggle JSON View">
+              <span>{ }</span>
+            </button>
+          </div>
         </div>
         <div id="viz-container"></div>
+        <div id="json-editor-container" class="json-editor-container" style="display: none;">
+          <div class="json-editor-toolbar">
+            <button id="json-copy-btn" class="json-toolbar-btn" title="Copy JSON">
+              <span>📋</span> Copy
+            </button>
+            <button id="json-format-btn" class="json-toolbar-btn" title="Format JSON">
+              <span>✨</span> Format
+            </button>
+            <button id="json-collapse-btn" class="json-toolbar-btn" title="Collapse All">
+              <span>📁</span> Collapse
+            </button>
+            <button id="json-expand-btn" class="json-toolbar-btn" title="Expand All">
+              <span>📂</span> Expand
+            </button>
+            <div class="json-search-container">
+              <input type="text" id="json-search-input" class="json-search-input" placeholder="Search in JSON...">
+              <span id="json-search-count" class="json-search-count"></span>
+            </div>
+          </div>
+          <div id="json-editor"></div>
+        </div>
         <div class="resizer resizer-left" data-pane="viz"></div>
       </section>
 

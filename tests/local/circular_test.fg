@@ -52,15 +52,15 @@ print("node3: ", node3, "\n")
 print("node1: ", node1, "\n")
 print("node1.next.next: ", node1.next.next, "\n")
 
-/; node1.next = Nir
+/; node1.next = null
 print("node1: ", node1, "\n")
 print("node1.next: ", node1.next, "\n")
 print("node1.next.next: ", node1.next.next, "\n")
 
-/;node2 = { value:100, next: Nir}
+/;node2 = { value:100, next: null}
 /; node2 = { value:100, next: { value:200 }    }
 /; node2 = { value:100, next: node1    }
-/; node2 = Nir
+/; node2 = null
 
 print("node2: ", node2, "\n")
 print("node2.next: ", node2.next, "\n")
@@ -364,3 +364,686 @@ print("After modifying rect1.topLeft:\n")
 print("rect1.topLeft: ", rect1.topLeft, "\n")
 print("rect2.topLeft: ", rect2.topLeft, "\n")
 
+type T ={
+    x:int 
+}
+
+var t1:T = {x:10}
+var t2:T = {x:20}
+
+print("t1 == t2: ", t1 == t2, "\n")
+print("t1 != t2: ", t1 != t2, "\n")
+t1 = t2
+print("t1 == t2: ", t1 == t2, "\n")
+print("t1 != t2: ", t1 != t2, "\n")
+
+/; compare nested objects
+type Nested = {
+    x:T
+}
+
+var n1:Nested = {x:t1}
+var n2:Nested = {x:t2}
+
+print("n1 == n2: ", n1 == n2, "\n")
+print("n1 != n2: ", n1 != n2, "\n")
+n1 = n2
+print("n1 == n2: ", n1 == n2, "\n")
+
+/; compare nested objects with different values
+var n3:Nested = {x:t1}
+var n4:Nested = {x:t2}
+
+print("n3 == n4: ", n3 == n4, "\n")
+print("n3 != n4: ", n3 != n4, "\n")
+n3 = n4
+print("n3 == n4: ", n3 == n4, "\n")
+print("n3 != n4: ", n3 != n4, "\n")
+
+
+/; compare object members objects
+type ObjectMembers = {
+    x:T
+    y:T
+}
+
+var o1:ObjectMembers = {x:t1, y:t2}
+var o2:ObjectMembers = {x:t1, y:t2}
+
+print("o1 == o2: ", o1 == o2, "\n")
+print("o1 != o2: ", o1 != o2, "\n")
+o1 = o2
+print("o1 == o2: ", o1 == o2, "\n")
+print("o1 != o2: ", o1 != o2, "\n")
+
+print("o1.x == o2.x: ", o1.x == o2.x, "\n")
+print("o1.x != o2.x: ", o1.x != o2.x, "\n")
+print("o1.y == o2.y: ", o1.y == o2.y, "\n")
+print("o1.y != o2.y: ", o1.y != o2.y, "\n")
+
+
+/; Test the ! operator on the object type and its object type fields
+
+type T = {
+    x:int
+}
+
+var t1:T = {x:10}
+var t2:T = {x:20}
+
+print("t1 == t2: ", t1 == t2, "\n")
+print("t1 != t2: ", t1 != t2, "\n")
+print("t1.x == t2.x: ", t1.x == t2.x, "\n")
+print("t1.x != t2.x: ", t1.x != t2.x, "\n")
+print("!t1: ", !t1, "\n")   
+print("!t1.x: ", !t1.x, "\n")
+print("!t2: ", !t2, "\n")
+print("!t2.x: ", !t2.x, "\n")
+print("!t1 == !t2: ", !t1 == !t2, "\n")
+print("!t1 != !t2: ", !t1 != !t2, "\n")
+print("!t1.x == !t2.x: ", !t1.x == !t2.x, "\n")
+print("!t1.x != !t2.x: ", !t1.x != !t2.x, "\n")
+
+
+/; field is object type
+type T2 = {
+    x:T
+}
+
+var t3:T2 = {x:t1}
+var t4:T2 = {x:t2}
+
+print("t3 == t4: ", t3 == t4, "\n")
+print("t3 != t4: ", t3 != t4, "\n")
+print("t3.x == t4.x: ", t3.x == t4.x, "\n")
+print("t3.x != t4.x: ", t3.x != t4.x, "\n")
+
+
+/; bang operator on object type
+print("!t1: ", !t1, "\n")
+print("!t1.x: ", !t1.x, "\n")
+print("!t2: ", !t2, "\n")
+print("!t2.x: ", !t2.x, "\n")
+
+print("t3.x: ", t3.x, "\n")
+print("!t3.x: ", !t3.x, "\n")
+t3.x = null 
+print("t3.x: ", t3.x, "\n")
+print("!t3.x: ", !t3.x, "\n")
+
+print("t3: ", t3, "\n")
+print("!t3: ", !t3, "\n")
+
+print("t3 == null: ", t3 == null, "\n")
+
+print("t3.x == null: ", t3.x == null, "\n")
+
+
+/; No Initialization
+/; type T = {
+/;     x:int 
+/; }
+
+/; var t1:T
+
+/; print("t1: ", t1, "\n")
+
+/; With null Initialization
+
+/; type T = {
+/;     x:int 
+/; }
+
+/; var t1:T =  null
+
+/; print("t1: ", t1, "\n")
+
+
+/; With null Assignment
+
+/; type T = {
+/;     x:int 
+/; }
+
+/; var t1:T 
+
+/; print("t1: ", t1, "\n")
+/; t1 = null
+/; print("t1: ", t1, "\n")
+
+
+/; With Initialization
+
+/; type T = {
+/;     x:int 
+/; }
+
+/; var t1:T =  { x:10 }
+
+/; print("t1: ", t1, "\n")
+
+/; With Assignment
+
+/; type T = {
+/;     x:int 
+/; }
+
+/; var t1:T 
+/; print("t1: ", t1, "\n")
+/; t1 = { x:10 }
+/; print("t1: ", t1, "\n")
+
+
+/; With initialization via other object
+
+type T = {
+    x:int 
+    y:deci 
+}
+
+var t1:T = { x:10, y:10.10 }
+print("t1: ", t1, "\n")
+
+var t2:T =  t1 
+print("t2: ", t2, "\n")
+
+
+
+/; No Initialization Nested Object
+
+/; type T = {
+/;     x:int 
+/;     y:deci 
+/; }
+
+/; type Nested = {
+/;     z:int
+/;     t1:T
+/;     n2: Nested
+/; }
+
+/; var n1:Nested
+
+/; print("n1: ", n1, "\n")
+
+type T = {
+    x:int
+    t2: T 
+}
+
+var t1:T = {
+    x: 2,
+    t2: {
+        x: 10
+    }
+}
+
+print(t1.x, "\n")
+print(t1.t2.x, "\n")
+
+
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+type Shape = {
+    name: str
+    rect: Rectangle
+}
+
+var shape: Shape = {
+    name: "MyShape",
+    rect: {
+        topLeft: {
+            x: 0,
+            y: 0
+        },
+        bottomRight: {
+            x: 100,
+            y: 100
+        }
+    }
+}
+
+print(shape, "\n")
+
+
+print(shape.rect, "\n")
+print(shape.rect.bottomRight, "\n")
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+const p1: Person = {
+    name: "Alice",
+    age: 30
+}
+
+const p2: Person = {
+    name: "Alice",
+    age: 30
+}
+
+const p3: Person = {
+    name: "Bob",
+    age: 25
+}
+
+print("p1 == p2: ", p1 == p2, "\n")
+print("p1 != p2: ", p1 != p2, "\n")
+print("p1 == p3: ", p1 == p3, "\n")
+print("p1 != p3: ", p1 != p3, "\n")
+
+var p4: Person = p3 
+
+print("p4 == p3: ", p4 == p3, "\n")
+print("p4 != p3: ", p4 != p3, "\n")
+
+p4 = p1 
+
+print("p4 == p1: ", p4 == p1, "\n")
+print("p4 != p1: ", p4 != p1, "\n")
+print("p4 == p2: ", p4 == p2, "\n")
+print("p4 != p2: ", p4 != p2, "\n")
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print(node1, "\n")
+print(node2, "\n")
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print(node1, "\n")
+print(node2, "\n")
+
+print("node1 == node2: ", node1 == node2, "\n")
+print("node1 != node2: ", node1 != node2, "\n")
+
+
+print("node1.next == node2.next: ", node1.next == node2.next, "\n")
+print("node1.next != node2.next: ", node1.next != node2.next, "\n")
+
+print("node2.next == node1: ", node2.next == node1, "\n")
+print("node2.next != node1: ", node2.next != node1, "\n")
+
+print("node1.next == node2 ", node1.next == node2, "\n")
+print("node1.next != node2 ", node1.next != node2, "\n")
+
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+print(node1, "\n")
+
+print(
+    {
+        value: 2,
+    }
+)
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print(node1, "\n")
+print(node2, "\n")
+
+print("!node1: ", !node1, "\n")
+print("!node2: ", !node2, "\n")
+
+print("!node1.next: ", !node1.next, "\n")
+print("!node2.next: ", !node2.next, "\n")
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print(node1, "\n")
+print(node2, "\n")
+
+
+node1.next = node2
+
+print(node1, "\n")
+print(node2, "\n")
+
+node1 = {
+    value: 1,
+    next: {
+        value: 2,
+        next: {
+            value: 3
+        }
+    }
+}
+
+print(node1, "\n")
+
+
+node1 = {
+    value: 1,
+    next: {
+        value: 2,
+        next: {
+            value: 3,
+            next: {
+                value: 4
+            }
+        }
+    }
+}
+
+print(node1, "\n")
+
+
+
+type Person = {
+    name: str
+    age: int
+}
+
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null  
+}
+
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print(node1, "\n")
+print(node2, "\n")
+
+
+node1.next = node2
+
+print(node1, "\n")
+print(node2, "\n")
+
+node1 = {
+    value: 1,
+    next: {
+        value: 2,
+        next: {
+            value: 3
+        }
+    }
+}
+
+print(node1, "\n")
+
+
+node1 = {
+    value: 1,
+    next: {
+        value: 2,
+        next: {
+            value: 3,
+            next: {
+                value: 4
+            }
+        }
+    }
+}
+
+print(node1, "\n")
+
+node1 = null
+
+print("node1: ", node1, "\n")
+
+node1 = {
+    value: 1
+}
+
+print("node1: ", node1, "\n")
+
+node1 = {
+    next: {
+        value: 2
+    }
+}
+
+print("node1: ", node1, "\n")
+
+node1.next = {
+    value: 3,
+    next: null
+}
+
+print("node1: ", node1, "\n")
+
+node1 = {
+    value: 1
+}
+
+print("node1: ", node1, "\n")
+
+node1.next = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+print("node1: ", node1, "\n")
+
+node1.next.next = {
+    value: 4,
+    next: null
+}
+
+print("node1: ", node1, "\n")
+
+
+var node3: Node = {
+    value: 5,
+    next: null
+}
+
+node1.next = node3
+
+print("node1: ", node1, "\n")
+
+var node4: Node = {
+    value: 6,
+    next: {
+        value: 7,
+        next: null
+    }
+}
+
+node1.next.next = node4
+
+print("node1: ", node1, "\n")
+
+var node5: Node = node1 
+
+print("node5: ", node5, "\n")
+
+node5.next = null 
+
+print("node1: ", node1, "\n")
+print("node5: ", node5, "\n")
+
+print("node1 == node5: ", node1 == node5, "\n")
+
+var node6: Node = {
+    value: 1,
+    next: null
+}
+
+print("node5 == node6: ", node5 == node6, "\n")
+
+var node7: Node = {
+    value: 2,
+    next: null
+}
+
+print("node7 == node6: ", node7 == node6, "\n")
+
+
+var node9: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+var node10: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+print("node9 == node10: ", node9 == node10, "\n")
+
+print("node9.next == node10.next: ", node9.next == node10.next, "\n")
+{
+
+var node11: Node = {
+    value: 2,
+    next: node9 
+}
+
+var node12: Node = {
+    value: 2,
+    next: node10  
+}
+
+print("node11 == node12: ", node11 == node12, "\n")
+
+}
+
+
+var node11: Node = {
+    value: 2,
+    next: node9 
+}
+
+var node12: Node = {
+    value: 2,
+    next: node10  
+}
+
+print("node11 == node12: ", node11 == node12, "\n")
+
+node11.next.next = {
+    value: 100 
+}
+
+print("node11: ", node11, "\n")
+print("node9: ", node9, "\n")
+
+node11.next.next = null 
+
+print("node11: ", node11, "\n")
+print("node9: ", node9, "\n")

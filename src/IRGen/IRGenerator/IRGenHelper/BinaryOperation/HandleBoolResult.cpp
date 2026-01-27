@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +106,13 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
         convertToChar(left_value, left_value->getType()),
         convertToChar(right_value, right_value->getType()),
         "equality_comparison_result");
+  }
+
+  if (left_type->getKind() == types::TypeKind::kObject ||
+      right_type->getKind() == types::TypeKind::kObject) {
+    return emitStructuralComparison(
+        left_value, right_value,
+        static_cast<types::CustomObjectType *>(left_type));
   }
 
   return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(

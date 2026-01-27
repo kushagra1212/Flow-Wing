@@ -140,7 +140,7 @@ bool Builtins::initialize(binding::BinderContext *context) {
   m_bool_type_instance = createBuiltinType("bool");
   m_nthg_type_instance = createBuiltinType("nthg");
   m_dynamic_type_instance = createBuiltinType("dynamic");
-  m_nirast_type_instance = createBuiltinType("Nir");
+  m_nirast_type_instance = createBuiltinType("null");
 
   createBuiltinFunction(
       "print", {},

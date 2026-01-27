@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
+#include "llvm/IR/Value.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -34,22 +35,45 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   auto *llvm_target_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type);
 
+  bool is_source_null =
+      llvm::isa<llvm::ConstantPointerNull>(source_raw_value) ||
+      source_type == analysis::Builtins::m_nirast_type_instance.get();
+
+  if (is_source_null) {
+
+    builder->CreateStore(
+        llvm::ConstantPointerNull::get(m_ir_gen_context.getTypeBuilder()
+                                           ->getLLVMType(target_type)
+                                           ->getPointerTo()),
+        target_addr);
+
+    return;
+  }
+
   // CASE: Struct to Struct Assignment (with different types)
   if (target_type->getKind() == types::TypeKind::kObject) {
 
-    bool is_source_null =
-        llvm::isa<llvm::ConstantPointerNull>(source_raw_value) ||
-        source_type == analysis::Builtins::m_nirast_type_instance.get();
+    llvm::Value *source_value = source_raw_value;
 
-    if (is_source_null) {
-      auto *default_value = m_ir_gen_context.getDefaultValue(target_type);
-      builder->CreateStore(default_value, target_addr);
-      return;
+    if ((llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+         llvm::isa<llvm::GEPOperator>(source_raw_value) ||
+         llvm::isa<llvm::GlobalVariable>(source_raw_value))) {
+      auto expected_llvm_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+      source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+          expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+
+      if (*source_type != *target_type) {
+        source_value =
+            convertToTargetType(source_value, target_type, source_type);
+      }
+    } else {
+      // Object literal to Object variable
+      source_value = getTempObject(target_type, source_type, source_raw_value);
     }
 
-    emitStructuralCopy(
-        target_addr, static_cast<types::CustomObjectType *>(target_type),
-        source_raw_value, static_cast<types::CustomObjectType *>(source_type));
+    builder->CreateStore(source_value, target_addr);
+
     return;
   }
 
@@ -155,10 +179,6 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
           llvm_src_type, src_ptr, static_cast<unsigned int>(src_index),
           field_name + "_src_ptr");
 
-      llvm::Value *val = builder->CreateLoad(
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(src_field_type.get()),
-          src_field_ptr, field_name + "_val");
-
       CODEGEN_DEBUG_LOG("Src Field Type", src_field_type->getName());
       CODEGEN_DEBUG_LOG("Dest Field Type", dest_field_type->getName());
 
@@ -170,18 +190,42 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
         CODEGEN_DEBUG_LOG("Src Field Type", src_field_type->getName());
         CODEGEN_DEBUG_LOG("Dest Field Type", dest_field_type->getName());
 
-        val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
-                                      ->getLLVMType(src_field_type.get())
-                                      ->getPointerTo(),
-                                  src_field_ptr, field_name + "_val");
+        llvm::Value *val = src_field_ptr;
+
+        if ((llvm::isa<llvm::AllocaInst>(val) ||
+             llvm::isa<llvm::GEPOperator>(val) ||
+             llvm::isa<llvm::GlobalVariable>(val))) {
+
+          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                        ->getLLVMType(src_field_type.get())
+                                        ->getPointerTo(),
+                                    val, field_name + "_val");
+        }
 
         // Object Value Semantics
         if (needs_conversion) {
-          val = getTempObject(dest_field_type.get(), src_field_type.get(), val);
+          if (llvm::isa<llvm::ConstantPointerNull>(val) ||
+              src_field_type.get() ==
+                  analysis::Builtins::m_nirast_type_instance.get()) {
+
+            val = llvm::ConstantPointerNull::get(
+                m_ir_gen_context.getTypeBuilder()
+                    ->getLLVMType(dest_field_type.get())
+                    ->getPointerTo());
+
+          } else {
+
+            val =
+                getTempObject(dest_field_type.get(), src_field_type.get(), val);
+          }
         }
 
         builder->CreateStore(val, dest_field_ptr);
       } else {
+        llvm::Value *val =
+            builder->CreateLoad(m_ir_gen_context.getTypeBuilder()->getLLVMType(
+                                    src_field_type.get()),
+                                src_field_ptr, field_name + "_val");
 
         bool is_source_null =
             llvm::isa<llvm::ConstantPointerNull>(val) ||
@@ -189,9 +233,11 @@ void IRGenerator::emitStructuralCopy(llvm::Value *dest_ptr,
                 analysis::Builtins::m_nirast_type_instance.get();
 
         if (is_source_null) {
-          auto *default_value =
-              m_ir_gen_context.getDefaultValue(dest_field_type.get());
-          builder->CreateStore(default_value, dest_field_ptr);
+          llvm::Value *null_ptr = llvm::ConstantPointerNull::get(
+              m_ir_gen_context.getTypeBuilder()
+                  ->getLLVMType(dest_field_type.get())
+                  ->getPointerTo());
+          builder->CreateStore(null_ptr, dest_field_ptr);
           continue;
         }
 
@@ -242,10 +288,13 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
   llvm::Value *default_val = m_ir_gen_context.getDefaultValue(dest_type);
   builder->CreateStore(default_val, new_struct_alloc);
 
-  emitStructuralCopy(new_struct_alloc,
-                     static_cast<types::CustomObjectType *>(dest_type), src_val,
+  if (src_val) {
+    emitStructuralCopy(new_struct_alloc,
+                       static_cast<types::CustomObjectType *>(dest_type),
+                       src_val,
 
-                     static_cast<types::CustomObjectType *>(src_type));
+                       static_cast<types::CustomObjectType *>(src_type));
+  }
 
   return new_struct_alloc;
 }

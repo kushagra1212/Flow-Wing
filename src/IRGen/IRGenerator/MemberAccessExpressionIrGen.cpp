@@ -30,54 +30,40 @@ void IRGenerator::visit(
 
   member_access_expression->getLeftExpression()->accept(this);
 
-  auto left_expression = member_access_expression->getLeftExpression().get();
-
   llvm::Value *object_value = m_last_value;
   types::Type *object_type = m_last_type;
 
-  bool is_nested_access = (left_expression->getKind() ==
-                           binding::NodeKind::kMemberAccessExpression);
+  // Dereference: Node** -> Node (for global or local variables and nested
+  // member access)
+  object_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+      m_ir_gen_context.getTypeBuilder()
+          ->getLLVMType(object_type)
+          ->getPointerTo(),
+      object_value, "chain_load");
 
-  if (is_nested_access && object_type->getKind() == types::TypeKind::kObject) {
-    // Dereference: Node** -> Node*
-    object_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
-        m_ir_gen_context.getTypeBuilder()
-            ->getLLVMType(object_type)
-            ->getPointerTo(),
-        object_value, "chain_load");
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+
+  llvm::Value *is_null = builder->CreateIsNull(object_value, "is_null_check");
+
+  llvm::BasicBlock *error_block =
+      m_ir_gen_context.createBlock("null_access_error");
+  llvm::BasicBlock *continue_block =
+      m_ir_gen_context.createBlock("null_access_ok");
+
+  builder->CreateCondBr(is_null, error_block, continue_block);
+
+  m_ir_gen_context.setInsertPoint(error_block);
+
+  auto *runtime_err_fn = m_ir_gen_context.getLLVMModule()->getFunction("fg_re");
+  if (runtime_err_fn) {
+    llvm::Value *msg = builder->CreateGlobalStringPtr(
+        "Runtime Error: Cannot access member '" +
+        member_access_expression->getMemberName() + "' of null object.");
+    builder->CreateCall(runtime_err_fn, {msg});
   }
+  builder->CreateUnreachable();
 
-  if (object_type->getKind() == types::TypeKind::kObject) {
-    auto &builder = m_ir_gen_context.getLLVMBuilder();
-
-    // A. Check if Pointer is Null
-    llvm::Value *is_null = builder->CreateIsNull(object_value, "is_null_check");
-
-    llvm::BasicBlock *error_block =
-        m_ir_gen_context.createBlock("null_access_error");
-    llvm::BasicBlock *continue_block =
-        m_ir_gen_context.createBlock("null_access_ok");
-
-    // Branch: If null -> Error, Else -> Continue
-    builder->CreateCondBr(is_null, error_block, continue_block);
-
-    // B. Generate Error Block
-    m_ir_gen_context.setInsertPoint(error_block);
-
-    auto *runtime_err_fn =
-        m_ir_gen_context.getLLVMModule()->getFunction("fg_re");
-    if (runtime_err_fn) {
-      // Pass a specific error message
-      llvm::Value *msg = builder->CreateGlobalStringPtr(
-          "Runtime Error: Cannot access member '" +
-          member_access_expression->getMemberName() + "' of null object.");
-      builder->CreateCall(runtime_err_fn, {msg});
-    }
-    builder->CreateUnreachable(); // Stop execution here
-
-    // C. Continue Normal Execution
-    m_ir_gen_context.setInsertPoint(continue_block);
-  }
+  m_ir_gen_context.setInsertPoint(continue_block);
 
   auto *custom_object_type =
       static_cast<types::CustomObjectType *>(object_type);
@@ -95,16 +81,12 @@ void IRGenerator::visit(
   auto *llvm_obj_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(object_type));
 
-  auto &builder = m_ir_gen_context.getLLVMBuilder();
   llvm::Value *field_ptr = builder->CreateStructGEP(
       llvm_obj_type, object_value, static_cast<unsigned int>(field_index),
       member_name + "_ptr");
 
   types::Type *field_type = member_access_expression->getType().get();
 
-  // Always return the pointer (like IdentifierExpression does)
-  // This allows it to work both as an lvalue (assignment) and rvalue (reading)
-  // When used as an rvalue, resolveValue will load it if needed
   m_last_value = field_ptr;
   m_last_llvm_type = field_ptr->getType();
   m_last_type = field_type;

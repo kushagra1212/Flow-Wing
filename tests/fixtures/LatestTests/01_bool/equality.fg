@@ -11,7 +11,7 @@ print(2.0 == 1.0, "\n")
 print(2.0 == 2.0, "\n")
 
 print("Nir Equality\n")
-print(Nir == Nir, "\n")
+print(null == null, "\n")
 
 print("Int32 Equality\n")
 print(2 == 2, "\n")

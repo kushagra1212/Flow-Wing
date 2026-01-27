@@ -163,6 +163,10 @@ private:
                                lexer::TokenKind operator_kind,
                                types::Type *left_type, types::Type *right_type);
 
+  llvm::Value *emitStructuralComparison(llvm::Value *lhs_ptr,
+                                        llvm::Value *rhs_ptr,
+                                        types::CustomObjectType *type);
+
   llvm::Value *getDynamicBinaryResult(llvm::Value *left_value,
                                       llvm::Value *right_value,
                                       lexer::TokenKind operator_kind,
@@ -221,7 +225,7 @@ private:
 
   llvm::Function *getOrCreateObjectPrinter(types::CustomObjectType *type);
   llvm::Function *getOrCreateStructCopier(types::CustomObjectType *type);
-
+  llvm::Function *getOrCreateStructComparator(types::CustomObjectType *type);
   llvm::Value *getTempObject(types::Type *dest_type, types::Type *src_type,
                              llvm::Value *src_val);
 };

@@ -105,6 +105,9 @@ bool ErrorExpressionParser::isExpressionDelimiter(
   case lexer::TokenKind::kIfKeyword:
   case lexer::TokenKind::kMultiLineCommentToken:
   case lexer::TokenKind::kSingleLineCommentToken:
+  case lexer::TokenKind::kOpenBraceToken:
+  case lexer::TokenKind::kOpenBracketToken:
+  case lexer::TokenKind::kOpenParenthesisToken:
     return true;
   default:
     break;

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -341,6 +341,10 @@ llvm::Value *IRGenerator::convertToTargetType(llvm::Value *value,
     bool is_char =
         source_type == analysis::Builtins::m_char_type_instance.get();
     return convertToString(value, source_llvm_type, is_char);
+  }
+
+  if (target_type->getKind() == types::TypeKind::kObject) {
+    return getTempObject(target_type, source_type, value);
   }
 
   return value;

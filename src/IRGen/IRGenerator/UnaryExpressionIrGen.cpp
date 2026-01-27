@@ -72,8 +72,20 @@ void IRGenerator::visit(binding::BoundUnaryExpression *unary_expression) {
   auto unary_operator_kind = unary_expression->getOperatorTokenKind();
   const auto result_type = unary_expression->getType().get();
 
-  // For dynamic types, keep pointer; for primitives, resolve value
-  if (!expression_type->isDynamic()) {
+  bool is_field_access = (unary_expression->getExpression()->getKind() ==
+                          binding::NodeKind::kMemberAccessExpression);
+  bool is_object = (expression_type->getKind() == types::TypeKind::kObject);
+
+  if (is_object && is_field_access) {
+
+    llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
+                                   ->getLLVMType(expression_type)
+                                   ->getPointerTo();
+
+    expression_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+        ptr_ptr_type, expression_value, "field_obj_load");
+
+  } else if (!expression_type->isDynamic()) {
     expression_value = resolveValue(expression_value, expression_type);
   }
 

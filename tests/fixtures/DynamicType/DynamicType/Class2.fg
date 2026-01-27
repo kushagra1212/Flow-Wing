@@ -5,7 +5,7 @@ class A {
     }
 }
 
-var a:A = Nir
-  if(a == Nir) {
+var a:A = null
+  if(a == null) {
     print("Is Nir")
   }

@@ -23,6 +23,8 @@ public:
   void setFieldTypesMap(
       std::map<std::string, std::shared_ptr<Type>> field_types_map);
 
+  bool isObjectExpression() const;
+
 private:
   std::string m_custom_type_name;
   std::map<std::string, std::shared_ptr<Type>> m_field_types_map;
