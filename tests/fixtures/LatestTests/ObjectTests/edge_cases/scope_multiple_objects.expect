@@ -1,0 +1,10 @@
+outer p1: { x: 1, y: 1 }
+outer p2: { x: 2, y: 2 }
+outer p3: { x: 3, y: 3 }
+inner p1: { x: 10, y: 10 }
+inner p2: { x: 20, y: 20 }
+inner p3 (outer): { x: 3, y: 3 }
+inner p3 after modify: { x: 300, y: 300 }
+outer p1 after: { x: 1, y: 1 }
+outer p2 after: { x: 2, y: 2 }
+outer p3 after: { x: 300, y: 300 }

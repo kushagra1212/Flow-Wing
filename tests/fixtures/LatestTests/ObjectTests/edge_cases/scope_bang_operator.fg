@@ -18,6 +18,4 @@ print("outer !p1: ", !p1, "\n")
     print("inner !p1 (null): ", !p1, "\n")
 }
 
-print("outer !p1 after null assignment: ", !p1, "\n")
-
 print("outer !p1 after scope: ", !p1, "\n")

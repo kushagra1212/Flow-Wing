@@ -72,11 +72,9 @@ void IRGenerator::visit(binding::BoundUnaryExpression *unary_expression) {
   auto unary_operator_kind = unary_expression->getOperatorTokenKind();
   const auto result_type = unary_expression->getType().get();
 
-  bool is_field_access = (unary_expression->getExpression()->getKind() ==
-                          binding::NodeKind::kMemberAccessExpression);
   bool is_object = (expression_type->getKind() == types::TypeKind::kObject);
 
-  if (is_object && is_field_access) {
+  if (is_object) {
 
     llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
                                    ->getLLVMType(expression_type)

@@ -1,0 +1,6 @@
+before scope p1: { x: 10, y: 20 }
+inner p2: { x: 100, y: 200 }
+inner p1 after assign: { x: 100, y: 200 }
+inner p2 after modify: { x: 999, y: 200 }
+inner p1 after p2 modify: { x: 999, y: 200 }
+outer p1 after scope: { x: 999, y: 200 }

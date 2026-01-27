@@ -1,0 +1,7 @@
+node9 == node10: true
+node9.next == node10.next: true
+node11 == node12: true
+node11: { next: { next: { next: null, value: 100 }, value: 2 }, value: 2 }
+node9: { next: { next: null, value: 100 }, value: 2 }
+node11: { next: { next: null, value: 2 }, value: 2 }
+node9: { next: null, value: 2 }

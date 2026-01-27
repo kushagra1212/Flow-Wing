@@ -1,0 +1,18 @@
+type Node = {
+    value: int
+    next: Node
+}
+
+var outerNode: Node = { value: 1 }
+
+print("outer node: ", outerNode, "\n")
+
+{
+    var innerNode: Node = { value: 2, next: outerNode }
+    print("inner node: ", innerNode, "\n")
+    
+    innerNode.next.value = 100
+    print("inner node after modify outer via next: ", innerNode, "\n")
+}
+
+print("outer node after scope: ", outerNode, "\n")

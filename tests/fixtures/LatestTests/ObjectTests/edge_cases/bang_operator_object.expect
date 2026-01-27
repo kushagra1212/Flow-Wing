@@ -1,0 +1,12 @@
+t1 == t2: false
+t1 != t2: true
+t1.x == t2.x: false
+t1.x != t2.x: true
+!t1: false
+!t1.x: false
+!t2: false
+!t2.x: false
+!t1 == !t2: true
+!t1 != !t2: false
+!t1.x == !t2.x: true
+!t1.x != !t2.x: false

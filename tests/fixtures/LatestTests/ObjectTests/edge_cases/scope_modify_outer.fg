@@ -1,0 +1,16 @@
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 10, y: 20 }
+
+print("before scope p1: ", p1, "\n")
+
+{
+    p1.x = 100
+    p1.y = 200
+    print("inside scope p1: ", p1, "\n")
+}
+
+print("after scope p1: ", p1, "\n")

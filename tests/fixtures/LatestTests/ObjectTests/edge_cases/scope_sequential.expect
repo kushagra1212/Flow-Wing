@@ -1,0 +1,7 @@
+initial p1: { x: 1, y: 1 }
+scope 1 p1: { x: 10, y: 10 }
+after scope 1 p1: { x: 1, y: 1 }
+scope 2 p1: { x: 100, y: 100 }
+after scope 2 p1: { x: 1, y: 1 }
+scope 3 p1: { x: 1000, y: 1000 }
+after scope 3 p1: { x: 1, y: 1 }

@@ -1,0 +1,8 @@
+type Node = {
+    value: int
+    next: Node
+}
+
+var nodeDefault: Node
+
+print("nodeDefault: ", nodeDefault, "\n")

@@ -1,0 +1,9 @@
+Before modification:
+j1: { l: 3.14, y: 100, z: { x: 54 } }
+j2: { l: 3.14, y: 100, z: { x: 54 } }
+After modification:
+j1: { l: 100, y: 100, z: { x: 54 } }
+j2: { l: 100, y: 100, z: { x: 54 } }
+After modification of j2.z ref:
+j1: { l: 100, y: 100, z: { x: 200 } }
+j2: { l: 100, y: 100, z: { x: 200 } }

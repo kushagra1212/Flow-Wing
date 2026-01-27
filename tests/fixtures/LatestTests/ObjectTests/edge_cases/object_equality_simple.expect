@@ -1,0 +1,4 @@
+t1 == t2: false
+t1 != t2: true
+t1 == t2: true
+t1 != t2: false

@@ -1,0 +1,18 @@
+type T = {
+    x: int
+}
+
+var t1: T
+
+print("t1 == null: ", t1 == null, "\n")
+print("t1 != null: ", t1 != null, "\n")
+
+t1 = { x: 10 }
+
+print("t1 == null: ", t1 == null, "\n")
+print("t1 != null: ", t1 != null, "\n")
+
+t1 = null 
+
+print("t1 == null: ", t1 == null, "\n")
+print("t1 != null: ", t1 != null, "\n")

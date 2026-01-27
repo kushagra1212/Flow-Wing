@@ -1,0 +1,4 @@
+outer node: { next: null, value: 1 }
+inner node: { next: { next: null, value: 1 }, value: 2 }
+inner node after modify outer via next: { next: { next: null, value: 100 }, value: 2 }
+outer node after scope: { next: null, value: 100 }

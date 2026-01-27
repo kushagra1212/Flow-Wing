@@ -1,0 +1,17 @@
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print("node1: ", node1, "\n")
+print("node2: ", node2, "\n")

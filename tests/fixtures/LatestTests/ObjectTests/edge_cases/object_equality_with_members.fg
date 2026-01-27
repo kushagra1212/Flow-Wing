@@ -1,0 +1,46 @@
+type T = {
+    x: int
+}
+
+type Nested = {
+    x: T
+}
+
+var t1: T = { x: 10 }
+var t2: T = { x: 20 }
+
+var n1: Nested = { x: t1 }
+var n2: Nested = { x: t2 }
+
+print("n1 == n2: ", n1 == n2, "\n")
+print("n1 != n2: ", n1 != n2, "\n")
+n1 = n2
+print("n1 == n2: ", n1 == n2, "\n")
+
+var n3: Nested = { x: t1 }
+var n4: Nested = { x: t2 }
+
+print("n3 == n4: ", n3 == n4, "\n")
+print("n3 != n4: ", n3 != n4, "\n")
+n3 = n4
+print("n3 == n4: ", n3 == n4, "\n")
+print("n3 != n4: ", n3 != n4, "\n")
+
+type ObjectMembers = {
+    x: T
+    y: T
+}
+
+var o1: ObjectMembers = { x: t1, y: t2 }
+var o2: ObjectMembers = { x: t1, y: t2 }
+
+print("o1 == o2: ", o1 == o2, "\n")
+print("o1 != o2: ", o1 != o2, "\n")
+o1 = o2
+print("o1 == o2: ", o1 == o2, "\n")
+print("o1 != o2: ", o1 != o2, "\n")
+
+print("o1.x == o2.x: ", o1.x == o2.x, "\n")
+print("o1.x != o2.x: ", o1.x != o2.x, "\n")
+print("o1.y == o2.y: ", o1.y == o2.y, "\n")
+print("o1.y != o2.y: ", o1.y != o2.y, "\n")
