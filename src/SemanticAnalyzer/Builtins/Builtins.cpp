@@ -149,6 +149,12 @@ bool Builtins::initialize(binding::BinderContext *context) {
       true);
 
   createBuiltinFunction(
+      "println", {},
+      {std::make_shared<types::ReturnType>(Builtins::m_nthg_type_instance,
+                                           types::TypeConvention::kC)},
+      true);
+
+  createBuiltinFunction(
       "input",
       {{std::make_shared<types::ParameterType>(Builtins::m_str_type_instance,
                                                types::ValueKind::kByValue,

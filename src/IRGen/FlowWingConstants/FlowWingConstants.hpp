@@ -33,6 +33,7 @@ const std::string_view kDynamic_type_name = "fg_dyn_type";
 namespace functions {
 // Built-in Functions
 const std::string_view kPrint_fn = "print";
+const std::string_view kPrintln_fn = "println";
 const std::string_view kString_fn = "String";
 const std::string_view kBool_fn = "Bool";
 const std::string_view kDecimal_fn = "Decimal";

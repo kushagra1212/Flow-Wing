@@ -34,8 +34,10 @@ void BoundTreeJson::visit(
         static_cast<const analysis::VariableSymbol *>(symbol.get());
     const auto &symbol_id = getSymbolId(variable_symbol);
 
-    if (variable_symbol->getInitializerExpression())
+    if (variable_symbol->getInitializerExpression()) {
+
       variable_symbol->getInitializerExpression()->accept(this);
+    }
 
     m_last_node_json["symbol_id"] = symbol_id;
     variable_declaration_json["initializer_expressions"].push_back(

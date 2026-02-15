@@ -68,6 +68,22 @@ std::string BoundTreeJson::getTypeId(const types::Type *type) {
   return type_id;
 }
 
+std::string BoundTreeJson::getTypeId(const types::ArrayType *array_type) {
+  PARSER_DEBUG_LOG("Visiting Array Type", "BOUND TREE");
+  nlohmann::json array_type_json;
+  array_type_json["kind"] = types::Type::toString(array_type->getKind());
+  array_type_json["name"] = array_type->getName();
+  array_type_json["underlying_type_id"] =
+      getTypeId(array_type->getUnderlyingType().get());
+  for (const auto &dimension : array_type->getDimensions()) {
+    array_type_json["dimensions"].push_back(dimension);
+  }
+  const auto &array_type_id = getShortId(array_type);
+  m_types_json[array_type_id] = array_type_json;
+
+  return array_type_id;
+}
+
 std::string BoundTreeJson::getTypeId(const types::FunctionType *function_type) {
   PARSER_DEBUG_LOG("Visiting Function Type", "BOUND TREE");
   nlohmann::json function_type_json;

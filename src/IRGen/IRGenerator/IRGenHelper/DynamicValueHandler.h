@@ -47,6 +47,8 @@ enum class DynamicValueType {
   BOOLEAN = 6,
   NIRAST = 7,
   CHAR = 8,
+  OBJECT = 9,
+  ARRAY = 10,
 };
 
 class IRGenContext;

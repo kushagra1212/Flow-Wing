@@ -6,6 +6,7 @@ import {
 
 const documentation: Record<
   | "print"
+  | "println"
   | "super"
   | "input"
   | "Int32"
@@ -26,6 +27,20 @@ The \`print\` function is used to print a message to the console.
 \`\`\`flowwing
 print("Hello, World!")
 print(2, 3, 4,"Hello")
+\`\`\`
+    `,
+  },
+  println: {
+    kind: "markdown",
+    value: `
+**Print Line Function**
+
+The \`println\` function is like \`print\` but also prints a newline at the end.
+
+### Example:
+\`\`\`flowwing
+println("Hello, World!")
+println(2, 3, 4, "Hello")
 \`\`\`
     `,
   },
@@ -159,6 +174,21 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     },
     detail: "Print Function",
     documentation: documentation.print,
+  },
+  {
+    label: "println",
+    kind: CompletionItemKind.Function,
+    data: {
+      functionParametersTypes: ["int", "int", "int", "str"],
+      signatures: [
+        {
+          label: "println()",
+          documentation: documentation.println,
+        },
+      ],
+    },
+    detail: "Print with newline",
+    documentation: documentation.println,
   },
   {
     label: "input",

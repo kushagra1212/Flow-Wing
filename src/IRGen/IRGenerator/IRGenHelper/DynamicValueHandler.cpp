@@ -18,7 +18,9 @@
  */
 
 #include "DynamicValueHandler.h"
+#include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/ArrayType/ArrayType.hpp"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -56,6 +58,12 @@ DynamicValueType getDynamicValueTypeTag(llvm::Type *type,
   }
   if (type->isPointerTy()) {
     return DynamicValueType::STRING;
+  }
+  if (type->isStructTy()) {
+    return DynamicValueType::OBJECT;
+  }
+  if (type->isArrayTy()) {
+    return DynamicValueType::ARRAY;
   }
   assert(false && "Unsupported type for dynamic value");
   return DynamicValueType::NIRAST;
@@ -115,7 +123,14 @@ llvm::Value *storePrimitiveToDynamic(llvm::Value *rhs_value,
     // Zero-extend boolean to i64
     value_to_store = builder->CreateZExt(
         rhs_value, llvm::Type::getInt64Ty(*context), "bool_as_i64");
-  } else if (type_tag == DynamicValueType::STRING) {
+  } else if (type_tag == DynamicValueType::STRING ||
+             type_tag == DynamicValueType::OBJECT ||
+             type_tag == DynamicValueType::ARRAY) {
+
+    if (!rhs_value->getType()->isPointerTy()) {
+      assert(false && "Expected pointer for Object/Array storage");
+    }
+
     // Convert pointer to i64
     value_to_store = builder->CreatePtrToInt(
         rhs_value, llvm::Type::getInt64Ty(*context), "ptr_as_i64");
@@ -182,7 +197,9 @@ llvm::Value *castStoredValueToType(llvm::Value *stored_value,
         llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), 0),
         "boolValue");
   }
-  case DynamicValueType::STRING: {
+  case DynamicValueType::STRING:
+  case DynamicValueType::OBJECT:
+  case DynamicValueType::ARRAY: {
     return builder->CreateIntToPtr(
         stored_value, llvm::Type::getInt8PtrTy(*context), "stringPtr");
   }
@@ -299,11 +316,16 @@ types::Type *getTypeFromDynamicValueType(DynamicValueType type_tag) {
     return analysis::Builtins::m_nirast_type_instance.get();
   case DynamicValueType::CHAR:
     return analysis::Builtins::m_char_type_instance.get();
+  case DynamicValueType::OBJECT:
+  case DynamicValueType::ARRAY:
+    assert(false && "Unsupported Object/Array value type tag");
+    return nullptr;
   }
   assert(false && "Unsupported dynamic value type tag");
   return nullptr;
 }
 
 } // namespace DynamicValueHandler
+
 } // namespace ir_gen
 } // namespace flow_wing

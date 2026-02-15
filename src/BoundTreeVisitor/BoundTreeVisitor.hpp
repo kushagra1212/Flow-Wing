@@ -4,6 +4,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
@@ -58,55 +59,57 @@ public:
   visit(binding::BoundCustomTypeStatement *custom_type_statement) = 0;
   virtual void
   visit(binding::BoundVariableDeclaration *variable_declaration) = 0;
-  virtual void visit(binding::BoundFunctionStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundIfStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundWhileStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundForStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundBreakStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundContinueStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundReturnStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundSwitchStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundClassStatement *variable_declaration) = 0;
+  virtual void visit(binding::BoundFunctionStatement *function_statement) = 0;
+  virtual void visit(binding::BoundIfStatement *if_statement) = 0;
+  virtual void visit(binding::BoundWhileStatement *while_statement) = 0;
+  virtual void visit(binding::BoundForStatement *for_statement) = 0;
+  virtual void visit(binding::BoundBreakStatement *break_statement) = 0;
+  virtual void visit(binding::BoundContinueStatement *continue_statement) = 0;
+  virtual void visit(binding::BoundReturnStatement *return_statement) = 0;
+  virtual void visit(binding::BoundSwitchStatement *switch_statement) = 0;
+  virtual void visit(binding::BoundClassStatement *class_statement) = 0;
   virtual void
-  visit(binding::BoundIdentifierExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundIndexExpression *variable_declaration) = 0;
+  visit(binding::BoundIdentifierExpression *identifier_expression) = 0;
+  virtual void visit(binding::BoundIndexExpression *index_expression) = 0;
   virtual void
-  visit(binding::BoundIntegerLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundIntegerLiteralExpression *integer_literal_expression) = 0;
   virtual void
-  visit(binding::BoundDoubleLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundDoubleLiteralExpression *double_literal_expression) = 0;
   virtual void
-  visit(binding::BoundFloatLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundFloatLiteralExpression *float_literal_expression) = 0;
+  virtual void visit(binding::BoundCharacterLiteralExpression
+                         *character_literal_expression) = 0;
   virtual void
-  visit(binding::BoundCharacterLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundStringLiteralExpression *string_literal_expression) = 0;
   virtual void
-  visit(binding::BoundStringLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundBooleanLiteralExpression *boolean_literal_expression) = 0;
+  virtual void visit(binding::BoundTemplateStringLiteralExpression
+                         *template_string_literal_expression) = 0;
   virtual void
-  visit(binding::BoundBooleanLiteralExpression *variable_declaration) = 0;
-  virtual void visit(
-      binding::BoundTemplateStringLiteralExpression *variable_declaration) = 0;
+  visit(binding::BoundNirastLiteralExpression *nirast_literal_expression) = 0;
+  virtual void visit(binding::BoundErrorStatement *error_statement) = 0;
   virtual void
-  visit(binding::BoundNirastLiteralExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundErrorStatement *variable_declaration) = 0;
-  virtual void
-  visit(binding::BoundExpressionStatement *variable_declaration) = 0;
-  virtual void visit(binding::BoundErrorExpression *variable_declaration) = 0;
+  visit(binding::BoundExpressionStatement *expression_statement) = 0;
+  virtual void visit(binding::BoundErrorExpression *error_expression) = 0;
 
   virtual void
-  visit(binding::BoundModuleAccessExpression *variable_declaration) = 0;
+  visit(binding::BoundModuleAccessExpression *module_access_expression) = 0;
 
-  virtual void visit(binding::BoundCallExpression *variable_declaration) = 0;
+  virtual void visit(binding::BoundCallExpression *call_expression) = 0;
   virtual void
-  visit(binding::BoundMemberAccessExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundTernaryExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundNewExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundUnaryExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundBinaryExpression *variable_declaration) = 0;
+  visit(binding::BoundMemberAccessExpression *member_access_expression) = 0;
+  virtual void visit(binding::BoundTernaryExpression *ternary_expression) = 0;
+  virtual void visit(binding::BoundNewExpression *new_expression) = 0;
+  virtual void visit(binding::BoundUnaryExpression *unary_expression) = 0;
+  virtual void visit(binding::BoundBinaryExpression *binary_expression) = 0;
   virtual void
-  visit(binding::BoundParenthesizedExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundObjectExpression *variable_declaration) = 0;
+  visit(binding::BoundParenthesizedExpression *parenthesized_expression) = 0;
+  virtual void visit(binding::BoundObjectExpression *object_expression) = 0;
   virtual void
-  visit(binding::BoundAssignmentExpression *variable_declaration) = 0;
-  virtual void visit(binding::BoundColonExpression *variable_declaration) = 0;
+  visit(binding::BoundAssignmentExpression *assignment_expression) = 0;
+  virtual void visit(binding::BoundColonExpression *colon_expression) = 0;
+  virtual void
+  visit(binding::BoundContainerExpression *container_expression) = 0;
 };
 
 } // namespace visitor

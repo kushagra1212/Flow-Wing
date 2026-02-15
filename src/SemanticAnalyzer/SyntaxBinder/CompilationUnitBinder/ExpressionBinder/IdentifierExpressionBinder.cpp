@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -41,6 +42,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIdentifierExpression(
   auto symbol = m_context->getSymbolTable()->lookup(identifier).get();
 
   if (!symbol) {
+
+    BINDER_DEBUG_LOG("Symbol not found", "IDENTIFIER EXPRESSION BINDER");
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
         identifier_expression->getSourceLocation(),

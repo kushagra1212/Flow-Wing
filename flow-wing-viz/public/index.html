@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -450,7 +450,7 @@
             if (
               /^i\d+$/.test(word) ||
               /^(half|float|double|fp128|x86_fp80|ppc_fp128|void|label|metadata|x86_mmx|token)$/.test(
-                word
+                word,
               )
             ) {
               return "atom";
@@ -572,28 +572,57 @@
         <div class="pane-header">
           <span id="viz-title">Abstract Syntax Tree</span>
           <div class="viz-header-controls">
-            <button id="json-toggle" class="icon-btn json-toggle-btn" title="Toggle JSON View">
+            <button
+              id="json-toggle"
+              class="icon-btn json-toggle-btn"
+              title="Toggle JSON View"
+            >
               <span>{ }</span>
             </button>
           </div>
         </div>
         <div id="viz-container"></div>
-        <div id="json-editor-container" class="json-editor-container" style="display: none;">
+        <div
+          id="json-editor-container"
+          class="json-editor-container"
+          style="display: none"
+        >
           <div class="json-editor-toolbar">
-            <button id="json-copy-btn" class="json-toolbar-btn" title="Copy JSON">
+            <button
+              id="json-copy-btn"
+              class="json-toolbar-btn"
+              title="Copy JSON"
+            >
               <span>📋</span> Copy
             </button>
-            <button id="json-format-btn" class="json-toolbar-btn" title="Format JSON">
+            <button
+              id="json-format-btn"
+              class="json-toolbar-btn"
+              title="Format JSON"
+            >
               <span>✨</span> Format
             </button>
-            <button id="json-collapse-btn" class="json-toolbar-btn" title="Collapse All">
+            <button
+              id="json-collapse-btn"
+              class="json-toolbar-btn"
+              title="Collapse All"
+            >
               <span>📁</span> Collapse
             </button>
-            <button id="json-expand-btn" class="json-toolbar-btn" title="Expand All">
+            <button
+              id="json-expand-btn"
+              class="json-toolbar-btn"
+              title="Expand All"
+            >
               <span>📂</span> Expand
             </button>
             <div class="json-search-container">
-              <input type="text" id="json-search-input" class="json-search-input" placeholder="Search in JSON...">
+              <input
+                type="text"
+                id="json-search-input"
+                class="json-search-input"
+                placeholder="Search in JSON..."
+              />
               <span id="json-search-count" class="json-search-count"></span>
             </div>
           </div>

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,9 @@ namespace syntax {
 class ContainerExpressionSyntax : public ExpressionSyntax {
 
 public:
-  ContainerExpressionSyntax(
-      const syntax::SyntaxToken *open_bracket,
-      std::vector<std::unique_ptr<ExpressionSyntax>> elements,
-      std::vector<const syntax::SyntaxToken *> comma_tokens,
-      const syntax::SyntaxToken *close_bracket);
+  ContainerExpressionSyntax(const syntax::SyntaxToken *open_bracket,
+                            std::unique_ptr<ExpressionSyntax> value_expression,
+                            const syntax::SyntaxToken *close_bracket);
 
   ContainerExpressionSyntax(const syntax::SyntaxToken *open_bracket,
                             const syntax::SyntaxToken *close_bracket);
@@ -44,12 +42,11 @@ public:
   void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  const std::vector<std::unique_ptr<ExpressionSyntax>> &getElements() const;
+  const std::unique_ptr<ExpressionSyntax> &getValueExpression() const;
 
 private:
   const syntax::SyntaxToken *m_open_bracket;
-  std::vector<std::unique_ptr<ExpressionSyntax>> m_elements;
-  std::vector<const syntax::SyntaxToken *> m_comma_tokens;
+  std::unique_ptr<ExpressionSyntax> m_value_expression;
   const syntax::SyntaxToken *m_close_bracket;
 
   mutable std::vector<const SyntaxNode *> m_children;

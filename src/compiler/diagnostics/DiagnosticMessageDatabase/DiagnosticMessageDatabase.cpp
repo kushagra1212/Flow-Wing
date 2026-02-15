@@ -695,8 +695,26 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Please fix the errors in file '{0}' and try again.",
       "Ensure that the file '{0}' contains no errors before bringing it in."}},
 
+    {(DiagnosticCode::kMissingInitializerExpression),
+     {"Missing initializer expression for constant variable '{0}'.", "", ""}},
+
+    {(DiagnosticCode::kTooFewInitializerExpressions),
+     {"Too few initializer expressions for constant variables '{0}'.", "", ""}},
+
     {(DiagnosticCode::kInternalIRGenerationError),
      {"Internal IR generation error. Error: {0}", "", ""}},
+
+    {DiagnosticCode::kContainerExpressionRankMismatch,
+     {"Inconsistent array nesting. Cannot mix elements of depth '{0}' with "
+      "elements of depth '{1}'.",
+      "Ensure all elements within the container have the same number of "
+      "dimensions.",
+      ""}},
+
+    {(DiagnosticCode::kCannotIndexNonArrayType),
+     {"Cannot index into non-array type '{0}'.",
+      "Only array types can be indexed.",
+      "Ensure that the expression before '[ ]' is an array type."}},
 
 };
 
@@ -963,6 +981,18 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kTooManyInitializerExpressions:
     return "TooManyInitializerExpressions";
+
+  case DiagnosticCode::kMissingInitializerExpression:
+    return "MissingInitializerExpression";
+
+  case DiagnosticCode::kTooFewInitializerExpressions:
+    return "TooFewInitializerExpressions";
+
+  case DiagnosticCode::kContainerExpressionRankMismatch:
+    return "ContainerExpressionRankMismatch";
+
+  case DiagnosticCode::kCannotIndexNonArrayType:
+    return "CannotIndexNonArrayType";
 
   default:
     return "Unknown diagnostic code";

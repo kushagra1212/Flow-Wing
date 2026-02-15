@@ -113,6 +113,12 @@ enum class NodeKind : int {
   kObjectExpression,
   kColonExpression,
 
+  // ---- Bound Container Expressions ----
+  kContainerExpression,
+
+  // ---- Bound Dimension Clause Expressions ----
+  kDimensionClauseExpression,
+
 };
 
 const std::string &toString(NodeKind kind);

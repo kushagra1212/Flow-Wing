@@ -31,6 +31,8 @@
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/CharacterLiteralExpressionSyntax/CharacterLiteralExpressionSyntax.h"
 #include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
+#include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
+#include "src/syntax/expression/DimensionClauseExpressionSyntax/DimensionClauseExpressionSyntax.h"
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
@@ -154,6 +156,14 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kColonExpression:
     return bindColonExpression(
         static_cast<syntax::ColonExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kContainerExpression:
+    return bindContainerExpression(
+        static_cast<syntax::ContainerExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kDimensionClauseExpression:
+    return bindDimensionClauseExpression(
+        static_cast<syntax::DimensionClauseExpressionSyntax *>(expression));
 
   default:
     BINDER_DEBUG_LOG("Unexpected expression kind for ExpressionBinder: ",
@@ -279,6 +289,6 @@ ExpressionBinder::isUnaryAllowedType(lexer::TokenKind operator_token_kind,
     return {false, nullptr};
   }
 }
-
 } // namespace binding
+
 } // namespace flow_wing

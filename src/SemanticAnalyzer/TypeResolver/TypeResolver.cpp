@@ -178,8 +178,8 @@ TypeResolver::resolveArrayType(
 
   assert(syntax != nullptr && "TypeResolver::resolveArrayType: syntax is null");
 
-  assert(syntax->getUnderlyingType() != nullptr &&
-         "TypeResolver::resolveArrayType: underlying type is null");
+  // Note: syntax->getUnderlyingType() can be nullptr for dynamic array types
+  // like [3][2], which resolves to dynamic base type via resolveType(nullptr)
 
   assert(!syntax->getDimensions().empty() &&
          "TypeResolver::resolveArrayType: dimensions are empty");

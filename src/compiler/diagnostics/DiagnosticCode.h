@@ -189,6 +189,16 @@ enum class DiagnosticCode : int16_t {
   // Internal Errors
   kInternalIRGenerationError,
 
+  // Constant Variable Errors
+  kMissingInitializerExpression,
+  kTooFewInitializerExpressions,
+
+  // Container Expression Errors
+  kContainerExpressionRankMismatch,
+
+  // Array Indexing Errors
+  kCannotIndexNonArrayType,
+
 };
 
 } // namespace diagnostic

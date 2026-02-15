@@ -1,3 +1,3 @@
-const x:bool
+const x:bool = false
 print(x, "\n")
 

@@ -47,6 +47,10 @@ public:
   const std::shared_ptr<analysis::ScopedSymbolTable> &getSymbolTable() const;
   const std::unique_ptr<analysis::TypeResolver> &getTypeResolver() const;
 
+  static std::unique_ptr<BoundExpression>
+  createDefaultValueExpression(types::Type *type,
+                               const diagnostic::SourceLocation &location);
+
 private:
   CompilationContext &m_context;
   std::unique_ptr<analysis::TypeResolver> m_type_resolver;

@@ -1,0 +1,5 @@
+var p:int[2] = [3, 5]
+
+var q:int[3][2] = [[1, 2], p, p]
+
+print(q)

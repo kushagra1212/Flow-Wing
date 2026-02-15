@@ -100,6 +100,32 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       m_context->reportError(error_statement.get());
       return std::move(error_statement);
     }
+
+    if (node->hasConstKeyword()) {
+
+      if (bound_initializer_expressions.size() == 0) {
+
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            node->getSourceLocation(),
+            diagnostic::DiagnosticCode::kMissingInitializerExpression,
+            diagnostic::DiagnosticArgs{variable_symbols[0]->getName()});
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
+      }
+
+      if (bound_initializer_expressions.size() < variable_symbols.size()) {
+
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            node->getSourceLocation(),
+            diagnostic::DiagnosticCode::kTooFewInitializerExpressions,
+            diagnostic::DiagnosticArgs{
+                std::to_string(variable_symbols.size()),
+                std::to_string(bound_initializer_expressions.size())});
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
+      }
+    }
+
     const size_t size = bound_initializer_expressions.size();
 
     for (size_t i = 0; i < size; i++) {
@@ -159,6 +185,20 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
             ->setInitializerExpression(
                 std::move(bound_initializer_expressions[i]));
       }
+    }
+  } else if (node->hasConstKeyword()) {
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        node->getSourceLocation(),
+        diagnostic::DiagnosticCode::kMissingInitializerExpression,
+        diagnostic::DiagnosticArgs{variable_symbols[0]->getName()});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
+  } else {
+    for (auto &variable_symbol : variable_symbols) {
+      static_cast<analysis::VariableSymbol *>(variable_symbol.get())
+          ->setInitializerExpression(
+              BinderContext::createDefaultValueExpression(
+                  variable_symbol->getType().get(), node->getSourceLocation()));
     }
   }
 

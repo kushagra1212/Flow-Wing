@@ -1,23 +1,243 @@
-type Point = {
-    x: int
-    y: int
-}
 
-var p1: Point = { x: 10, y: 20 }
+var x:int = 5
+var y:str = "Hello"
 
-print("outer !p1: ", !p1, "\n")
+var a:int[5] = [x, y]
+print(a)
+/#
+var a:int[5] = [1, 2, 3, 4, 5]
+var b:int[2][5] = [a, [6, 7, 8, 9, 10]]
+var c:int[3][2][5] = [b, [[11, 12], [13, 14]], b]
+var d:int[3][2][5] = c
+println(a)
+println(b)
+println(c)
+println(d)
+OUTPUT:
+[ 1, 2, 3, 4, 5 ]
+[ [ 1, 2, 3, 4, 5 ], [ 6, 7, 8, 9, 10 ] ]
+[ [ [ 1, 2, 3, 4, 5 ], [ 6, 7, 8, 9, 10 ] ], [ [ 11, 12, 0, 0, 0 ], [ 13, 14, 0, 0, 0 ] ], [ [ 1, 2, 3, 4, 5 ], [ 6, 7, 8, 9, 10 ] ] ]
+[ [ [ 1, 2, 3, 4, 5 ], [ 6, 7, 8, 9, 10 ] ], [ [ 11, 12, 0, 0, 0 ], [ 13, 14, 0, 0, 0 ] ], [ [ 1, 2, 3, 4, 5 ], [ 6, 7, 8, 9, 10 ] ] ]
 
-{
-    var p1: Point
-    print("inner !p1 (uninitialized): ", !p1, "\n")
-    
-    p1 = { x: 100, y: 200 }
-    print("inner !p1 (initialized): ", !p1, "\n")
-    
-    p1 = null
-    print("inner !p1 (null): ", !p1, "\n")
-}
 
-print("outer !p1 after null assignment: ", !p1, "\n")
+var a:int[2] = [1, 2]
+println(a)
+var b:int[2] = a 
+println(b)
+OUTPUT:
+[ 1, 2 ]
+[ 1, 2 ]
 
-print("outer !p1 after scope: ", !p1, "\n")
+var a:int[5] = [1, 2, 3, 4, 5]
+var b:int[2][5] = [a, [6, 7, 8, 9, 10]]
+var c:int[3][2][5] = [b, [[11, 12], [13, 14]], b]
+println(a)
+println(b)
+println(c)
+
+
+var j = 2
+var p:int[2] = [3, 5]
+var l:int[2] = [1,j]
+
+var q:int[3][2] = [l, p,[7,j]]
+
+print(q)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 5 ], [ 7, 2 ] ]
+
+var j = 2
+var p:int[2] = [3, 5]
+var l:int[2] = [1,j]
+
+var q:int[3][2] = [l, p,[7,p]]
+
+print(q)
+/; EXPECT_ERROR: ContainerExpressionRankMismatch
+var j = 2
+var p:int[2] = [3, 5]
+var l:int[2] = [1,j]
+
+var q:int[3][2] = [l, p,p]
+
+print(q)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 5 ], [ 3, 5 ] ]
+
+var p:int[2] = [3, 5]
+var l:int[2] = [1,2]
+
+var q:int[3][2] = [l, p,p]
+
+print(q)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 5 ], [ 3, 5 ] ]
+
+
+
+var p:int[2] = [3, 5]
+
+var q:int[3][2] = [[1, 2], p,p]
+
+print(q)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 5 ], [ 3, 5 ] ]
+
+
+var p:int[2][4] = [[1,2,3,4], [5,6,7,8]]
+
+var q:int[3][2][4] = [[[1],[2]], p, [[5], [6]]]
+
+print(q)
+OUTPUT:
+[ [ [ 1, 0, 0, 0 ], [ 2, 0, 0, 0 ] ], [ [ 1, 2, 3, 4 ], [ 5, 6, 7, 8 ] ], [ [ 5, 0, 0, 0 ], [ 6, 0, 0, 0 ] ] ]%
+
+var p:int[2] = [3, 5]
+
+var q:int[3][2] = [[1, 2], p, [5, 6]]
+
+print(q)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 5 ], [ 5, 6 ] ]
+
+
+var x =  5
+var y = 2.2f
+var z = 3.2f
+
+var a:deci32[5] = [x, y, z]
+print(a)
+OUTPUT:
+[ 5, 2.2, 3.2, 0, 0 ]
+
+
+var x =  5
+var y = "Hello"
+var z = 3.2f
+var w:bool = true
+
+var a:str[5] = [x, y, z, w]
+print(a)
+OUTPUT:
+[ "5", "Hello", "3.2", "true", "" ]
+
+var x =  5
+var y = "Hello"
+
+var a:str[5] = [x, y]
+print(a)
+OUTPUT:
+[ "5", "Hello", "", "", "" ]
+
+
+var x:int = 10
+var a:int[5][3][2] = [[[1, 2], [3, 4]], [[x], [7, 8]], [[9, 10], [11, 12]]]
+
+
+print(a)
+[ [ [ 1, 2 ], [ 3, 4 ], [ 0, 0 ] ], [ [ 10, 0 ], [ 7, 8 ], [ 0, 0 ] ], [ [ 9, 10 ], [ 11, 12 ], [ 0, 0 ] ], [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ], [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ] ]
+
+
+
+
+var a:int[5][3][2] = [[[1, 2], [3, 4]], [[x], [7, 8]], [[9, 10], [11, 12]]]
+
+
+print(a)
+EXPECT_ERROR: :VariableNotFound
+
+
+var x:int =  5
+var y = "Hello"
+
+var a:int[5] = [x, y]
+print(a)
+Runtime Error: Cannot cast Dynamic value to Int32.
+
+
+var x:int =  5
+var y:str = "Hello"
+
+var a:int[5] = [x, y]
+print(a)
+Runtime Error: Cannot cast Dynamic value to Int32.
+
+
+
+var x:int =  5
+var y = 7
+
+var a:int[5] = [x, y]
+print(a)
+OUTPUT:
+[5, 7, 0, 0, 0]
+
+var x:int =  5
+
+var a:int[5] = [x, 7]
+print(a)
+
+OUTPUT:
+[5, 7, 0, 0, 0]
+
+var a:int[5][3][2] = [[[1, 2], [3, 4]], [[5], [7, 8]], [[9, 10], [11, 12]]]
+
+
+print(a)
+
+
+OUTPUT:
+[ [ [ 1, 2 ], [ 3, 4 ], [ 0, 0 ] ], [ [ 5, 0 ], [ 7, 8 ], [ 0, 0 ] ], [ [ 9, 10 ], [ 11, 12 ], [ 0, 0 ] ], [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ], [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ] ]
+
+var a:int[5][2] = [[1, 2], [3, 4]]
+
+
+print(a)
+
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ], [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+var a:int[5] = [1, 2]
+
+
+print(a)
+
+OUTPUT:
+[1, 2, 0, 0, 0]
+
+/; EXPECT_ERROR: :InitializerExpressionTypeMismatch
+var a:int[5] = [[2,3], [2,3]]
+
+
+
+
+/; EXPECT_ERROR: :ContainerExpressionRankMismatch
+var a:int[5] = [1, [2,3]]
+
+
+
+
+
+int[5] = [1, 2]
+
+
+0 -> 1
+1 -> 2
+2 -> Default
+3 -> Default
+4 -> Default
+5 -> Default
+
+int[5][2] = [[1], [2, 3]]
+
+position = list of int
+
+{position, expr}
+
+
+/#
+var a: int[3][2]
+
+print("a: ", a, "\n")
+
+

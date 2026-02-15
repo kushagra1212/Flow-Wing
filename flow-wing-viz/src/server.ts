@@ -87,7 +87,7 @@ async function deleteOldArtifacts() {
       console.warn(`Could not delete ${artifact}:`, error);
     }
   }
-  
+
   // Also clear in-memory logs
   compilationLogs = "";
 }
@@ -125,7 +125,7 @@ const server = serve({
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": "*",
             },
-          }
+          },
         );
       } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -148,7 +148,7 @@ const server = serve({
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": "*",
             },
-          }
+          },
         );
       } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -166,7 +166,7 @@ const server = serve({
         if (!binaryPath) {
           return new Response(
             JSON.stringify({ error: "Binary path not provided" }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            { status: 400, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -174,7 +174,7 @@ const server = serve({
         if (!existsSync(sourceFile)) {
           return new Response(
             JSON.stringify({ error: "Source file not found" }),
-            { status: 404, headers: { "Content-Type": "application/json" } }
+            { status: 404, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -191,14 +191,14 @@ const server = serve({
 
         const results = [];
         let allLogs = "";
-        
+
         for (const cmd of commands) {
           const proc = Bun.spawn(
             [binaryPath, sourceFile, `--emit=${cmd.emit}`, `-OD=${BUILD_DIR}`],
             {
               stdout: "pipe",
               stderr: "pipe",
-            }
+            },
           );
 
           // Read streams concurrently while process runs, then wait for process to exit
@@ -272,7 +272,7 @@ const server = serve({
         if (!binaryPath) {
           return new Response(
             JSON.stringify({ error: "Binary path not provided" }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            { status: 400, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -280,7 +280,7 @@ const server = serve({
         if (!existsSync(sourceFile)) {
           return new Response(
             JSON.stringify({ error: "Source file not found" }),
-            { status: 404, headers: { "Content-Type": "application/json" } }
+            { status: 404, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -291,7 +291,7 @@ const server = serve({
             cwd: BUILD_DIR,
             stdout: "pipe",
             stderr: "pipe",
-          }
+          },
         );
 
         // Read streams concurrently while process runs, then wait for process to exit
@@ -322,7 +322,7 @@ const server = serve({
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
               },
-            }
+            },
           );
         }
 
@@ -371,11 +371,11 @@ const server = serve({
           try {
             if (existsSync(binDir)) {
               availableFiles = `\nFiles in bin/: ${readdirSync(binDir).join(
-                ", "
+                ", ",
               )}`;
             }
             availableFiles += `\nFiles in build/: ${readdirSync(BUILD_DIR).join(
-              ", "
+              ", ",
             )}`;
           } catch (err) {
             availableFiles = "\nCould not list directory contents";
@@ -391,7 +391,7 @@ const server = serve({
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
               },
-            }
+            },
           );
         }
 
@@ -427,7 +427,7 @@ const server = serve({
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": "*",
             },
-          }
+          },
         );
       } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -469,14 +469,14 @@ const server = serve({
 
       return new Response(
         JSON.stringify({ error: `File ${filename} not found` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // 2. Serve Static Assets
     let filePath = join(
       PUBLIC_DIR,
-      url.pathname === "/" ? "index.html" : url.pathname
+      url.pathname === "/" ? "index.html" : url.pathname,
     );
     const staticFile = file(filePath);
 

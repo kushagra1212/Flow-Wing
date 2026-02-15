@@ -99,6 +99,12 @@ const std::string &toString(NodeKind kind) {
       // ---- Bound Colon Expressions ----
       {NodeKind::kColonExpression, "ColonExpression"},
 
+      // ---- Bound Container Expressions ----
+      {NodeKind::kContainerExpression, "ContainerExpression"},
+
+      // ---- Bound Dimension Clause Expressions ----
+      {NodeKind::kDimensionClauseExpression, "DimensionClauseExpression"},
+
   };
 
   static const std::string kNotDefined = "";

@@ -20,6 +20,7 @@
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
@@ -211,6 +212,7 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundModuleAccessExpression *statement) {
   assert(false && "Module access expression not supported");
 }
+
 llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 
   if (type->isDynamic()) {

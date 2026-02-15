@@ -5,6 +5,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
+#include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/external/include/json.hpp"
@@ -71,6 +72,7 @@ private:
   void visit(binding::BoundAssignmentExpression *node) override;
   void visit(binding::BoundExpressionStatement *node) override;
   void visit(binding::BoundColonExpression *colon_expression) override;
+  void visit(binding::BoundContainerExpression *container_expression) override;
 
   // Symbols
   std::string getSymbolId(const analysis::FunctionSymbol *function_symbol);
@@ -84,6 +86,7 @@ private:
   std::string getTypeId(const types::ParameterType *type);
   std::string getTypeId(const types::ReturnType *type);
   std::string getTypeId(const types::Type *type);
+  std::string getTypeId(const types::ArrayType *type);
 
   // operators
   nlohmann::json
@@ -91,6 +94,9 @@ private:
 
   // Utility functions
   std::string getShortId(const void *ptr);
+
+  // Get Formatted Indices
+  static std::string getFormattedIndices(const std::deque<size_t> &indices);
 
   // Serialization
   template <typename T>

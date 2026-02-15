@@ -65,6 +65,7 @@ public:
   void visit(binding::BoundNirastLiteralExpression *nirast_literal_expression)
       override;
   void visit(binding::BoundColonExpression *colon_expression) override;
+  void visit(binding::BoundContainerExpression *container_expression) override;
 
   void clearLast() {
     m_last_value = nullptr;
@@ -201,6 +202,8 @@ private:
                           types::CustomObjectType *dest_type,
                           llvm::Value *src_ptr,
                           types::CustomObjectType *src_type);
+  void emitArrayCopy(llvm::Value *dest_ptr, types::ArrayType *dest_type,
+                     llvm::Value *src_ptr, types::ArrayType *src_type);
 
   void handleReturn();
   void verifyModule();
@@ -224,10 +227,13 @@ private:
            std::function<llvm::Value *(llvm::Value *, llvm::Type *)> converter);
 
   llvm::Function *getOrCreateObjectPrinter(types::CustomObjectType *type);
+  llvm::Function *getOrCreateArrayPrinter(types::ArrayType *type);
   llvm::Function *getOrCreateStructCopier(types::CustomObjectType *type);
   llvm::Function *getOrCreateStructComparator(types::CustomObjectType *type);
   llvm::Value *getTempObject(types::Type *dest_type, types::Type *src_type,
                              llvm::Value *src_val);
+  llvm::Value *getTempArray(types::Type *dest_type, types::Type *src_type,
+                            llvm::Value *src_val);
 };
 } // namespace ir_gen
 } // namespace flow_wing

@@ -181,7 +181,7 @@ llvm::Value *IRGenContext::getSymbol(const std::string &name) {
 bool IRGenContext::isGlobalScope() const { return m_symbol_table.size() == 1; }
 
 llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
-                                              bool is_global) {
+                                              [[maybe_unused]] bool is_global) {
 
   if (type == analysis::Builtins::m_int32_type_instance.get()) {
     return getLLVMBuilder()->getInt32(0);
@@ -205,37 +205,60 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
     return getLLVMBuilder()->getInt1(false);
   }
 
-  if (type == analysis::Builtins::m_int8_type_instance.get() ||
+  if (type == analysis::Builtins::m_str_type_instance.get() ||
       type == analysis::Builtins::m_str_type_instance.get()) {
+    // Check if we already created a global empty string to reuse it
+    llvm::GlobalVariable *empty_str_global =
+        getLLVMModule()->getGlobalVariable(".str.empty");
 
-    if (!is_global) {
-
-      return llvm::cast<llvm::Constant>(
-          getLLVMBuilder()->CreateGlobalStringPtr(""));
+    if (!empty_str_global) {
+      // Create global: private constant [1 x i8] c"\00"
+      llvm::Constant *empty_string =
+          llvm::ConstantDataArray::getString(*m_llvm_context, "", true);
+      empty_str_global = new llvm::GlobalVariable(
+          *getLLVMModule(), empty_string->getType(), true,
+          llvm::GlobalValue::PrivateLinkage, empty_string, ".str.empty");
     }
 
-    llvm::Constant *strConstant =
-        llvm::ConstantDataArray::getString(*getLLVMContext(), "");
-
-    auto *globalVar =
-        new llvm::GlobalVariable(*getLLVMModule(), strConstant->getType(),
-                                 true, // isConstant
-                                 llvm::GlobalValue::PrivateLinkage, strConstant,
-                                 ".str" // Name
-        );
-
-    // Ensure it can be merged with other strings
-    globalVar->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-
-    std::vector<llvm::Constant *> indices;
-    indices.push_back(
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()), 0));
-    indices.push_back(
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()), 0));
-
-    return llvm::ConstantExpr::getInBoundsGetElementPtr(strConstant->getType(),
-                                                        globalVar, indices);
+    // Cast [1 x i8]* to i8*
+    return llvm::ConstantExpr::getBitCast(empty_str_global,
+                                          getLLVMBuilder()->getInt8PtrTy());
   }
+
+  // if (type == analysis::Builtins::m_int8_type_instance.get() ||
+  //     type == analysis::Builtins::m_str_type_instance.get()) {
+  //   if (!is_global) {
+
+  //     return llvm::cast<llvm::Constant>(
+  //         getLLVMBuilder()->CreateGlobalStringPtr(""));
+  //   }
+
+  //   llvm::Constant *strConstant =
+  //       llvm::ConstantDataArray::getString(*getLLVMContext(), "");
+
+  //   auto *globalVar =
+  //       new llvm::GlobalVariable(*getLLVMModule(), strConstant->getType(),
+  //                                true, // isConstant
+  //                                llvm::GlobalValue::PrivateLinkage,
+  //                                strConstant,
+  //                                ".str" // Name
+  //       );
+
+  //   // Ensure it can be merged with other strings
+  //   globalVar->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+
+  //   std::vector<llvm::Constant *> indices;
+  //   indices.push_back(
+  //       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()),
+  //       0));
+  //   indices.push_back(
+  //       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()),
+  //       0));
+
+  //   return
+  //   llvm::ConstantExpr::getInBoundsGetElementPtr(strConstant->getType(),
+  //                                                       globalVar, indices);
+  // }
 
   if (type == analysis::Builtins::m_nirast_type_instance.get()) {
     return llvm::ConstantPointerNull::get(
@@ -261,7 +284,6 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
   }
 
   if (type->getKind() == types::TypeKind::kObject) {
-
     auto *customType = static_cast<types::CustomObjectType *>(type);
 
     CODEGEN_DEBUG_LOG("Custom Type", customType->getName());
@@ -290,6 +312,28 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
 
     // 4. Create the Aggregate Constant
     return llvm::ConstantStruct::get(llvmStructType, elementConstants);
+  }
+
+  if (type->getKind() == types::TypeKind::kArray) {
+    auto *array_type = static_cast<types::ArrayType *>(type);
+
+    llvm::Constant *current_const =
+        getDefaultValue(array_type->getUnderlyingType().get(), is_global);
+
+    const auto &dimensions = array_type->getDimensions();
+
+    for (auto it = dimensions.rbegin(); it != dimensions.rend(); ++it) {
+      uint64_t dim_size = *it;
+
+      std::vector<llvm::Constant *> elements(dim_size, current_const);
+
+      llvm::ArrayType *layer_type =
+          llvm::ArrayType::get(current_const->getType(), dim_size);
+
+      current_const = llvm::ConstantArray::get(layer_type, elements);
+    }
+
+    return current_const;
   }
 
   assert(false && "Unsupported type [getDefaultValue]");

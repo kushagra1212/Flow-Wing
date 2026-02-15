@@ -53,26 +53,15 @@ void IRGenerator::visit(
           m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
       m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
     }
-
+    auto *init_expression = variable_symbol->getInitializerExpression().get();
     // Handle Initialization
-    if (auto *init_expression =
-            variable_symbol->getInitializerExpression().get()) {
-      init_expression->accept(this);
 
-      emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
-    } else {
-      // Default Initialization
-      llvm::Value *default_value = nullptr;
+    init_expression->accept(this);
 
-      if (var_type->getKind() == types::TypeKind::kObject) {
-        default_value = getTempObject(var_type, var_type, nullptr);
-      } else {
-        default_value = m_ir_gen_context.getDefaultValue(var_type);
-      }
+    assert(storage_ptr && "Storage pointer is null");
+    assert(m_last_value && "Last value is null");
 
-      m_ir_gen_context.getLLVMBuilder()->CreateStore(default_value,
-                                                     storage_ptr);
-    }
+    emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
 
     clearLast();
   }

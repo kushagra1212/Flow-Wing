@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/utils/LogConfig.h"
+#include <string>
 
 namespace flow_wing::ir_gen {
 
@@ -58,6 +59,19 @@ void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
     return;
   }
 
+  if (type->getKind() == types::TypeKind::kArray) {
+    CODEGEN_DEBUG_LOG("Printing Array", type->getName());
+    auto *array_type = static_cast<types::ArrayType *>(type);
+
+    llvm::Value *arr_ptr = ensurePointer(value, type, "array_print_tmp");
+
+    llvm::Function *printer = getOrCreateArrayPrinter(array_type);
+    llvm::Value *void_ptr =
+        builder->CreateBitCast(arr_ptr, builder->getInt8PtrTy());
+    builder->CreateCall(printer, {void_ptr});
+    return;
+  }
+
   // 3. Handle Primitives (String/Char/Numbers)
   bool is_string = (*type == *analysis::Builtins::m_str_type_instance.get());
   bool is_char = (*type == *analysis::Builtins::m_char_type_instance.get());
@@ -81,6 +95,140 @@ void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
     if (is_char)
       builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr("'")});
   }
+}
+
+llvm::Function *IRGenerator::getOrCreateArrayPrinter(types::ArrayType *type) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto mod = m_ir_gen_context.getLLVMModule();
+
+  std::string name = type->getName();
+  std::replace(name.begin(), name.end(), '[', '_');
+  std::replace(name.begin(), name.end(), ']', '_');
+  std::string func_name = "fg_print_array_" + name;
+
+  if (auto existing_fn = mod->getFunction(func_name)) {
+    return existing_fn;
+  }
+
+  llvm::FunctionType *fn_type = llvm::FunctionType::get(
+      builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
+
+  llvm::Function *printer_fn = llvm::Function::Create(
+      fn_type, llvm::Function::ExternalLinkage, func_name, mod);
+
+  auto prev_block = builder->GetInsertBlock();
+  auto prev_insert_point = builder->GetInsertPoint();
+
+  llvm::BasicBlock *entry_block = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "entry", printer_fn);
+  builder->SetInsertPoint(entry_block);
+
+  auto printf_fn = mod->getOrInsertFunction(
+      std::string(constants::functions::kPrintf_fn),
+      llvm::FunctionType::get(builder->getInt32Ty(), {builder->getInt8PtrTy()},
+                              true));
+
+  // Cast i8* back to [N x T]*
+  llvm::Type *llvm_array_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+  llvm::Value *void_ptr = printer_fn->getArg(0);
+  llvm::Value *array_ptr = builder->CreateBitCast(
+      void_ptr, llvm_array_type->getPointerTo(), "typed_array_ptr");
+
+  builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr("[ ")});
+
+  const auto &dims = type->getDimensions();
+  uint64_t outer_dim = dims[0];
+
+  // Handle empty array edge case
+  if (outer_dim == 0) {
+    builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr("]")});
+    builder->CreateRetVoid();
+    if (prev_block)
+      builder->SetInsertPoint(prev_block, prev_insert_point);
+    return printer_fn;
+  }
+
+  // --- Loop Blocks ---
+  llvm::BasicBlock *loop_cond = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "loop.cond", printer_fn);
+  llvm::BasicBlock *loop_body = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "loop.body", printer_fn);
+  llvm::BasicBlock *loop_exit = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "loop.exit", printer_fn);
+
+  builder->CreateBr(loop_cond);
+
+  // --- Loop Condition ---
+  builder->SetInsertPoint(loop_cond);
+  llvm::PHINode *idx_phi = builder->CreatePHI(builder->getInt64Ty(), 2, "i");
+  idx_phi->addIncoming(builder->getInt64(0), entry_block);
+
+  llvm::Value *cmp =
+      builder->CreateICmpULT(idx_phi, builder->getInt64(outer_dim));
+  builder->CreateCondBr(cmp, loop_body, loop_exit);
+
+  // --- Loop Body ---
+  builder->SetInsertPoint(loop_body);
+
+  std::vector<llvm::Value *> indices;
+  indices.push_back(builder->getInt64(0)); // Dereference the pointer to array
+  indices.push_back(idx_phi);              // Index into array
+  llvm::Value *elem_ptr = builder->CreateInBoundsGEP(llvm_array_type, array_ptr,
+                                                     indices, "elem_ptr");
+
+  // If dims > 1 (e.g. int[2][3]), the element is an Array (int[3])
+  // If dims == 1 (e.g. int[2]), the element is Primitive (int)
+  std::shared_ptr<types::Type> element_type;
+
+  if (dims.size() > 1) {
+    // Create sub-array type (remove first dimension)
+    std::vector<size_t> sub_dims(dims.begin() + 1, dims.end());
+    element_type =
+        std::make_shared<types::ArrayType>(type->getUnderlyingType(), sub_dims);
+  } else {
+    // Base type
+    element_type = type->getUnderlyingType();
+  }
+
+  llvm::Value *val_to_print = elem_ptr;
+
+  if (element_type->getKind() != types::TypeKind::kArray &&
+      element_type->getKind() != types::TypeKind::kObject) {
+    val_to_print = resolveValue(elem_ptr, element_type.get());
+  }
+
+  emitRecursivePrint(val_to_print, element_type.get(), true);
+
+  llvm::Value *is_last =
+      builder->CreateICmpEQ(idx_phi, builder->getInt64(outer_dim - 1));
+
+  llvm::BasicBlock *print_comma = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "comma", printer_fn);
+  llvm::BasicBlock *after_comma = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), "next", printer_fn);
+
+  builder->CreateCondBr(is_last, after_comma, print_comma);
+
+  builder->SetInsertPoint(print_comma);
+  builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr(", ")});
+  builder->CreateBr(after_comma);
+
+  builder->SetInsertPoint(after_comma);
+
+  llvm::Value *next_val = builder->CreateAdd(idx_phi, builder->getInt64(1));
+  idx_phi->addIncoming(next_val, after_comma);
+  builder->CreateBr(loop_cond);
+
+  builder->SetInsertPoint(loop_exit);
+  builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr(" ]")});
+  builder->CreateRetVoid();
+
+  if (prev_block) {
+    builder->SetInsertPoint(prev_block, prev_insert_point);
+  }
+
+  return printer_fn;
 }
 
 llvm::Function *
@@ -204,14 +352,20 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
                       llvm::isa<llvm::GEPOperator>(value_to_print) ||
                       llvm::isa<llvm::GlobalVariable>(value_to_print));
 
-    if (is_object) {
+    bool is_array = (m_last_type->getKind() == types::TypeKind::kArray) &&
+                    (llvm::isa<llvm::AllocaInst>(value_to_print) ||
+                     llvm::isa<llvm::GEPOperator>(value_to_print) ||
+                     llvm::isa<llvm::GlobalVariable>(value_to_print));
+
+    if (is_object || is_array) {
 
       llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
                                      ->getLLVMType(m_last_type)
                                      ->getPointerTo();
 
       value_to_print = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
-          ptr_ptr_type, value_to_print, "field_obj_load");
+          ptr_ptr_type, value_to_print,
+          is_array ? "array_load" : "field_obj_load");
 
     } else {
       value_to_print = resolveValue(m_last_value, m_last_type);
@@ -247,6 +401,15 @@ void IRGenerator::dispatchBuiltinFunction(
 
   if (fn_name == fns::kPrint_fn) {
     emitPrint(call_expression);
+  } else if (fn_name == fns::kPrintln_fn) {
+    emitPrint(call_expression);
+    auto *mod = m_ir_gen_context.getLLVMModule();
+    const std::unique_ptr<llvm::IRBuilder<>> &builder =
+        m_ir_gen_context.getLLVMBuilder();
+    auto *printf_fn =
+        mod->getFunction(std::string(constants::functions::kPrintf_fn));
+    builder->CreateCall(printf_fn,
+                        {builder->CreateGlobalStringPtr("\n")});
   } else if (fn_name == fns::kString_fn) {
     const auto &argument = call_expression->getArguments()[0];
     argument->accept(this);

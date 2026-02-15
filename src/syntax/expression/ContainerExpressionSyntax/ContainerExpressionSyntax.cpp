@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@ namespace syntax {
 
 ContainerExpressionSyntax::ContainerExpressionSyntax(
     const syntax::SyntaxToken *open_bracket,
-    std::vector<std::unique_ptr<ExpressionSyntax>> elements,
-    std::vector<const syntax::SyntaxToken *> comma_tokens,
+    std::unique_ptr<ExpressionSyntax> value_expression,
     const syntax::SyntaxToken *close_bracket)
-    : m_open_bracket(open_bracket), m_elements(std::move(elements)),
-      m_comma_tokens(comma_tokens), m_close_bracket(close_bracket) {}
+    : m_open_bracket(open_bracket),
+      m_value_expression(std::move(value_expression)),
+      m_close_bracket(close_bracket) {}
 
 ContainerExpressionSyntax::ContainerExpressionSyntax(
     const syntax::SyntaxToken *open_bracket,
@@ -44,9 +44,9 @@ void ContainerExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
   visitor->visit(this);
 }
 
-const std::vector<std::unique_ptr<ExpressionSyntax>> &
-ContainerExpressionSyntax::getElements() const {
-  return m_elements;
+const std::unique_ptr<ExpressionSyntax> &
+ContainerExpressionSyntax::getValueExpression() const {
+  return m_value_expression;
 }
 
 const std::vector<const SyntaxNode *> &
@@ -58,15 +58,8 @@ ContainerExpressionSyntax::getChildren() const {
       m_children.push_back(m_open_bracket);
     }
 
-    size_t size = std::max(m_elements.size(), m_comma_tokens.size());
-
-    for (size_t i = 0; i < size; i++) {
-      if (i < m_elements.size() && m_elements[i]) {
-        m_children.push_back(m_elements[i].get());
-      }
-      if (i < m_comma_tokens.size() && m_comma_tokens[i]) {
-        m_children.push_back(m_comma_tokens[i]);
-      }
+    if (m_value_expression) {
+      m_children.push_back(m_value_expression.get());
     }
 
     if (m_close_bracket) {

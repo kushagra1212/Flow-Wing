@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,45 +45,29 @@ std::unique_ptr<syntax::ExpressionSyntax> BracketedExpressionParser::parse() {
         open_bracket_token, close_bracket_token);
   }
 
-  auto elements = std::vector<std::unique_ptr<syntax::ExpressionSyntax>>();
-  auto comma_tokens = std::vector<const syntax::SyntaxToken *>();
-  size_t index = 0;
+  std::unique_ptr<syntax::ExpressionSyntax> value_expression;
 
-  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBracketToken &&
-         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+  value_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 2
 
-    if (index > 0) {
-      comma_tokens.emplace_back(
-          m_ctx->match(lexer::TokenKind::kCommaToken)); // .
-    }
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kFillKeyword) {
 
-    auto value_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 2
+    auto fill_token = m_ctx->match(lexer::TokenKind::kFillKeyword); // fill
 
-    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kFillKeyword) {
+    auto fill_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 5
 
-      auto fill_token = m_ctx->match(lexer::TokenKind::kFillKeyword); // fill
+    auto close_bracket_token =
+        m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
 
-      auto fill_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 5
-
-      auto close_bracket_token =
-          m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
-
-      return std::make_unique<syntax::FillExpressionSyntax>(
-          open_bracket_token, std::move(value_expression), fill_token,
-          std::move(fill_expression), close_bracket_token); // [2 fill 5]
-
-    } else {
-      elements.push_back(
-          std::move(value_expression)); // 2 or 5 or "Hello" or 1.0
-    }
-    index++;
+    return std::make_unique<syntax::FillExpressionSyntax>(
+        open_bracket_token, std::move(value_expression), fill_token,
+        std::move(fill_expression), close_bracket_token); // [2 fill 5]
   }
 
   auto close_bracket_token =
       m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
 
   return std::make_unique<syntax::ContainerExpressionSyntax>(
-      open_bracket_token, std::move(elements), comma_tokens,
+      open_bracket_token, std::move(value_expression),
       close_bracket_token); // [2, 5, "Hello", 1.0]
 }
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
@@ -62,6 +63,9 @@ class ParenthesizedExpressionSyntax;
 
 // -- Object Expression --
 class ObjectExpressionSyntax;
+
+// -- Container Expression --
+class ContainerExpressionSyntax;
 } // namespace syntax
 
 namespace binding {
@@ -165,6 +169,14 @@ private:
 
   std::unique_ptr<BoundExpression>
   bindAssignmentExpression(syntax::AssignmentExpressionSyntax *expression);
+
+  // -- Container Expression --
+  std::unique_ptr<BoundExpression>
+  bindContainerExpression(syntax::ContainerExpressionSyntax *expression);
+
+  std::vector<std::unique_ptr<binding::BoundContainerExpressionElement>>
+  bindContainerExpressionElements(
+      syntax::ContainerExpressionSyntax *expression);
 
   // -- Assignment Expression Helpers --
   const BoundExpression *

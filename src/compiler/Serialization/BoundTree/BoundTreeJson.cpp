@@ -220,6 +220,31 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
+    [[maybe_unused]] binding::BoundContainerExpression *container_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Container Expression", "BOUND TREE");
+  nlohmann::json container_expression_json;
+  container_expression_json["kind"] = toString(container_expression->getKind());
+
+  size_t total_elements = container_expression->getElements().size();
+
+  for (size_t i = 0; i < total_elements; i++) {
+    nlohmann::json element_json;
+    container_expression->getElements()[i]->getExpression()->accept(this);
+    element_json["expression"] = std::move(m_last_node_json);
+    element_json["indices"] = BoundTreeJson::getFormattedIndices(
+        container_expression->getElements()[i]->getIndices());
+    element_json["range"] = toJsonRange(container_expression->getElements()[i]
+                                            ->getExpression()
+                                            ->getSourceLocation());
+    container_expression_json["elements"].push_back(std::move(element_json));
+  }
+
+  container_expression_json["range"] =
+      toJsonRange(container_expression->getSourceLocation());
+  m_last_node_json = std::move(container_expression_json);
+}
+
+void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundColonExpression *colon_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Colon Expression", "BOUND TREE");
   nlohmann::json colon_expression_json;
@@ -231,4 +256,29 @@ void BoundTreeJson::visit(
       toJsonRange(colon_expression->getSourceLocation());
   m_last_node_json = std::move(colon_expression_json);
 }
+
+std::string
+BoundTreeJson::getFormattedIndices(const std::deque<size_t> &indices) {
+  std::string formatted_indices;
+  for (size_t i = 0; i < indices.size(); i++) {
+    formatted_indices += "[" + std::to_string(indices[i]) + "]";
+  }
+  return formatted_indices;
+}
+
+void BoundTreeJson::visit(
+    [[maybe_unused]] binding::BoundDimensionClauseExpression
+        *dimension_clause_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Dimension Clause Expression", "BOUND TREE");
+  nlohmann::json dimension_clause_expression_json;
+  dimension_clause_expression_json["kind"] =
+      toString(dimension_clause_expression->getKind());
+  serializeChild(dimension_clause_expression->getDimensionExpression(),
+                 dimension_clause_expression_json, "dimension_expression");
+  dimension_clause_expression_json["range"] =
+      toJsonRange(dimension_clause_expression->getSourceLocation());
+
+  m_last_node_json = std::move(dimension_clause_expression_json);
+}
+
 } // namespace flow_wing::compiler::serializer

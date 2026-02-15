@@ -130,7 +130,8 @@ void GlobalDeclarationsInitializer::visit(
     llvm::Constant *default_value =
         m_ir_gen_context.getDefaultValue(variable_type, true);
 
-    if (variable_type->getKind() == types::TypeKind::kObject) {
+    if (variable_type->getKind() == types::TypeKind::kObject ||
+        variable_type->getKind() == types::TypeKind::kArray) {
       llvm_type = llvm_type->getPointerTo();
       default_value = llvm::ConstantPointerNull::get(llvm_type->getPointerTo());
     }
@@ -158,87 +159,90 @@ void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
 }
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundFunctionStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundIfStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundIfStatement *if_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundWhileStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundWhileStatement *while_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundForStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundForStatement *for_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundBreakStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundBreakStatement *break_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundContinueStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundContinueStatement *continue_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundReturnStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundReturnStatement *return_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundSwitchStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundClassStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundClassStatement *class_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundIdentifierExpression *variable_declaration) {
-}
+    [[maybe_unused]] binding::BoundIdentifierExpression
+        *identifier_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundIndexExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundIndexExpression *index_expression) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundIntegerLiteralExpression
-        *variable_declaration) {}
+        *integer_literal_expression) {}
+
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundContainerExpression *container_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundDoubleLiteralExpression
-        *variable_declaration) {}
+        *double_literal_expression) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundStringLiteralExpression
-        *variable_declaration) {}
+        *string_literal_expression) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundBooleanLiteralExpression
-        *variable_declaration) {}
+        *boolean_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundFloatLiteralExpression
-        *variable_declaration) {}
+        *float_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundCharacterLiteralExpression
-        *variable_declaration) {}
+        *character_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundTemplateStringLiteralExpression
-        *variable_declaration) {}
+        *template_string_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundErrorStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundErrorStatement *error_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundErrorExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundErrorExpression *error_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundCallExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundCallExpression *call_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundTernaryExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundTernaryExpression *ternary_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundUnaryExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundUnaryExpression *unary_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundBinaryExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundBinaryExpression *binary_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundAssignmentExpression *variable_declaration) {
-}
+    [[maybe_unused]] binding::BoundAssignmentExpression
+        *assignment_expression) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundExpressionStatement *variable_declaration) {}
+    [[maybe_unused]] binding::BoundExpressionStatement *expression_statement) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundModuleAccessExpression
-        *variable_declaration) {}
+        *module_access_expression) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundMemberAccessExpression
-        *variable_declaration) {}
+        *member_access_expression) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundNirastLiteralExpression
-        *variable_declaration) {}
+        *nirast_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundParenthesizedExpression
-        *variable_declaration) {}
+        *parenthesized_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundObjectExpression *variable_declaration) {}
+    [[maybe_unused]] binding::BoundObjectExpression *object_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundColonExpression *colon_expression) {}

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-
 
 #include "src/common/types/ArrayType/ArrayType.hpp"
 #include <sstream>
@@ -98,7 +96,7 @@ ArrayType::buildArrayTypeName(std::shared_ptr<Type> underlying_type,
                               const std::vector<size_t> &dimensions) {
   std::stringstream ss;
   ss << "Array: <";
-  ss << underlying_type->getName() << "[";
+  ss << underlying_type->getName();
   for (size_t i = 0; i < dimensions.size(); ++i) {
     ss << "[";
     ss << dimensions[i];

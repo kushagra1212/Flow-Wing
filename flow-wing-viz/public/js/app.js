@@ -30,7 +30,7 @@ class App {
 
     // 1. Editor
     this.editor = new CodeEditor("code-editor", (token) =>
-      this.handleSelection(token)
+      this.handleSelection(token),
     );
 
     // Debounce timer for auto-save
@@ -45,12 +45,12 @@ class App {
 
     // 2. Tree Viz
     this.treeViz = new TreeVisualizer("viz-container", (nodeRaw) =>
-      this.handleSelection(nodeRaw)
+      this.handleSelection(nodeRaw),
     );
 
     // 3. Token Table
     this.tokenTable = new TokenTable("viz-container", (token) =>
-      this.handleSelection(token)
+      this.handleSelection(token),
     );
 
     // 4. Code History Manager
@@ -75,7 +75,7 @@ class App {
       const res = await fetch("/api/llvm_ir.ll");
       if (!res.ok) {
         console.warn(
-          `Failed to fetch LLVM IR: ${res.status} ${res.statusText}`
+          `Failed to fetch LLVM IR: ${res.status} ${res.statusText}`,
         );
         return null;
       }
@@ -243,12 +243,15 @@ class App {
       jsonCopyBtn.addEventListener("click", () => {
         const json = this.getCurrentViewJson();
         if (json) {
-          navigator.clipboard.writeText(JSON.stringify(json, null, 2)).then(() => {
-            this.showNotification("JSON copied to clipboard!");
-          }).catch((err) => {
-            console.error("Failed to copy:", err);
-            this.showNotification("Failed to copy JSON");
-          });
+          navigator.clipboard
+            .writeText(JSON.stringify(json, null, 2))
+            .then(() => {
+              this.showNotification("JSON copied to clipboard!");
+            })
+            .catch((err) => {
+              console.error("Failed to copy:", err);
+              this.showNotification("Failed to copy JSON");
+            });
         }
       });
     }
@@ -314,7 +317,9 @@ class App {
 
   updateJsonEditorVisibility() {
     const vizContainer = document.getElementById("viz-container");
-    const jsonEditorContainer = document.getElementById("json-editor-container");
+    const jsonEditorContainer = document.getElementById(
+      "json-editor-container",
+    );
     const jsonToggle = document.getElementById("json-toggle");
     const title = document.getElementById("viz-title");
 
@@ -324,24 +329,24 @@ class App {
       vizContainer.style.display = "none";
       jsonEditorContainer.style.display = "flex";
       jsonToggle?.classList.add("active");
-      
+
       // Update title to indicate JSON view
       if (title) {
         const viewName = this.getViewDisplayName(this.state.activeView);
         title.textContent = `${viewName} (JSON)`;
       }
-      
+
       this.renderJsonEditor();
     } else {
       vizContainer.style.display = "";
       jsonEditorContainer.style.display = "none";
       jsonToggle?.classList.remove("active");
-      
+
       // Restore original title
       if (title) {
         title.textContent = this.getViewDisplayName(this.state.activeView);
       }
-      
+
       // Cleanup JSON editor
       if (this.jsonEditor) {
         const editorElement = this.jsonEditor.getWrapperElement();
@@ -355,12 +360,18 @@ class App {
 
   getViewDisplayName(view) {
     switch (view) {
-      case "tokens": return "Token List";
-      case "ast": return "Abstract Syntax Tree";
-      case "semantic": return "Semantic Tree";
-      case "llvm-ir": return "LLVM IR";
-      case "logs": return "Compiler Logs";
-      default: return view;
+      case "tokens":
+        return "Token List";
+      case "ast":
+        return "Abstract Syntax Tree";
+      case "semantic":
+        return "Semantic Tree";
+      case "llvm-ir":
+        return "LLVM IR";
+      case "logs":
+        return "Compiler Logs";
+      default:
+        return view;
     }
   }
 
@@ -380,7 +391,8 @@ class App {
 
     const jsonData = this.getCurrentViewJson();
     if (!jsonData) {
-      jsonEditorDiv.innerHTML = '<div class="empty-state">No JSON data available for this view</div>';
+      jsonEditorDiv.innerHTML =
+        '<div class="empty-state">No JSON data available for this view</div>';
       return;
     }
 
@@ -427,21 +439,24 @@ class App {
 
   searchInJson(query) {
     const searchCountSpan = document.getElementById("json-search-count");
-    
+
     if (!this.jsonEditor || !query.trim()) {
       if (searchCountSpan) searchCountSpan.textContent = "";
       // Clear any existing search highlights
       if (this.jsonEditor) {
-        this.jsonEditor.getAllMarks().forEach(mark => mark.clear());
+        this.jsonEditor.getAllMarks().forEach((mark) => mark.clear());
       }
       return;
     }
 
     // Clear previous marks
-    this.jsonEditor.getAllMarks().forEach(mark => mark.clear());
+    this.jsonEditor.getAllMarks().forEach((mark) => mark.clear());
 
     const content = this.jsonEditor.getValue();
-    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const regex = new RegExp(
+      query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "gi",
+    );
     let match;
     let count = 0;
     let firstMatch = null;
@@ -450,7 +465,7 @@ class App {
       count++;
       const from = this.jsonEditor.posFromIndex(match.index);
       const to = this.jsonEditor.posFromIndex(match.index + match[0].length);
-      
+
       this.jsonEditor.markText(from, to, {
         className: "json-search-highlight",
       });
@@ -461,7 +476,8 @@ class App {
     }
 
     if (searchCountSpan) {
-      searchCountSpan.textContent = count > 0 ? `${count} match${count !== 1 ? 'es' : ''}` : 'No matches';
+      searchCountSpan.textContent =
+        count > 0 ? `${count} match${count !== 1 ? "es" : ""}` : "No matches";
     }
 
     // Scroll to first match
@@ -585,12 +601,12 @@ class App {
             this.updateStatus("View Mode - Code updated");
           } else {
             this.updateStatus(
-              "View Mode - Recompile to update syntax highlighting"
+              "View Mode - Recompile to update syntax highlighting",
             );
           }
         } catch (error) {
           this.updateStatus(
-            "View Mode - Recompile to update syntax highlighting"
+            "View Mode - Recompile to update syntax highlighting",
           );
         }
       }
@@ -747,7 +763,7 @@ class App {
           return `
             <div class="code-history-item" data-index="${index}">
               <div class="code-history-preview">${this.escapeHtml(
-                item.preview
+                item.preview,
               )}</div>
               <div class="code-history-meta">
                 <span class="code-history-time">${time}</span>
@@ -870,7 +886,7 @@ class App {
       const deltaY = startY - e.clientY; // Inverted because we're resizing from top
       const newHeight = Math.max(
         100,
-        Math.min(window.innerHeight * 0.8, startHeight + deltaY)
+        Math.min(window.innerHeight * 0.8, startHeight + deltaY),
       );
       outputPanel.style.height = `${newHeight}px`;
     });
@@ -1025,7 +1041,7 @@ class App {
           irTab.classList.add("disabled");
           irTab.setAttribute(
             "title",
-            "No LLVM IR available. Compile your code successfully to generate IR."
+            "No LLVM IR available. Compile your code successfully to generate IR.",
           );
           irTab.classList.remove("active");
         }
@@ -1041,7 +1057,7 @@ class App {
 
       // 3. Reload artifacts (even on failure - to load any partial data like logs/tokens)
       this.updateStatus(
-        compilationFailed ? "Loading available data..." : "Reloading data..."
+        compilationFailed ? "Loading available data..." : "Reloading data...",
       );
       await this.reloadData(compilationFailed);
 
@@ -1194,7 +1210,7 @@ class App {
         irTab.classList.add("disabled");
         irTab.setAttribute(
           "title",
-          "No LLVM IR available. Compile your code successfully to generate IR."
+          "No LLVM IR available. Compile your code successfully to generate IR.",
         );
         irTab.classList.remove("active");
       }
@@ -1340,11 +1356,11 @@ class App {
 
       const newLeftWidth = Math.max(
         minWidth,
-        Math.min(maxWidth, startWidths[leftIndex] + deltaX)
+        Math.min(maxWidth, startWidths[leftIndex] + deltaX),
       );
       const newRightWidth = Math.max(
         minWidth,
-        Math.min(maxWidth, startWidths[rightIndex] - deltaX)
+        Math.min(maxWidth, startWidths[rightIndex] - deltaX),
       );
 
       // Only resize if both panes stay within bounds
@@ -1810,7 +1826,9 @@ class App {
     const jsonToggle = document.getElementById("json-toggle");
 
     // Update JSON toggle visibility based on current view
-    const supportsJsonView = ["tokens", "ast", "semantic"].includes(this.state.activeView);
+    const supportsJsonView = ["tokens", "ast", "semantic"].includes(
+      this.state.activeView,
+    );
     if (jsonToggle) {
       jsonToggle.style.display = supportsJsonView ? "flex" : "none";
     }
@@ -2067,7 +2085,7 @@ class App {
     expandAllBtn.addEventListener("click", () => {
       const entries = logsContainer.querySelectorAll(".log-entry");
       const allExpanded = [...entries].every((e) =>
-        e.classList.contains("expanded")
+        e.classList.contains("expanded"),
       );
       entries.forEach((e) => {
         if (allExpanded) {
@@ -2277,7 +2295,7 @@ class App {
 
       // Match log header: [DEBUG] [[TYPE]] File.cpp  => Message => Details
       const headerMatch = line.match(
-        /^\[DEBUG\]\s*(?:\[\[([^\]]+)\]\])?\s*([^\s]+)\s*=>\s*(.+)$/
+        /^\[DEBUG\]\s*(?:\[\[([^\]]+)\]\])?\s*([^\s]+)\s*=>\s*(.+)$/,
       );
 
       if (headerMatch) {
@@ -2420,11 +2438,11 @@ class App {
     // Calculate visible range
     const startIndex = Math.max(
       0,
-      Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE
+      Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE,
     );
     const endIndex = Math.min(
       logs.length - 1,
-      Math.ceil((scrollTop + viewportHeight) / ITEM_HEIGHT) + BUFFER_SIZE
+      Math.ceil((scrollTop + viewportHeight) / ITEM_HEIGHT) + BUFFER_SIZE,
     );
 
     // Skip if the range hasn't changed significantly
@@ -2470,7 +2488,7 @@ class App {
     if (this.logsScrollHandler && this.virtualLogsState?.container) {
       this.virtualLogsState.container.removeEventListener(
         "scroll",
-        this.logsScrollHandler
+        this.logsScrollHandler,
       );
     }
 
@@ -2880,7 +2898,7 @@ class App {
           // Check if array contains objects (likely node objects with kind)
           const hasNodeObjects = val.some(
             (v) =>
-              typeof v === "object" && v !== null && (v.kind || v.raw?.kind)
+              typeof v === "object" && v !== null && (v.kind || v.raw?.kind),
           );
 
           if (hasNodeObjects) {
@@ -3016,7 +3034,7 @@ class App {
           // Nested Object - make ALL nested objects clickable
           const entries = Object.entries(val).filter(
             ([k]) =>
-              k !== "statements" && k !== "children" && k !== "declarators"
+              k !== "statements" && k !== "children" && k !== "declarators",
           );
 
           if (entries.length <= 3 && depth < 2) {
@@ -3077,7 +3095,7 @@ class App {
               (e) => {
                 e.stopPropagation();
               },
-              true
+              true,
             );
 
             // Also make the entire row clickable as a fallback
@@ -3100,7 +3118,7 @@ class App {
                   return false;
                 }
               },
-              true
+              true,
             ); // Use capture phase
 
             // Also make the row hoverable
@@ -3352,7 +3370,7 @@ class App {
     ) {
       const statementsSection = renderChildrenArray(
         "statements",
-        data.statements
+        data.statements,
       );
       if (statementsSection) {
         this.detailsContent.appendChild(statementsSection);
@@ -3366,7 +3384,7 @@ class App {
     ) {
       const declaratorsSection = renderChildrenArray(
         "declarators",
-        data.declarators
+        data.declarators,
       );
       if (declaratorsSection) {
         this.detailsContent.appendChild(declaratorsSection);

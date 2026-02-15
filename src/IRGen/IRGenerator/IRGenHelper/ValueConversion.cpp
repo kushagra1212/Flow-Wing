@@ -347,6 +347,10 @@ llvm::Value *IRGenerator::convertToTargetType(llvm::Value *value,
     return getTempObject(target_type, source_type, value);
   }
 
+  if (target_type->getKind() == types::TypeKind::kArray) {
+    return getTempArray(target_type, source_type, value);
+  }
+
   return value;
 }
 

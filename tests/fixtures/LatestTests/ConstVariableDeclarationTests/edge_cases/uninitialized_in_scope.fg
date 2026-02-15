@@ -1,5 +1,5 @@
 {
-  const x:int
+  const x:int = 0
   print(x, "\n")
 }
 

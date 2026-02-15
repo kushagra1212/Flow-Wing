@@ -315,7 +315,8 @@ void AstJson::visit([[maybe_unused]] syntax::ContainerExpressionSyntax *node) {
   nlohmann::json container_expression_json;
 
   container_expression_json["kind"] = syntax::toString(node->getKind());
-  serializeArray(node->getElements(), container_expression_json, "elements");
+  serializeChild(node->getValueExpression(), container_expression_json,
+                 "value_expression");
   container_expression_json["range"] = toJsonRange(node->getSourceLocation());
 
   m_last_node_json = std::move(container_expression_json);
@@ -904,8 +905,9 @@ void AstJson::visit([[maybe_unused]] syntax::VariableDeclarationSyntax *node) {
   }
   serializeArray(node->getDeclarators(), variable_declaration_json,
                  "declarators");
-  serializeChild(node->getInitializerExpression(), variable_declaration_json,
-                 "initializer_expression");
+  if (node->getInitializerExpression())
+    serializeChild(node->getInitializerExpression(), variable_declaration_json,
+                   "initializer_expression");
   variable_declaration_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(variable_declaration_json);
 }

@@ -32,9 +32,10 @@ llvm::Type *LLVMTypeBuilder::getLLVMType(const types::Type *type) {
   if (!type)
     return llvm::Type::getVoidTy(m_context);
 
-  if (m_type_cache.find(type) != m_type_cache.end()) {
-    return m_type_cache[type];
-  }
+  // Disable type caching for now
+  // if (m_type_cache.find(type) != m_type_cache.end()) {
+  //   return m_type_cache[type];
+  // }
 
   llvm::Type *llvmType = nullptr;
 
@@ -179,11 +180,12 @@ LLVMTypeBuilder::convertFunction(const types::FunctionType *funcType) {
   return llvm::FunctionType::get(result_type, args, funcType->isVariadic());
 }
 
-llvm::Type *LLVMTypeBuilder::convertArray(const types::ArrayType *arrType) {
-  llvm::Type *underlying_type = getLLVMType(arrType->getUnderlyingType().get());
+llvm::Type *LLVMTypeBuilder::convertArray(const types::ArrayType *type) {
+  llvm::Type *underlying_type = getLLVMType(type->getUnderlyingType().get());
   llvm::Type *array_type = underlying_type;
-  for (const auto &dimension : arrType->getDimensions()) {
-    array_type = llvm::ArrayType::get(array_type, dimension);
+  std::vector<size_t> dimensions = type->getDimensions();
+  for (auto it = dimensions.rbegin(); it != dimensions.rend(); ++it) {
+    array_type = llvm::ArrayType::get(array_type, *it);
   }
   return array_type;
 }

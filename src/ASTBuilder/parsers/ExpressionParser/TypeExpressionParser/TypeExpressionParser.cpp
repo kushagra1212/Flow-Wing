@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include <memory>
 
+#include <cassert>
 namespace flow_wing {
 namespace parser {
 
@@ -37,8 +38,16 @@ TypeExpressionParser::TypeExpressionParser(ParserContext *ctx) : m_ctx(ctx) {}
 std::unique_ptr<syntax::ExpressionSyntax> TypeExpressionParser::parse() {
 
   if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOpenBracketToken) {
-    return std::make_unique<parser::FunctionTypeExpressionParser>(m_ctx)
-        ->parse();
+    // Look ahead: if second token is '(', it's a function type [(...) -> ...]
+    // Otherwise, it's an array with implicit dynamic type: [N][M]...
+    if (m_ctx->peek(1)->getTokenKind() ==
+        lexer::TokenKind::kOpenParenthesisToken) {
+      return std::make_unique<parser::FunctionTypeExpressionParser>(m_ctx)
+          ->parse();
+    }
+    // Array with implicit dynamic base type (nullptr resolves to dynamic)
+    return std::make_unique<parser::ArrayTypeExpressionParser>(m_ctx)
+        ->parsePostfix(nullptr);
   }
 
   auto type_expression =
@@ -54,9 +63,12 @@ std::unique_ptr<syntax::ExpressionSyntax> TypeExpressionParser::parse() {
           ->parsePostfix(std::move(identifier_expression));
     }
 
-    type_expression =
-        std::make_unique<parser::ObjectTypeExpressionParser>(m_ctx)
-            ->parsePostfix(std::move(identifier_expression));
+    if (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kOpenBracketToken) {
+
+      type_expression =
+          std::make_unique<parser::ObjectTypeExpressionParser>(m_ctx)
+              ->parsePostfix(std::move(identifier_expression));
+    }
   }
 
   if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOpenBracketToken) {
