@@ -405,6 +405,11 @@ void Builtins::initializeInternalFunctions() {
       {Builtins::m_dynamic_type_instance, Builtins::m_int32_type_instance},
       {Builtins::m_dynamic_type_instance}, false);
 
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kIndex_out_of_bounds_fn),
+      {Builtins::m_int64_type_instance, Builtins::m_int64_type_instance},
+      {Builtins::m_nthg_type_instance}, false);
+
   for (const auto &[function_name, return_type] : m_unboxing_types_map) {
     createInternalFunction(function_name, {Builtins::m_dynamic_type_instance},
                            {return_type}, false);

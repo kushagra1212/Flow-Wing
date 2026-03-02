@@ -711,10 +711,16 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "dimensions.",
       ""}},
 
-    {(DiagnosticCode::kCannotIndexNonArrayType),
-     {"Cannot index into non-array type '{0}'.",
-      "Only array types can be indexed.",
-      "Ensure that the expression before '[ ]' is an array type."}},
+    {(DiagnosticCode::kIndexingMoreDimensionsThanArrayTypeHas),
+     {"Indexing more dimensions than array type '{0}' has. Expected '{1}' but "
+      "got '{2}'.",
+      "", ""}},
+
+    {(DiagnosticCode::kExpectedAnIntegerForIndexing),
+     {"Expected an integer for array indexing expression. Got '{0}'", "", ""}},
+
+    {(DiagnosticCode::kEmptyContainerExpression),
+     {"Empty container expression is not allowed.", "", ""}},
 
 };
 
@@ -736,6 +742,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
   switch (code) {
   case DiagnosticCode::kNone:
     return "None";
+    // --- Semantic Errors ---
+  case DiagnosticCode::kExpectedAnIntegerForIndexing:
+    return "ExpectedAnIntegerForIndexing";
 
   // --- Source Loader Errors ---
   case DiagnosticCode::kUnableToOpenFile:
@@ -991,8 +1000,11 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
   case DiagnosticCode::kContainerExpressionRankMismatch:
     return "ContainerExpressionRankMismatch";
 
-  case DiagnosticCode::kCannotIndexNonArrayType:
-    return "CannotIndexNonArrayType";
+  case DiagnosticCode::kIndexingMoreDimensionsThanArrayTypeHas:
+    return "IndexingMoreDimensionsThanArrayTypeHas";
+
+  case DiagnosticCode::kEmptyContainerExpression:
+    return "EmptyContainerExpression";
 
   default:
     return "Unknown diagnostic code";

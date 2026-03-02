@@ -1,10 +1,466 @@
+var x:[2][3] = [[1, 2, 3], ["Hello", "World", "Test"]]
+println(x)
+var j:int[2][3] = [[1, 2, 3], x[0]]
+println(j)
+x = j
+println(x)
+println(j)
+x[1] = ["Test", "World", "Test"]
+j[1] = [1, 2, 3]
+println(x)
+println(j)
+x[1][1] = 3.5
+j[1][1] = 3
+println(x)
+println(j)
 
-var x:int = 5
-var y:str = "Hello"
-
-var a:int[5] = [x, y]
-print(a)
 /#
+
+var x:[2][3] = [[1, 2, 3], ["Hello", "World", "Test"]]
+println(x)
+var j:int[2][3] = [[1, 2, 3], x[0]]
+println(j)
+x = j
+println(x)
+println(j)
+x[1] = ["Test", "World", "Test"]
+j[1] = [1, 2, 3]
+println(x)
+println(j)
+x[1][1] = 3.5
+j[1][1] = 3
+println(x)
+println(j)
+
+/#
+var x:int[2][3] = [[1, 2, 3], [4, 5, 6]]
+println("x = ", x)
+var j:int[3] = [9, 8, 7]
+println("j = ", j)
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j[1] = 100
+println("x = ", x)
+println("j = ", j)
+
+
+
+/#
+var x:int[2][3] = [[1, 2, 3], [4, 5, 6]]
+println("x = ", x)
+var j:int[3] = [9, 8, 7]
+println("j = ", j)
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j[1] = 100
+println("x = ", x)
+println("j = ", j)
+OUPUT:
+x = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+j = [ 9, 8, 7 ]
+x = [ [ 1, 2, 3 ], [ 9, 8, 7 ] ]
+j = [ 9, 8, 7 ]
+x = [ [ 1, 2, 3 ], [ 9, 8, 7 ] ]
+j = [ 9, 100, 7 ]
+
+
+var x:int[2] = [1, 2]
+var j = 5
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j = 10
+println("x = ", x)
+println("j = ", j)
+OUTPUT:
+x = [ 1, 5 ]
+j = 5
+x = [ 1, 5 ]
+j = 10
+
+
+
+var x:int[2] = [1, 2]
+var j:int = 5
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j = 10
+println("x = ", x)
+println("j = ", j)
+OUTPUT:
+x = [ 1, 5 ]
+j = 5
+x = [ 1, 5 ]
+j = 10
+
+
+
+var x:[2][3] = [[1, 2, 3], ["Hello", "World", "Test"]]
+println("x = ", x)
+var j:int[2][3] = [[1, 2, 3], x[0]]
+println("j = ", j)
+x = j
+println("x = ", x)
+println("j = ", j)
+x[1] = ["Test", "World", "Test"]
+j[1] = [1, 2, 3]
+println("x = ", x)
+println("j = ", j)
+x[1][1] = 3.5
+j[1][1] = 3
+println("x = ", x)
+println("j = ", j)
+x[1] = j[1]
+println("x = ", x)
+println("j = ", j)
+x[1][1] = 22
+println("x = ", x)
+println("j = ", j)
+OUTPUT:
+x = [ [ 1, 2, 3 ], [ "Hello", "World", "Test" ] ]
+j = [ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+x = [ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+j = [ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+x = [ [ 1, 2, 3 ], [ "Test", "World", "Test" ] ]
+j = [ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+x = [ [ 1, 2, 3 ], [ "Test", 3.5, "Test" ] ]
+j = [ [ 1, 2, 3 ], [ 1, 3, 3 ] ]
+x = [ [ 1, 2, 3 ], [ 1, 3, 3 ] ]
+j = [ [ 1, 2, 3 ], [ 1, 3, 3 ] ]
+x = [ [ 1, 2, 3 ], [ 1, 22, 3 ] ]
+j = [ [ 1, 2, 3 ], [ 1, 3, 3 ] ]
+
+
+
+var x:[2][3] = [[1, 2, 3], ["Hello", "World", "Test"]]
+println(x)
+var j:int[2][3] = [[1, 2, 3], x[0]]
+println(j)
+x = j
+println(x)
+println(j)
+x[1] = ["Test", "World", "Test"]
+j[1] = [1, 2, 3]
+println(x)
+println(j)
+x[1][1] = 3.5
+j[1][1] = 3
+println(x)
+println(j)
+OUTPUT:
+[ [ 1, 2, 3 ], [ "Hello", "World", "Test" ] ]
+[ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+[ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+[ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+[ [ 1, 2, 3 ], [ "Test", "World", "Test" ] ]
+[ [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+[ [ 1, 2, 3 ], [ "Test", 3.5, "Test" ] ]
+[ [ 1, 2, 3 ], [ 1, 3, 3 ] ]
+
+
+
+
+var x:int[2][3] = [[1, 2, 3], [4, 5, 6]]
+println("x = ", x)
+x[1] = [9, 8, 7]
+println("x = ", x)
+x[1][1] = 100
+println("x = ", x)
+OUTPUT:
+x = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+x = [ [ 1, 2, 3 ], [ 9, 8, 7 ] ]
+x = [ [ 1, 2, 3 ], [ 9, 100, 7 ] ]
+
+
+var x:int[2][3] = [[1, 2, 3], [4, 5, 6]]
+println("x = ", x)
+x[1] = [9, 8, 7]
+println("x = ", x)
+OUTPUT:
+x = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+x = [ [ 1, 2, 3 ], [ 9, 8, 7 ] ]
+
+
+var x:[2] = ['a','b']
+println(x)
+var j:int[2] = [1, 2]
+println(j)
+x = j
+println(x)
+println(j)
+x[1] = "Hello World"
+j[1] = 11
+println(x)
+println(j)
+OUTPUT:
+[ 'a', 'b' ]
+[ 1, 2 ]
+[ 1, 2 ]
+[ 1, 2 ]
+[ 1, "Hello World" ]
+[ 1, 11 ]
+
+
+var x:[2] = [2, "Hello"]
+println("x = ", x)
+println("x[0] = ", x[0])
+println("x[1] = ", x[1])
+x[1] = 2.4
+println("x = ", x)
+x = [true, 2]
+println("x = ", x)
+OUTPUT:
+x = [ 2, Hello ]
+x[0] = 2
+x[1] = Hello
+x = [ 2, 2.4 ]
+x = [ true, 2 ]
+
+
+
+var x:bool[2]
+println(x)
+OUTPUT:
+[ false, false ]
+
+var x:char[2]
+println(x)
+OUTPUT:
+[ '', '' ]
+
+var x:str[2] 
+println(x)
+OUTPUT:
+[ "", "" ]
+
+
+var x:int[2] = []
+println(x)
+/; EXPECT_ERROR: EmptyContainerExpression
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+var p:int[2][3] = a[1]
+println(a)
+println(p)
+p = [[1,2,3], a[0][1]]
+println(a)
+println(p)
+p[1][1] = 100
+println(a)
+println(p)
+var j:int[3] = [9,8,6]
+p = [[1,2,3], j]
+println(a)
+println(j)
+println(p)
+p[1][1] = 100
+println(a)
+println(j)
+println(p)
+OUTPUT:
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 9 ], [ 10, 11, 12 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 1, 2, 3 ], [ 4, 100, 6 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ 9, 8, 6 ]
+[ [ 1, 2, 3 ], [ 9, 8, 6 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ 9, 8, 6 ]
+[ [ 1, 2, 3 ], [ 9, 100, 6 ] ]
+
+
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+var p:int[2][3] = a[1]
+println(a)
+println(p)
+p = [[1,2,3], [4,5,6]]
+println(a)
+println(p)
+OUTPUT:
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 9 ], [ 10, 11, 12 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+var p:int[2][3] = a[1]
+println(a)
+println(p)
+p[0][2] = 11
+println(a)
+println(p)
+OUTPUT:
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 9 ], [ 10, 11, 12 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 11 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 11 ], [ 10, 11, 12 ] ]
+
+
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+var p:int[2][3] = a[1]
+println(a)
+println(p)
+p[0][0] = 11
+println(a)
+println(p)
+OUTPUT:
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 9 ], [ 10, 11, 12 ] ]
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 11, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 11, 8, 9 ], [ 10, 11, 12 ] ]
+
+
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+println(a[1][1][3])
+OUPUT:
+Runtime Error: Array Index Out of Bounds.
+  ▶ Index: 3
+  ▶ Bounds: [0 .. 3)
+
+
+var a:int[2][2][3] = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+println(a)
+println(a[1])
+println(a[1][1])
+println(a[1][1][1])
+OUTPUT:
+[ [ [ 1, 2, 3 ], [ 4, 5, 6 ] ], [ [ 7, 8, 9 ], [ 10, 11, 12 ] ] ]
+[ [ 7, 8, 9 ], [ 10, 11, 12 ] ]
+[ 10, 11, 12 ]
+11
+
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = a[1]
+println(a)
+println(p)
+p = [10, 11]
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 3, 4 ]
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 10, 11 ]
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = a[1]
+println(a)
+println(p)
+p[0] = 11
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 3, 4 ]
+[ [ 1, 2 ], [ 11, 4 ] ]
+[ 11, 4 ]
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = [9, 10]
+println(a)
+println(p)
+p = a[1]
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 9, 10 ]
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 3, 4 ]
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = a[1]
+println(a)
+println(p)
+p = [10, 11]
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 3, 4 ]
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 10, 11 ]
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = a[1]
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 3, 4 ]
+
+
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = [1, a[1][1]]
+println(a)
+println(p)
+OUTPUT:
+[ [ 1, 2 ], [ 3, 4 ] ]
+[ 1, 4 ]
+
+
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+var k:int = a[1][1]
+println(k)  
+OUTPUT:
+4
+
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+println(a[0][3])
+OUTPUT:
+Runtime Error: Array Index Out of Bounds.
+  ▶ Index: 3
+  ▶ Bounds: [0 .. 2)
+
+var a:int[2][2] = [[1, 2], [3, 4]]
+println(a[0][0])
+println(a[0][1])
+println(a[1][0])
+println(a[1][1])
+OUTPUT:
+1
+2
+3
+4
+
+
+
+var a:int[2] = [1, 2]
+var x:int[3] =  [1, 3]
+print(a[x])
+/; EXPECT_ERROR: kExpmake ectedAnIntegerForIndexing
+
+
+var a:int[2] = [1, 2]
+println(a[0][2])
+
+/; EXPECT_ERROR: IndexingMoreDimensionsThanArrayTypeHas
+
+var a:int = 2
+println(a[0])
+/; EXPECT_ERROR: IndexingNonArrayTypeVariable
+
 var a:int[5] = [1, 2, 3, 4, 5]
 var b:int[2][5] = [a, [6, 7, 8, 9, 10]]
 var c:int[3][2][5] = [b, [[11, 12], [13, 14]], b]

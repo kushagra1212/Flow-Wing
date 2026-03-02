@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -134,6 +133,8 @@ std::unique_ptr<BoundExpression> BinderContext::createDefaultValueExpression(
 
     elements.push_back(std::make_unique<BoundContainerExpressionElement>(
         std::move(default_value_expression)));
+
+    elements[0]->addIndex(0);
 
     return std::make_unique<BoundContainerExpression>(
         std::move(elements),

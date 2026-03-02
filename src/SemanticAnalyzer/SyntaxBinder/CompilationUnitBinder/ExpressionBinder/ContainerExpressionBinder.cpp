@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
@@ -38,7 +37,13 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindContainerExpression(
       bindContainerExpressionElements(expression);
 
   if (elements.empty()) {
-    return nullptr;
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kEmptyContainerExpression,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{});
+    m_context->reportError(error_expression.get());
+
+    return std::move(error_expression);
   }
 
   for (const auto &element : elements) {
@@ -156,7 +161,11 @@ std::vector<std::unique_ptr<BoundContainerExpressionElement>>
 ExpressionBinder::bindContainerExpressionElements(
     syntax::ContainerExpressionSyntax *expression) {
 
-  std::vector<std::unique_ptr<BoundContainerExpressionElement>> elements;
+  std::vector<std::unique_ptr<BoundContainerExpressionElement>> elements = {};
+
+  if (expression->getValueExpression() == nullptr) {
+    return elements;
+  }
 
   auto expressions = bindExpressionList(expression->getValueExpression().get());
   for (size_t i = 0; i < expressions.size(); i++) {

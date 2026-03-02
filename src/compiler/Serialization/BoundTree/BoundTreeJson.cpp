@@ -158,7 +158,18 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundIndexExpression *index_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Index Expression", "BOUND TREE");
-  assert(false && "Index expression not supported");
+  nlohmann::json index_expression_json;
+  index_expression_json["kind"] = toString(index_expression->getKind());
+  index_expression_json["type_id"] =
+      getTypeId(index_expression->getType().get());
+
+  serializeChild(index_expression->getLeftExpression(), index_expression_json,
+                 "left_expression");
+  serializeArray(index_expression->getDimensionClauseExpressions(),
+                 index_expression_json, "dimension_clause_expressions");
+  index_expression_json["range"] =
+      toJsonRange(index_expression->getSourceLocation());
+  m_last_node_json = std::move(index_expression_json);
 }
 
 void BoundTreeJson::visit(

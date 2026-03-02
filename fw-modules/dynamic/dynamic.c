@@ -76,6 +76,8 @@
  char* fg_dtos(double f);
  char* fg_ftos(float f);
  char* fg_ctos(int c);
+
+ 
  
  // print
  void fg_pf(const char* str);
@@ -529,8 +531,25 @@ int8_t fg_unbox_int8(DynamicValue* v) {
          fg_pf("(null)");
          return;
      }
-     char* str = fg_dyn_to_string_ptr(dyn_val);
-     fg_pf(str);
+    if (dyn_val->tag == DYN_TAG_STRING) {
+        // Wrap strings in double quotes
+        fg_pf("\"");
+        char* str = (char*)(intptr_t)dyn_val->value;
+        fg_pf(str);
+        fg_pf("\"");
+    } 
+    else if (dyn_val->tag == DYN_TAG_CHAR) {
+        // Wrap chars in single quotes
+        fg_pf("'");
+        char* str = fg_ctos((int)dyn_val->value);
+        fg_pf(str);
+        fg_pf("'");
+    } 
+    else {
+        // Print all other types normally (numbers, booleans, etc.)
+        char* str = fg_dyn_to_string_ptr(dyn_val);
+        fg_pf(str);
+    }
  }
  
  

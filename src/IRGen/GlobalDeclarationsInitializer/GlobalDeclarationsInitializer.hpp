@@ -65,6 +65,8 @@ public:
   void visit(binding::BoundColonExpression *colon_expression) override;
 
   void visit(binding::BoundContainerExpression *container_expression) override;
+  void visit(binding::BoundDimensionClauseExpression
+                 *dimension_clause_expression) override;
 
 private:
   IRGenContext &m_ir_gen_context;

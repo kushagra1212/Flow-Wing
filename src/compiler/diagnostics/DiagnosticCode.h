@@ -196,8 +196,10 @@ enum class DiagnosticCode : int16_t {
   // Container Expression Errors
   kContainerExpressionRankMismatch,
 
-  // Array Indexing Errors
-  kCannotIndexNonArrayType,
+  // Index Expression Errors
+  kIndexingMoreDimensionsThanArrayTypeHas,
+  kExpectedAnIntegerForIndexing,
+  kEmptyContainerExpression,
 
 };
 

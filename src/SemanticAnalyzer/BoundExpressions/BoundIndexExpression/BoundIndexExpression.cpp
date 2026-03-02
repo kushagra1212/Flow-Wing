@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ namespace flow_wing {
 namespace binding {
 
 BoundIndexExpression::BoundIndexExpression(
+    std::unique_ptr<BoundExpression> left_expression,
     std::shared_ptr<types::Type> type,
-    std::vector<std::unique_ptr<BoundExpression>> index_expressions,
+    std::vector<std::unique_ptr<BoundExpression>> dimension_clause_expressions,
     const flow_wing::diagnostic::SourceLocation &location)
-    : BoundExpression(location), m_type(type),
-      m_index_expressions(std::move(index_expressions)) {}
+    : BoundExpression(location), m_left_expression(std::move(left_expression)),
+      m_type(type),
+      m_dimension_clause_expressions(std::move(dimension_clause_expressions)) {}
 
 NodeKind BoundIndexExpression::getKind() const {
   return NodeKind::kIndexExpression;
@@ -43,9 +45,14 @@ std::shared_ptr<types::Type> BoundIndexExpression::getType() const {
   return m_type;
 }
 
+const std::unique_ptr<BoundExpression> &
+BoundIndexExpression::getLeftExpression() const {
+  return m_left_expression;
+}
+
 const std::vector<std::unique_ptr<BoundExpression>> &
-BoundIndexExpression::getIndexExpressions() const {
-  return m_index_expressions;
+BoundIndexExpression::getDimensionClauseExpressions() const {
+  return m_dimension_clause_expressions;
 }
 
 } // namespace binding

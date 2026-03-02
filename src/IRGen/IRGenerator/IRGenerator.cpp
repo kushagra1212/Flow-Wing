@@ -180,11 +180,6 @@ void IRGenerator::visit(
 }
 
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundIndexExpression *statement) {
-  assert(false && "Index expression not supported");
-}
-
-void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorStatement *statement) {
   assert(false && "Error statement not supported");
 }
@@ -200,6 +195,13 @@ void IRGenerator::visit(
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNewExpression *statement) {
   assert(false && "New expression not supported");
+}
+
+void IRGenerator::visit([[maybe_unused]] binding::BoundDimensionClauseExpression
+                            *dimension_clause_expression) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Dimension Clause Expression",
+                    "IR GENERATION");
+  dimension_clause_expression->getDimensionExpression()->accept(this);
 }
 
 void IRGenerator::visit(

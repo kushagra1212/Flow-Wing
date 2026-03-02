@@ -42,6 +42,7 @@ public:
   virtual bool isDynamic() const;
   virtual bool isPrimitive() const;
   virtual bool isNirast() const;
+  virtual bool isInteger() const;
 
   static std::string toString(TypeKind kind);
 

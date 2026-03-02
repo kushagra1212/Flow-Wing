@@ -1,0 +1,3 @@
+var x:int = 5
+var a:int[5] = [x, 7]
+print(a)

@@ -102,6 +102,11 @@ bool Type::isNirast() const {
 
 bool Type::isPrimitive() const { return m_kind == TypeKind::kPrimitive; }
 
+bool Type::isInteger() const {
+  return m_kind == TypeKind::kPrimitive &&
+         (m_name == "int8" || m_name == "int" || m_name == "int64");
+}
+
 std::string Type::toString(TypeKind kind) {
   switch (kind) {
   case TypeKind::kPrimitive:

@@ -21,6 +21,7 @@
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 #include "llvm/IR/Value.h"
@@ -31,6 +32,7 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
                                  types::Type *target_type,
                                  llvm::Value *source_raw_value,
                                  types::Type *source_type) {
+
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto *llvm_target_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type);
@@ -51,8 +53,7 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   }
 
   // CASE: Struct to Struct Assignment (with different types)
-  if (target_type->getKind() == types::TypeKind::kObject ||
-      target_type->getKind() == types::TypeKind::kArray) {
+  if (target_type->getKind() == types::TypeKind::kObject) {
 
     llvm::Value *source_value = source_raw_value;
 
@@ -61,6 +62,7 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
          llvm::isa<llvm::GlobalVariable>(source_raw_value))) {
       auto expected_llvm_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+
       source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
           expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
 
@@ -71,13 +73,70 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       }
     } else {
       // Object literal to Object variable
-      source_value =
-          target_type->getKind() == types::TypeKind::kObject
-              ? getTempObject(target_type, source_type, source_raw_value)
-              : getTempArray(target_type, source_type, source_raw_value);
+      source_value = getTempObject(target_type, source_type, source_raw_value);
     }
 
     builder->CreateStore(source_value, target_addr);
+
+    return;
+  }
+
+  if (target_type->getKind() == types::TypeKind::kArray) {
+    auto *dest_array_type = static_cast<types::ArrayType *>(target_type);
+    auto *src_array_type = static_cast<types::ArrayType *>(source_type);
+    const auto source_underlying_type = src_array_type->getUnderlyingType();
+    const auto target_underlying_type = dest_array_type->getUnderlyingType();
+
+    bool is_target_slice = llvm::isa<llvm::GEPOperator>(target_addr);
+
+    if (is_target_slice) {
+      // --- TARGET IS A SLICE (e.g., x[1] = ...) ---
+      llvm::Value *src_ptr_for_copy = source_raw_value;
+
+      if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+          llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
+        auto expected_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+        src_ptr_for_copy = builder->CreateLoad(
+            expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+      }
+
+      emitArrayCopy(target_addr, dest_array_type, src_ptr_for_copy,
+                    src_array_type);
+
+    } else {
+      // --- TARGET IS A VARIABLE (e.g., x = ...) ---
+      llvm::Value *final_heap_ptr = source_raw_value;
+
+      if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+          llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
+        // Loading variable
+        auto expected_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+        final_heap_ptr = builder->CreateLoad(expected_llvm_type->getPointerTo(),
+                                             source_raw_value, "load_var");
+
+      } else if (llvm::isa<llvm::GEPOperator>(source_raw_value)) {
+
+        final_heap_ptr = source_raw_value;
+
+      } else {
+        // Literal
+        final_heap_ptr =
+            getTempArray(target_type, source_type, source_raw_value);
+
+        builder->CreateStore(final_heap_ptr, target_addr);
+        return;
+      }
+
+      if ((*source_type != *target_type) ||
+          (source_underlying_type != target_underlying_type)) {
+        final_heap_ptr =
+            convertToTargetType(final_heap_ptr, target_type, source_type);
+      }
+
+      builder->CreateStore(final_heap_ptr, target_addr);
+    }
 
     return;
   }

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/utils/LogConfig.h"

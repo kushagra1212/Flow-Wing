@@ -32,6 +32,8 @@
  char* fg_ftos(float f);
  char* fg_ctos(int c);
  
+ // Index Out of Bounds
+ void fg_idx_oob(long long index, long long size);
  
  // ==========================================
  // Error Handling
@@ -386,4 +388,24 @@ void fg_print_exit_object() {
         }
         // Otherwise, keep the small buffer allocated for performance (Warm Cache)
     }
+}
+
+void fg_idx_oob(long long index, long long size) {
+    char* msg = (char*)GC_MALLOC(256); 
+    
+    if (msg == NULL) {
+        fprintf(stderr, "\033[91mFatal Error: OOM during Index Out of Bounds check.\033[0m\n");
+        exit(1);
+    }
+
+    snprintf(msg, 256, 
+        "Runtime Error: Array Index Out of Bounds.\n"
+        "  ▶ Index: %lld\n"
+        "  ▶ Bounds: [0 .. %lld)", 
+        index, size
+    );
+
+    // 3. Delegate to your existing panic function
+    // We pass "%s" as the fmt, so 'msg' is treated as the value to print.
+    fg_panic("%s", msg);
 }

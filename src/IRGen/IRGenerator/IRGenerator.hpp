@@ -66,6 +66,10 @@ public:
       override;
   void visit(binding::BoundColonExpression *colon_expression) override;
   void visit(binding::BoundContainerExpression *container_expression) override;
+  void visit(binding::BoundDimensionClauseExpression
+                 *dimension_clause_expression) override;
+
+  llvm::Value *resolvePtr(llvm::Value *value, types::Type *type);
 
   void clearLast() {
     m_last_value = nullptr;

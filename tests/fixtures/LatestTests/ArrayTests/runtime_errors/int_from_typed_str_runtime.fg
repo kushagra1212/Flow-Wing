@@ -1,0 +1,4 @@
+var x:int = 5
+var y:str = "Hello"
+var a:int[5] = [x, y]
+print(a)

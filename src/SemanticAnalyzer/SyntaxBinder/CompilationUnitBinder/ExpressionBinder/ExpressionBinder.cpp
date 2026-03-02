@@ -178,7 +178,7 @@ ExpressionBinder::bindExpressionList(syntax::ExpressionSyntax *expression) {
   assert(expression != nullptr &&
          "ExpressionBinder::bindExpressionList: expression is null");
 
-  std::vector<std::unique_ptr<BoundExpression>> expressions;
+  std::vector<std::unique_ptr<BoundExpression>> expressions = {};
 
   while (expression->getKind() == syntax::NodeKind::kBinaryExpression) {
     auto binary_expr =

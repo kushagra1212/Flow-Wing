@@ -246,6 +246,9 @@ void GlobalDeclarationsInitializer::visit(
 
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundColonExpression *colon_expression) {}
+void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundDimensionClauseExpression
+        *dimension_clause_expression) {}
 
 } // namespace ir_gen
 } // namespace flow_wing

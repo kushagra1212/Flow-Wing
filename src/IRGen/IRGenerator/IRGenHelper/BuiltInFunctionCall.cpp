@@ -343,35 +343,35 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
 
     CODEGEN_DEBUG_LOG("Last Type", m_last_type->getName());
 
-    llvm::Value *value_to_print = m_last_value;
+    llvm::Value *value_to_print = resolvePtr(m_last_value, m_last_type);
 
-    // bool is_field_access =
-    //     (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
-    bool is_object = (m_last_type->getKind() == types::TypeKind::kObject) &&
-                     (llvm::isa<llvm::AllocaInst>(value_to_print) ||
-                      llvm::isa<llvm::GEPOperator>(value_to_print) ||
-                      llvm::isa<llvm::GlobalVariable>(value_to_print));
-
-    bool is_array = (m_last_type->getKind() == types::TypeKind::kArray) &&
-                    (llvm::isa<llvm::AllocaInst>(value_to_print) ||
-                     llvm::isa<llvm::GEPOperator>(value_to_print) ||
-                     llvm::isa<llvm::GlobalVariable>(value_to_print));
-
-    if (is_object || is_array) {
-
-      llvm::Type *ptr_ptr_type = m_ir_gen_context.getTypeBuilder()
-                                     ->getLLVMType(m_last_type)
-                                     ->getPointerTo();
-
-      value_to_print = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
-          ptr_ptr_type, value_to_print,
-          is_array ? "array_load" : "field_obj_load");
-
-    } else {
-      value_to_print = resolveValue(m_last_value, m_last_type);
-    }
     emitRecursivePrint(value_to_print, m_last_type, false);
     clearLast();
+  }
+}
+
+llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
+  // bool is_field_access =
+  //     (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
+  bool is_object = (type->getKind() == types::TypeKind::kObject) &&
+                   (llvm::isa<llvm::AllocaInst>(value) ||
+                    llvm::isa<llvm::GEPOperator>(value) ||
+                    llvm::isa<llvm::GlobalVariable>(value));
+
+  bool is_array = (type->getKind() == types::TypeKind::kArray) &&
+                  (llvm::isa<llvm::AllocaInst>(value) ||
+                   llvm::isa<llvm::GlobalVariable>(value));
+
+  if (is_object || is_array) {
+
+    llvm::Type *ptr_ptr_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(type)->getPointerTo();
+
+    return m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+        ptr_ptr_type, value, is_array ? "array_load" : "field_obj_load");
+
+  } else {
+    return resolveValue(m_last_value, type);
   }
 }
 
@@ -408,8 +408,7 @@ void IRGenerator::dispatchBuiltinFunction(
         m_ir_gen_context.getLLVMBuilder();
     auto *printf_fn =
         mod->getFunction(std::string(constants::functions::kPrintf_fn));
-    builder->CreateCall(printf_fn,
-                        {builder->CreateGlobalStringPtr("\n")});
+    builder->CreateCall(printf_fn, {builder->CreateGlobalStringPtr("\n")});
   } else if (fn_name == fns::kString_fn) {
     const auto &argument = call_expression->getArguments()[0];
     argument->accept(this);

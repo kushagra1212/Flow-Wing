@@ -73,7 +73,7 @@ private:
   void visit(binding::BoundExpressionStatement *node) override;
   void visit(binding::BoundColonExpression *colon_expression) override;
   void visit(binding::BoundContainerExpression *container_expression) override;
-
+  void visit(binding::BoundDimensionClauseExpression *node) override;
   // Symbols
   std::string getSymbolId(const analysis::FunctionSymbol *function_symbol);
   std::string getSymbolId(const analysis::ParameterSymbol *parameter_symbol);

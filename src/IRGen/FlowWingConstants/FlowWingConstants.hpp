@@ -79,6 +79,9 @@ const std::string_view kPrint_dynamic_fn = "fg_print_dynamic";
 const std::string_view kPrint_enter_object_fn = "fg_print_enter_object";
 const std::string_view kPrint_exit_object_fn = "fg_print_exit_object";
 
+// Index Out of Bounds Functions
+const std::string_view kIndex_out_of_bounds_fn = "fg_idx_oob";
+
 // Unboxing Functions
 const std::string_view kUnbox_int8_fn = "fg_unbox_int8";
 const std::string_view kUnbox_int32_fn = "fg_unbox_int32";

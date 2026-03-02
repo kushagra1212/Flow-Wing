@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,11 @@ namespace binding {
 class BoundIndexExpression : public BoundExpression {
 
 public:
-  BoundIndexExpression(
-      std::shared_ptr<types::Type> type,
-      std::vector<std::unique_ptr<BoundExpression>> index_expressions,
-      const flow_wing::diagnostic::SourceLocation &location);
+  BoundIndexExpression(std::unique_ptr<BoundExpression> left_expression,
+                       std::shared_ptr<types::Type> type,
+                       std::vector<std::unique_ptr<BoundExpression>>
+                           dimension_clause_expressions,
+                       const flow_wing::diagnostic::SourceLocation &location);
   ~BoundIndexExpression() = default;
 
   // Overrides
@@ -42,11 +43,13 @@ public:
 
   // Getters
   const std::vector<std::unique_ptr<BoundExpression>> &
-  getIndexExpressions() const;
+  getDimensionClauseExpressions() const;
+  const std::unique_ptr<BoundExpression> &getLeftExpression() const;
 
 private:
+  std::unique_ptr<BoundExpression> m_left_expression;
   std::shared_ptr<types::Type> m_type;
-  std::vector<std::unique_ptr<BoundExpression>> m_index_expressions;
+  std::vector<std::unique_ptr<BoundExpression>> m_dimension_clause_expressions;
 };
 } // namespace binding
 } // namespace flow_wing

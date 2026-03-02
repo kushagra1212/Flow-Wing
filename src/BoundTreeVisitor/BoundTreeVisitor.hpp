@@ -5,6 +5,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundDimensionClauseExpression/BoundDimensionClauseExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
@@ -110,6 +111,8 @@ public:
   virtual void visit(binding::BoundColonExpression *colon_expression) = 0;
   virtual void
   visit(binding::BoundContainerExpression *container_expression) = 0;
+  virtual void visit(
+      binding::BoundDimensionClauseExpression *dimension_clause_expression) = 0;
 };
 
 } // namespace visitor

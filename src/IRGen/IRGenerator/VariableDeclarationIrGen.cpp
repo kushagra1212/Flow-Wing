@@ -56,12 +56,18 @@ void IRGenerator::visit(
     auto *init_expression = variable_symbol->getInitializerExpression().get();
     // Handle Initialization
 
+    assert(init_expression && "Initializer expression is null");
+
     init_expression->accept(this);
 
     assert(storage_ptr && "Storage pointer is null");
     assert(m_last_value && "Last value is null");
 
+    CODEGEN_DEBUG_LOG("Start of emitTypedStore", "in variable declaration");
+
     emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
+
+    CODEGEN_DEBUG_LOG("End of emitTypedStore", "in variable declaration");
 
     clearLast();
   }

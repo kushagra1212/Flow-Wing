@@ -66,6 +66,9 @@ class ObjectExpressionSyntax;
 
 // -- Container Expression --
 class ContainerExpressionSyntax;
+
+// -- Dimension Clause Expression --
+class DimensionClauseExpressionSyntax;
 } // namespace syntax
 
 namespace binding {
@@ -177,6 +180,10 @@ private:
   std::vector<std::unique_ptr<binding::BoundContainerExpressionElement>>
   bindContainerExpressionElements(
       syntax::ContainerExpressionSyntax *expression);
+
+  // -- Dimension Clause Expression --
+  std::unique_ptr<BoundExpression> bindDimensionClauseExpression(
+      syntax::DimensionClauseExpressionSyntax *expression);
 
   // -- Assignment Expression Helpers --
   const BoundExpression *

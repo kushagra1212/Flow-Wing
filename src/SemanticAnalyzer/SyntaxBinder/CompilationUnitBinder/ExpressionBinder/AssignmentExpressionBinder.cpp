@@ -164,7 +164,6 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       break;
     }
     case NodeKind::kIndexExpression: {
-      assert(false && "Index expression is not supported for assignment");
       break;
     }
     case NodeKind::kMemberAccessExpression: {

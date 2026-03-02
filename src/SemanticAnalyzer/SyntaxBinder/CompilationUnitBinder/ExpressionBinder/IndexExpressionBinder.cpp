@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -41,24 +42,25 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
 
   auto left_expression = expression->getLeftExpression().get();
 
-  auto bound_expression = bind(left_expression);
+  auto bound_left_expression = bind(left_expression);
 
-  if (bound_expression->getKind() == NodeKind::kErrorExpression) {
-    return bound_expression;
+  if (bound_left_expression->getKind() == NodeKind::kErrorExpression) {
+    return bound_left_expression;
   }
 
-  if (bound_expression->isMultipleType()) {
+  if (bound_left_expression->isMultipleType()) {
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
         left_expression->getSourceLocation(),
         diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
-        diagnostic::DiagnosticArgs{bound_expression->getType()->getName()});
+        diagnostic::DiagnosticArgs{
+            bound_left_expression->getType()->getName()});
 
     m_context->reportError(error_expression.get());
     return std::move(error_expression);
   }
 
-  auto type = bound_expression->getType();
+  auto type = bound_left_expression->getType();
 
   std::vector<std::unique_ptr<BoundExpression>> bound_index_expressions;
 
@@ -67,7 +69,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
     auto error_expression = std::make_unique<BoundErrorExpression>(
         left_expression->getSourceLocation(),
         diagnostic::DiagnosticCode::kIndexingNonArrayTypeVariable,
-        diagnostic::DiagnosticArgs{bound_expression->getType()->getName()});
+        diagnostic::DiagnosticArgs{
+            bound_left_expression->getType()->getName()});
 
     m_context->reportError(error_expression.get());
     return std::move(error_expression);
@@ -88,13 +91,47 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
     bound_index_expressions.push_back(
         std::move(bound_dimension_clause_expression));
   }
+  BINDER_DEBUG_LOG(
+      "array_type: {}", array_type->getName(), "bound_index_expressions: {}",
+      bound_index_expressions.size(), "array_type_dimensions: {}",
+      array_type->getDimensions().size(), "difference: {}",
+      array_type->getDimensions().size() - bound_index_expressions.size());
 
-  std::vector<size_t> inner_type_dimensions(array_type->getDimensions().size() -
-                                                bound_index_expressions.size(),
-                                            static_cast<size_t>(-1));
+  if ((array_type->getDimensions().size() < bound_index_expressions.size())) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kIndexingMoreDimensionsThanArrayTypeHas,
+        diagnostic::DiagnosticArgs{
+            array_type->getName(),
+            std::to_string(array_type->getDimensions().size()),
+            std::to_string(bound_index_expressions.size())});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
 
-  auto inner_type = std::make_shared<types::ArrayType>(
-      array_type->getUnderlyingType(), inner_type_dimensions);
+  std::shared_ptr<types::Type> inner_type = nullptr;
+
+  if ((array_type->getDimensions().size() == bound_index_expressions.size())) {
+    inner_type = array_type->getUnderlyingType();
+  } else {
+    std::vector<size_t> inner_type_dimensions(
+        array_type->getDimensions().size() - bound_index_expressions.size());
+
+    for (size_t i = 0; i < inner_type_dimensions.size(); i++) {
+      inner_type_dimensions[i] =
+          array_type
+              ->getDimensions()[array_type->getDimensions().size() - i - 1];
+    }
+    std::sort(inner_type_dimensions.begin(), inner_type_dimensions.end());
+    inner_type = std::make_shared<types::ArrayType>(
+        array_type->getUnderlyingType(), inner_type_dimensions);
+    BINDER_DEBUG_LOG(
+        "inner_type: {}", inner_type->getName(),
+        array_type->getDimensions().size(), "array_type_dimensions.size()",
+        array_type->getDimensions().size(), "inner_type_dimensions: {}",
+        inner_type_dimensions, "bound_index_expressions.size()",
+        bound_index_expressions.size());
+  }
 
   /*
   var x:int[5]
@@ -109,7 +146,9 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
   */
 
   return std::make_unique<BoundIndexExpression>(
-      inner_type, std::move(bound_index_expressions),
+      std::move(bound_left_expression), inner_type,
+      std::move(bound_index_expressions),
+
       expression->getSourceLocation());
 }
 } // namespace binding
