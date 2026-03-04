@@ -1,0 +1,8 @@
+const x:int = 42
+var y:int = 10
+println(x, y)
+{
+    var y:int = 99
+    println(x, y)
+}
+println(x, y)

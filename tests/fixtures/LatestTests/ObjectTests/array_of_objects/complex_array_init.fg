@@ -1,0 +1,50 @@
+type NestedType = {
+  value:int
+}
+
+type ParentType = {
+  name:str,
+  nestedArray:NestedType[5]
+}
+
+type ComplexType = {
+  id:int,
+  message:str,
+  amount:deci,
+  flag:bool,
+  parentArray:ParentType[1]
+}
+
+{
+  var complexArray:ComplexType[2] = [
+    {
+      id:1,
+      message:"hello",
+      amount:3.3,
+      flag:true,
+      parentArray:[
+        {
+          name:"Parent1",
+          nestedArray:[
+            {value:1}, {value:2}, {value:3}, {value:4}, {value:5}
+          ]
+        }
+      ]
+    },
+    {
+      id:2,
+      message:"world",
+      amount:4.4,
+      flag:false,
+      parentArray:[
+        {
+          name:"Parent2",
+          nestedArray:[
+            {value:6}, {value:7}, {value:8}, {value:9}, {value:10}
+          ]
+        }
+      ]
+    }
+  ]
+  print(complexArray)
+}

@@ -1,0 +1,4 @@
+var a:str[3] = ["apple", "banana", "cherry"]
+println(a)
+a[1] = "mango"
+println(a)

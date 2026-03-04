@@ -1,0 +1,4 @@
+var a:char[3] = ['x', 'y', 'z']
+println(a)
+a[0] = 'a'
+println(a)

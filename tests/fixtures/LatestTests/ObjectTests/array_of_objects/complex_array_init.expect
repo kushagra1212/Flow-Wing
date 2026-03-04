@@ -1,0 +1,1 @@
+[ { amount: 3.3, flag: true, id: 1, message: "hello", parentArray: [ { name: "Parent1", nestedArray: [ { value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }, { value: 5 } ] } ] }, { amount: 4.4, flag: false, id: 2, message: "world", parentArray: [ { name: "Parent2", nestedArray: [ { value: 6 }, { value: 7 }, { value: 8 }, { value: 9 }, { value: 10 } ] } ] } ]

@@ -40,7 +40,9 @@ void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
     auto *print_dyn_fn =
         mod->getFunction(std::string(constants::functions::kPrint_dynamic_fn));
     assert(print_dyn_fn && "kPrint_dynamic_fn not found");
-    builder->CreateCall(print_dyn_fn, {value});
+
+    llvm::Value *dyn_ptr = ensurePointer(value, type, "print_dyn_tmp");
+    builder->CreateCall(print_dyn_fn, {dyn_ptr});
     return;
   }
 

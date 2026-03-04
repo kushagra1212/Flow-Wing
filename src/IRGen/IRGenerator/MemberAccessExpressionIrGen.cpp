@@ -33,13 +33,29 @@ void IRGenerator::visit(
   llvm::Value *object_value = m_last_value;
   types::Type *object_type = m_last_type;
 
-  // Dereference: Node** -> Node (for global or local variables and nested
-  // member access)
-  object_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
-      m_ir_gen_context.getTypeBuilder()
-          ->getLLVMType(object_type)
-          ->getPointerTo(),
-      object_value, "chain_load");
+  bool is_inline_struct_ptr = false;
+  auto *llvm_obj_type_check = static_cast<llvm::StructType *>(
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(object_type));
+  if (auto *gep_inst = llvm::dyn_cast<llvm::GetElementPtrInst>(object_value)) {
+    // The result type of the GEP is the element type it points to.
+    if (gep_inst->getResultElementType() == llvm_obj_type_check) {
+      is_inline_struct_ptr = true;
+    }
+  } else if (auto *gep_op = llvm::dyn_cast<llvm::GEPOperator>(object_value)) {
+    if (gep_op->getResultElementType() == llvm_obj_type_check) {
+      is_inline_struct_ptr = true;
+    }
+  }
+
+  if (!is_inline_struct_ptr) {
+    // Dereference: Node** -> Node (for global or local variables and nested
+    // member access)
+    object_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+        m_ir_gen_context.getTypeBuilder()
+            ->getLLVMType(object_type)
+            ->getPointerTo(),
+        object_value, "chain_load");
+  }
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
 

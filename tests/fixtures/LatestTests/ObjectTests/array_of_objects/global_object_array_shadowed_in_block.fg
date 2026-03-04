@@ -1,0 +1,13 @@
+type T = { val:int }
+var a:T[2] = [{val:1}, {val:2}]
+
+println("Global before: ", a)
+
+{
+    var a:T[2] = [{val:10}, {val:20}]
+    println("Local: ", a)
+    a[0].val = 99
+    println("Local modified: ", a)
+}
+
+println("Global after: ", a)

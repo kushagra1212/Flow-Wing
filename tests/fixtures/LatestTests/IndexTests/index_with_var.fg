@@ -1,0 +1,6 @@
+var a:int[4] = [5, 10, 15, 20]
+var i:int = 2
+println(a[i])
+a[i] = 99
+println(a[i])
+println(a)

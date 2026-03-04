@@ -1,0 +1,4 @@
+var c:char = 'A'
+println(c)
+var newline:char = '\n'
+println(newline)

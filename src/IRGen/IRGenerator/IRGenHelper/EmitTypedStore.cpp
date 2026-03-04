@@ -54,29 +54,114 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
 
   // CASE: Struct to Struct Assignment (with different types)
   if (target_type->getKind() == types::TypeKind::kObject) {
+    auto *dest_obj_type = static_cast<types::CustomObjectType *>(target_type);
+    auto *src_obj_type = static_cast<types::CustomObjectType *>(source_type);
 
     llvm::Value *source_value = source_raw_value;
 
-    if ((llvm::isa<llvm::AllocaInst>(source_raw_value) ||
-         llvm::isa<llvm::GEPOperator>(source_raw_value) ||
-         llvm::isa<llvm::GlobalVariable>(source_raw_value))) {
+    bool is_source_inline = false;
+    if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(source_raw_value)) {
+      if (gep->getSourceElementType()->isArrayTy()) {
+        is_source_inline = true;
+      }
+    }
+
+    if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+        llvm::isa<llvm::GlobalVariable>(source_raw_value) ||
+        (llvm::isa<llvm::GEPOperator>(source_raw_value) && !is_source_inline)) {
+      // Variables and Struct Fields hold heap pointers. MUST load.
       auto expected_llvm_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
-
       source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
           expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
 
-      if (*source_type != *target_type) {
+    } else if (is_source_inline) {
+      // Array slices hold inline memory.
+      source_value = source_raw_value;
 
+    } else {
+      // Literals: Materialize as NATIVE type to prevent double-conversion!
+      source_value = getTempObject(source_type, source_type, source_raw_value);
+    }
+
+    bool is_target_inline = false;
+    if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(target_addr)) {
+      if (gep->getSourceElementType()->isArrayTy()) {
+        is_target_inline = true;
+      }
+    }
+
+    if (is_target_inline) {
+      // Target is inline memory. Deep copy fields directly.
+      emitStructuralCopy(target_addr, dest_obj_type, source_value,
+                         src_obj_type);
+    } else {
+      if (*source_type != *target_type) {
         source_value =
             convertToTargetType(source_value, target_type, source_type);
       }
-    } else {
-      // Object literal to Object variable
-      source_value = getTempObject(target_type, source_type, source_raw_value);
+      builder->CreateStore(source_value, target_addr);
     }
 
-    builder->CreateStore(source_value, target_addr);
+    return;
+  }
+
+  if (target_type->getKind() == types::TypeKind::kArray) {
+    auto *dest_array_type = static_cast<types::ArrayType *>(target_type);
+    auto *src_array_type = static_cast<types::ArrayType *>(source_type);
+    const auto source_underlying_type = src_array_type->getUnderlyingType();
+    const auto target_underlying_type = dest_array_type->getUnderlyingType();
+
+    bool is_target_slice = llvm::isa<llvm::GEPOperator>(target_addr);
+
+    if (is_target_slice) {
+      // --- TARGET IS A SLICE (e.g., x[1] = ...) ---
+      llvm::Value *src_ptr_for_copy = source_raw_value;
+
+      if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+          llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
+        auto expected_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+        src_ptr_for_copy = builder->CreateLoad(
+            expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+      }
+
+      emitArrayCopy(target_addr, dest_array_type, src_ptr_for_copy,
+                    src_array_type);
+
+    } else {
+      // --- TARGET IS A VARIABLE (e.g., x = ...) ---
+      llvm::Value *final_heap_ptr = source_raw_value;
+
+      if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
+          llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
+        // Loading variable
+        auto expected_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+        final_heap_ptr = builder->CreateLoad(expected_llvm_type->getPointerTo(),
+                                             source_raw_value, "load_var");
+
+      } else if (llvm::isa<llvm::GEPOperator>(source_raw_value)) {
+
+        final_heap_ptr = source_raw_value;
+
+      } else {
+        // Literal
+        final_heap_ptr =
+            getTempArray(target_type, source_type, source_raw_value);
+
+        builder->CreateStore(final_heap_ptr, target_addr);
+        return;
+      }
+
+      if ((*source_type != *target_type) ||
+          (source_underlying_type != target_underlying_type)) {
+        final_heap_ptr =
+            convertToTargetType(final_heap_ptr, target_type, source_type);
+      }
+
+      builder->CreateStore(final_heap_ptr, target_addr);
+    }
 
     return;
   }

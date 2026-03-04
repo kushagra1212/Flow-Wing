@@ -1,0 +1,6 @@
+const i:int = 42
+const d:deci = 3.14
+const s:str = "hello"
+const b:bool = true
+const c:char = 'A'
+println(i, d, s, b, c)

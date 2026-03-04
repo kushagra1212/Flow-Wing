@@ -1,0 +1,10 @@
+var x:int[2][3] = [[1, 2, 3], [4, 5, 6]]
+println("x = ", x)
+var j:int[3] = [9, 8, 7]
+println("j = ", j)
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j[1] = 100
+println("x = ", x)
+println("j = ", j)

@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: ExpectedAnIntegerForIndexing
+var a:int[2] = [1, 2]
+var s:str = "idx"
+println(a[s])

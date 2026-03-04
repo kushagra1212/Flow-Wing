@@ -1,0 +1,14 @@
+var a:int = 1
+{
+    var b:int = 2
+    {
+        var c:int = 3
+        {
+            var d:int = 4
+            println(a, b, c, d)
+        }
+        println(a, b, c)
+    }
+    println(a, b)
+}
+println(a)

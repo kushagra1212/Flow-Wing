@@ -1,0 +1,7 @@
+type Inner = { v:int }
+type Outer = { arr:Inner[2] }
+var obj:Outer = { arr: [{v:10}, {v:20}] }
+println(obj.arr[0].v)
+println(obj.arr[1].v)
+obj.arr[0].v = 99
+println(obj.arr)

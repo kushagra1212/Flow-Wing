@@ -1,0 +1,11 @@
+var x:[2] = ['a','b']
+println(x)
+var j:int[2] = [1, 2]
+println(j)
+x = j
+println(x)
+println(j)
+x[1] = "Hello World"
+j[1] = 11
+println(x)
+println(j)

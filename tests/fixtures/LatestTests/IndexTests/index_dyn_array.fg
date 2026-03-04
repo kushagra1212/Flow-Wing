@@ -1,0 +1,6 @@
+var a:[3] = ["hello", 42, true]
+println(a[0])
+println(a[1])
+println(a[2])
+a[0] = 3.14
+println(a[0])

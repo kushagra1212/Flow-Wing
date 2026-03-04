@@ -1,0 +1,6 @@
+type T = { data:[3] }
+var x:[3] = [1, "two", 3.0]
+var obj:T = { data: x }
+println(obj.data[1])
+obj.data[0] = 99
+println(obj.data)

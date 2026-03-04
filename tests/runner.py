@@ -110,6 +110,44 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env)
                 
                 if compile_result.returncode != 0:
+                    # If an .expect file exists, this might be an intentional
+                    # "runtime error at init / compile time" test.
+                    # Compare the compiler's output against the expect file.
+                    expect_file = file_path.with_suffix(".expect")
+                    if expect_file.exists() or update_mode:
+                        raw_compile_out = compile_result.stdout + compile_result.stderr
+                        actual_compile_out = strip_ansi_codes(raw_compile_out)
+                        duration = (time.time() - start_time) * 1000
+                        if update_mode:
+                            action_tag = "[UPDATED]" if expect_file.exists() else "[CREATED]"
+                            try:
+                                with open(expect_file, 'w') as f: f.write(actual_compile_out)
+                                return True, f"{Colors.OKBLUE}{action_tag}{Colors.ENDC} {file_path.name}"
+                            except Exception as e:
+                                return False, f"{Colors.FAIL}[WRITE ERROR]{Colors.ENDC} Could not write {expect_file}: {e}"
+                        with open(expect_file, 'r') as f:
+                            expected_compile_out = f.read()
+                        if actual_compile_out == expected_compile_out:
+                            return True, f"{Colors.OKGREEN}[PASS (COMPILED)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
+                        else:
+                            def to_lines(text):
+                                lines = text.splitlines(keepends=True)
+                                if lines and not lines[-1].endswith('\n'):
+                                    lines[-1] += '\n'
+                                    lines.append('\\ No newline at end of file\n')
+                                return lines
+                            diff = list(difflib.unified_diff(
+                                to_lines(expected_compile_out),
+                                to_lines(actual_compile_out),
+                                fromfile='Expected',
+                                tofile='Actual',
+                                n=3
+                            ))
+                            diff_text = "".join(diff) or f"Exp: {repr(expected_compile_out)}\nAct: {repr(actual_compile_out)}\n"
+                            if not keep_going:
+                                with dir_lock: failed_dirs.add(parent_dir)
+                            return False, f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+                    # No expect file — genuine compile failure
                     if not keep_going:
                         with dir_lock: failed_dirs.add(parent_dir)
                     return False, f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr}\n{compile_result.stdout}"
@@ -152,9 +190,19 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
             if actual_output == expected_output:
                 return True, f"{Colors.OKGREEN}[PASS (COMPILED)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
             else:
+                # Normalize lines for diff: ensure each line ends with \n so the
+                # unified diff never joins a '-' line and a '+' line on the same
+                # output row (the unreadable "foo+bar" rendering).
+                def to_lines(text):
+                    lines = text.splitlines(keepends=True)
+                    if lines and not lines[-1].endswith('\n'):
+                        lines[-1] += '\n'
+                        lines.append('\\ No newline at end of file\n')
+                    return lines
+
                 diff = list(difflib.unified_diff(
-                    expected_output.splitlines(keepends=True),
-                    actual_output.splitlines(keepends=True),
+                    to_lines(expected_output),
+                    to_lines(actual_output),
                     fromfile='Expected',
                     tofile='Actual',
                     n=3

@@ -1,0 +1,5 @@
+type Point = { x:int, y:int }
+var pts:Point[3] = [{x:1,y:2}, {x:3,y:4}, {x:5,y:6}]
+println(pts[0].x)
+println(pts[1].y)
+println(pts[2])

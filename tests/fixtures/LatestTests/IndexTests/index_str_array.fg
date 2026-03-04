@@ -1,0 +1,4 @@
+var a:str[3] = ["a", "b", "c"]
+println(a[1])
+a[1] = "Z"
+println(a[1])

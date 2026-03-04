@@ -1,0 +1,5 @@
+var x:deci32 = 3.14f
+var y:deci32 = 2.71f
+println(x)
+println(y)
+println(x + y)

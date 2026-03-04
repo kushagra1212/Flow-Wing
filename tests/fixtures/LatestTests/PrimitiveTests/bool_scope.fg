@@ -1,0 +1,6 @@
+var b:bool = true
+{
+    var b:bool = false
+    println(b)
+}
+println(b)

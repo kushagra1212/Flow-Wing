@@ -63,12 +63,9 @@ std::unique_ptr<syntax::ExpressionSyntax> TypeExpressionParser::parse() {
           ->parsePostfix(std::move(identifier_expression));
     }
 
-    if (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kOpenBracketToken) {
-
-      type_expression =
-          std::make_unique<parser::ObjectTypeExpressionParser>(m_ctx)
-              ->parsePostfix(std::move(identifier_expression));
-    }
+    type_expression =
+        std::make_unique<parser::ObjectTypeExpressionParser>(m_ctx)
+            ->parsePostfix(std::move(identifier_expression));
   }
 
   if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOpenBracketToken) {

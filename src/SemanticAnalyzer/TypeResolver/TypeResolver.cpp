@@ -37,6 +37,7 @@
 #include "src/syntax/expression/TypeExpressionSyntax/ModuleAccessTypeExpressionSyntax/ModuleAccessTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <any>
 #include <cassert>
 #include <cstdint>
@@ -201,6 +202,8 @@ TypeResolver::resolveArrayType(
   if (error_expression != nullptr) {
     return {nullptr, std::move(error_expression)};
   }
+
+  BINDER_DEBUG_LOG("Array Base Type Name: ", base_type->getName());
 
   return {std::make_shared<types::ArrayType>(base_type, dimensions), nullptr};
 }

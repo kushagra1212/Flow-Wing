@@ -1,0 +1,8 @@
+type T = { x:int, y:int }
+var obj:T = { x:10, y:20 }
+println(obj)
+{
+    obj.x = 100
+    println(obj)
+}
+println(obj)

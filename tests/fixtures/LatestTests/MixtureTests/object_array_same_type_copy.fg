@@ -1,0 +1,8 @@
+type T = { n:int }
+var a:T[2] = [{n:1},{n:2}]
+var b:T[2] = a
+println(a)
+println(b)
+b[0].n = 99
+println(a)
+println(b)

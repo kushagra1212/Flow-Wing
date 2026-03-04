@@ -1,0 +1,9 @@
+var x = "outer"
+println(x)
+{
+    var x = 100
+    println(x)
+    x = 200
+    println(x)
+}
+println(x)

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
@@ -31,12 +30,22 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundIndexExpression *statement) {
   CODEGEN_DEBUG_LOG("Visiting Bound Index Expression", "IR GENERATION");
   statement->getLeftExpression()->accept(this);
-  llvm::Value *left_ptr = resolvePtr(m_last_value, m_last_type);
 
   auto *array_type = static_cast<types::ArrayType *>(m_last_type);
-
   auto *left_llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+
+  llvm::Value *left_ptr = nullptr;
+  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(m_last_value)) {
+    if (gep->getSourceElementType()->isStructTy() ||
+        gep->getSourceElementType()->isArrayTy()) {
+      left_ptr = m_last_value;
+    }
+  }
+  if (!left_ptr) {
+    left_ptr = resolvePtr(m_last_value, m_last_type);
+  }
+
   clearLast();
 
   std::vector<llvm::Value *> indices = {

@@ -1,0 +1,14 @@
+var flags:bool[3] = [true, false, true]
+var x:int = 0
+var y:int = 0
+var z:int = 0
+if flags[0] {
+    x = 1
+}
+if !flags[1] {
+    y = 2
+}
+if flags[2] {
+    z = 3
+}
+println(x, y, z)

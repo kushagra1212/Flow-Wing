@@ -1,0 +1,4 @@
+var a:[4] = [1, "two", 3.0, true]
+println(a)
+a[0] = "changed"
+println(a)

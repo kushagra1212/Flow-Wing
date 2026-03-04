@@ -1,0 +1,4 @@
+Global before: [ { val: 1 }, { val: 2 } ]
+Local: [ { val: 10 }, { val: 20 } ]
+Local modified: [ { val: 99 }, { val: 20 } ]
+Global after: [ { val: 1 }, { val: 2 } ]

@@ -1,0 +1,9 @@
+var d:[3] = [1, "hello", true]
+println(d)
+{
+    d[2] = false
+    {
+        d[0] = 99
+    }
+}
+println(d)

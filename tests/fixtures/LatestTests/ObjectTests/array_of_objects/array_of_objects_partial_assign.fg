@@ -1,0 +1,14 @@
+type T = {
+  a:int 
+  b:deci32 
+}
+
+var st:T = {
+  a: 5,
+  b: 12.5f
+}
+
+var t:T[2] = [st]
+println(t)
+t[1] = {b:5.5f}
+println(t)
