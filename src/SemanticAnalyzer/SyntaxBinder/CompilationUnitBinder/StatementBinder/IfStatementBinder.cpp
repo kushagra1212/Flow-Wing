@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ StatementBinder::bindIfStatement(syntax::IfStatementSyntax *statement) {
   std::unique_ptr<BoundStatement> else_clause = nullptr;
 
   if (if_statement->getElseClause()) {
-    else_clause = bind(if_statement->getElseClause().get());
+    else_clause = bind(if_statement->getElseClause()->getStatement().get());
     if (else_clause->getKind() == NodeKind::kErrorStatement) {
       return else_clause;
     }

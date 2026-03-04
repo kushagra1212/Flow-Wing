@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,19 @@
 #include "StatementBinder.hpp"
 #include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
+#include "src/syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "src/syntax/statements/ExposeStatementSyntax/ExposeStatementSyntax.h"
 #include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.hpp"
+#include "src/syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
+#include "src/syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <cassert>
 
@@ -53,6 +61,29 @@ StatementBinder::bind(syntax::StatementSyntax *statement) {
   case syntax::NodeKind::kExposeStatement:
     return bindExposeStatement(
         static_cast<syntax::ExposeStatementSyntax *>(statement));
+  case syntax::NodeKind::kIfStatement:
+    return bindIfStatement(static_cast<syntax::IfStatementSyntax *>(statement));
+  case syntax::NodeKind::kWhileStatement:
+    return bindWhileStatement(
+        static_cast<syntax::WhileStatementSyntax *>(statement));
+  case syntax::NodeKind::kForStatement:
+    return bindForStatement(
+        static_cast<syntax::ForStatementSyntax *>(statement));
+  case syntax::NodeKind::kBreakStatement:
+    return bindBreakStatement(
+        static_cast<syntax::BreakStatementSyntax *>(statement));
+  case syntax::NodeKind::kContinueStatement:
+    return bindContinueStatement(
+        static_cast<syntax::ContinueStatementSyntax *>(statement));
+  case syntax::NodeKind::kReturnStatement:
+    return bindReturnStatement(
+        static_cast<syntax::ReturnStatementSyntax *>(statement));
+  case syntax::NodeKind::kSwitchStatement:
+    return bindSwitchStatement(
+        static_cast<syntax::SwitchStatementSyntax *>(statement));
+  case syntax::NodeKind::kClassStatement:
+    return bindClassStatement(
+        static_cast<syntax::ClassStatementSyntax *>(statement));
 
   default:
     return bindExpressionStatement(
