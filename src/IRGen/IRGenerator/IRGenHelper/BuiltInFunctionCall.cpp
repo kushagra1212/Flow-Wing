@@ -353,9 +353,15 @@ void IRGenerator::emitPrint(binding::BoundCallExpression *call_expression) {
 }
 
 llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
-  // bool is_field_access =
-  //     (argument->getKind() == binding::NodeKind::kMemberAccessExpression);
+  bool is_inline_object = false;
+  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(value)) {
+    if (gep->getSourceElementType()->isArrayTy()) {
+      is_inline_object = true;
+    }
+  }
+
   bool is_object = (type->getKind() == types::TypeKind::kObject) &&
+                   !is_inline_object &&
                    (llvm::isa<llvm::AllocaInst>(value) ||
                     llvm::isa<llvm::GEPOperator>(value) ||
                     llvm::isa<llvm::GlobalVariable>(value));
