@@ -1,0 +1,5 @@
+fun add(a: int8, b: int8) -> int {
+  return a + b
+}
+
+println(add(10, 20))

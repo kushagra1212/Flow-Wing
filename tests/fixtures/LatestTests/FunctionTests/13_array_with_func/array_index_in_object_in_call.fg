@@ -1,0 +1,11 @@
+type Wrapper = {
+  nums: int[3]
+}
+
+fun doubleN(n: int) -> int {
+  return n * 2
+}
+
+var w: Wrapper = {nums: [5, 10, 15]}
+println(doubleN(w.nums[0]))
+println(doubleN(w.nums[1]))

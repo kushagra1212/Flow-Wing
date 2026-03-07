@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/common/Symbol/FunctionSymbol.hpp"
@@ -104,14 +102,33 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
       }
       llvm_args.push_back(ref_arg);
     } else {
-      llvm::Type *llvm_param_type =
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type);
-      llvm::Value *arg_slot =
-          m_ir_gen_context.createAlloca(llvm_param_type, "default_arg_slot");
-      if (param_raw_type->getKind() == types::TypeKind::kArray) {
+      llvm::Value *arg_slot = nullptr;
+      llvm::Value *val = nullptr;
+
+      if (param_raw_type->getKind() == types::TypeKind::kObject) {
+        arg_slot =
+            m_ir_gen_context.createAlloca(builder->getPtrTy(), "obj_arg_slot");
+
+        if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
+            llvm::isa<llvm::GlobalVariable>(m_last_value)) {
+          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                        ->getLLVMType(param_raw_type)
+                                        ->getPointerTo(),
+                                    m_last_value, "heap_ptr");
+        } else {
+          val = m_last_value; // LoadInst/CallInst — already heap ptr
+        }
+        builder->CreateStore(val, arg_slot);
+      } else if (param_raw_type->getKind() == types::TypeKind::kArray) {
+        arg_slot = m_ir_gen_context.createAlloca(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type),
+            "default_arg_slot");
         emitTypedStore(arg_slot, param_raw_type, m_last_value, m_last_type);
       } else {
-        llvm::Value *val = resolveValue(m_last_value, m_last_type);
+        arg_slot = m_ir_gen_context.createAlloca(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type),
+            "default_arg_slot");
+        val = resolveValue(m_last_value, m_last_type);
         emitTypedStore(arg_slot, param_raw_type, val, m_last_type);
       }
       llvm_args.push_back(arg_slot);
@@ -152,18 +169,35 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
       }
       llvm_args.push_back(ref_arg);
     } else {
-      llvm::Type *llvm_param_type =
-          m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type);
-      llvm::Value *arg_slot =
-          m_ir_gen_context.createAlloca(llvm_param_type, "default_arg_slot");
-      if (param_raw_type->getKind() == types::TypeKind::kArray) {
+      llvm::Value *arg_slot = nullptr;
+      llvm::Value *val = nullptr;
 
+      if (param_raw_type->getKind() == types::TypeKind::kObject) {
+        arg_slot =
+            m_ir_gen_context.createAlloca(builder->getPtrTy(), "obj_arg_slot");
+
+        if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
+            llvm::isa<llvm::GlobalVariable>(m_last_value)) {
+          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                        ->getLLVMType(param_raw_type)
+                                        ->getPointerTo(),
+                                    m_last_value, "heap_ptr");
+        } else {
+          val = m_last_value; // LoadInst/CallInst — already heap ptr
+        }
+        builder->CreateStore(val, arg_slot);
+      } else if (param_raw_type->getKind() == types::TypeKind::kArray) {
+        arg_slot = m_ir_gen_context.createAlloca(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type),
+            "default_arg_slot");
         emitTypedStore(arg_slot, param_raw_type, m_last_value, m_last_type);
       } else {
-        llvm::Value *val = resolveValue(m_last_value, m_last_type);
+        arg_slot = m_ir_gen_context.createAlloca(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type),
+            "default_arg_slot");
+        val = resolveValue(m_last_value, m_last_type);
         emitTypedStore(arg_slot, param_raw_type, val, m_last_type);
       }
-
       llvm_args.push_back(arg_slot);
     }
     clearLast();

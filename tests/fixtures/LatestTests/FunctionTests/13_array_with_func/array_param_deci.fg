@@ -1,0 +1,6 @@
+fun sumArray(arr: deci[3]) -> deci {
+  return arr[0] + arr[1] + arr[2]
+}
+
+var a: deci[3] = [1.5, 2.5, 3.0]
+println(sumArray(a))

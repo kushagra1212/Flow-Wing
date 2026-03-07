@@ -212,10 +212,10 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Category | Subdirectory | Coverage |
 |---|---|---|
 | Basic void | `01_basic_void` | No-arg void functions, `nthg` return type |
-| Return types | `02_return_types` | `int`, `deci`, `deci32`, `str`, `bool` returns |
-| Parameters | `03_parameters` | All primitive param types, multi-param, defaults |
+| Return types | `02_return_types` | `int`, `deci`, `deci32`, `str`, `bool`, `char`, `int8` returns |
+| Parameters | `03_parameters` | All primitive param types (int, deci, str, bool, char, int8), multi-param, defaults |
 | Multi-return | `04_multi_return` | Multiple return values, mixed initializers |
-| Inout | `05_inout` | Pass-by-reference for primitives |
+| Inout | `05_inout` | Pass-by-reference for int, bool, deci, deci32, str, char; dynamic inout; print/return |
 | Var decl from func | `06_var_decl_from_func` | Static typed var decl from function call |
 | Dynamic vars | `07_dynamic` | `var x = func()` type inference |
 | Assignment from func | `08_assignment_from_func` | Reassigning existing vars from func return |

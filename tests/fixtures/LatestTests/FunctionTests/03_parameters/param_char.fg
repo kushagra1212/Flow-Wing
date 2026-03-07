@@ -1,0 +1,5 @@
+fun echo(c: char) -> char {
+  return c
+}
+
+println(echo('Z'))

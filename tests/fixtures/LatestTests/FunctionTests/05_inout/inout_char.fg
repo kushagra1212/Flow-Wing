@@ -1,0 +1,9 @@
+fun nextChar(inout c: char) -> char {
+  c = 'b'
+  return c
+}
+
+var ch: char = 'a'
+println(ch)
+nextChar(ch)
+println(ch)

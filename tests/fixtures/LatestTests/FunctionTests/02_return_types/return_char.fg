@@ -1,0 +1,6 @@
+fun getChar() -> char {
+  return 'X'
+}
+
+var c: char = getChar()
+println(c)

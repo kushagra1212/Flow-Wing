@@ -1,0 +1,11 @@
+type T = {
+  val: int
+}
+
+fun doubleN(n: int) -> int {
+  return n * 2
+}
+
+var a: T[2] = [{val: 3}, {val: 7}]
+println(doubleN(a[0].val))
+println(doubleN(a[1].val))

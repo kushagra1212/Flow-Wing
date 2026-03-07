@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
@@ -80,15 +78,28 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       llvm::Type *llvm_param_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type);
 
-      llvm::Value *local_copy = builder->CreateAlloca(llvm_param_type, nullptr,
-                                                      param_name + "_local");
+      llvm::Value *local_copy = nullptr;
       const llvm::DataLayout &data_layout =
           m_ir_gen_context.getLLVMModule()->getDataLayout();
-      uint64_t type_size = data_layout.getTypeAllocSize(llvm_param_type);
-      llvm::Align alignment = data_layout.getABITypeAlign(llvm_param_type);
 
-      builder->CreateMemCpy(local_copy, llvm::MaybeAlign(alignment), arg_value,
-                            llvm::MaybeAlign(alignment), type_size);
+      if (param_raw_type->getKind() == types::TypeKind::kObject) {
+        local_copy = builder->CreateAlloca(builder->getPtrTy(), nullptr,
+                                           param_name + "_local");
+        llvm::Align alignment =
+            data_layout.getABITypeAlign(builder->getPtrTy());
+        uint64_t type_size = data_layout.getTypeAllocSize(builder->getPtrTy());
+        builder->CreateMemCpy(local_copy, llvm::MaybeAlign(alignment),
+                              arg_value, llvm::MaybeAlign(alignment),
+                              type_size);
+      } else {
+        local_copy = builder->CreateAlloca(llvm_param_type, nullptr,
+                                           param_name + "_local");
+        llvm::Align alignment = data_layout.getABITypeAlign(llvm_param_type);
+        uint64_t type_size = data_layout.getTypeAllocSize(llvm_param_type);
+        builder->CreateMemCpy(local_copy, llvm::MaybeAlign(alignment),
+                              arg_value, llvm::MaybeAlign(alignment),
+                              type_size);
+      }
       m_ir_gen_context.setSymbol(param_name, local_copy);
     }
     param_index++;
@@ -98,6 +109,7 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
     function_symbol->getBody()->accept(this);
   }
 
+  m_ir_gen_context.popScope();
   if (!builder->GetInsertBlock()->getTerminator()) {
     auto *return_type = llvm_function->getReturnType();
     if (return_type->isVoidTy()) {
@@ -110,6 +122,5 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
   if (saved_block) {
     builder->SetInsertPoint(saved_block, saved_point);
   }
-  m_ir_gen_context.popScope();
 }
 }; // namespace flow_wing::ir_gen

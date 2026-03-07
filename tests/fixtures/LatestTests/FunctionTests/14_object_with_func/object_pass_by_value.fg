@@ -1,0 +1,13 @@
+type Box = {
+  value: int
+}
+
+fun addOne(b: Box) -> int {
+  var v: int = b.value
+  return v + 1
+}
+
+var b: Box = {value: 10}
+println(b.value)
+println(addOne(b))
+println(b.value)

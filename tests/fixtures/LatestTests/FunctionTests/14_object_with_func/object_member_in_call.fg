@@ -1,0 +1,12 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun doubleN(n: int) -> int {
+  return n * 2
+}
+
+var pt: Point = {x: 5, y: 10}
+println(doubleN(pt.x))
+println(doubleN(pt.y))

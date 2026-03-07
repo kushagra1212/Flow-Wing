@@ -1,0 +1,10 @@
+type T = {
+  val: int
+}
+
+fun sumVals(arr: T[2]) -> int {
+  return arr[0].val + arr[1].val
+}
+
+var a: T[2] = [{val: 10}, {val: 20}]
+println(sumVals(a))
