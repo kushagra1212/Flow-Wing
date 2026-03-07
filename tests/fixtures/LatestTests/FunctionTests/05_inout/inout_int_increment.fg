@@ -1,0 +1,11 @@
+fun increment(inout n: int) -> int {
+  n = n + 1
+  return n
+}
+
+var a: int = 10
+println(a)
+increment(a)
+println(a)
+increment(a)
+println(a)

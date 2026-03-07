@@ -1,0 +1,13 @@
+fun test2(inout a: int, b: str = "Hello") -> int, deci {
+  println("Hello World", a, b)
+  a = 20
+  println("Hello World", a, b)
+  return 1, 3.5
+}
+
+var a: int = 10
+println(a)
+var x: int, y: deci = test2(a, "hello2")
+println(a)
+println(x)
+println(y)

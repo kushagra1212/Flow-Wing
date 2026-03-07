@@ -1,0 +1,6 @@
+fun getDeci32() -> deci32 {
+  return 2.5f
+}
+
+var x: deci32 = getDeci32()
+println(x)

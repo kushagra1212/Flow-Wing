@@ -1,0 +1,7 @@
+fun getDouble(n: int) -> int {
+  return n * 2
+}
+
+var x = 5
+var y = getDouble(x)
+println(y)

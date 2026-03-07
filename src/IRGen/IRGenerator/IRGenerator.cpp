@@ -143,10 +143,6 @@ void IRGenerator::visit(
   assert(false && "Expose statement not supported");
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundFunctionStatement *statement) {
-  assert(false && "Function statement not supported");
-}
 void IRGenerator::visit([[maybe_unused]] binding::BoundIfStatement *statement) {
   assert(false && "If statement not supported");
 }
@@ -165,10 +161,6 @@ void IRGenerator::visit(
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundContinueStatement *statement) {
   assert(false && "Continue statement not supported");
-}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundReturnStatement *statement) {
-  assert(false && "Return statement not supported");
 }
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *statement) {

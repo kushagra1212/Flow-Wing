@@ -1,0 +1,6 @@
+fun getDeci() -> deci {
+  return 3.14
+}
+
+var x: deci = getDeci()
+println(x)

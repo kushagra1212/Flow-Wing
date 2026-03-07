@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/common/Symbol/FunctionSymbol.hpp"
 #include <vector>
 
 namespace flow_wing {
@@ -31,6 +32,7 @@ class BoundReturnStatement : public BoundStatement {
 public:
   BoundReturnStatement(
       std::vector<std::unique_ptr<BoundExpression>> return_expressions,
+      const analysis::FunctionSymbol *function_symbol,
       const flow_wing::diagnostic::SourceLocation &location);
   ~BoundReturnStatement() = default;
 
@@ -38,9 +40,13 @@ public:
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
+  const std::vector<std::unique_ptr<BoundExpression>> &
+  getReturnExpressions() const;
+  const analysis::FunctionSymbol *getFunctionSymbol() const;
 
 private:
   std::vector<std::unique_ptr<BoundExpression>> m_return_expressions;
+  const analysis::FunctionSymbol *m_function_symbol;
 };
 } // namespace binding
 } // namespace flow_wing

@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+fun greet(name: str) -> str {
+  return "Hello " + name
+}
+
+greet(42)

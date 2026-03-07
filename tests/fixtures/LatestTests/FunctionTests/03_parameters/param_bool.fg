@@ -1,0 +1,6 @@
+fun negate(flag: bool) -> bool {
+  return !flag
+}
+
+println(negate(true))
+println(negate(false))

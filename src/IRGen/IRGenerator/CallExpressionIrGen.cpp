@@ -31,9 +31,9 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
   auto function_symbol = call_expression->getSymbol();
 
   if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
-    dispatchBuiltinFunction(call_expression);
+    dispatchBuiltinFunctionCall(call_expression);
   } else {
-    assert(false && "User defined function call not implemented");
+    dispatchUserDefinedOrExternalFunctionCall(call_expression);
   }
 }
 

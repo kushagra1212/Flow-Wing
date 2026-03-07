@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: ReturnExpressionTypeMismatch
+fun getInt() -> int {
+  return "hello"
+}
+
+var x: int = getInt()

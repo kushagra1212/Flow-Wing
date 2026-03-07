@@ -252,6 +252,7 @@ std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
     if (result.first == nullptr) {
       return nullptr;
     }
+    base_type = result.first;
 
     if (base_type->isNthg()) {
       m_ctx->reportError(flow_wing::diagnostic::DiagnosticCode::

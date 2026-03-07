@@ -225,41 +225,6 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
                                           getLLVMBuilder()->getInt8PtrTy());
   }
 
-  // if (type == analysis::Builtins::m_int8_type_instance.get() ||
-  //     type == analysis::Builtins::m_str_type_instance.get()) {
-  //   if (!is_global) {
-
-  //     return llvm::cast<llvm::Constant>(
-  //         getLLVMBuilder()->CreateGlobalStringPtr(""));
-  //   }
-
-  //   llvm::Constant *strConstant =
-  //       llvm::ConstantDataArray::getString(*getLLVMContext(), "");
-
-  //   auto *globalVar =
-  //       new llvm::GlobalVariable(*getLLVMModule(), strConstant->getType(),
-  //                                true, // isConstant
-  //                                llvm::GlobalValue::PrivateLinkage,
-  //                                strConstant,
-  //                                ".str" // Name
-  //       );
-
-  //   // Ensure it can be merged with other strings
-  //   globalVar->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-
-  //   std::vector<llvm::Constant *> indices;
-  //   indices.push_back(
-  //       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()),
-  //       0));
-  //   indices.push_back(
-  //       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*getLLVMContext()),
-  //       0));
-
-  //   return
-  //   llvm::ConstantExpr::getInBoundsGetElementPtr(strConstant->getType(),
-  //                                                       globalVar, indices);
-  // }
-
   if (type == analysis::Builtins::m_nirast_type_instance.get()) {
     return llvm::ConstantPointerNull::get(
         llvm::Type::getInt8PtrTy(*getLLVMContext()));

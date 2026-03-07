@@ -1,0 +1,6 @@
+fun getInt() -> int {
+  return 42
+}
+
+var x: int = getInt()
+println(x)

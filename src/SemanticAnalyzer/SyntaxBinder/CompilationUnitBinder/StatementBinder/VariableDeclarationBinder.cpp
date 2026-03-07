@@ -89,22 +89,28 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
     bound_initializer_expressions =
         m_expression_binder->bindExpressionList(initializer_expression);
 
-    if (bound_initializer_expressions.size() > variable_symbols.size()) {
+    // Calculate the "flattened" count of provided initializer values
+    size_t total_initializer_count = 0;
+    for (const auto &expr : bound_initializer_expressions) {
+      if (expr->isMultipleType()) {
+        total_initializer_count += expr->getMultipleTypes().size();
+      } else {
+        total_initializer_count += 1;
+      }
+    }
 
+    if (total_initializer_count > variable_symbols.size()) {
       auto error_statement = std::make_unique<BoundErrorStatement>(
           initializer_expression->getSourceLocation(),
           diagnostic::DiagnosticCode::kTooManyInitializerExpressions,
-          diagnostic::DiagnosticArgs{
-              std::to_string(variable_symbols.size()),
-              std::to_string(bound_initializer_expressions.size())});
+          diagnostic::DiagnosticArgs{std::to_string(variable_symbols.size()),
+                                     std::to_string(total_initializer_count)});
       m_context->reportError(error_statement.get());
       return std::move(error_statement);
     }
 
     if (node->hasConstKeyword()) {
-
-      if (bound_initializer_expressions.size() == 0) {
-
+      if (total_initializer_count == 0) {
         auto error_statement = std::make_unique<BoundErrorStatement>(
             node->getSourceLocation(),
             diagnostic::DiagnosticCode::kMissingInitializerExpression,
@@ -113,79 +119,104 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
         return std::move(error_statement);
       }
 
-      if (bound_initializer_expressions.size() < variable_symbols.size()) {
-
+      if (total_initializer_count < variable_symbols.size()) {
         auto error_statement = std::make_unique<BoundErrorStatement>(
             node->getSourceLocation(),
             diagnostic::DiagnosticCode::kTooFewInitializerExpressions,
             diagnostic::DiagnosticArgs{
                 std::to_string(variable_symbols.size()),
-                std::to_string(bound_initializer_expressions.size())});
+                std::to_string(total_initializer_count)});
         m_context->reportError(error_statement.get());
         return std::move(error_statement);
       }
     }
 
-    const size_t size = bound_initializer_expressions.size();
-
-    for (size_t i = 0; i < size; i++) {
-      if (bound_initializer_expressions[i]->getKind() ==
-          NodeKind::kErrorExpression) {
-        return std::make_unique<BoundErrorStatement>(
-            std::move(bound_initializer_expressions[i]));
+    size_t var_idx = 0;
+    for (auto &expr : bound_initializer_expressions) {
+      if (expr && expr->getKind() == NodeKind::kErrorExpression) {
+        return std::make_unique<BoundErrorStatement>(std::move(expr));
       }
 
-      const auto &expression_type = bound_initializer_expressions[i]->getType();
+      std::vector<std::shared_ptr<types::Type>> expr_types;
+      bool is_multi = expr->isMultipleType();
 
-      auto variable_type = variable_symbols[i]->getType();
+      if (is_multi) {
+        expr_types = expr->getMultipleTypes();
+      } else {
+        expr_types.push_back(expr->getType());
+      }
 
-      BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
-      BINDER_DEBUG_LOG("Expression is Dynamic: ", expression_type->isDynamic());
-      BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
-      BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
+      for (const auto &expression_type : expr_types) {
+        if (var_idx >= variable_symbols.size())
+          break;
 
-      if (variable_type->isDynamic()) {
-        // Variable is dynamic: expression must be dynamic or primitive
-        if (!expression_type->isDynamic() && !expression_type->isPrimitive()) {
+        auto variable_type = variable_symbols[var_idx]->getType();
+
+        BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
+        BINDER_DEBUG_LOG("Expression is Dynamic: ",
+                         expression_type->isDynamic());
+        BINDER_DEBUG_LOG("Variable Type: ", variable_type->getName());
+        BINDER_DEBUG_LOG("Variable is Dynamic: ", variable_type->isDynamic());
+
+        if (variable_type->isDynamic()) {
+          if (!expression_type->isDynamic() &&
+              !expression_type->isPrimitive()) {
+            auto error_expression = std::make_unique<BoundErrorExpression>(
+                expr->getSourceLocation(),
+                diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
+                diagnostic::DiagnosticArgs{
+                    variable_type->getName(), expression_type->getName(),
+                    variable_symbols[var_idx]->getName()});
+            m_context->reportError(error_expression.get());
+            static_cast<analysis::VariableSymbol *>(
+                variable_symbols[var_idx].get())
+                ->setInitializerExpression(std::move(error_expression));
+            if (!is_multi)
+              expr = nullptr;
+          } else if (!is_multi) {
+            static_cast<analysis::VariableSymbol *>(
+                variable_symbols[var_idx].get())
+                ->setInitializerExpression(std::move(expr));
+          }
+        } else if (expression_type->isDynamic()) {
+          if (!is_multi) {
+            static_cast<analysis::VariableSymbol *>(
+                variable_symbols[var_idx].get())
+                ->setInitializerExpression(std::move(expr));
+          }
+        } else if (*expression_type > *variable_type) {
           auto error_expression = std::make_unique<BoundErrorExpression>(
-              bound_initializer_expressions[i]->getSourceLocation(),
+              expr ? expr->getSourceLocation()
+                   : initializer_expression->getSourceLocation(),
               diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
               diagnostic::DiagnosticArgs{variable_type->getName(),
                                          expression_type->getName(),
-                                         variable_symbols[i]->getName()});
+                                         variable_symbols[var_idx]->getName()});
           m_context->reportError(error_expression.get());
-          static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
+          static_cast<analysis::VariableSymbol *>(
+              variable_symbols[var_idx].get())
               ->setInitializerExpression(std::move(error_expression));
-        } else {
-          // Dynamic can hold any primitive or dynamic
-          static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
-              ->setInitializerExpression(
-                  std::move(bound_initializer_expressions[i]));
+          if (!is_multi)
+            expr = nullptr;
+        } else if (!is_multi) {
+          static_cast<analysis::VariableSymbol *>(
+              variable_symbols[var_idx].get())
+              ->setInitializerExpression(std::move(expr));
         }
-      } else if (expression_type->isDynamic()) {
-        // Expression is dynamic: variable can hold it (will be extracted at
-        // runtime)
-        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
-            ->setInitializerExpression(
-                std::move(bound_initializer_expressions[i]));
-      } else if (*expression_type > *variable_type) {
-        auto error_expression = std::make_unique<BoundErrorExpression>(
-            bound_initializer_expressions[i]->getSourceLocation(),
-            diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
-            diagnostic::DiagnosticArgs{variable_type->getName(),
-                                       expression_type->getName(),
-                                       variable_symbols[i]->getName()});
 
-        m_context->reportError(error_expression.get());
-
-        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
-            ->setInitializerExpression(std::move(error_expression));
-      } else {
-        static_cast<analysis::VariableSymbol *>(variable_symbols[i].get())
-            ->setInitializerExpression(
-                std::move(bound_initializer_expressions[i]));
+        var_idx++;
       }
     }
+
+    while (var_idx < variable_symbols.size()) {
+      static_cast<analysis::VariableSymbol *>(variable_symbols[var_idx].get())
+          ->setInitializerExpression(
+              BinderContext::createDefaultValueExpression(
+                  variable_symbols[var_idx]->getType().get(),
+                  node->getSourceLocation()));
+      var_idx++;
+    }
+
   } else if (node->hasConstKeyword()) {
     auto error_statement = std::make_unique<BoundErrorStatement>(
         node->getSourceLocation(),
@@ -202,8 +233,9 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
     }
   }
 
-  return std::make_unique<BoundVariableDeclaration>(variable_symbols,
-                                                    node->getSourceLocation());
+  return std::make_unique<BoundVariableDeclaration>(
+      variable_symbols, std::move(bound_initializer_expressions),
+      node->getSourceLocation());
 }
 } // namespace binding
 } // namespace flow_wing

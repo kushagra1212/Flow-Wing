@@ -1,0 +1,16 @@
+type Inner = {
+  value: int
+}
+
+type Outer = {
+  inner: Inner
+  label: str
+}
+
+fun makeInner(v: int) -> Inner {
+  var i: Inner = {value: v}
+  return i
+}
+
+var o: Outer = {inner: makeInner(99), label: "test"}
+print(o, "\n")

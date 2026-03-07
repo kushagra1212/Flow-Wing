@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ParameterSymbol.hpp"
@@ -135,6 +136,11 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
         return std::make_unique<BoundErrorStatement>(
             std::move(bound_default_value_expression));
       }
+    }
+
+    if (function_type->getReturnTypes().size() == 0) {
+      function_type->addReturnType(std::make_shared<types::ReturnType>(
+          analysis::Builtins::m_nthg_type_instance));
     }
 
     auto param_symbol = std::make_shared<analysis::ParameterSymbol>(

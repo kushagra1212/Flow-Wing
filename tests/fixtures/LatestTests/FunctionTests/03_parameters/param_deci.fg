@@ -1,0 +1,5 @@
+fun addDeci(a: deci, b: deci) -> deci {
+  return a + b
+}
+
+println(addDeci(1.5, 2.5))

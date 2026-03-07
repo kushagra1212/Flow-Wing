@@ -75,7 +75,9 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
           expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
 
-    } else if (is_source_inline) {
+    } else if (is_source_inline ||
+               llvm::isa<llvm::LoadInst>(source_raw_value) ||
+               llvm::isa<llvm::CallInst>(source_raw_value)) {
       // Array slices hold inline memory.
       source_value = source_raw_value;
 
@@ -150,7 +152,23 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
         final_heap_ptr =
             getTempArray(target_type, source_type, source_raw_value);
 
-        builder->CreateStore(final_heap_ptr, target_addr);
+        bool target_wants_inline = false;
+        if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(target_addr)) {
+          target_wants_inline = !alloca->getAllocatedType()->isPointerTy();
+        } else if (llvm::isa<llvm::Argument>(target_addr)) {
+          target_wants_inline = true;
+        }
+
+        if (target_wants_inline) {
+          const llvm::DataLayout &dl =
+              m_ir_gen_context.getLLVMModule()->getDataLayout();
+          llvm::Align align = dl.getABITypeAlign(llvm_target_type);
+          uint64_t size = dl.getTypeAllocSize(llvm_target_type);
+          builder->CreateMemCpy(target_addr, llvm::MaybeAlign(align),
+                                final_heap_ptr, llvm::MaybeAlign(align), size);
+        } else {
+          builder->CreateStore(final_heap_ptr, target_addr);
+        }
         return;
       }
 
@@ -159,8 +177,23 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
         final_heap_ptr =
             convertToTargetType(final_heap_ptr, target_type, source_type);
       }
+      bool target_wants_inline = false;
+      if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(target_addr)) {
+        target_wants_inline = !alloca->getAllocatedType()->isPointerTy();
+      } else if (llvm::isa<llvm::Argument>(target_addr)) {
+        target_wants_inline = true;
+      }
 
-      builder->CreateStore(final_heap_ptr, target_addr);
+      if (target_wants_inline) {
+        const llvm::DataLayout &dl =
+            m_ir_gen_context.getLLVMModule()->getDataLayout();
+        llvm::Align align = dl.getABITypeAlign(llvm_target_type);
+        uint64_t size = dl.getTypeAllocSize(llvm_target_type);
+        builder->CreateMemCpy(target_addr, llvm::MaybeAlign(align),
+                              final_heap_ptr, llvm::MaybeAlign(align), size);
+      } else {
+        builder->CreateStore(final_heap_ptr, target_addr);
+      }
     }
 
     return;

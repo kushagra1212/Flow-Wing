@@ -30,6 +30,10 @@ namespace types {
 const std::string_view kDynamic_type_name = "fg_dyn_type";
 }
 
+namespace parameters {
+const std::string_view kReturn_value_parameter_name = "fg_return_value";
+}
+
 namespace functions {
 // Built-in Functions
 const std::string_view kPrint_fn = "print";

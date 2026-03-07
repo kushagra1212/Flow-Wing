@@ -73,6 +73,9 @@ public:
   const std::vector<std::shared_ptr<ReturnType>> &getReturnTypes() const {
     return m_return_types;
   }
+  void addReturnType(std::shared_ptr<ReturnType> return_type) {
+    m_return_types.push_back(std::move(return_type));
+  }
   bool isVariadic() const { return m_is_variadic; }
   size_t getDefaultValueStartIndex() const {
     return m_default_value_start_index;

@@ -83,12 +83,6 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {
-  PARSER_DEBUG_LOG("Visiting Bound Function Statement", "BOUND TREE");
-  assert(false && "Function statement not supported");
-}
-
-void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundIfStatement *if_statement) {
   PARSER_DEBUG_LOG("Visiting Bound If Statement", "BOUND TREE");
   assert(false && "If statement not supported");
@@ -121,7 +115,17 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundReturnStatement *return_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Return Statement", "BOUND TREE");
-  assert(false && "Return statement not supported");
+  nlohmann::json return_statement_json;
+  return_statement_json["kind"] = toString(return_statement->getKind());
+  serializeArray(return_statement->getReturnExpressions(),
+                 return_statement_json, "return_expressions");
+
+  return_statement_json["function_symbol_id"] =
+      getShortId(return_statement->getFunctionSymbol());
+
+  return_statement_json["range"] =
+      toJsonRange(return_statement->getSourceLocation());
+  m_last_node_json = std::move(return_statement_json);
 }
 
 void BoundTreeJson::visit(

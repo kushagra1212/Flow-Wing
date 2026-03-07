@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: AssignmentExpressionCountMismatch
+fun getMulti() -> int, deci {
+  return 5, 2.5
+}
+
+var a: int = 0
+var b: deci = 0.0
+a, b = getMulti()

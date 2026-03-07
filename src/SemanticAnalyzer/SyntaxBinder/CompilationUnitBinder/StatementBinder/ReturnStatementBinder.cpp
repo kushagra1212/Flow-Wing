@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
 
   auto symbol_table = m_context->getSymbolTable().get();
 
-  if (symbol_table->isInReturnScope()) {
+  if (!symbol_table->isInReturnScope()) {
     auto error_statement = std::make_unique<BoundErrorStatement>(
         return_statement->getSourceLocation(),
         diagnostic::DiagnosticCode::kReturnStatementNotInFunction,
@@ -94,8 +94,10 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
         auto error_statement = std::make_unique<BoundErrorStatement>(
             return_statement->getSourceLocation(),
             diagnostic::DiagnosticCode::kReturnExpressionTypeMismatch,
-            diagnostic::DiagnosticArgs{return_expression->getType()->getName(),
-                                       return_type->getName()});
+            diagnostic::DiagnosticArgs{
+                return_type->getName(),
+                return_expression->getType()->getName(),
+            });
         m_context->reportError(error_statement.get());
         return std::move(error_statement);
       }
@@ -127,7 +129,8 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
   }
 
   return std::make_unique<BoundReturnStatement>(
-      std::move(return_expressions), return_statement->getSourceLocation());
+      std::move(return_expressions), current_function_symbol,
+      return_statement->getSourceLocation());
 }
 } // namespace binding
 } // namespace flow_wing

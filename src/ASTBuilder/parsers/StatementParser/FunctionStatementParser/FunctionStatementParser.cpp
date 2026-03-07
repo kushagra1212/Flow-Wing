@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
+#include <memory>
 
 namespace flow_wing {
 namespace parser {
@@ -74,14 +75,19 @@ std::unique_ptr<syntax::StatementSyntax> FunctionStatementParser::parse() {
       m_ctx->match(lexer::TokenKind::kCloseParenthesisToken); // )
 
   auto right_arrow_token =
-      m_ctx->match(lexer::TokenKind::kRightArrowToken); // ->
+      m_ctx->matchIf(lexer::TokenKind::kRightArrowToken); // ->
 
-  auto function_return_type_expression =
-      std::make_unique<FunctionReturnTypeExpressionParser>(m_ctx)
-          ->parse(); // int
-                     // int, str
-                     // decl
-                     // as  int
+  std::unique_ptr<syntax::ExpressionSyntax> function_return_type_expression =
+      nullptr;
+
+  if (right_arrow_token != nullptr) {
+    function_return_type_expression =
+        std::make_unique<FunctionReturnTypeExpressionParser>(m_ctx)
+            ->parse(); // int
+                       // int, str
+                       // decl
+                       // as  int
+  }
 
   std::unique_ptr<syntax::StatementSyntax> body = nullptr;
 

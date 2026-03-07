@@ -1,0 +1,8 @@
+fun getStats(n: int) -> int, deci, str {
+  return n, n * 1.5, "done"
+}
+
+var a: int, b: deci, c: str = getStats(4)
+println(a)
+println(b)
+println(c)

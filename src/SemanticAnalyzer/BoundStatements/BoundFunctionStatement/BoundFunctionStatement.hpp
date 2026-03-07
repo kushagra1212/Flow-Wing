@@ -39,8 +39,6 @@ public:
   const std::vector<std::shared_ptr<analysis::Symbol>> &
   getSymbols() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
-  // Getters
-  const std::unique_ptr<BoundStatement> &getBody() const;
 
 private:
   std::vector<std::shared_ptr<analysis::Symbol>> m_symbols;

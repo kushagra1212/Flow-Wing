@@ -1,0 +1,10 @@
+fun compute(x: int) -> int {
+  return x * x
+}
+
+var a: int = 5
+println(a)
+a = compute(a)
+println(a)
+a = compute(3)
+println(a)

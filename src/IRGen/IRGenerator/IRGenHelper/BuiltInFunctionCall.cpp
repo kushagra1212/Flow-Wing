@@ -366,21 +366,33 @@ llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
                     llvm::isa<llvm::GEPOperator>(value) ||
                     llvm::isa<llvm::GlobalVariable>(value));
 
-  bool is_array = (type->getKind() == types::TypeKind::kArray) &&
-                  (llvm::isa<llvm::AllocaInst>(value) ||
-                   llvm::isa<llvm::GlobalVariable>(value));
+  bool is_inline_array = false;
+  if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(value)) {
+    is_inline_array = (type->getKind() == types::TypeKind::kArray) &&
+                      !alloca->getAllocatedType()->isPointerTy();
+  } else if (llvm::isa<llvm::Argument>(value)) {
+    // inout array params are passed as direct array pointers — always inline
+    is_inline_array = (type->getKind() == types::TypeKind::kArray);
+  }
 
-  if (is_object || is_array) {
+  bool is_ptr_slot_array = (type->getKind() == types::TypeKind::kArray) &&
+                           !is_inline_array &&
+                           (llvm::isa<llvm::GlobalVariable>(value) ||
+                            llvm::isa<llvm::AllocaInst>(value));
 
+  if (is_inline_array) {
+    return value;
+  }
+
+  if (is_object || is_ptr_slot_array) {
     llvm::Type *ptr_ptr_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(type)->getPointerTo();
-
     return m_ir_gen_context.getLLVMBuilder()->CreateLoad(
-        ptr_ptr_type, value, is_array ? "array_load" : "field_obj_load");
-
-  } else {
-    return resolveValue(m_last_value, type);
+        ptr_ptr_type, value,
+        is_ptr_slot_array ? "array_load" : "field_obj_load");
   }
+
+  return resolveValue(m_last_value, type);
 }
 
 void IRGenerator::emitCast(
@@ -397,7 +409,7 @@ void IRGenerator::emitCast(
   m_last_type = target_type;
 }
 
-void IRGenerator::dispatchBuiltinFunction(
+void IRGenerator::dispatchBuiltinFunctionCall(
     binding::BoundCallExpression *call_expression) {
   auto function_symbol = call_expression->getSymbol();
   const std::string &fn_name = function_symbol->getName();

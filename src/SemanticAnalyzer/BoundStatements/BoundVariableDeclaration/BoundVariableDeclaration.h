@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ class BoundVariableDeclaration : public BoundDeclarationStatement {
 public:
   BoundVariableDeclaration(
       std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+      std::vector<std::unique_ptr<BoundExpression>> initializer_expressions,
       const flow_wing::diagnostic::SourceLocation &location);
   ~BoundVariableDeclaration() = default;
 
@@ -45,8 +46,12 @@ public:
   const std::vector<std::shared_ptr<analysis::Symbol>> &
   getSymbols() const override;
 
+  const std::vector<std::unique_ptr<BoundExpression>> &
+  getInitializerExpressions() const;
+
 private:
   std::vector<std::shared_ptr<analysis::Symbol>> m_symbols;
+  std::vector<std::unique_ptr<BoundExpression>> m_initializer_expressions;
 };
 } // namespace binding
 } // namespace flow_wing

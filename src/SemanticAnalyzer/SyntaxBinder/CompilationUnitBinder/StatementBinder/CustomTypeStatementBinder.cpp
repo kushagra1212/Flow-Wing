@@ -52,20 +52,29 @@ std::unique_ptr<BoundStatement> StatementBinder::bindCustomTypeStatement(
       custom_type_name, std::map<std::string, std::shared_ptr<types::Type>>{});
   auto symbol_table = m_context->getSymbolTable().get();
 
-  // --- STEP 2: Register it IMMEDIATELY ---
   // This allows the inner fields to find "Node" while we are still binding
   // them.
   auto symbol = std::make_shared<analysis::Symbol>(
       custom_type_name, analysis::SymbolKind::kObject, custom_type_type);
-
   if (!symbol_table->define(symbol)) {
-    auto error_statement = std::make_unique<BoundErrorStatement>(
-        statement->getSourceLocation(),
-        diagnostic::DiagnosticCode::kCustomTypeAlreadyDeclared,
-        diagnostic::DiagnosticArgs{custom_type_name});
+    // Was pre-registered by DeclarationAnalyzer — look up and update
+    auto existing = symbol_table->lookup(custom_type_name);
+    auto existing_type =
+        static_cast<types::CustomObjectType *>(existing->getType().get());
 
-    m_context->reportError(error_statement.get());
-    return std::move(error_statement);
+    if (!existing_type->isPreDeclared()) {
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          statement->getSourceLocation(),
+          diagnostic::DiagnosticCode::kCustomTypeAlreadyDeclared,
+          diagnostic::DiagnosticArgs{custom_type_name});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
+    }
+
+    existing_type->setPreDeclared(false);
+    symbol = existing;
+    custom_type_type =
+        std::static_pointer_cast<types::CustomObjectType>(existing->getType());
   }
 
   std::map<std::string, std::shared_ptr<types::Type>>

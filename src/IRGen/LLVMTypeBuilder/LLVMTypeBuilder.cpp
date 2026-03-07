@@ -125,6 +125,30 @@ LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
   return object_type;
 }
 
+llvm::StructType *LLVMTypeBuilder::createOrGetStructType(
+    const std::vector<types::Type *> &types) {
+  std::string struct_name = "";
+  for (const auto &type : types) {
+    struct_name += type->getName() + "_";
+  }
+
+  auto struct_type = llvm::StructType::getTypeByName(m_context, struct_name);
+
+  if (struct_type) {
+    return struct_type;
+  }
+
+  struct_type = llvm::StructType::create(m_context, struct_name);
+
+  std::vector<llvm::Type *> elements;
+  for (const auto &type : types) {
+    elements.push_back(getLLVMType(type));
+  }
+
+  struct_type->setBody(elements);
+  return struct_type;
+}
+
 llvm::Type *LLVMTypeBuilder::createDynamicValueType() {
 
   auto dynamic_type = llvm::StructType::getTypeByName(
@@ -160,7 +184,7 @@ llvm::Type *LLVMTypeBuilder::convertFunctionParameter(
 llvm::Type *LLVMTypeBuilder::convertFunctionReturnType(
     const types::ReturnType *return_type) {
   if (return_type->type_convention == types::TypeConvention::kFlowWing) {
-    return llvm::Type::getInt8PtrTy(m_context);
+    return llvm::Type::getVoidTy(m_context);
   }
 
   return getLLVMType(return_type->type.get());
@@ -169,10 +193,15 @@ llvm::Type *LLVMTypeBuilder::convertFunctionReturnType(
 llvm::FunctionType *
 LLVMTypeBuilder::convertFunction(const types::FunctionType *funcType) {
 
-  llvm::Type *result_type =
-      convertFunctionReturnType(funcType->getReturnTypes()[0].get());
+  auto return_type = funcType->getReturnTypes()[0].get();
+  llvm::Type *result_type = convertFunctionReturnType(return_type);
 
-  std::vector<llvm::Type *> args;
+  std::vector<llvm::Type *> args = {};
+
+  if (return_type->type_convention == types::TypeConvention::kFlowWing) {
+    args.push_back(llvm::Type::getInt8PtrTy(m_context));
+  }
+
   for (const auto &param : funcType->getParameterTypes()) {
     args.push_back(convertFunctionParameter(param.get()));
   }

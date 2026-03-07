@@ -1,0 +1,11 @@
+fun getLiteral() -> int {
+  return 100
+}
+
+var a: int = 10
+println(a)
+{
+  var a: int = getLiteral()
+  println(a)
+}
+println(a)

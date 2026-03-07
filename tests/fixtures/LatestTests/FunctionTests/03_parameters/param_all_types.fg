@@ -1,0 +1,5 @@
+fun describe(a: int, b: deci, c: str, d: bool) -> str {
+  return c
+}
+
+println(describe(1, 2.5, "test", true))

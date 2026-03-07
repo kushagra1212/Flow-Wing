@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: TooManyInitializerExpressions
+fun getNum() -> int {
+  return 1
+}
+
+var x: int = getNum(), getNum(), getNum()

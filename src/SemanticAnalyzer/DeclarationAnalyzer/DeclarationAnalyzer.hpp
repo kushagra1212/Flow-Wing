@@ -88,6 +88,9 @@ public:
 
 private:
   binding::BinderContext &m_binder_context;
+
+  std::shared_ptr<types::Type>
+  inferReturnType(syntax::BlockStatementSyntax *body);
 };
 } // namespace analysis
 } // namespace flow_wing

@@ -1,0 +1,7 @@
+fun getSubArray() -> int[2] {
+  var sub: int[2] = [10, 20]
+  return sub
+}
+
+var a: int[2][2] = [getSubArray(), [3, 4]]
+println(a)

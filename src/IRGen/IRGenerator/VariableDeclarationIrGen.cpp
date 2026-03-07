@@ -28,47 +28,102 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundVariableDeclaration *variable_declaration) {
   CODEGEN_DEBUG_LOG("Visiting Bound Variable Declaration", "IR GENERATION");
 
-  for (const auto &symbol : variable_declaration->getSymbols()) {
-    const auto &variable_symbol =
-        static_cast<const analysis::VariableSymbol *>(symbol.get());
+  const auto &symbols = variable_declaration->getSymbols();
+  const auto &multi_exprs = variable_declaration->getInitializerExpressions();
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
 
-    CODEGEN_DEBUG_LOG("Variable Symbol", variable_symbol->getName());
+  size_t var_idx = 0;
+  size_t expr_idx = 0;
 
-    auto *var_type = variable_symbol->getType().get();
-    auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
-    llvm::Value *storage_ptr = nullptr;
+  while (var_idx < symbols.size()) {
+    if (expr_idx < multi_exprs.size() && multi_exprs[expr_idx] != nullptr &&
+        multi_exprs[expr_idx]->isMultipleType()) {
+      auto &expr = multi_exprs[expr_idx];
+      expr->accept(this);
 
-    if (m_ir_gen_context.isGlobalScope()) {
-      llvm::Value *existing_global_variable =
-          m_ir_gen_context.getSymbol(variable_symbol->getName());
-      if (existing_global_variable &&
-          llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
-        storage_ptr = existing_global_variable;
+      assert(m_last_value &&
+             "m_last_value is null after initializer expression");
+      llvm::Value *struct_ptr = m_last_value;
+      llvm::Type *struct_type = m_last_llvm_type;
+
+      size_t num_returns = expr->getMultipleTypes().size();
+      for (size_t i = 0; i < num_returns; ++i) {
+        if (var_idx >= symbols.size())
+          break;
+
+        const auto &variable_symbol =
+            static_cast<const analysis::VariableSymbol *>(
+                symbols[var_idx].get());
+
+        CODEGEN_DEBUG_LOG("Variable Symbol (Multi)",
+                          variable_symbol->getName());
+
+        auto *var_type = variable_symbol->getType().get();
+        auto *llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
+        llvm::Value *storage_ptr = nullptr;
+
+        if (m_ir_gen_context.isGlobalScope()) {
+          llvm::Value *existing_global_variable =
+              m_ir_gen_context.getSymbol(variable_symbol->getName());
+          if (existing_global_variable &&
+              llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
+            storage_ptr = existing_global_variable;
+          }
+        }
+
+        if (!storage_ptr) {
+          storage_ptr = m_ir_gen_context.createAlloca(
+              llvm_type, variable_symbol->getName());
+          m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
+        }
+
+        llvm::Value *gep = builder->CreateStructGEP(
+            struct_type, struct_ptr, static_cast<unsigned>(i),
+            "extract_" + variable_symbol->getName());
+        llvm::Value *extracted_val = builder->CreateLoad(
+            llvm_type, gep, "load_" + variable_symbol->getName());
+
+        emitTypedStore(storage_ptr, var_type, extracted_val, var_type);
+        var_idx++;
       }
+    } else {
+      const auto &variable_symbol =
+          static_cast<const analysis::VariableSymbol *>(symbols[var_idx].get());
+
+      CODEGEN_DEBUG_LOG("Variable Symbol (Single)", variable_symbol->getName());
+
+      auto *var_type = variable_symbol->getType().get();
+      auto *llvm_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
+      llvm::Value *storage_ptr = nullptr;
+
+      if (m_ir_gen_context.isGlobalScope()) {
+        llvm::Value *existing_global_variable =
+            m_ir_gen_context.getSymbol(variable_symbol->getName());
+        if (existing_global_variable &&
+            llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
+          storage_ptr = existing_global_variable;
+        }
+      }
+
+      if (!storage_ptr) {
+        storage_ptr = m_ir_gen_context.createAlloca(llvm_type,
+                                                    variable_symbol->getName());
+        m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
+      }
+
+      auto *init_expression = variable_symbol->getInitializerExpression().get();
+      if (init_expression) {
+        init_expression->accept(this);
+        assert(m_last_value &&
+               "m_last_value is null after initializer expression");
+        emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
+      }
+      var_idx++;
     }
 
-    // Fallback for locals or new globals
-    if (!storage_ptr) {
-      storage_ptr =
-          m_ir_gen_context.createAlloca(llvm_type, variable_symbol->getName());
-      m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
-    }
-    auto *init_expression = variable_symbol->getInitializerExpression().get();
-    // Handle Initialization
-
-    assert(init_expression && "Initializer expression is null");
-
-    init_expression->accept(this);
-
-    assert(storage_ptr && "Storage pointer is null");
-    assert(m_last_value && "Last value is null");
-
-    CODEGEN_DEBUG_LOG("Start of emitTypedStore", "in variable declaration");
-
-    emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
-
-    CODEGEN_DEBUG_LOG("End of emitTypedStore", "in variable declaration");
-
+    expr_idx++;
     clearLast();
   }
 }

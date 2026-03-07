@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,24 @@ namespace binding {
 
 BoundReturnStatement::BoundReturnStatement(
     std::vector<std::unique_ptr<BoundExpression>> return_expressions,
+    const analysis::FunctionSymbol *function_symbol,
     const flow_wing::diagnostic::SourceLocation &location)
     : BoundStatement(location),
-      m_return_expressions(std::move(return_expressions)) {}
+      m_return_expressions(std::move(return_expressions)),
+      m_function_symbol(function_symbol) {}
 
 NodeKind BoundReturnStatement::getKind() const {
   return NodeKind::kReturnStatement;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundReturnStatement::getReturnExpressions() const {
+  return m_return_expressions;
+}
+
+const analysis::FunctionSymbol *
+BoundReturnStatement::getFunctionSymbol() const {
+  return m_function_symbol;
 }
 
 void BoundReturnStatement::accept(visitor::BoundTreeVisitor *visitor) {

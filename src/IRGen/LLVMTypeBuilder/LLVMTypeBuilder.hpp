@@ -24,6 +24,8 @@ public:
 
   llvm::Type *getLLVMType(const flow_wing::types::Type *type);
   llvm::FunctionType *convertFunction(const types::FunctionType *type);
+  llvm::StructType *
+  createOrGetStructType(const std::vector<types::Type *> &types);
 
 private:
   llvm::LLVMContext &m_context;

@@ -1,0 +1,6 @@
+fun getBool() -> bool {
+  return true
+}
+
+var b: bool = getBool()
+println(b)

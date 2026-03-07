@@ -1,0 +1,15 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun getX() -> int {
+  return 5
+}
+
+fun getY() -> int {
+  return 10
+}
+
+var p: Point = {x: getX(), y: getY()}
+print(p, "\n")

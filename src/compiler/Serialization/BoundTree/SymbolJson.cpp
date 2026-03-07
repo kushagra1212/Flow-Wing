@@ -90,6 +90,9 @@ BoundTreeJson::getSymbolId(const analysis::ParameterSymbol *parameter_symbol) {
   parameter_symbol_json["type_id"] =
       getTypeId(parameter_symbol->getType().get());
 
+  parameter_symbol_json["has_default_value"] =
+      parameter_symbol->getDefaultValueExpression() != nullptr;
+
   const auto &parameter_symbol_id = getShortId(parameter_symbol);
 
   m_symbols_json[parameter_symbol_id] = parameter_symbol_json;

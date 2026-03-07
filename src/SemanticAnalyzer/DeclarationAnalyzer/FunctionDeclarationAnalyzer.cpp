@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DeclarationAnalyzer.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
@@ -26,8 +25,10 @@
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
+#include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -93,8 +94,14 @@ void analysis::DeclarationAnalyzer::visit(
         static_cast<syntax::FunctionReturnTypeExpressionSyntax *>(
             node->getReturnType().get()));
   } else {
-    return_types.push_back(std::make_shared<types::ReturnType>(
-        analysis::Builtins::m_nthg_type_instance));
+    auto inferred = inferReturnType(
+        static_cast<syntax::BlockStatementSyntax *>(node->getBody().get()));
+    if (inferred && !inferred->isNthg()) {
+      return_types.push_back(std::make_shared<types::ReturnType>(inferred));
+    } else {
+      return_types.push_back(std::make_shared<types::ReturnType>(
+          analysis::Builtins::m_nthg_type_instance));
+    }
   }
 
   auto function_type = std::make_shared<types::FunctionType>(
@@ -104,12 +111,20 @@ void analysis::DeclarationAnalyzer::visit(
   auto function_symbol =
       std::make_shared<analysis::FunctionSymbol>(function_name, function_type);
 
-  if (symbol_table->define(function_symbol)) {
+  if (!symbol_table->define(function_symbol)) {
     m_binder_context.reportError(
         diagnostic::DiagnosticCode::kFunctionAlreadyDeclared, {function_name},
         function_identifier->getSourceLocation());
     return;
   }
+}
+
+std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(
+    [[maybe_unused]] syntax::BlockStatementSyntax *body) {
+
+  auto result = m_binder_context.getTypeResolver()->resolveType(nullptr);
+
+  return result.first;
 }
 
 } // namespace flow_wing

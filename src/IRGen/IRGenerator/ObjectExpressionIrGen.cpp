@@ -75,7 +75,9 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
                         custom_object_type->getCustomTypeName());
       bool is_null_literal = llvm::isa<llvm::ConstantPointerNull>(val_to_store);
 
-      if (!custom_object_type->isObjectExpression() && !is_null_literal) {
+      if (!custom_object_type->isObjectExpression() && !is_null_literal &&
+          !llvm::isa<llvm::LoadInst>(val_to_store) &&
+          !llvm::isa<llvm::CallInst>(val_to_store)) {
 
         val_to_store = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
                                                ->getLLVMType(custom_object_type)

@@ -286,11 +286,16 @@ void AstJson::visit([[maybe_unused]] syntax::CallExpressionSyntax *node) {
 
   call_json["kind"] = syntax::toString(node->getKind());
 
-  auto argument_expressions = getListOfExpressions(
-      node->getArgumentExpression().get(), lexer::TokenKind::kCommaToken);
-  for (const auto &argument_expression : argument_expressions) {
-    argument_expression->accept(this);
-    call_json["argument_expressions"].push_back(std::move(m_last_node_json));
+  std::vector<syntax::ExpressionSyntax *> argument_expressions = {};
+
+  if (node->getArgumentExpression() != nullptr) {
+
+    argument_expressions = getListOfExpressions(
+        node->getArgumentExpression().get(), lexer::TokenKind::kCommaToken);
+    for (const auto &argument_expression : argument_expressions) {
+      argument_expression->accept(this);
+      call_json["argument_expressions"].push_back(std::move(m_last_node_json));
+    }
   }
 
   serializeChild(node->getIdentifier(), call_json, "identifier");
@@ -736,7 +741,8 @@ void AstJson::visit([[maybe_unused]] syntax::FunctionStatementSyntax *node) {
 
   serializeChild(node->getIdentifier(), function_statement_json, "identifier");
   serializeArray(node->getParameters(), function_statement_json, "parameters");
-  serializeChild(node->getReturnType(), function_statement_json, "return_type");
+
+  serializeChild(node->getReturnType(), function_statement_json, "returnType");
   serializeChild(node->getBody(), function_statement_json, "body");
   function_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(function_statement_json);
@@ -880,7 +886,7 @@ void AstJson::visit([[maybe_unused]] syntax::ReturnStatementSyntax *node) {
   nlohmann::json return_statement_json;
   return_statement_json["kind"] = syntax::toString(node->getKind());
   serializeChild(node->getReturnExpression(), return_statement_json,
-                 "return_expression");
+                 "returnExpression");
   return_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(return_statement_json);
 }

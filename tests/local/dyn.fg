@@ -1,6 +1,353 @@
-const MAX:int = 100
-{
-    var x:int = MAX + 1
-    println(x)
+fun test1(inout a) {
+  print("Hello",a)
+  a = "something"
+  return {a:2}
 }
-println(MAX)
+
+var a = 10
+println(a)
+var x = test1(a)
+println(a)
+
+
+/#
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  return a, 3.5*a
+}
+var a:int = 10
+var b:int = 30
+println(a)
+println(b)
+var j:str, x:int, y:deci= "something",test2(a,"hello2")
+println(a)
+println(j)
+println(b)
+println(x)
+println(y)
+OUTPUT:
+10
+30
+Hello World10hello2
+10
+something
+30
+10
+35
+
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  return a, 3.5*a
+}
+var a:int = 10
+var b:int = 30
+println(a)
+println(b)
+var x:int, y:deci= test2(a,"hello2")
+println(a)
+println(b)
+println(x)
+println(y)
+OUTPUT:
+10
+30
+Hello World10hello2
+10
+30
+10
+35
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  return a, 3.5*a
+}
+var a:int = 10
+var b:int = 30
+println(a)
+println(b)
+var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
+println(a)
+println(b)
+println(x)
+println(y)
+println(c)
+println(x1)
+println(y1)
+println(c1)
+OUTPUT:
+10
+30
+Hello World10hello2
+Hello World30hello3
+10
+30
+10
+35
+2.2
+30
+105
+0
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  return 1*a, 3.5*a
+}
+var a:int = 10
+var b:int = 30
+println(a)
+println(b)
+var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
+println(a)
+println(b)
+println(x)
+println(y)
+println(c)
+println(x1)
+println(y1)
+println(c1)
+OUTPUT:
+10
+30
+Hello World10hello2
+Hello World30hello3
+10
+30
+10
+35
+2.2
+30
+105
+0
+
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  a =20
+  println("Hello World",a,b)
+  return 1, 3.5
+}
+var a:int = 10
+var b:int = 33
+println(a)
+println(b)
+var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
+println(a)
+println(x)
+println(y)
+println(c)
+println(x1)
+println(y1)
+println(c1)
+OUTPUT:
+10
+33
+Hello World10hello2
+Hello World20hello2
+Hello World33hello3
+Hello World20hello3
+20
+1
+3.5
+2.2
+1
+3.5
+0
+
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  a =20
+  println("Hello World",a,b)
+  return 1, 3.5
+}
+var a:int = 10
+println(a)
+var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2")
+println(a)
+println(x)
+println(y)
+println(c)
+println(x1)
+println(y1)
+println(c1)
+OUTPUT:
+10
+Hello World10hello2
+Hello World20hello2
+20
+1
+3.5
+0
+0
+0
+0
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  a =20
+  println("Hello World",a,b)
+  return 1, 3.5
+}
+var a:int = 10
+println(a)
+var x:int, y:deci, c: deci32 = test2(a,"hello2")
+println(a)
+println(x)
+println(y)
+println(c)
+OUTPUT:
+10
+Hello World10hello2
+Hello World20hello2
+20
+1
+3.5
+0
+
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci{
+  println("Hello World",a,b)
+  a =20
+  println("Hello World",a,b)
+  return 1, 3.5
+}
+var a:int = 10
+println(a)
+var x:int, y:deci = test2(a,"hello2")
+println(a)
+println(x)
+println(y)
+OUTPUT:
+10
+Hello World10hello2
+Hello World20hello2
+20
+1
+3.5
+
+
+fun test2(inout a:int, b:str = "Hello") -> int{
+  println("Hello World",a,b)
+  a =20
+  return 1
+}
+var a:int = 10
+
+var x= test2(a,"hello2")
+println(a)
+println(x)
+OUTPUT:
+Hello World10hello2
+20
+1
+
+fun test2(inout a:int, b:str = "Hello") -> int{
+  println("Hello World",a,b)
+  a =20
+  return 1
+}
+var a:int = 10
+
+var x:int= test2(a,"hello2")
+println(a)
+println(x)
+OUTPUT:
+Hello World10hello2
+20
+1
+
+fun test2(inout a:int, b:str = "Hello") -> int, deci {
+  println("Hello World",a,b)
+  a =20
+  return 1,3.4
+}
+var a:int = 10
+
+test2(a,"hello2")
+println(a)
+OUTPUT:
+Hello World10hello2
+20
+
+fun test2(a:int, b:str = "Hello") -> int, deci {
+  println("Hello World",a,b)
+  a =20
+  return 1,3.4
+}
+var a:int = 10
+
+test2(a,"hello2")
+println(a)
+OUTPUT:
+Hello World10hello2
+10
+
+
+fun test2(a:int, b:str = "Hello") -> int, deci {
+  println("Hello World",a,b)
+  return 1,3.4
+}
+var a:int = 10
+
+test2(a,"hello2")
+
+fun test2(a:int, b:str = "Hello") -> int, deci {
+  println("Hello World",a,b)
+  return 1,3.4
+}
+
+test2(2,"hello")
+
+fun test2(a:int,b: str  = "Hello") -> int {
+  println("Hello World " + a)
+  return 1
+}
+
+test2(1)
+
+fun test2(a:int,b: str  = "Hello") -> int {
+  println("Hello World " + a)
+  return 1
+}
+
+test2(1)
+
+
+fun test2(a:int,b: str) -> int {
+  println("Hello World " + a)
+  return 1
+}
+
+test2(1,"hello")
+
+
+fun test2(a:int) -> int {
+  println("Hello World " + a)
+  return 1
+}
+
+test2(1)
+
+
+fun test2() -> int {
+  println("Hello World")
+  return 1
+}
+
+test2()
+OUTPUT:
+
+
+fun test2() {
+  println("Hello World")
+}
+
+test2()
+OUTPUT:

@@ -143,7 +143,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       auto symbol = id_expr->getSymbol();
 
       // Variable Check
-      if (symbol->getKind() != analysis::SymbolKind::kVariable) {
+      if (symbol->getKind() != analysis::SymbolKind::kVariable &&
+          symbol->getKind() != analysis::SymbolKind::kParameter) {
         auto error_expression = std::make_unique<BoundErrorExpression>(
             expression->getSourceLocation(),
             diagnostic::DiagnosticCode::kAssignmentToNonVariable,

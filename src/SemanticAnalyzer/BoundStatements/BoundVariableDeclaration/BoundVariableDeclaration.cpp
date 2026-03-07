@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,17 @@
 
 #include "BoundVariableDeclaration.h"
 #include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 namespace flow_wing {
 namespace binding {
 
 BoundVariableDeclaration::BoundVariableDeclaration(
     std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+    std::vector<std::unique_ptr<BoundExpression>> initializer_expressions,
     const flow_wing::diagnostic::SourceLocation &location)
-    : BoundDeclarationStatement(location), m_symbols(symbols) {}
+    : BoundDeclarationStatement(location), m_symbols(std::move(symbols)),
+      m_initializer_expressions(std::move(initializer_expressions)) {}
 
 NodeKind BoundVariableDeclaration::getKind() const {
   return NodeKind::kVariableDeclaration;
@@ -35,6 +38,11 @@ NodeKind BoundVariableDeclaration::getKind() const {
 const std::vector<std::shared_ptr<analysis::Symbol>> &
 BoundVariableDeclaration::getSymbols() const {
   return m_symbols;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundVariableDeclaration::getInitializerExpressions() const {
+  return m_initializer_expressions;
 }
 
 void BoundVariableDeclaration::accept(visitor::BoundTreeVisitor *visitor) {

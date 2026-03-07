@@ -19,8 +19,10 @@
 
 #include "DeclarationAnalyzer.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "src/syntax/statements/ExposeStatementSyntax/ExposeStatementSyntax.h"
 
 namespace flow_wing {
@@ -196,9 +198,6 @@ void analysis::DeclarationAnalyzer::visit(
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ContinueStatementSyntax *node) {}
-
-void analysis::DeclarationAnalyzer::visit(
-    [[maybe_unused]] syntax::CustomTypeStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::DefaultCaseStatementSyntax *node) {}

@@ -61,26 +61,33 @@ void GlobalDeclarationsInitializer::declareFunctions(
         auto llvm_function_type =
             m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
 
+        auto is_return_by_reference =
+            function_type->getReturnTypes()[0]->type_convention ==
+            types::TypeConvention::kFlowWing;
         auto llvm_function = llvm::Function::Create(
             llvm_function_type,
             function_type->isExternal() ? llvm::Function::ExternalLinkage
                                         : llvm::Function::InternalLinkage,
             function_symbol->getName(), m_ir_gen_context.getLLVMModule());
 
-        size_t arg_idx = 0;
-        for (auto &arg : llvm_function->args()) {
-          // Get the original FlowWing parameter type
-          auto param_fw_type =
-              function_type->getParameterTypes()[arg_idx]->type.get();
+        if (!is_return_by_reference) {
+          size_t arg_idx = 0;
+          for (auto &arg : llvm_function->args()) {
 
-          // Sign Extension (SExt) [Sign Extension is a way to convert a smaller
-          // integer type to a larger integer type while preserving the sign of
-          // the original value.]
-          if (param_fw_type == analysis::Builtins::m_int8_type_instance.get()) {
-            arg.addAttr(llvm::Attribute::SExt);
+            // Get the original FlowWing parameter type
+            auto param_fw_type =
+                function_type->getParameterTypes()[arg_idx]->type.get();
+
+            // Sign Extension (SExt) [Sign Extension is a way to convert a
+            // smaller integer type to a larger integer type while preserving
+            // the sign of the original value.]
+            if (param_fw_type ==
+                analysis::Builtins::m_int8_type_instance.get()) {
+              arg.addAttr(llvm::Attribute::SExt);
+            }
+
+            arg_idx++;
           }
-
-          arg_idx++;
         }
 
         CODEGEN_DEBUG_LOG("Declared Function: ", function_symbol->getName());
@@ -149,6 +156,9 @@ void GlobalDeclarationsInitializer::visit(
 }
 
 void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {}
+
+void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundNewExpression *new_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
@@ -158,8 +168,6 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundCustomTypeStatement *custom_type_statement) {
 }
-void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundFunctionStatement *function_statement) {}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundIfStatement *if_statement) {}
 void GlobalDeclarationsInitializer::visit(

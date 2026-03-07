@@ -27,10 +27,12 @@ namespace types {
 
 CustomObjectType::CustomObjectType(
     const std::string &custom_type_name,
-    const std::map<std::string, std::shared_ptr<Type>> &field_types_map)
+    const std::map<std::string, std::shared_ptr<Type>> &field_types_map,
+    bool is_pre_declared)
     : Type(custom_type_name, TypeKind::kObject),
       m_custom_type_name(custom_type_name),
-      m_field_types_map(std::move(field_types_map)) {}
+      m_field_types_map(std::move(field_types_map)),
+      m_is_pre_declared(is_pre_declared) {}
 
 bool CustomObjectType::operator==(const Type &other) const {
   // if (other.isNirast()) {
@@ -78,6 +80,8 @@ bool CustomObjectType::isObjectExpression() const {
   return m_custom_type_name == "object_expression";
 }
 
+bool CustomObjectType::isPreDeclared() const { return m_is_pre_declared; }
+
 bool CustomObjectType::operator<=(const Type &other) const {
 
   // if (other.isNirast()) {
@@ -115,6 +119,10 @@ void CustomObjectType::setFieldTypesMap(
     std::map<std::string, std::shared_ptr<Type>> field_types_map) {
   m_field_types_map = std::move(field_types_map);
   m_name = buildCustomObjectTypeName(m_custom_type_name, m_field_types_map);
+}
+
+void CustomObjectType::setPreDeclared(bool is_pre_declared) {
+  m_is_pre_declared = is_pre_declared;
 }
 
 std::string CustomObjectType::buildCustomObjectTypeName(

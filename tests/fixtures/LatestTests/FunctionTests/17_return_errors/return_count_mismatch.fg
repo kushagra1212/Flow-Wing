@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: InvalidNumberOfReturnExpressions
+fun getTwo() -> int {
+  return 1, 2
+}
+
+var x: int = getTwo()

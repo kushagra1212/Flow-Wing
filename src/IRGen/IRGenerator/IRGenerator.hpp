@@ -221,7 +221,10 @@ private:
   uint32_t getRuntimeOpCode(lexer::TokenKind kind);
 
   // CallExpression Handlers
-  void dispatchBuiltinFunction(binding::BoundCallExpression *call_expression);
+  void
+  dispatchBuiltinFunctionCall(binding::BoundCallExpression *call_expression);
+  void dispatchUserDefinedOrExternalFunctionCall(
+      binding::BoundCallExpression *call_expression);
   void emitRecursivePrint(llvm::Value *value, types::Type *type,
                           bool is_nested);
   void emitPrint(binding::BoundCallExpression *call_expression);
