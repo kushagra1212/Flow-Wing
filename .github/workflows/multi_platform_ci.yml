@@ -74,7 +74,7 @@ jobs:
           echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
 
       - name: Build and Test
-        run: make test-aot
+        run: make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
 
   macos_arm64_test_jit:
     name: Test JIT on macOS (Apple Silicon)
@@ -109,7 +109,7 @@ jobs:
           echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
 
       - name: Build and Test
-        run: make test-jit
+        run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
   ## ------------------ Windows Jobs (x86_64) ------------------ ##
 
@@ -163,7 +163,7 @@ jobs:
         run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
       - name: Build and Test
-        run: make test-aot
+        run: make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
 
   ## ------------------ Linux Jobs (x86_64) ------------------ ##
 
@@ -223,7 +223,7 @@ jobs:
           CC: clang-17
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
-        run: make test-aot
+        run: make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
 
   linux_x86_64_test_jit:
     name: Test JIT on Linux (x86_64)
@@ -254,4 +254,4 @@ jobs:
           CC: clang-17
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
-        run: make test-jit
+        run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"

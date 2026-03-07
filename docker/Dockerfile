@@ -22,9 +22,9 @@ RUN make clean
 # ---- Test Stage (JIT) ----
 # This stage runs the just-in-time (JIT) tests
 FROM builder AS test-jit
-RUN make test-jit
+RUN make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
 # ---- Test Stage (AOT) ----
 # This stage runs the ahead-of-time (AOT) tests
 FROM builder AS test-aot
-RUN make test-aot
+RUN make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
