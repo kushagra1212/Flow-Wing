@@ -1,0 +1,6 @@
+type Obj_int8_r = { v: int8 }
+fun get_r_int8() -> Obj_int8_r[3] { return [{v: 1}, {v: 2}, {v: 3}] }
+var a: Obj_int8_r[3] = get_r_int8()
+println(a[0].v)
+println(a[1].v)
+println(a[2].v)

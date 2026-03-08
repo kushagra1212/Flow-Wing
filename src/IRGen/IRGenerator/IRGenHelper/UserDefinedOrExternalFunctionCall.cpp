@@ -49,9 +49,8 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
 
   llvm::StructType *return_struct_type =
       m_ir_gen_context.getTypeBuilder()->createOrGetStructType(return_types);
-
   llvm::Value *return_slot =
-      builder->CreateAlloca(return_struct_type, nullptr, "ret_slot");
+      m_ir_gen_context.createAlloca(return_struct_type, "ret_slot");
 
   std::vector<llvm::Value *> llvm_args = {};
 

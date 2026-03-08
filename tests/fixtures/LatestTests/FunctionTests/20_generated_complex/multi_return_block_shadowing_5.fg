@@ -1,0 +1,14 @@
+
+fun getMulti_5() -> int, str {
+    return 5, "test5"
+}
+
+var x: int = 999
+var y: str = "outer"
+{
+    var x: int, y: str = getMulti_5()
+    println(x)
+    println(y)
+}
+println(x)
+println(y)

@@ -150,8 +150,21 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
         // Loading variable
         auto expected_llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
-        final_heap_ptr = builder->CreateLoad(expected_llvm_type->getPointerTo(),
-                                             source_raw_value, "load_var");
+
+        if (auto *src_alloca =
+                llvm::dyn_cast<llvm::AllocaInst>(source_raw_value)) {
+          if (!src_alloca->getAllocatedType()->isPointerTy()) {
+            final_heap_ptr = source_raw_value; // inline — addr IS the data ✓
+          } else {
+            final_heap_ptr =
+                builder->CreateLoad(expected_llvm_type->getPointerTo(),
+                                    source_raw_value, "load_var");
+          }
+        } else {
+          // GlobalVariable — always a pointer slot
+          final_heap_ptr = builder->CreateLoad(
+              expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+        }
 
       } else if (llvm::isa<llvm::GEPOperator>(source_raw_value)) {
 

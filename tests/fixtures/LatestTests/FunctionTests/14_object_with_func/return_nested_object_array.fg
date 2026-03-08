@@ -1,0 +1,29 @@
+type Point = { x: int, y: int }
+type Path = { points: Point[2], id: str }
+
+var myPath: Path = {
+  points: [{x: 10, y: 20}, {x: 30, y: 40}],
+  id: "path1"
+}
+
+fun getPath() -> Path {
+  return myPath
+}
+
+fun getPaths() -> Path[2] {
+  var p2: Path = {
+    points: [{x: 5, y: 15}, {x: 25, y: 35}],
+    id: "path2"
+  }
+  var paths: Path[2] = [myPath, p2]
+  return paths
+}
+
+var p: Path = getPath()
+println(p.id)
+println(p.points[0].x)
+println(p.points[1].y)
+
+var ps: Path[2] = getPaths()
+println(ps[0].id)
+println(ps[1].points[0].x)

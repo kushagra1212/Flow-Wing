@@ -1,0 +1,5 @@
+type Obj_int_i = { v: int }
+fun get_i_int() -> Obj_int_i[3] { return [{v: 10}, {v: 20}, {v: 30}] }
+println(get_i_int()[0].v)
+println(get_i_int()[1].v)
+println(get_i_int()[2].v)

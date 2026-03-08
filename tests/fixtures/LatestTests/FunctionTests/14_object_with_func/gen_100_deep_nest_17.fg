@@ -1,0 +1,10 @@
+type L3_17 = { c: int }
+type L2_17 = { b: L3_17[2] }
+type L1_17 = { a: L2_17 }
+fun build_dn_17() -> L1_17[2] {
+  var l2_0: L2_17 = { b: [{c: 17}, {c: 34}] }
+  var l2_1: L2_17 = { b: [{c: 51}, {c: 68}] }
+  return [{a: l2_0}, {a: l2_1}]
+}
+println(build_dn_17()[0].a.b[1].c)
+println(build_dn_17()[1].a.b[0].c)

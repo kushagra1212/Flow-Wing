@@ -1,0 +1,11 @@
+
+fun printVal(val: str) {
+    println(val)
+}
+
+var a: str = "AA"
+{
+    var a: str = "BB"
+    printVal(a)
+}
+printVal(a)

@@ -1,0 +1,8 @@
+
+type Obj_2_3 = { val: str }
+fun getObjs() -> Obj_2_3[5] {
+    var res: Obj_2_3[5] = [{val: "str_0"}, {val: "str_1"}, {val: "str_2"}, {val: "str_3"}, {val: "str_4"}]
+    return res
+}
+
+println(getObjs()[4].val)

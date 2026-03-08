@@ -1,0 +1,8 @@
+
+type Obj_8_1 = { val: deci }
+fun getObjs() -> Obj_8_1[5] {
+    var res: Obj_8_1[5] = [{val: 8.0}, {val: 9.5}, {val: 11.0}, {val: 12.5}, {val: 14.0}]
+    return res
+}
+
+println(getObjs()[4].val)

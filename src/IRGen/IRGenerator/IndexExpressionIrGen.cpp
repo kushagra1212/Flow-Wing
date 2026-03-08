@@ -42,6 +42,18 @@ void IRGenerator::visit(
       left_ptr = m_last_value;
     }
   }
+
+  if (!left_ptr) {
+    if (auto *load = llvm::dyn_cast<llvm::LoadInst>(m_last_value)) {
+      if (load->getType()->isArrayTy()) {
+        auto *spill =
+            m_ir_gen_context.createAlloca(load->getType(), "arr_spill");
+        m_ir_gen_context.getLLVMBuilder()->CreateStore(load, spill);
+        left_ptr = spill;
+      }
+    }
+  }
+
   if (!left_ptr) {
     left_ptr = resolvePtr(m_last_value, m_last_type);
   }

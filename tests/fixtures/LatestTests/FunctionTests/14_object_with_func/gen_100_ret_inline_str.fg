@@ -1,0 +1,5 @@
+type Obj_str_i = { v: str }
+fun get_i_str() -> Obj_str_i[3] { return [{v: "Hello"}, {v: "World"}, {v: "Flow"}] }
+println(get_i_str()[0].v)
+println(get_i_str()[1].v)
+println(get_i_str()[2].v)

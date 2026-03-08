@@ -1,0 +1,8 @@
+type O1_int_m = { v: int }
+type O2_str_m = { v: str }
+fun get_m_int_str() -> O1_int_m[2], O2_str_m[2] {
+  return [{v: 10}, {v: 10}], [{v: "World"}, {v: "World"}]
+}
+var r1_int_str: O1_int_m[2], r2_int_str: O2_str_m[2] = get_m_int_str()
+println(r1_int_str[1].v)
+println(r2_int_str[0].v)

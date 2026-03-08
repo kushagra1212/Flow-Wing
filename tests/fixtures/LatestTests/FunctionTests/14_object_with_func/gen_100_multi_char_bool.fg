@@ -1,0 +1,8 @@
+type O1_char_m = { v: char }
+type O2_bool_m = { v: bool }
+fun get_m_char_bool() -> O1_char_m[2], O2_bool_m[2] {
+  return [{v: 'A'}, {v: 'A'}], [{v: false}, {v: false}]
+}
+var r1_char_bool: O1_char_m[2], r2_char_bool: O2_bool_m[2] = get_m_char_bool()
+println(r1_char_bool[1].v)
+println(r2_char_bool[0].v)

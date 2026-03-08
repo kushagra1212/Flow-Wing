@@ -1,0 +1,13 @@
+type P_8 = { x: int, y: int }
+type Shape_8 = { pts: P_8[2], id: int }
+fun mod_8(inout s: Shape_8[2]) {
+  s[0].pts[0].x = 80
+  s[1].id = 800
+}
+var shapes_8: Shape_8[2] = [
+  {pts: [{x: 0, y: 1}, {x: 2, y: 3}], id: 1},
+  {pts: [{x: 4, y: 5}, {x: 6, y: 7}], id: 2}
+]
+mod_8(shapes_8)
+println(shapes_8[0].pts[0].x)
+println(shapes_8[1].id)

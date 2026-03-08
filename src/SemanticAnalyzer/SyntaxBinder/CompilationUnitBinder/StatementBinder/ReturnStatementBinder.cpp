@@ -36,6 +36,7 @@
 #include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include <cassert>
+#include <memory>
 
 namespace flow_wing {
 namespace binding {
@@ -66,6 +67,13 @@ StatementBinder::bindReturnStatement(syntax::ReturnStatementSyntax *statement) {
 
     return_expressions = m_expression_binder->bindExpressionList(
         return_statement->getReturnExpression().get());
+
+    for (auto &return_expression : return_expressions) {
+      if (return_expression->getKind() == NodeKind::kErrorExpression) {
+        return std::make_unique<BoundErrorStatement>(
+            std::move(return_expression));
+      }
+    }
   }
 
   auto function_type = static_cast<types::FunctionType *>(

@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.hpp"
@@ -42,7 +40,14 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
   if (return_expressions.size() == 1) {
     return_expressions[0]->accept(this);
     auto *target_type = function_type->getReturnTypes()[0]->type.get();
-    llvm::Value *val = resolveValue(m_last_value, m_last_type);
+
+    llvm::Value *val;
+    if (target_type->getKind() == types::TypeKind::kObject ||
+        target_type->getKind() == types::TypeKind::kArray) {
+      val = m_last_value;
+    } else {
+      val = resolveValue(m_last_value, m_last_type);
+    }
     emitTypedStore(return_ptr, target_type, val, m_last_type);
     clearLast();
 
@@ -65,7 +70,13 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
 
     for (size_t i = 0; i < return_values.size(); i++) {
 
-      llvm::Value *val = resolveValue(return_values[i], return_types[i]);
+      llvm::Value *val;
+      if (target_types[i]->getKind() == types::TypeKind::kObject ||
+          target_types[i]->getKind() == types::TypeKind::kArray) {
+        val = return_values[i];
+      } else {
+        val = resolveValue(return_values[i], return_types[i]);
+      }
 
       auto *field_ptr = builder->CreateStructGEP(
           return_struct_type, return_ptr, static_cast<unsigned int>(i),

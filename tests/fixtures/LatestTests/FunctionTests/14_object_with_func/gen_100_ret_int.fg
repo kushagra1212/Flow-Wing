@@ -1,0 +1,6 @@
+type Obj_int_r = { v: int }
+fun get_r_int() -> Obj_int_r[3] { return [{v: 10}, {v: 20}, {v: 30}] }
+var a: Obj_int_r[3] = get_r_int()
+println(a[0].v)
+println(a[1].v)
+println(a[2].v)

@@ -1,0 +1,11 @@
+
+fun printVal(val: deci) {
+    println(val)
+}
+
+var a: deci = 1.5
+{
+    var a: deci = 2.5
+    printVal(a)
+}
+printVal(a)

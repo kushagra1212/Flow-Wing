@@ -1,0 +1,23 @@
+type Record = {
+  active: bool,
+  letter: char,
+  score: deci,
+  name: str
+}
+
+fun getRecords() -> Record[2] {
+  var r1: Record = { active: true, letter: 'A', score: 99.5, name: "Alice" }
+  var r2: Record = { active: false, letter: 'Z', score: 10.1, name: "Zack" }
+  return [r1, r2]
+}
+
+var recs: Record[2] = getRecords()
+println(recs[0].active)
+println(recs[0].letter)
+println(recs[0].score)
+println(recs[0].name)
+
+println(recs[1].active)
+println(recs[1].letter)
+println(recs[1].score)
+println(recs[1].name)

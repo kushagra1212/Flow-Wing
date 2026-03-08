@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <string>
+#include <variant>
 #include <vector>
 namespace flow_wing {
 namespace diagnostic {

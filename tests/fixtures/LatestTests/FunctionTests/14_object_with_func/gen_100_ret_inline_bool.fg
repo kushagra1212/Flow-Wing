@@ -1,0 +1,5 @@
+type Obj_bool_i = { v: bool }
+fun get_i_bool() -> Obj_bool_i[3] { return [{v: true}, {v: false}, {v: true}] }
+println(get_i_bool()[0].v)
+println(get_i_bool()[1].v)
+println(get_i_bool()[2].v)

@@ -146,15 +146,15 @@ llvm::BasicBlock *IRGenContext::createBlock(const std::string &name) {
 llvm::AllocaInst *IRGenContext::createAlloca(llvm::Type *type,
                                              const std::string &varName) {
   llvm::Function *fn = getCurrentFunction();
-  llvm::IRBuilder<> temp_builder(&fn->getEntryBlock(),
-                                 fn->getEntryBlock().begin());
+  llvm::BasicBlock::iterator insert_pt =
+      fn->getEntryBlock().getFirstInsertionPt();
 
-  // Optional: If you want to be extra safe about not breaking existing IR:
-  if (!fn->getEntryBlock().empty()) {
-    temp_builder.SetInsertPoint(&fn->getEntryBlock(),
-                                fn->getEntryBlock().getFirstInsertionPt());
+  while (insert_pt != fn->getEntryBlock().end() &&
+         llvm::isa<llvm::AllocaInst>(*insert_pt)) {
+    ++insert_pt;
   }
 
+  llvm::IRBuilder<> temp_builder(&fn->getEntryBlock(), insert_pt);
   return temp_builder.CreateAlloca(type, nullptr, varName);
 }
 

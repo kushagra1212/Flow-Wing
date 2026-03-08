@@ -1,0 +1,21 @@
+type Box = {
+  matrix: int[2][2],
+  name: str
+}
+
+fun createBox(n: str, val: int) -> Box {
+  var b: Box = {
+    matrix: [[val, val + 1], [val + 2, val + 3]],
+    name: n
+  }
+  return b
+}
+
+var box1: Box = createBox("boxA", 10)
+println(box1.name)
+println(box1.matrix[0][1])
+println(box1.matrix[1][0])
+
+var box2:Box = createBox("boxB", 100)
+println(box2.name)
+println(box2.matrix[1][1])

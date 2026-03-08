@@ -38,6 +38,7 @@ public:
   NodeKind getKind() const override;
   flow_wing::diagnostic::DiagnosticCode getCode() const;
   const std::vector<flow_wing::diagnostic::DiagnosticArg> &getArgs() const;
+
   void accept(visitor::BoundTreeVisitor *visitor) override;
 
 private:

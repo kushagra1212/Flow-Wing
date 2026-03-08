@@ -31,6 +31,7 @@
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 #include <cassert>
+#include <cstdint>
 
 namespace flow_wing {
 namespace binding {
@@ -125,16 +126,46 @@ std::unique_ptr<BoundExpression> BinderContext::createDefaultValueExpression(
   }
 
   if (type->getKind() == types::TypeKind::kArray) {
-    auto array_type = static_cast<types::ArrayType *>(type);
-    auto default_value_expression = BinderContext::createDefaultValueExpression(
-        array_type->getUnderlyingType().get(), location);
+    auto *array_type = static_cast<types::ArrayType *>(type);
+    const auto &dims = array_type->getDimensions();
+
+    types::Type *leaf_type = array_type->getUnderlyingType().get();
+    while (leaf_type->getKind() == types::TypeKind::kArray) {
+      leaf_type =
+          static_cast<types::ArrayType *>(leaf_type)->getUnderlyingType().get();
+    }
+
+    types::Type *leaf_default_type =
+        (leaf_type->getKind() == types::TypeKind::kObject)
+            ? analysis::Builtins::m_nirast_type_instance.get()
+            : leaf_type;
+
+    size_t total = 1;
+    for (auto d : dims)
+      total *= d;
 
     std::vector<std::unique_ptr<BoundContainerExpressionElement>> elements;
 
-    elements.push_back(std::make_unique<BoundContainerExpressionElement>(
-        std::move(default_value_expression)));
+    for (size_t flat = 0; flat < total; flat++) {
+      auto default_val =
+          createDefaultValueExpression(leaf_default_type, location);
+      auto elem = std::make_unique<BoundContainerExpressionElement>(
+          std::move(default_val));
 
-    elements[0]->addIndex(0);
+      // Decompose flat index → [outer ... inner] indices
+      std::vector<size_t> idx_vec(dims.size());
+      size_t remaining = flat;
+      for (int64_t d = static_cast<int64_t>(dims.size()) - 1; d >= 0; d--) {
+        idx_vec[static_cast<size_t>(d)] =
+            remaining % dims[static_cast<size_t>(d)];
+        remaining /= dims[static_cast<size_t>(d)];
+      }
+      for (size_t idx : idx_vec) {
+        elem->addIndex(idx);
+      }
+
+      elements.push_back(std::move(elem));
+    }
 
     return std::make_unique<BoundContainerExpression>(
         std::move(elements),

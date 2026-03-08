@@ -26,6 +26,9 @@ namespace flow_wing {
 namespace binding {
 
 std::shared_ptr<types::Type> BoundExpression::getType() const {
+  std::cerr
+      << "FATAL: BoundExpression::getType() is not implemented for class: "
+      << typeid(*this).name() << "\n";
   assert(false && "BoundExpression::getType() is not implemented");
   return nullptr;
 }

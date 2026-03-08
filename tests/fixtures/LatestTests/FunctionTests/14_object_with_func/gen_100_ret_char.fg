@@ -1,0 +1,6 @@
+type Obj_char_r = { v: char }
+fun get_r_char() -> Obj_char_r[3] { return [{v: 'A'}, {v: 'B'}, {v: 'C'}] }
+var a: Obj_char_r[3] = get_r_char()
+println(a[0].v)
+println(a[1].v)
+println(a[2].v)

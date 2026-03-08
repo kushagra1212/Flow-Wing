@@ -83,8 +83,8 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
           m_ir_gen_context.getLLVMModule()->getDataLayout();
 
       if (param_raw_type->getKind() == types::TypeKind::kObject) {
-        local_copy = builder->CreateAlloca(builder->getPtrTy(), nullptr,
-                                           param_name + "_local");
+        local_copy = m_ir_gen_context.createAlloca(builder->getPtrTy(),
+                                                   param_name + "_local");
         llvm::Align alignment =
             data_layout.getABITypeAlign(builder->getPtrTy());
         uint64_t type_size = data_layout.getTypeAllocSize(builder->getPtrTy());
@@ -92,8 +92,8 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
                               arg_value, llvm::MaybeAlign(alignment),
                               type_size);
       } else {
-        local_copy = builder->CreateAlloca(llvm_param_type, nullptr,
-                                           param_name + "_local");
+        local_copy = m_ir_gen_context.createAlloca(llvm_param_type,
+                                                   param_name + "_local");
         llvm::Align alignment = data_layout.getABITypeAlign(llvm_param_type);
         uint64_t type_size = data_layout.getTypeAllocSize(llvm_param_type);
         builder->CreateMemCpy(local_copy, llvm::MaybeAlign(alignment),

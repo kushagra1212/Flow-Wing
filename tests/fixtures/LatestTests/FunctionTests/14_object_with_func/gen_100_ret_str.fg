@@ -1,0 +1,6 @@
+type Obj_str_r = { v: str }
+fun get_r_str() -> Obj_str_r[3] { return [{v: "Hello"}, {v: "World"}, {v: "Flow"}] }
+var a: Obj_str_r[3] = get_r_str()
+println(a[0].v)
+println(a[1].v)
+println(a[2].v)

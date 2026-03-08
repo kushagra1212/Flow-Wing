@@ -1,0 +1,13 @@
+type GlobObj_13 = { x: int, y: int }
+var g_arr_13: GlobObj_13[3] = [{x: 13, y: 14}, {x: 15, y: 16}, {x: 17, y: 18}]
+fun fetchGlobal_13() -> GlobObj_13[3] {
+  return g_arr_13
+}
+fun fetchGlobalElem_13() -> GlobObj_13 {
+  return g_arr_13[0]
+}
+var fetched_13: GlobObj_13[3] = fetchGlobal_13()
+println(fetched_13[2].x)
+println(fetched_13[1].y)
+var elem_13: GlobObj_13 = fetchGlobalElem_13()
+println(elem_13.x)

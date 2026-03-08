@@ -1,0 +1,8 @@
+
+type Obj_2_2 = { val: bool }
+fun getObjs() -> Obj_2_2[5] {
+    var res: Obj_2_2[5] = [{val: true}, {val: false}, {val: false}, {val: false}, {val: false}]
+    return res
+}
+
+println(getObjs()[4].val)

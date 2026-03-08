@@ -1,0 +1,13 @@
+type A = { a: int }
+type B = { b: str }
+
+fun getBoth() -> A[2], B[2] {
+  var a_arr: A[2] = [{a: 1}, {a: 2}]
+  var b_arr: B[2] = [{b: "one"}, {b: "two"}]
+  return a_arr, b_arr
+}
+
+var arrA: A[2], arrB: B[2] = getBoth()
+
+println(arrA[1].a)
+println(arrB[0].b)

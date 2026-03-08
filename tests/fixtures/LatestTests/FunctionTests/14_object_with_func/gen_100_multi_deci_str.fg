@@ -1,0 +1,8 @@
+type O1_deci_m = { v: deci }
+type O2_str_m = { v: str }
+fun get_m_deci_str() -> O1_deci_m[2], O2_str_m[2] {
+  return [{v: 10.5}, {v: 10.5}], [{v: "World"}, {v: "World"}]
+}
+var r1_deci_str: O1_deci_m[2], r2_deci_str: O2_str_m[2] = get_m_deci_str()
+println(r1_deci_str[1].v)
+println(r2_deci_str[0].v)
