@@ -117,15 +117,25 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
     bool is_target_slice = llvm::isa<llvm::GEPOperator>(target_addr);
 
     if (is_target_slice) {
-      // --- TARGET IS A SLICE (e.g., x[1] = ...) ---
       llvm::Value *src_ptr_for_copy = source_raw_value;
 
       if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
           llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
         auto expected_llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
-        src_ptr_for_copy = builder->CreateLoad(
-            expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+        if (auto *src_alloca =
+                llvm::dyn_cast<llvm::AllocaInst>(source_raw_value)) {
+          if (!src_alloca->getAllocatedType()->isPointerTy()) {
+            src_ptr_for_copy = source_raw_value;
+          } else {
+            src_ptr_for_copy =
+                builder->CreateLoad(expected_llvm_type->getPointerTo(),
+                                    source_raw_value, "load_var");
+          }
+        } else {
+          src_ptr_for_copy = builder->CreateLoad(
+              expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+        }
       }
 
       emitArrayCopy(target_addr, dest_array_type, src_ptr_for_copy,
@@ -215,8 +225,20 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
           llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
         auto expected_llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
-        src_ptr_for_copy = builder->CreateLoad(
-            expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+        if (auto *src_alloca =
+                llvm::dyn_cast<llvm::AllocaInst>(source_raw_value)) {
+          if (!src_alloca->getAllocatedType()->isPointerTy()) {
+            src_ptr_for_copy = source_raw_value; // inline — addr IS the data
+          } else {
+            src_ptr_for_copy =
+                builder->CreateLoad(expected_llvm_type->getPointerTo(),
+                                    source_raw_value, "load_var");
+          }
+        } else {
+          // GlobalVariable — always a pointer slot
+          src_ptr_for_copy = builder->CreateLoad(
+              expected_llvm_type->getPointerTo(), source_raw_value, "load_var");
+        }
       }
 
       emitArrayCopy(target_addr, dest_array_type, src_ptr_for_copy,

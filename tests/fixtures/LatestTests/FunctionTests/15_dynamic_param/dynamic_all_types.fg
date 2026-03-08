@@ -1,0 +1,25 @@
+fun test_all_types(inout i, inout d, inout s, inout b, inout c) {
+    println(i)
+    println(d)
+    println(s)
+    println(b)
+    println(c)
+    i = 42
+    d = 3.14
+    s = "changed"
+    b = false
+    c = 'z'
+}
+
+var v_i = 10
+var v_d = 1.23
+var v_s = "original"
+var v_b = true
+var v_c = 'a'
+
+test_all_types(v_i, v_d, v_s, v_b, v_c)
+println(v_i)
+println(v_d)
+println(v_s)
+println(v_b)
+println(v_c)

@@ -1,0 +1,21 @@
+type Point = {x: int, y: int}
+type Path = {points: Point[2]}
+
+fun createPath(p1: Point, p2: Point) -> Path {
+    var arr: Point[2] = [p1, p2]
+    var path: Path = {points: arr}
+    return path
+}
+
+fun getFirstPointX(path: Path) -> int {
+    return path.points[0].x
+}
+
+var start: Point = {x: 10, y: 20}
+var end: Point = {x: 30, y: 40}
+
+var myPath: Path = createPath(start, end)
+println("Path second y: ", myPath.points[1].y)
+
+var xVal = getFirstPointX(createPath(start, end))
+println("Direct access x: ", xVal)

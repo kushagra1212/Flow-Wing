@@ -37,7 +37,6 @@ void IRGenerator::visit(
   auto *llvm_obj_type_check = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(object_type));
   if (auto *gep_inst = llvm::dyn_cast<llvm::GetElementPtrInst>(object_value)) {
-    // The result type of the GEP is the element type it points to.
     if (gep_inst->getResultElementType() == llvm_obj_type_check) {
       is_inline_struct_ptr = true;
     }
@@ -45,6 +44,10 @@ void IRGenerator::visit(
     if (gep_op->getResultElementType() == llvm_obj_type_check) {
       is_inline_struct_ptr = true;
     }
+  } else if (llvm::isa<llvm::LoadInst>(object_value) ||
+             llvm::isa<llvm::CallInst>(object_value) ||
+             llvm::isa<llvm::BitCastInst>(object_value)) {
+    is_inline_struct_ptr = true;
   }
 
   if (!is_inline_struct_ptr) {

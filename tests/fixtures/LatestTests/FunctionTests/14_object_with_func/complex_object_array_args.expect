@@ -1,0 +1,4 @@
+Shape: Original
+First point: 1, 2
+After printShape: ModifiedCopy 99
+After modifyShape: ModifiedRef 100

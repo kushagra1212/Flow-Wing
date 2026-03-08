@@ -1,16 +1,32 @@
-type T = {
-  a: int
+type Person = {
+  name: str
+  age: int
 }
 
-fun modifyCopy(d: T) -> T {
-  d.a = 21
-  return d
+fun getPerson() -> Person {
+    var p: Person = {
+        name: "John",
+        age: 30
+    }
+    return p
 }
 
-var b: T = {a: 10}
-var d: T = modifyCopy(b)
-println(b.a)
-println(d.a)
+println(getPerson().name)
+println(getPerson().age)
+
+var pAge = getPerson().age
+println(pAge)
+
+var p2: Person = getPerson()
+println(p2.name)
+
+p2.name = "Jane"
+println(p2.name)
+
+var p3: Person = getPerson()
+p3.age = getPerson().age + 10
+println(p3.age)
+
 
 /#
 fun test2(inout a:int, b:str = "Hello") -> int, deci{

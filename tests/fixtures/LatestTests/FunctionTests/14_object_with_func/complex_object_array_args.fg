@@ -1,0 +1,25 @@
+type Point = {x: int, y: int}
+type Shape = {points: Point[2], name: str}
+
+fun printShape(s: Shape) {
+    println("Shape: ", s.name)
+    println("First point: ", s.points[0].x, ", ", s.points[0].y)
+    s.name = "ModifiedCopy"
+    s.points[0].x = 99
+}
+
+fun modifyShape(inout s: Shape) {
+    s.name = "ModifiedRef"
+    s.points[1].y = 100
+}
+
+var p1: Point = {x: 1, y: 2}
+var p2: Point = {x: 3, y: 4}
+var arr: Point[2] = [p1, p2]
+var myShape: Shape = {points: arr, name: "Original"}
+
+printShape(myShape)
+println("After printShape: ", myShape.name, " ", myShape.points[0].x)
+
+modifyShape(myShape)
+println("After modifyShape: ", myShape.name, " ", myShape.points[1].y)
