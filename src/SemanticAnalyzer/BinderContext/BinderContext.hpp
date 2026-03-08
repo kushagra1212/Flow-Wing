@@ -4,6 +4,7 @@
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 namespace flow_wing {
 

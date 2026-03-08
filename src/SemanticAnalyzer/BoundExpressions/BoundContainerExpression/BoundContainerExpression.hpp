@@ -23,6 +23,7 @@
 #include "src/common/types/ArrayType/ArrayType.hpp"
 
 #include <deque>
+#include <memory>
 namespace flow_wing {
 namespace binding {
 

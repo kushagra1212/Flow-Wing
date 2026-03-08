@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include <memory>
 
 namespace flow_wing {
 

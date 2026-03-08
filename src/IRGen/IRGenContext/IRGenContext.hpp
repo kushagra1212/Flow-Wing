@@ -12,6 +12,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include <vector>
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
+#include <memory>
 // clang-format on
 
 namespace flow_wing {

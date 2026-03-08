@@ -4,6 +4,7 @@
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include <any>
+#include <memory>
 
 namespace flow_wing {
 namespace binding {

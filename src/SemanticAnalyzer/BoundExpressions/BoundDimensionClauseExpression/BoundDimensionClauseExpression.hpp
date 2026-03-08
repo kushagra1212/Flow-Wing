@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include <vector>
+#include <memory>
 namespace flow_wing {
 namespace binding {
 

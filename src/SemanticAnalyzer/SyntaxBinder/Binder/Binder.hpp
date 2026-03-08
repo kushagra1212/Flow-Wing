@@ -2,6 +2,7 @@
 
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
+#include <memory>
 
 namespace flow_wing {
 namespace binding {

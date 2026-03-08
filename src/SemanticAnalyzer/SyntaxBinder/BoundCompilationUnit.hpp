@@ -4,6 +4,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include <vector>
+#include <memory>
 
 namespace flow_wing {
 namespace binding {

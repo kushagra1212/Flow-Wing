@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
+#include <memory>
 
 namespace flow_wing {
 namespace binding {

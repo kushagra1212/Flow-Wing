@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include <vector>
+#include <memory>
 
 namespace flow_wing {
 namespace binding {

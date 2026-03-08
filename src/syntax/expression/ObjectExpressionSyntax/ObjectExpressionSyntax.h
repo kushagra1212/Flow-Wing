@@ -21,6 +21,7 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include <memory>
 
 namespace flow_wing {
 namespace syntax {

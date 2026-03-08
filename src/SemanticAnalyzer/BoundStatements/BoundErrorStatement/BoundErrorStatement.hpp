@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
+#include <memory>
 namespace flow_wing {
 namespace binding {
 

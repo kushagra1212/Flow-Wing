@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include <memory>
 
 namespace flow_wing {
 

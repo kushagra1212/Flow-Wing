@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "src/common/Common.h"
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/interpreter/Interpreter.h"
+#include <memory>
 
 class Repl {
 public:

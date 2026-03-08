@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include <memory>
 namespace flow_wing {
 namespace binding {
 
