@@ -34,8 +34,7 @@ jobs:
         run: |
           echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
       - name: Install Dependencies
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
@@ -70,8 +69,7 @@ jobs:
         run: |
           echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
       - name: Build and Test
         run: make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
@@ -105,8 +103,7 @@ jobs:
         run: |
           echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
       - name: Build and Test
         run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
