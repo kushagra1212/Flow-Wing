@@ -1,0 +1,10 @@
+fun trunc(d: deci) -> int {
+  return 0
+}
+
+fun round(d: deci) -> int {
+  return 1
+}
+
+println(trunc(3.7))
+println(round(3.2))

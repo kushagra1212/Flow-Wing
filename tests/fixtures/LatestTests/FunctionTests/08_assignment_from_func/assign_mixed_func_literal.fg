@@ -1,0 +1,11 @@
+fun getValue() -> int {
+  return 42
+}
+
+var n: int = 0
+var s: str = ""
+println(n)
+println(s)
+n, s = getValue(), "suffix"
+println(n)
+println(s)

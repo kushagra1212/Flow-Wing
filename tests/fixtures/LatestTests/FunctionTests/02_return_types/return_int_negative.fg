@@ -1,0 +1,7 @@
+fun neg() -> int {
+  return -99
+}
+
+var n: int = neg()
+println(n)
+println(neg())

@@ -1,0 +1,8 @@
+fun f(a: int = 1, b: int = 2, c: int = 3) -> int {
+  return a + b + c
+}
+
+println(f())
+println(f(10))
+println(f(10, 20))
+println(f(10, 20, 30))

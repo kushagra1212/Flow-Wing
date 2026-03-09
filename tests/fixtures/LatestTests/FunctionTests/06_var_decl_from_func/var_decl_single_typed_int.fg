@@ -1,0 +1,9 @@
+fun seven() -> int {
+  return 7
+}
+
+var x: int = seven()
+var y: int = seven()
+println(x)
+println(y)
+println(x + y)

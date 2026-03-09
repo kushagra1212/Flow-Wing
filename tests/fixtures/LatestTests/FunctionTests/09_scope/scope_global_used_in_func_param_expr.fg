@@ -1,0 +1,10 @@
+fun sum(a: int, b: int) -> int {
+  return a + b
+}
+
+var base: int = 10
+{
+  var x: int = sum(base, 5)
+  println(x)
+}
+println(base)

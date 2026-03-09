@@ -1,0 +1,13 @@
+var globalNum: int = 100
+
+fun useGlobal() -> int {
+  return globalNum
+}
+
+{
+  println(useGlobal())
+  var localNum: int = 50
+  println(localNum)
+  println(useGlobal())
+}
+println(globalNum)

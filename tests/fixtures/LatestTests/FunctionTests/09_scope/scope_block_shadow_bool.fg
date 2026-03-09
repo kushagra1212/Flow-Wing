@@ -1,0 +1,11 @@
+fun flip() -> bool {
+  return true
+}
+
+var b: bool = false
+println(b)
+{
+  var b: bool = flip()
+  println(b)
+}
+println(b)

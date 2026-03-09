@@ -198,7 +198,8 @@ LLVMTypeBuilder::convertFunction(const types::FunctionType *funcType) {
 
   std::vector<llvm::Type *> args = {};
 
-  if (return_type->type_convention == types::TypeConvention::kFlowWing) {
+  if (return_type->type_convention == types::TypeConvention::kFlowWing &&
+      !return_type->type->isNthg()) {
     args.push_back(llvm::Type::getInt8PtrTy(m_context));
   }
 

@@ -1,0 +1,7 @@
+fun flag() -> bool {
+  return true
+}
+
+var f = flag()
+println(f)
+println(!f)

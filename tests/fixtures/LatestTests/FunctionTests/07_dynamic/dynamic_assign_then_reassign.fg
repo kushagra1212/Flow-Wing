@@ -1,0 +1,12 @@
+fun first() -> int {
+  return 1
+}
+
+fun second() -> int {
+  return 2
+}
+
+var v = first()
+println(v)
+v = second()
+println(v)

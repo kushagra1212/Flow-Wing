@@ -722,6 +722,14 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
     {(DiagnosticCode::kEmptyContainerExpression),
      {"Empty container expression is not allowed.", "", ""}},
 
+    {(DiagnosticCode::kMultipleNthgReturnTypes),
+     {"Multiple 'nthg' return types found in function '{0}'. Only one 'nthg' "
+      "return type is allowed.",
+      "Remove all but one 'nthg' return type from the function '{0}'.",
+      "Having more than one 'nthg' return type leads to ambiguity. A function "
+      "must have at most one 'nthg' return type to ensure clear and "
+      "predictable return values."}},
+
 };
 
 const MessageTemplate &
@@ -1005,6 +1013,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kEmptyContainerExpression:
     return "EmptyContainerExpression";
+
+  case DiagnosticCode::kMultipleNthgReturnTypes:
+    return "MultipleNthgReturnTypes";
 
   default:
     return "Unknown diagnostic code";

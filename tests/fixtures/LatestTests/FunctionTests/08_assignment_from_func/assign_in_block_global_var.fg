@@ -1,0 +1,11 @@
+fun getVal() -> int {
+  return 999
+}
+
+var g: int = 0
+println(g)
+{
+  g = getVal()
+  println(g)
+}
+println(g)

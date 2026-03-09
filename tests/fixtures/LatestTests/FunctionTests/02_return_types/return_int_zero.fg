@@ -1,0 +1,6 @@
+fun zero() -> int {
+  return 0
+}
+
+println(zero())
+println(zero())

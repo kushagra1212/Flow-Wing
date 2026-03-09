@@ -19,6 +19,7 @@
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/utils/LogConfig.h"
 namespace flow_wing::ir_gen {
@@ -47,19 +48,30 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     return_types.push_back(return_type->type.get());
   }
 
-  llvm::StructType *return_struct_type =
-      m_ir_gen_context.getTypeBuilder()->createOrGetStructType(return_types);
-  llvm::Value *return_slot =
-      m_ir_gen_context.createAlloca(return_struct_type, "ret_slot");
-
   std::vector<llvm::Value *> llvm_args = {};
+  bool is_void_return = (return_types.size() == 1 &&
+                         (*(return_types[0]) ==
+                          *(analysis::Builtins::m_nthg_type_instance.get()))) &&
+                        !return_types[0]->isDynamic();
 
-  bool is_ret_via_arg = function_type->getReturnTypes()[0]->type_convention !=
-                        types::TypeConvention::kC;
+  llvm::StructType *return_struct_type = nullptr;
+  llvm::Value *return_slot = nullptr;
+
+  if (!is_void_return) {
+    return_struct_type =
+        m_ir_gen_context.getTypeBuilder()->createOrGetStructType(return_types);
+    return_slot = m_ir_gen_context.createAlloca(return_struct_type, "ret_slot");
+  }
+
+  bool is_ret_via_arg =
+      !is_void_return && function_type->getReturnTypes()[0]->type_convention !=
+                             types::TypeConvention::kC;
 
   if (is_ret_via_arg) {
-    llvm_args.push_back(return_slot); // arg[0] = sret pointer
+    llvm_args.push_back(return_slot);
   }
+
+  CODEGEN_DEBUG_LOG("Is return via argument: ", is_ret_via_arg);
 
   const auto &param_types = function_type->getParameterTypes();
   const auto &arguments = call_expression->getArguments();
@@ -68,6 +80,7 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
   for (size_t i = 0; i < arguments.size(); i++) {
     arguments[i]->accept(this);
     assert(m_last_value && "m_last_value is null");
+
     auto *param_raw_type = param_types[i]->type.get();
 
     if (param_types[i]->type_convention == types::TypeConvention::kC) {
@@ -201,7 +214,6 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     }
     clearLast();
   }
-
   auto call_result = builder->CreateCall(llvm_function, llvm_args);
 
   if (is_ret_via_arg) {

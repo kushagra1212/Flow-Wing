@@ -229,6 +229,13 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
                                                          value, "load_var");
   }
 
+  if (llvm::isa<llvm::Argument>(value) && value->getType()->isPointerTy()) {
+    auto expected_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+    return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
+                                                         value, "arg_load");
+  }
+
   // Handle GEPs (Both Instructions and Constant Expressions)
   if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(value)) {
     // Determine what type of data the GEP points to

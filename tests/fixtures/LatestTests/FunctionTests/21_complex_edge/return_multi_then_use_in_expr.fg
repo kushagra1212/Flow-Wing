@@ -1,0 +1,7 @@
+fun pair() -> int, int {
+  return 3, 7
+}
+
+var a: int, b: int = pair()
+println(a * b)
+println(a + b)

@@ -1,0 +1,9 @@
+fun addHalf(inout d: deci) {
+  d = d + 0.5
+}
+
+var d: deci = 1.5
+println(d)
+addHalf(d)
+addHalf(d)
+println(d)

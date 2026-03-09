@@ -1,0 +1,12 @@
+fun getFirst() -> int { return 111 }
+fun getSecond() -> int { return 222 }
+
+var w: int = 0
+println(w)
+{
+  w = getFirst()
+  println(w)
+  w = getSecond()
+  println(w)
+}
+println(w)

@@ -1,0 +1,6 @@
+fun digit() -> char {
+  return '9'
+}
+
+println(digit())
+println(digit())

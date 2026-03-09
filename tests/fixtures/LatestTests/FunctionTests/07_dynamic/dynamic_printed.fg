@@ -1,0 +1,7 @@
+fun num() -> int {
+  return 42
+}
+
+var x = num()
+println(x)
+println(x)

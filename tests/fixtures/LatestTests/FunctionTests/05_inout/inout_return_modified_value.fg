@@ -1,0 +1,9 @@
+fun incAndReturn(inout n: int) -> int {
+  n = n + 10
+  return n
+}
+
+var x: int = 5
+var y: int = incAndReturn(x)
+println(x)
+println(y)

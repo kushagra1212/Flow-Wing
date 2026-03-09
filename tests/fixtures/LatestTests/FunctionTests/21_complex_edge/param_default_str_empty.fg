@@ -1,0 +1,6 @@
+fun wrap(s: str = "") -> str {
+  return "[" + s + "]"
+}
+
+println(wrap())
+println(wrap("x"))

@@ -162,6 +162,23 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
     param_index++;
   }
 
+  int64_t num_nthg_return_types = 0;
+  for (const auto &return_type : function_type->getReturnTypes()) {
+    if (*return_type->type.get() ==
+        *analysis::Builtins::m_nthg_type_instance.get()) {
+      num_nthg_return_types++;
+    }
+  }
+
+  if (num_nthg_return_types > 1) {
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        function_statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kMultipleNthgReturnTypes,
+        diagnostic::DiagnosticArgs{std::to_string(num_nthg_return_types)});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
+  }
+
   if (has_function_body) {
 
     symbol_table->setCurrentFunctionSymbol(function_symbol);

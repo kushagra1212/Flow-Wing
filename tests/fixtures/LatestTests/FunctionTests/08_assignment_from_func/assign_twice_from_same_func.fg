@@ -1,0 +1,9 @@
+fun next() -> int {
+  return 5
+}
+
+var x: int = 0
+x = next()
+println(x)
+x = next()
+println(x)

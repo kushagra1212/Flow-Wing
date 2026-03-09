@@ -1,0 +1,6 @@
+fun join(a: str, b: str) -> str {
+  return a + "-" + b
+}
+
+println(join("x", "y"))
+println(join("Hello", "World"))

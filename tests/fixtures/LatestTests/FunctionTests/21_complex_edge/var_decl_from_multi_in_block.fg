@@ -1,0 +1,13 @@
+fun pair() -> int, str {
+  return 77, "seven"
+}
+
+var a: int = 0
+var b: str = ""
+{
+  var c: int, d: str = pair()
+  println(c)
+  println(d)
+}
+println(a)
+println(b)

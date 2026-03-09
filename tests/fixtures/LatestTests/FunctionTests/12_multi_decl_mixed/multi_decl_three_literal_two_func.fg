@@ -1,0 +1,7 @@
+fun a() -> int { return 1 }
+fun b() -> int { return 2 }
+
+var x: int, y: int, z: int = 0, a(), b()
+println(x)
+println(y)
+println(z)

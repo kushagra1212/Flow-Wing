@@ -20,6 +20,7 @@
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/utils/LogConfig.h"
@@ -60,9 +61,17 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       llvm_function->arg_begin());
 
   auto &param_symbols = function_symbol->getParameters();
-  size_t param_index = 1; // 0 is reserved for return value
+  size_t param_index =
+      (function_type->getReturnTypes().size() > 0 &&
+       (*function_type->getReturnTypes()[0]->type.get() ==
+        *analysis::Builtins::m_nthg_type_instance.get())) &&
+              !function_type->getReturnTypes()[0]->type->isDynamic()
+          ? 0
+          : 1; // 0 is reserved for return value
   size_t param_symbol_index = 0;
   size_t param_symbols_size = param_symbols.size();
+
+  CODEGEN_DEBUG_LOG("param_symbols_size", param_symbols_size);
 
   for (; param_symbol_index < param_symbols_size; param_symbol_index++) {
     auto param_symbol = param_symbols[param_symbol_index].get();
@@ -71,6 +80,10 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
     auto param_raw_type = param_type->type.get();
     auto &param_name = param_symbol->getName();
     auto arg_value = llvm_function->arg_begin() + param_index;
+
+    CODEGEN_DEBUG_LOG("param_name", param_name);
+    ;
+    CODEGEN_DEBUG_LOG("param_raw_type", param_raw_type->getName());
 
     if (param_type->value_kind == types::ValueKind::kByReference) {
       m_ir_gen_context.setSymbol(param_name, arg_value);

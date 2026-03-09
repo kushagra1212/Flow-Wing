@@ -1,0 +1,10 @@
+fun val1() -> int { return 11 }
+fun val2() -> int { return 22 }
+
+var m: int = 0
+{
+  var m: int = val1()
+  println(m)
+}
+m = val2()
+println(m)

@@ -1,0 +1,8 @@
+fun mixed() -> bool, int, str {
+  return true, 7, "ok"
+}
+
+var b: bool, i: int, s: str = mixed()
+println(b)
+println(i)
+println(s)

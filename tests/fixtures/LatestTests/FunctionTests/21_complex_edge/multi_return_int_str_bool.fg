@@ -1,0 +1,8 @@
+fun triple() -> int, str, bool {
+  return 1, "a", true
+}
+
+var i: int, s: str, b: bool = triple()
+println(i)
+println(s)
+println(b)

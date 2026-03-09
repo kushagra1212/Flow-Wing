@@ -1,0 +1,5 @@
+fun half() -> deci32 {
+  return 0.5f
+}
+
+println(half())

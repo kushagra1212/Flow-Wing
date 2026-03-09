@@ -1,0 +1,9 @@
+fun quad() -> int, int, int, int {
+  return 1, 2, 3, 4
+}
+
+var a: int, b: int, c: int, d: int = quad()
+println(a)
+println(b)
+println(c)
+println(d)

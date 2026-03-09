@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 namespace flow_wing::compiler::serializer {
@@ -48,6 +46,14 @@ void BoundTreeJson::visit(binding::BoundFunctionStatement *function_statement) {
                      "default_value_expression");
     }
     function_statement_json["parameters"].push_back(std::move(parameter_json));
+  }
+  auto function_type = static_cast<const types::FunctionType *>(
+      function_symbol->getType().get());
+
+  for (const auto &return_type : function_type->getReturnTypes()) {
+
+    function_statement_json["return_type_ids"].push_back(
+        getTypeId(return_type.get()));
   }
 
   function_statement_json["range"] =

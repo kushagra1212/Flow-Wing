@@ -1,0 +1,13 @@
+var g: int = 7
+
+fun readG() -> int {
+  return g
+}
+
+{
+  println(readG())
+  var g: int = 99
+  println(g)
+  println(readG())
+}
+println(g)

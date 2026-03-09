@@ -1,350 +1,69 @@
-
-fun get2D() -> int[2][2] {
-    var flat: int[2][2]
-    return flat
+fun getPoint() -> int, deci {
+  return 3, 1.5
 }
-var temp = get2D()
-temp[0][0] = 4
-println(temp[0][0])
+
+fun getTag() -> str {
+  return "ok"
+}
+
+var a: int = 0
+var b: deci = 0.0
+var c: str = ""
+println(a)
+println(b)
+println(c)
+a, b, c = getPoint(), getTag()
+println(a)
+println(b)
+println(c)
+
 
 /#
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  return a, 3.5*a
+fun noop() -> nthg {
+  return:
+  println(0)
 }
-var a:int = 10
-var b:int = 30
-println(a)
-println(b)
-var j:str, x:int, y:deci= "something",test2(a,"hello2")
-println(a)
-println(j)
-println(b)
-println(x)
-println(y)
+
+fun get() -> int {
+  return 9
+}
+
+noop()
+println(get())
+noop()
 OUTPUT:
-10
-30
-Hello World10hello2
-10
-something
-30
-10
-35
+9
 
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  return a, 3.5*a
-}
-var a:int = 10
-var b:int = 30
-println(a)
-println(b)
-var x:int, y:deci= test2(a,"hello2")
-println(a)
-println(b)
-println(x)
-println(y)
-OUTPUT:
-10
-30
-Hello World10hello2
-10
-30
-10
-35
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  return a, 3.5*a
-}
-var a:int = 10
-var b:int = 30
-println(a)
-println(b)
-var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
-println(a)
-println(b)
-println(x)
-println(y)
-println(c)
-println(x1)
-println(y1)
-println(c1)
-OUTPUT:
-10
-30
-Hello World10hello2
-Hello World30hello3
-10
-30
-10
-35
-2.2
-30
-105
-0
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  return 1*a, 3.5*a
-}
-var a:int = 10
-var b:int = 30
-println(a)
-println(b)
-var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
-println(a)
-println(b)
-println(x)
-println(y)
-println(c)
-println(x1)
-println(y1)
-println(c1)
-OUTPUT:
-10
-30
-Hello World10hello2
-Hello World30hello3
-10
-30
-10
-35
-2.2
-30
-105
-0
-
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  a =20
-  println("Hello World",a,b)
-  return 1, 3.5
-}
-var a:int = 10
-var b:int = 33
-println(a)
-println(b)
-var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2"),2.2f,test2(b,"hello3")
-println(a)
-println(x)
-println(y)
-println(c)
-println(x1)
-println(y1)
-println(c1)
-OUTPUT:
-10
-33
-Hello World10hello2
-Hello World20hello2
-Hello World33hello3
-Hello World20hello3
-20
-1
-3.5
-2.2
-1
-3.5
-0
-
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  a =20
-  println("Hello World",a,b)
-  return 1, 3.5
-}
-var a:int = 10
-println(a)
-var x:int, y:deci, c: deci32, x1:int, y1:deci, c1: deci32 = test2(a,"hello2")
-println(a)
-println(x)
-println(y)
-println(c)
-println(x1)
-println(y1)
-println(c1)
-OUTPUT:
-10
-Hello World10hello2
-Hello World20hello2
-20
-1
-3.5
-0
-0
-0
-0
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  a =20
-  println("Hello World",a,b)
-  return 1, 3.5
-}
-var a:int = 10
-println(a)
-var x:int, y:deci, c: deci32 = test2(a,"hello2")
-println(a)
-println(x)
-println(y)
-println(c)
-OUTPUT:
-10
-Hello World10hello2
-Hello World20hello2
-20
-1
-3.5
-0
-
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci{
-  println("Hello World",a,b)
-  a =20
-  println("Hello World",a,b)
-  return 1, 3.5
-}
-var a:int = 10
-println(a)
-var x:int, y:deci = test2(a,"hello2")
-println(a)
-println(x)
-println(y)
-OUTPUT:
-10
-Hello World10hello2
-Hello World20hello2
-20
-1
-3.5
-
-
-fun test2(inout a:int, b:str = "Hello") -> int{
-  println("Hello World",a,b)
-  a =20
-  return 1
-}
-var a:int = 10
-
-var x= test2(a,"hello2")
-println(a)
-println(x)
-OUTPUT:
-Hello World10hello2
-20
-1
-
-fun test2(inout a:int, b:str = "Hello") -> int{
-  println("Hello World",a,b)
-  a =20
-  return 1
-}
-var a:int = 10
-
-var x:int= test2(a,"hello2")
-println(a)
-println(x)
-OUTPUT:
-Hello World10hello2
-20
-1
-
-fun test2(inout a:int, b:str = "Hello") -> int, deci {
-  println("Hello World",a,b)
-  a =20
-  return 1,3.4
-}
-var a:int = 10
-
-test2(a,"hello2")
-println(a)
-OUTPUT:
-Hello World10hello2
-20
-
-fun test2(a:int, b:str = "Hello") -> int, deci {
-  println("Hello World",a,b)
-  a =20
-  return 1,3.4
-}
-var a:int = 10
-
-test2(a,"hello2")
-println(a)
-OUTPUT:
-Hello World10hello2
-10
-
-
-fun test2(a:int, b:str = "Hello") -> int, deci {
-  println("Hello World",a,b)
-  return 1,3.4
-}
-var a:int = 10
-
-test2(a,"hello2")
-
-fun test2(a:int, b:str = "Hello") -> int, deci {
-  println("Hello World",a,b)
-  return 1,3.4
+fun noop() -> nthg,nthg {
+  println(0)
 }
 
-test2(2,"hello")
-
-fun test2(a:int,b: str  = "Hello") -> int {
-  println("Hello World " + a)
-  return 1
+fun get() -> int {
+  return 9
 }
 
-test2(1)
+noop()
+println(get())
+noop()
+/;EXPECT_ERROR: kMultipleNthgReturnTypes
 
-fun test2(a:int,b: str  = "Hello") -> int {
-  println("Hello World " + a)
-  return 1
+
+
+can you add fucntion test for the dynamic reeturn
+
+e.g fun test() {
+return 2
 }
 
-test2(1)
+
+the variable acceptiing it can be dynamic or int
+
+similar of all the other data types
+
+also
+
+can you right the tests for the nesstred function calls
 
 
-fun test2(a:int,b: str) -> int {
-  println("Hello World " + a)
-  return 1
-}
-
-test2(1,"hello")
-
-
-fun test2(a:int) -> int {
-  println("Hello World " + a)
-  return 1
-}
-
-test2(1)
-
-
-fun test2() -> int {
-  println("Hello World")
-  return 1
-}
-
-test2()
-OUTPUT:
-
-
-fun test2() {
-  println("Hello World")
-}
-
-test2()
-OUTPUT:
+NOTE: do not check the test, just you write the .expect (by yourself)
+I will check the test by runnig the test and will fix the issues

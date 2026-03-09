@@ -1,0 +1,6 @@
+fun compute(a: int, b: int) -> int {
+  return a * b + a + b
+}
+
+println(compute(2, 3))
+println(compute(0, 10))

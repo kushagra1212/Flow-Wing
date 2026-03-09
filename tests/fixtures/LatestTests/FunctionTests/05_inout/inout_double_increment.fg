@@ -1,0 +1,11 @@
+fun inc2(inout n: int) {
+  n = n + 1
+  n = n + 1
+}
+
+var v: int = 0
+println(v)
+inc2(v)
+println(v)
+inc2(v)
+println(v)

@@ -1,0 +1,9 @@
+fun inc(inout n: int) {
+  n = n + 1
+}
+
+var a: int = 0
+inc(a)
+inc(a)
+inc(a)
+println(a)

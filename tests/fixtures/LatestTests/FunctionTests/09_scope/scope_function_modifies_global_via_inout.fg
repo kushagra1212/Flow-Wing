@@ -1,0 +1,10 @@
+fun addOne(inout n: int) {
+  n = n + 1
+}
+
+var g: int = 10
+println(g)
+addOne(g)
+println(g)
+addOne(g)
+println(g)

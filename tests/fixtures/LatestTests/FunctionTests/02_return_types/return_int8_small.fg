@@ -1,0 +1,6 @@
+fun small() -> int8 {
+  return 127
+}
+
+var x: int8 = small()
+println(x)

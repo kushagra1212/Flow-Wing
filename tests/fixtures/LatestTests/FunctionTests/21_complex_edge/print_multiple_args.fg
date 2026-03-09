@@ -1,0 +1,5 @@
+fun numVal() -> int { return 42 }
+fun strVal() -> str { return "x" }
+
+println("a", numVal(), "b", strVal(), "c")
+println(numVal(), numVal())

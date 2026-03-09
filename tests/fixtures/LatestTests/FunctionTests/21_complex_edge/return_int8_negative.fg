@@ -1,0 +1,7 @@
+fun neg8() -> int8 {
+  return -1
+}
+
+println(neg8())
+var x: int8 = neg8()
+println(x)

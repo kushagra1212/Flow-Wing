@@ -1,0 +1,20 @@
+fun one() -> int { return 1 }
+fun two() -> int { return 2 }
+fun three() -> int { return 3 }
+
+var v: int = 0
+println(v)
+{
+  var v: int = one()
+  println(v)
+  {
+    var v: int = two()
+    println(v)
+  }
+  println(v)
+  {
+    var v: int = three()
+    println(v)
+  }
+}
+println(v)

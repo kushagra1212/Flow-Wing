@@ -1,0 +1,14 @@
+fun triple() -> int, deci, str {
+  return 1, 2.5, "three"
+}
+
+var a: int = 0
+var b: deci = 0.0
+var c: str = ""
+println(a)
+println(b)
+println(c)
+a, b, c = triple()
+println(a)
+println(b)
+println(c)

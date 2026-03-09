@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: AssignmentExpressionCountMismatch
+fun pair() -> int, int {
+  return 10, 20
+}
+
+var a: int = 0
+a = pair()

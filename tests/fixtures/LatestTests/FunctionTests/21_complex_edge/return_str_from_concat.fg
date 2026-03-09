@@ -1,0 +1,6 @@
+fun greet(a: str, b: str) -> str {
+  return a + " " + b
+}
+
+println(greet("Hello", "World"))
+println(greet("A", "B"))

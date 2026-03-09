@@ -114,113 +114,136 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
 
   auto is_full_re_assignment = expression->isFullReAssignment();
 
-  if (left_expressions.size() != right_expressions.size()) {
+  // Flatten right-hand side count (one multi-return expr counts as N values)
+  size_t total_right_count = 0;
+  for (const auto &expr : right_expressions) {
+    if (expr->isMultipleType()) {
+      total_right_count += expr->getMultipleTypes().size();
+    } else {
+      total_right_count += 1;
+    }
+  }
 
+  if (total_right_count != left_expressions.size()) {
     auto error_expression = std::make_unique<BoundErrorExpression>(
         expression->getSourceLocation(),
         diagnostic::DiagnosticCode::kAssignmentExpressionCountMismatch,
         std::vector<flow_wing::diagnostic::DiagnosticArg>{
             std::to_string(left_expressions.size()),
-            std::to_string(right_expressions.size())});
+            std::to_string(total_right_count)});
 
     m_context->reportError(error_expression.get());
     return std::move(error_expression);
   }
 
-  size_t size = left_expressions.size();
+  // Type-check each left against corresponding flattened right type
+  size_t var_idx = 0;
+  for (auto &right_expression : right_expressions) {
+    if (right_expression && right_expression->getKind() == NodeKind::kErrorExpression) {
+      return std::move(right_expression);
+    }
 
-  for (size_t i = 0; i < size; i++) {
-    auto &left_expression = left_expressions[i];
-    auto &right_expression = right_expressions[i];
+    std::vector<std::shared_ptr<types::Type>> right_types;
+    bool is_multi = right_expression->isMultipleType();
+    if (is_multi) {
+      right_types = right_expression->getMultipleTypes();
+    } else {
+      right_types.push_back(right_expression->getType());
+    }
 
-    auto right_type = right_expression->getType();
-    auto left_type = left_expression->getType();
+    for (const auto &right_type : right_types) {
+      if (var_idx >= left_expressions.size())
+        break;
 
-    switch (left_expression->getKind()) {
-    case NodeKind::kIdentifierExpression: {
-      auto id_expr =
-          static_cast<BoundIdentifierExpression *>(left_expression.get());
-      auto symbol = id_expr->getSymbol();
+      auto &left_expression = left_expressions[var_idx];
+      auto left_type = left_expression->getType();
 
-      // Variable Check
-      if (symbol->getKind() != analysis::SymbolKind::kVariable &&
-          symbol->getKind() != analysis::SymbolKind::kParameter) {
-        auto error_expression = std::make_unique<BoundErrorExpression>(
+      switch (left_expression->getKind()) {
+      case NodeKind::kIdentifierExpression: {
+        auto id_expr =
+            static_cast<BoundIdentifierExpression *>(left_expression.get());
+        auto symbol = id_expr->getSymbol();
+
+        // Variable Check
+        if (symbol->getKind() != analysis::SymbolKind::kVariable &&
+            symbol->getKind() != analysis::SymbolKind::kParameter) {
+          auto error_expression = std::make_unique<BoundErrorExpression>(
+              expression->getSourceLocation(),
+              diagnostic::DiagnosticCode::kAssignmentToNonVariable,
+              std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                  symbol->getName()});
+          m_context->reportError(error_expression.get());
+          return std::move(error_expression);
+        }
+
+        // Const Check
+        auto const_error = checkConstantVariableAssignment(
+            left_expression.get(), expression->getSourceLocation());
+        if (const_error != nullptr) {
+          m_context->reportError(const_error.get());
+          return std::move(const_error);
+        }
+
+        break;
+      }
+      case NodeKind::kIndexExpression: {
+        break;
+      }
+      case NodeKind::kMemberAccessExpression: {
+        // Check if the base object is a constant variable
+        auto const_error = checkConstantVariableAssignment(
+            left_expression.get(), expression->getSourceLocation());
+        if (const_error != nullptr) {
+          m_context->reportError(const_error.get());
+          return std::move(const_error);
+        }
+        break;
+      }
+      default: {
+        auto error = std::make_unique<BoundErrorExpression>(
             expression->getSourceLocation(),
-            diagnostic::DiagnosticCode::kAssignmentToNonVariable,
-            std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                symbol->getName()});
-        m_context->reportError(error_expression.get());
-        return std::move(error_expression);
+            diagnostic::DiagnosticCode::kAssignmentToNonLValue,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{});
+        m_context->reportError(error.get());
+        return std::move(error);
+      }
       }
 
-      // Const Check
-      auto const_error = checkConstantVariableAssignment(
-          left_expression.get(), expression->getSourceLocation());
-      if (const_error != nullptr) {
-        m_context->reportError(const_error.get());
-        return std::move(const_error);
-      }
+      // Special handling for dynamic types
+      if (left_type->isDynamic()) {
+        // Left is dynamic: right must be dynamic or primitive
+        if (!right_type->isDynamic() && !right_type->isPrimitive()) {
+          auto error_expression = std::make_unique<BoundErrorExpression>(
+              expression->getSourceLocation(),
+              diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+              std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                  left_type->getName(), right_type->getName()});
+          m_context->reportError(error_expression.get());
+          return std::move(error_expression);
+        }
+        // Dynamic can hold any primitive or dynamic, so allow it
+      } else if (right_type->isDynamic()) {
+        // Right is dynamic: left must be a type that can hold the dynamic value
+        // This will be checked at runtime via dispatch, but we allow it
+        // semantically (the dynamic value will be extracted and converted to
+        // left type)
+      } else if (*right_type > *left_type) {
 
-      break;
-    }
-    case NodeKind::kIndexExpression: {
-      break;
-    }
-    case NodeKind::kMemberAccessExpression: {
-      // Check if the base object is a constant variable
-      auto const_error = checkConstantVariableAssignment(
-          left_expression.get(), expression->getSourceLocation());
-      if (const_error != nullptr) {
-        m_context->reportError(const_error.get());
-        return std::move(const_error);
-      }
-      break;
-    }
-    default: {
-      auto error = std::make_unique<BoundErrorExpression>(
-          expression->getSourceLocation(),
-          diagnostic::DiagnosticCode::kAssignmentToNonLValue,
-          std::vector<flow_wing::diagnostic::DiagnosticArg>{});
-      m_context->reportError(error.get());
-      return std::move(error);
-    }
-    }
+        BINDER_DEBUG_LOG("Left Type: ", left_type->getName());
+        BINDER_DEBUG_LOG("Right Type: ", right_type->getName());
 
-    // Special handling for dynamic types
-    if (left_type->isDynamic()) {
-      // Left is dynamic: right must be dynamic or primitive
-      if (!right_type->isDynamic() && !right_type->isPrimitive()) {
+        // Normal type mismatch check
         auto error_expression = std::make_unique<BoundErrorExpression>(
             expression->getSourceLocation(),
             diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
             std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                left_expression->getType()->getName(),
-                right_expression->getType()->getName()});
+                left_type->getName(), right_type->getName()});
+
         m_context->reportError(error_expression.get());
         return std::move(error_expression);
       }
-      // Dynamic can hold any primitive or dynamic, so allow it
-    } else if (right_type->isDynamic()) {
-      // Right is dynamic: left must be a type that can hold the dynamic value
-      // This will be checked at runtime via dispatch, but we allow it
-      // semantically (the dynamic value will be extracted and converted to left
-      // type)
-    } else if (*right_type > *left_type) {
 
-      BINDER_DEBUG_LOG("Left Type: ", left_type->getName());
-      BINDER_DEBUG_LOG("Right Type: ", right_type->getName());
-
-      // Normal type mismatch check
-      auto error_expression = std::make_unique<BoundErrorExpression>(
-          expression->getSourceLocation(),
-          diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
-          std::vector<flow_wing::diagnostic::DiagnosticArg>{
-              left_expression->getType()->getName(),
-              right_expression->getType()->getName()});
-
-      m_context->reportError(error_expression.get());
-      return std::move(error_expression);
+      var_idx++;
     }
   }
 

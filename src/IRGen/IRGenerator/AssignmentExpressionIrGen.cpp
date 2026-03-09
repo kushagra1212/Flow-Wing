@@ -24,23 +24,61 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
+#include <cassert>
 
 namespace flow_wing::ir_gen {
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundAssignmentExpression *statement) {
   CODEGEN_DEBUG_LOG("Visiting Bound Assignment Expression", "IR GENERATION");
 
-  size_t size = statement->getLeft().size();
+  const auto &left_expressions = statement->getLeft();
+  const auto &right_expressions = statement->getRight();
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
 
-  for (size_t i = 0; i < size; i++) {
-    auto &left_expressions = statement->getLeft();
-    auto &right_expressions = statement->getRight();
+  size_t var_idx = 0;
+  size_t expr_idx = 0;
 
-    size_t left_size = left_expressions.size();
+  while (var_idx < left_expressions.size()) {
+    if (expr_idx < right_expressions.size() &&
+        right_expressions[expr_idx]->isMultipleType()) {
+      auto *expr = right_expressions[expr_idx].get();
+      expr->accept(this);
 
-    for (size_t j = 0; j < left_size; j++) {
-      auto &left_expression = left_expressions.at(j);
-      auto &right_expression = right_expressions.at(j);
+      assert(m_last_value &&
+             "m_last_value is null after multi-return expression");
+      llvm::Value *struct_ptr = m_last_value;
+      llvm::Type *struct_type = m_last_llvm_type;
+
+      size_t num_returns = expr->getMultipleTypes().size();
+      for (size_t i = 0; i < num_returns; ++i) {
+        if (var_idx >= left_expressions.size())
+          break;
+
+        auto *left_expression = left_expressions[var_idx].get();
+        left_expression->accept(this);
+        llvm::Value *target_ptr = m_last_value;
+        types::Type *target_type = m_last_type;
+
+        assert(target_ptr && "target pointer is null");
+        assert(target_type && "target type is null");
+        clearLast();
+
+        llvm::Value *gep = builder->CreateStructGEP(
+            struct_type, struct_ptr, static_cast<unsigned>(i),
+            "assign_extract_" + std::to_string(var_idx));
+        types::Type *field_type = expr->getMultipleTypes()[i].get();
+        llvm::Type *field_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(field_type);
+        llvm::Value *extracted_val =
+            builder->CreateLoad(field_llvm_type, gep, "assign_load");
+
+        emitTypedStore(target_ptr, target_type, extracted_val, field_type);
+        var_idx++;
+      }
+      expr_idx++;
+    } else {
+      auto *left_expression = left_expressions[var_idx].get();
+      auto *right_expression = right_expressions[expr_idx].get();
 
       left_expression->accept(this);
       auto *target_ptr = m_last_value;
@@ -61,8 +99,10 @@ void IRGenerator::visit(
 
       emitTypedStore(target_ptr, target_type, source_val, source_type);
 
-      clearLast();
+      var_idx++;
+      expr_idx++;
     }
+    clearLast();
   }
 }
 }; // namespace flow_wing::ir_gen

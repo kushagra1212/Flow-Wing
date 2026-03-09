@@ -94,5 +94,9 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
   } else {
     builder->CreateRet(llvm::Constant::getNullValue(llvm_return_type));
   }
+  auto *dead_block = llvm::BasicBlock::Create(
+      *m_ir_gen_context.getLLVMContext(), // Or builder->getContext()
+      "dead_code", llvm_function);
+  builder->SetInsertPoint(dead_block);
 }
 } // namespace flow_wing::ir_gen

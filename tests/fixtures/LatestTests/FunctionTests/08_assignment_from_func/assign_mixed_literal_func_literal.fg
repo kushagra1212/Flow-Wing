@@ -1,0 +1,12 @@
+fun mid() -> int { return 5 }
+
+var a: int = 0
+var b: int = 0
+var c: int = 0
+println(a)
+println(b)
+println(c)
+a, b, c = 1, mid(), 9
+println(a)
+println(b)
+println(c)

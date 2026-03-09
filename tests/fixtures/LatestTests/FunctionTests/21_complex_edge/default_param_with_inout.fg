@@ -1,0 +1,10 @@
+fun f(inout a: int, b: int = 5) -> int {
+  a = a + b
+  return a
+}
+
+var x: int = 0
+println(f(x))
+println(x)
+println(f(x, 10))
+println(x)

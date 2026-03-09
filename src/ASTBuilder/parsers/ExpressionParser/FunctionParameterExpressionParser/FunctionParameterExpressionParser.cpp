@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionParameterExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 
@@ -63,8 +64,10 @@ FunctionParameterExpressionParser::parse() {
   if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kEqualsToken) {
     equals_token = m_ctx->match(lexer::TokenKind::kEqualsToken); // =
 
+    int comma_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+        lexer::TokenKind::kCommaToken);
     default_value_expression = PrecedenceAwareExpressionParser::parse(
-        m_ctx); // default_value_expression
+        m_ctx, comma_precedence); // default_value_expression
   }
 
   return std::make_unique<syntax::ParameterExpressionSyntax>(

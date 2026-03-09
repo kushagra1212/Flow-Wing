@@ -1,0 +1,12 @@
+fun eq(a: int, b: int) -> bool {
+  return a == b
+}
+
+fun lt(a: int, b: int) -> bool {
+  return a < b
+}
+
+println(eq(1, 1))
+println(eq(1, 2))
+println(lt(1, 2))
+println(lt(2, 1))
