@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
 #include <cassert>
+#include <cstdint>
+#include <limits>
 
 namespace flow_wing {
 namespace binding {
