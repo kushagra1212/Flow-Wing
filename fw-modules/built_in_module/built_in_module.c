@@ -14,7 +14,12 @@
  #include <stdint.h>
  #include <math.h>
  #include <gc.h> // Boehm GC
- 
+
+ #ifdef _MSC_VER
+ #  define FG_THREAD_LOCAL __declspec(thread)
+ #else
+ #  define FG_THREAD_LOCAL __thread
+ #endif
 
  // ==========================================
  // Forward Declarations
@@ -322,9 +327,9 @@ float fg_stf(const char* str) {
 #define SHRINK_THRESHOLD 1024
 
 // Thread-Local Storage for safety in concurrent environments
-static __thread void** visited_stack = NULL;
-static __thread int visited_capacity = 0;
-static __thread int visited_count = 0;
+static FG_THREAD_LOCAL void** visited_stack = NULL;
+static FG_THREAD_LOCAL int visited_capacity = 0;
+static FG_THREAD_LOCAL int visited_count = 0;
 
 void ensure_visit_stack_capacity() {
     if (visited_count >= visited_capacity) {

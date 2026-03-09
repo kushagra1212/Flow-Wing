@@ -1,21 +1,14 @@
-fun getPoint() -> int, deci {
-  return 3, 1.5
+fun flags() -> bool, char {
+  return true, 'X'
 }
 
-fun getTag() -> str {
-  return "ok"
-}
-
-var a: int = 0
-var b: deci = 0.0
-var c: str = ""
-println(a)
-println(b)
-println(c)
-a, b, c = getPoint(), getTag()
-println(a)
-println(b)
-println(c)
+var ok: bool = false
+var ch: char = ' '
+println(ok)
+println(ch)
+ok, ch = flags()
+println(ok)
+println(ch)
 
 
 /#

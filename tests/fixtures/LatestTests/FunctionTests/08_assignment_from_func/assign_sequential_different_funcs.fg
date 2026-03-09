@@ -1,0 +1,13 @@
+fun p1() -> int, int { return 1, 2 }
+fun p2() -> int, int { return 3, 4 }
+
+var a: int = 0
+var b: int = 0
+var c: int = 0
+var d: int = 0
+a, b = p1()
+println(a)
+println(b)
+c, d = p2()
+println(c)
+println(d)
