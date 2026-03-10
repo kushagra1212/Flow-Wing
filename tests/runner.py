@@ -21,28 +21,36 @@ class Colors:
     BOLD = '\033[1m'
     ENDC = '\033[0m'
 
+def _stdout_supports_unicode():
+    """Use ASCII progress bar when stdout encoding can't represent Unicode (e.g. Windows cp1252 in CI)."""
+    enc = getattr(sys.stdout, 'encoding', None) or ''
+    return enc and enc.lower() in ('utf-8', 'utf8', 'utf-16', 'utf-32')
+
 def print_progress_bar(iteration, total, failed, skipped, start_time, bar_length=40):
     percent = 100 * (iteration / float(total))
     filled_length = int(bar_length * iteration // total)
-    
     status_color = Colors.FAIL if failed > 0 else Colors.OKGREEN
-    
-    bar = '█' * filled_length + '░' * (bar_length - filled_length)
     elapsed = time.time() - start_time
-    
     if iteration > 0:
         avg_time_per_test = elapsed / iteration
         remaining_tests = total - iteration
         eta_seconds = avg_time_per_test * remaining_tests
-        
-        if eta_seconds > 60:
-            eta_str = f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s"
-        else:
-            eta_str = f"{eta_seconds:.1f}s"
+        eta_str = f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s" if eta_seconds > 60 else f"{eta_seconds:.1f}s"
     else:
         eta_str = "..."
 
-    sys.stdout.write(f'\r\033[K{status_color}▕{bar}▏{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | ⏳ {elapsed:.1f}s | 🏁 ETA: {eta_str} | ❌ {failed} | {Colors.WARNING}⏭ {skipped}{Colors.ENDC}')
+    use_unicode = _stdout_supports_unicode()
+    if use_unicode:
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        line = f'\r\033[K{status_color}▕{bar}▏{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | ⏳ {elapsed:.1f}s | 🏁 ETA: {eta_str} | ❌ {failed} | {Colors.WARNING}⏭ {skipped}{Colors.ENDC}'
+    else:
+        bar = '=' * filled_length + '-' * (bar_length - filled_length)
+        line = f'\r\033[K{status_color}[{bar}]{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | {Colors.WARNING}skipped: {skipped}{Colors.ENDC}'
+    try:
+        sys.stdout.write(line)
+    except UnicodeEncodeError:
+        line = f'\r[{bar}] {percent:.1f}% | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | skipped: {skipped}'
+        sys.stdout.write(line)
     sys.stdout.flush()
 
 def strip_ansi_codes(text):
