@@ -1,3 +1,4 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int8.
 var x:[2][3] = [[1, 2, 3], ["Hello", "World", "Test"]]
 println(x)
 var j:int[2][3] = [[1, 2, 3], x[1]]

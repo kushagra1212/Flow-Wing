@@ -155,6 +155,8 @@ char* to_string_op_code(int op) {
         case OP_SLASH_SLASH: return "int_div";
         case OP_LOGICAL_AND: return "logical_and";
         case OP_LOGICAL_OR: return "logical_or";
+        case OP_BANG: return "bang";
+        case OP_TILDE: return "tilde";
         default: return "unknown";
     }
 }

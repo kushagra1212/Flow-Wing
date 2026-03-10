@@ -1,3 +1,3 @@
-/; EXPECT_RUNTIME_ERROR: Invalid input for Decimal
+/; EXPECT_ERROR: Runtime Error: Invalid input for Decimal(Double) conversion.
 print(Decimal("abc"))
 
