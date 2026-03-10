@@ -107,7 +107,7 @@ void LinkerCommandBuilder::addUserArguments(std::vector<std::string> &args) {
 
   // Handle Server Flags
   if (m_context.getOptions().enable_server) {
-    args.push_back(getLibPathFlag(io::PathUtils::getLibrariesPath().c_str()));
+    args.push_back(getLibPathFlag(io::PathUtils::getLibrariesPath().string()));
     args.push_back(getLibLinkFlag("flowwing_vortex"));
   }
 
@@ -118,7 +118,7 @@ void LinkerCommandBuilder::addUserArguments(std::vector<std::string> &args) {
 }
 
 void LinkerCommandBuilder::addRuntimeLibraries(std::vector<std::string> &args) {
-  std::string runtimePath = io::PathUtils::getLibrariesPath().c_str();
+  std::string runtimePath = io::PathUtils::getLibrariesPath().string();
   LINKING_DEBUG_LOG("runtimeLibPath", runtimePath);
 
   args.push_back(getLibPathFlag(runtimePath));
