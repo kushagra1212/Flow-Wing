@@ -39,7 +39,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<SymbolTable>> m_scope_stack;
-  const FunctionSymbol *m_current_function_symbol;
+  const FunctionSymbol *m_current_function_symbol = nullptr;
 };
 
 } // namespace analysis

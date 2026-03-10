@@ -282,7 +282,28 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 with dir_lock: failed_dirs.add(parent_dir)
             return False, f"{Colors.FAIL}[ERROR]{Colors.ENDC} {file_path.name}: {str(e)}"
 
+def _ensure_stdout_unicode_safe():
+    """On Windows, reconfigure stdout to UTF-8 so compiler output (e.g. ▶) prints without UnicodeEncodeError."""
+    if platform.system() != 'Windows':
+        return
+    enc = getattr(sys.stdout, 'encoding', None) or ''
+    if enc and enc.lower() not in ('utf-8', 'utf8'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except (AttributeError, OSError):
+            pass  # reconfigure not available or failed
+
+
+def _safe_print(text):
+    """Print text, avoiding UnicodeEncodeError on Windows cp1252 (e.g. when msg contains ▶ from compiler)."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, 'encoding', None) or 'ascii'
+        sys.stdout.buffer.write((text + '\n').encode(enc, errors='replace'))
+
 def main():
+    _ensure_stdout_unicode_safe()
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin", required=True, help="Path to compiler executable")
     parser.add_argument("--dir", required=True, help="Path to fixtures")
@@ -353,9 +374,9 @@ def main():
         sys.stdout.write('\r\033[K')
         
         if success is False or "UPDATED" in msg or "CREATED" in msg: 
-             print(msg)
+             _safe_print(msg)
         elif success is True and total < 3000: 
-             print(msg)
+             _safe_print(msg)
              
         print_progress_bar(stats["completed"], total, stats["failed"], stats["skipped"], suite_start_time)
 
