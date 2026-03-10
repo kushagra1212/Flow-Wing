@@ -25,6 +25,8 @@
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/interpreter/Interpreter.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 class Repl {
 public:

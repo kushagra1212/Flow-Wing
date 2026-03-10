@@ -21,6 +21,7 @@
 
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
 #include <memory>
+#include <string>
 
 namespace flow_wing {
 namespace lexer {

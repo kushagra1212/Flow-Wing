@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  */
 
 #include "src/compiler/Linker/LinkerCommandBuilder.hpp"
@@ -176,8 +176,8 @@ LinkerCommandBuilder::getEntryPointFlag(const std::string &entry) const {
 #if defined(__APPLE__)
   return "-e _" + entry;
 #else
-  return ""; // Linux/Windows handle this differently or don't support -e flag
-             // the same way
+  (void)entry; // Linux/Windows handle this differently or don't support -e flag
+  return "";   // the same way
 #endif
 }
 

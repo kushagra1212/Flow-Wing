@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include <string>
 #include <vector>
 
 // clang-format off

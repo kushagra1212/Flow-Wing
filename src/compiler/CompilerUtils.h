@@ -21,6 +21,8 @@
 
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include <cstdint>
+#include <string>
+#include <vector>
 
 // clang-format off
 #include "src/diagnostics/Diagnostic/diagnostic_push.h"
