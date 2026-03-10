@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
           std::make_unique<flow_wing::diagnostic::ConsoleFormatter>());
 
       reporter.report(*context.getDiagnostics(), context);
+      std::cerr.flush();
       return EXIT_FAILURE;
     }
 

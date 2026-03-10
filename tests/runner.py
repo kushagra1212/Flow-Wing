@@ -13,6 +13,10 @@ import platform
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
+# Subprocess output encoding: use UTF-8 so compiler/binary output decodes correctly on Windows (avoid cp1252 UnicodeDecodeError).
+SUBPROCESS_ENCODING = "utf-8"
+SUBPROCESS_ERRORS = "replace"  # Replace invalid bytes instead of raising
+
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -104,10 +108,10 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     aot_build_dir = Path(private_temp_dir) / "aot_build"
                     aot_build_dir.mkdir(parents=True, exist_ok=True)
                     compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={aot_build_dir}']
-                    compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env)
+                    compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
                     duration = (time.time() - start_time) * 1000
                     if compile_result.returncode != 0:
-                        output = compile_result.stderr + compile_result.stdout
+                        output = (compile_result.stderr or '') + (compile_result.stdout or '')
                         output = strip_ansi_codes(output)
                         if expected_error_code in output:
                             return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
@@ -122,9 +126,9 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         if not keep_going:
                             with dir_lock: failed_dirs.add(parent_dir)
                         return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nCompilation succeeded but binary not found at: {binary_path}"
-                    run_result = subprocess.run([str(binary_path)], capture_output=True, text=True, timeout=5, env=run_env)
+                    run_result = subprocess.run([str(binary_path)], capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
                     duration = (time.time() - start_time) * 1000
-                    output = run_result.stderr + run_result.stdout
+                    output = (run_result.stderr or '') + (run_result.stdout or '')
                     output = strip_ansi_codes(output)
                     if expected_error_code in output:
                         return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
@@ -134,9 +138,9 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 else:
                     # JIT: compiler compiles and runs in process, so one invocation gets both compile and runtime errors.
                     run_cmd = [str(compiler_bin), str(file_path)]
-                    result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env)
+                    result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
                     duration = (time.time() - start_time) * 1000
-                    output = result.stderr + result.stdout
+                    output = (result.stderr or '') + (result.stdout or '')
                     output = strip_ansi_codes(output)
                     if expected_error_code in output:
                         return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
@@ -151,7 +155,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={test_temp_dir}']
                 
                 # Use env=run_env here
-                compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env)
+                compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
                 
                 if compile_result.returncode != 0:
                     # If an .expect file exists, this might be an intentional
@@ -159,7 +163,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     # Compare the compiler's output against the expect file.
                     expect_file = file_path.with_suffix(".expect")
                     if expect_file.exists() or update_mode:
-                        raw_compile_out = compile_result.stdout + compile_result.stderr
+                        raw_compile_out = (compile_result.stdout or '') + (compile_result.stderr or '')
                         actual_compile_out = strip_ansi_codes(raw_compile_out)
                         duration = (time.time() - start_time) * 1000
                         if update_mode:
@@ -194,7 +198,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     # No expect file — genuine compile failure
                     if not keep_going:
                         with dir_lock: failed_dirs.add(parent_dir)
-                    return False, f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr}\n{compile_result.stdout}"
+                    return False, f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr or ''}\n{compile_result.stdout or ''}"
                 
                 binary_name = file_path.stem
                 binary_path = test_temp_dir / "bin" / binary_name
@@ -215,12 +219,12 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 run_cmd = [str(compiler_bin), str(file_path)]
 
             # Use env=run_env here
-            result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env)
+            result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
             duration = (time.time() - start_time) * 1000
             
-            raw_output = result.stdout + result.stderr
+            raw_output = (result.stdout or '') + (result.stderr or '')
             actual_output = strip_ansi_codes(raw_output)
-            stderr_output = result.stderr
+            stderr_output = result.stderr or ''
 
             if mode == "aot" and temp_root.exists():
                  shutil.rmtree(test_temp_dir, ignore_errors=True)

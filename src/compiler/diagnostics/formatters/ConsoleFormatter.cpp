@@ -162,6 +162,11 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
   std::string snippet = "\n";
   auto lines = context.getSourceLines();
   size_t line_count = lines.size();
+
+  if (line_count == 0) {
+    return snippet;
+  }
+
   auto start = diagnostic.getLocation().m_start;
   auto end = diagnostic.getLocation().m_end;
   const size_t delta_length = 4;
