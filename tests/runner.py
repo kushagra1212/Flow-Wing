@@ -9,6 +9,7 @@ import re
 import shutil
 import threading
 import tempfile  # <--- NEW IMPORT
+import platform
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -23,6 +24,8 @@ class Colors:
 
 def _stdout_supports_unicode():
     """Use ASCII progress bar when stdout encoding can't represent Unicode (e.g. Windows cp1252 in CI)."""
+    if platform.system() == 'Windows':
+        return False
     enc = getattr(sys.stdout, 'encoding', None) or ''
     return enc and enc.lower() in ('utf-8', 'utf8', 'utf-16', 'utf-32')
 
@@ -44,12 +47,13 @@ def print_progress_bar(iteration, total, failed, skipped, start_time, bar_length
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
         line = f'\r\033[K{status_color}▕{bar}▏{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | ⏳ {elapsed:.1f}s | 🏁 ETA: {eta_str} | ❌ {failed} | {Colors.WARNING}⏭ {skipped}{Colors.ENDC}'
     else:
-        bar = '=' * filled_length + '-' * (bar_length - filled_length)
-        line = f'\r\033[K{status_color}[{bar}]{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | {Colors.WARNING}skipped: {skipped}{Colors.ENDC}'
+        bar_ascii = '=' * filled_length + '-' * (bar_length - filled_length)
+        line = f'\r\033[K{status_color}[{bar_ascii}]{Colors.ENDC} {Colors.BOLD}{percent:.1f}%{Colors.ENDC} | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | {Colors.WARNING}skipped: {skipped}{Colors.ENDC}'
     try:
         sys.stdout.write(line)
     except UnicodeEncodeError:
-        line = f'\r[{bar}] {percent:.1f}% | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | skipped: {skipped}'
+        bar_ascii = '=' * filled_length + '-' * (bar_length - filled_length)
+        line = f'\r[{bar_ascii}] {percent:.1f}% | {elapsed:.1f}s | ETA: {eta_str} | failed: {failed} | skipped: {skipped}'
         sys.stdout.write(line)
     sys.stdout.flush()
 
@@ -194,10 +198,18 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 
                 binary_name = file_path.stem
                 binary_path = test_temp_dir / "bin" / binary_name
+                # On Windows the compiler is likely to emit an .exe, while on Unix
+                # it will be a bare binary with no extension. Check both so that
+                # Windows AOT tests don't fail with a spurious "missing binary".
                 if not binary_path.exists():
-                     if not keep_going:
-                        with dir_lock: failed_dirs.add(parent_dir)
-                     return False, f"{Colors.FAIL}[MISSING BINARY]{Colors.ENDC} Expected at: {binary_path}"
+                    exe_candidate = binary_path.with_suffix(binary_path.suffix + ".exe")
+                    if exe_candidate.exists():
+                        binary_path = exe_candidate
+                    else:
+                        if not keep_going:
+                            with dir_lock:
+                                failed_dirs.add(parent_dir)
+                        return False, f"{Colors.FAIL}[MISSING BINARY]{Colors.ENDC} Expected at: {binary_path}"
                 run_cmd = [str(binary_path)]
             else:
                 run_cmd = [str(compiler_bin), str(file_path)]
@@ -363,18 +375,21 @@ def main():
     print()
     print("-" * 60)
 
+    _bullet = "*" if platform.system() == 'Windows' else "•"
+    _fail_mark = "Failed:" if platform.system() == 'Windows' else "❌ Failed:"
+    _ok_mark = "OK" if platform.system() == 'Windows' else "✅"
     if stats["failed"] > 0:
         print(f"\n{Colors.HEADER}Failed Test Summary:{Colors.ENDC}")
         for f in failed_files:
-            print(f"{Colors.FAIL}• {f}{Colors.ENDC}")
+            print(f"{Colors.FAIL}{_bullet} {f}{Colors.ENDC}")
         print("-" * 60)
         
-        print(f"{Colors.FAIL}❌ Failed: {stats['failed']}, Skipped: {stats['skipped']}, Passed: {stats['passed_compiled'] + stats['passed_diag']}{Colors.ENDC}")
+        print(f"{Colors.FAIL}{_fail_mark} {stats['failed']}, Skipped: {stats['skipped']}, Passed: {stats['passed_compiled'] + stats['passed_diag']}{Colors.ENDC}")
         sys.exit(1)
     else:
         duration = time.time() - suite_start_time
         breakdown = f"({stats['passed_compiled']} Compiled, {stats['passed_diag']} Diag)"
-        print(f"{Colors.OKGREEN}✅ All {total} tests passed {breakdown} in {duration:.2f}s!{Colors.ENDC}")
+        print(f"{Colors.OKGREEN}{_ok_mark} All {total} tests passed {breakdown} in {duration:.2f}s!{Colors.ENDC}")
         sys.exit(0)
 
 if __name__ == "__main__":
