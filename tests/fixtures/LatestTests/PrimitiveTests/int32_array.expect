@@ -1,17 +1,2 @@
-
-0| var a:int32[3] = [100, 200, 300]
-1| println(a)
-2| a[1] = -999
-3| println(a)
-           ^^
-
-[Error:VariableNotFound] : Line 3:8  "Variable 'a' does not exist."
-
-File: ----> int32_array.fg
-Location: ----> /Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests/PrimitiveTests/int32_array.fg
-
-[Note] Check for typos in the variable name or verify that it is defined in the current scope.
-
-
-[Help] Ensure that the variable 'a' is declared before it is used.
-
+[ 100, 200, 300 ]
+[ 100, -999, 300 ]

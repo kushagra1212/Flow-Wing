@@ -84,18 +84,50 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
             start_time = time.time()
             expected_error_code = get_expected_error_code(file_path)
 
-            # --- PATH A: DIAGNOSTIC TEST ---
+            # --- PATH A: DIAGNOSTIC TEST (EXPECT_ERROR) ---
             if expected_error_code:
-                run_cmd = [str(compiler_bin), str(file_path)]
-                
-                # Use env=run_env here
-                result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env)
-                duration = (time.time() - start_time) * 1000
-                output = result.stderr + result.stdout 
-                
-                if expected_error_code in output:
-                     return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
+                if mode == "aot":
+                    # AOT: compiler only compiles; it does not run the program. So we must
+                    # compile to a temp dir, then run the binary to see runtime errors.
+                    aot_build_dir = Path(private_temp_dir) / "aot_build"
+                    aot_build_dir.mkdir(parents=True, exist_ok=True)
+                    compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={aot_build_dir}']
+                    compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env)
+                    duration = (time.time() - start_time) * 1000
+                    if compile_result.returncode != 0:
+                        output = compile_result.stderr + compile_result.stdout
+                        output = strip_ansi_codes(output)
+                        if expected_error_code in output:
+                            return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
+                        if not keep_going:
+                            with dir_lock: failed_dirs.add(parent_dir)
+                        return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Compiler Output:\n{output} ({duration:.1f}ms)"
+                    binary_name = file_path.stem
+                    binary_path = aot_build_dir / "bin" / binary_name
+                    if not binary_path.exists() and (aot_build_dir / "bin" / f"{binary_name}.exe").exists():
+                        binary_path = aot_build_dir / "bin" / f"{binary_name}.exe"
+                    if not binary_path.exists():
+                        if not keep_going:
+                            with dir_lock: failed_dirs.add(parent_dir)
+                        return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nCompilation succeeded but binary not found at: {binary_path}"
+                    run_result = subprocess.run([str(binary_path)], capture_output=True, text=True, timeout=5, env=run_env)
+                    duration = (time.time() - start_time) * 1000
+                    output = run_result.stderr + run_result.stdout
+                    output = strip_ansi_codes(output)
+                    if expected_error_code in output:
+                        return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
+                    if not keep_going:
+                        with dir_lock: failed_dirs.add(parent_dir)
+                    return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Binary Output:\n{output} ({duration:.1f}ms)"
                 else:
+                    # JIT: compiler compiles and runs in process, so one invocation gets both compile and runtime errors.
+                    run_cmd = [str(compiler_bin), str(file_path)]
+                    result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env)
+                    duration = (time.time() - start_time) * 1000
+                    output = result.stderr + result.stdout
+                    output = strip_ansi_codes(output)
+                    if expected_error_code in output:
+                        return True, f"{Colors.OKGREEN}[PASS (DIAG)]{Colors.ENDC} {file_path.name} (Found {expected_error_code}) ({duration:.1f}ms)"
                     if not keep_going:
                         with dir_lock: failed_dirs.add(parent_dir)
                     return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Output:\n{output} ({duration:.1f}ms)"
