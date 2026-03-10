@@ -91,9 +91,6 @@ jobs:
     name: Build and Cache Dependencies for Windows (x86_64)
     runs-on: windows-latest
     steps:
-      - name: Enable longpaths
-        run: git config --system core.longpaths true
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -104,6 +101,10 @@ jobs:
           path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
           lookup-only: true
+
+      - name: Enable longpaths
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: git config --system core.longpaths true
 
       - name: Install Build Tools
         if: steps.cache-deps.outputs.cache-hit != 'true'
