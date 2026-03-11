@@ -160,8 +160,8 @@ std::unique_ptr<BoundExpression> BinderContext::createDefaultValueExpression(
             remaining % dims[static_cast<size_t>(d)];
         remaining /= dims[static_cast<size_t>(d)];
       }
-      for (size_t idx : idx_vec) {
-        elem->addIndex(idx);
+      for (auto it = idx_vec.rbegin(); it != idx_vec.rend(); ++it) {
+        elem->addIndex(*it);
       }
 
       elements.push_back(std::move(elem));

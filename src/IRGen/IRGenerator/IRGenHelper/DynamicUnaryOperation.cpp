@@ -29,7 +29,7 @@ llvm::Value *IRGenerator::getDynamicUnaryResult(llvm::Value *value,
 
   llvm::Value *dyn_ptr = ensureDynamic(value, expression_type);
 
-  // DynamicValue fg_perform_dynamic_unary_op(DynamicValue*, int)
+  // void fg_perform_dynamic_unary_op(DynamicValue* result, DynamicValue*, int)
   llvm::Type *dynStructType = m_ir_gen_context.getTypeBuilder()->getLLVMType(
       analysis::Builtins::m_dynamic_type_instance.get());
 
@@ -42,12 +42,11 @@ llvm::Value *IRGenerator::getDynamicUnaryResult(llvm::Value *value,
   llvm::Value *opCodeVal = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext()), opCode);
 
-  llvm::Value *resultStruct = m_ir_gen_context.getLLVMBuilder()->CreateCall(
-      func, {dyn_ptr, opCodeVal}, "dyn_unary_res");
-
+  // Allocate result struct on stack and pass as first argument (sret pattern)
   llvm::Value *resultAlloca =
       m_ir_gen_context.createAlloca(dynStructType, "dyn_unary_res_ptr");
-  m_ir_gen_context.getLLVMBuilder()->CreateStore(resultStruct, resultAlloca);
+  m_ir_gen_context.getLLVMBuilder()->CreateCall(
+      func, {resultAlloca, dyn_ptr, opCodeVal});
 
   return resultAlloca;
 }

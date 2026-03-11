@@ -122,12 +122,11 @@ llvm::Value *IRGenerator::getDynamicBinaryResult(llvm::Value *left_value,
   llvm::Value *opCodeVal = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext()), opCode);
 
-  llvm::Value *resultStruct = m_ir_gen_context.getLLVMBuilder()->CreateCall(
-      func, {left_dyn_ptr, right_dyn_ptr, opCodeVal}, "dyn_op_res");
-
+  // Allocate result struct on stack and pass as first argument (sret pattern)
   llvm::Value *resultAlloca =
       m_ir_gen_context.createAlloca(dynStructType, "dyn_op_res_ptr");
-  m_ir_gen_context.getLLVMBuilder()->CreateStore(resultStruct, resultAlloca);
+  m_ir_gen_context.getLLVMBuilder()->CreateCall(
+      func, {resultAlloca, left_dyn_ptr, right_dyn_ptr, opCodeVal});
 
   return resultAlloca;
 }

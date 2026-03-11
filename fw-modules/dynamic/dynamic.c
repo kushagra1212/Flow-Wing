@@ -84,7 +84,7 @@
  
  // Dynamic Handling
  char* fg_dyn_to_string_ptr(DynamicValue* v);
- DynamicValue fg_perform_dynamic_op(DynamicValue* lhs, DynamicValue* rhs, int op);
+ void fg_perform_dynamic_op(DynamicValue* result, DynamicValue* lhs, DynamicValue* rhs, int op);
 
  // ==========================================
  // Dynamic Typing Logic
@@ -164,10 +164,9 @@ char* to_string_op_code(int op) {
  // ==========================================
  // MASTER DYNAMIC OPERATION FUNCTION
  // ==========================================
- DynamicValue fg_perform_dynamic_op(DynamicValue* lhs, DynamicValue* rhs, int op) {
-     DynamicValue result; 
-     result.tag = DYN_TAG_NIRAST;
-     result.value = 0;
+ void fg_perform_dynamic_op(DynamicValue* result, DynamicValue* lhs, DynamicValue* rhs, int op) {
+     result->tag = DYN_TAG_NIRAST;
+     result->value = 0;
  
      // String Concatenation Rule
      // If Op is ADD (+) and ANY operand is a String, cast both to String and concat.
@@ -176,9 +175,9 @@ char* to_string_op_code(int op) {
          char* s2 = fg_dyn_to_string_ptr(rhs);
          char* resStr = fg_cs(s1, s2);
          
-         result.tag = DYN_TAG_STRING;
-         result.value = (intptr_t)resStr;
-         return result;
+         result->tag = DYN_TAG_STRING;
+         result->value = (intptr_t)resStr;
+         return;
      }
  
      // Floating Point Promotion Rule
@@ -217,13 +216,13 @@ char* to_string_op_code(int op) {
          }
  
          if (is_bool_res) {
-             result.tag = DYN_TAG_BOOLEAN;
-             result.value = (int64_t)res;
+             result->tag = DYN_TAG_BOOLEAN;
+             result->value = (int64_t)res;
          } else {
-             result.tag = DYN_TAG_FLOAT64;
-             memcpy(&result.value, &res, sizeof(double));
+             result->tag = DYN_TAG_FLOAT64;
+             memcpy(&result->value, &res, sizeof(double));
          }
-         return result;
+         return;
      }
  
      // Integer Logic
@@ -247,9 +246,9 @@ char* to_string_op_code(int op) {
               // Let's implement FlowWing logic: Integers dividing always produce float unless // is used.
               {
                   double dres = (double)left / (double)right;
-                  result.tag = DYN_TAG_FLOAT64;
-                  memcpy(&result.value, &dres, sizeof(double));
-                  return result;
+                  result->tag = DYN_TAG_FLOAT64;
+                  memcpy(&result->value, &dres, sizeof(double));
+                  return;
               }
          case OP_MOD: 
               if (right == 0) fg_panic("Runtime Error: Modulo by zero.", "");
@@ -283,18 +282,17 @@ char* to_string_op_code(int op) {
          default: fg_panic("Runtime Error: Unknown integer operator. %s\n", to_string_op_code(op));
      }
  
-     result.tag = is_bool_res ? DYN_TAG_BOOLEAN : DYN_TAG_INT64;
-     result.value = res;
-     return result;
+     result->tag = is_bool_res ? DYN_TAG_BOOLEAN : DYN_TAG_INT64;
+     result->value = res;
+     return;
  }
 
  // ==========================================
 // MASTER DYNAMIC UNARY OPERATION FUNCTION
 // ==========================================
-DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
-    DynamicValue result; 
-    result.tag = DYN_TAG_NIRAST;
-    result.value = 0;
+void fg_perform_dynamic_unary_op(DynamicValue* result, DynamicValue* val, int op) {
+    result->tag = DYN_TAG_NIRAST;
+    result->value = 0;
 
     // 1. Handle Logical NOT (!)
     // Rules:
@@ -320,9 +318,9 @@ DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
             default: truthy = false;
         }
         
-        result.tag = DYN_TAG_BOOLEAN;
-        result.value = (!truthy); // The actual NOT operation
-        return result;
+        result->tag = DYN_TAG_BOOLEAN;
+        result->value = (!truthy); // The actual NOT operation
+        return;
     }
 
     // 2. Handle Negation (-) and Identity (+)
@@ -334,22 +332,23 @@ DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
             if (!is_float && val->tag != DYN_TAG_INT64 && val->tag != DYN_TAG_INT32 && val->tag != DYN_TAG_INT8) {
                  fg_panic("Runtime Error: Invalid type for unary plus.", "");
             }
-            return *val; // Return copy
+            *result = *val; // Copy to output
+            return;
         }
 
         // Unary Minus (-)
         if (is_float) {
             double d = get_dyn_double(val);
             d = -d;
-            result.tag = DYN_TAG_FLOAT64;
-            memcpy(&result.value, &d, sizeof(double));
+            result->tag = DYN_TAG_FLOAT64;
+            memcpy(&result->value, &d, sizeof(double));
         } else {
             // Integer
             int64_t i = get_dyn_int(val);
-            result.tag = DYN_TAG_INT64;
-            result.value = -i;
+            result->tag = DYN_TAG_INT64;
+            result->value = -i;
         }
-        return result;
+        return;
     }
 
     // 3. Handle Bitwise NOT (~)
@@ -360,13 +359,13 @@ DynamicValue fg_perform_dynamic_unary_op(DynamicValue* val, int op) {
         }
         
         int64_t i = get_dyn_int(val);
-        result.tag = DYN_TAG_INT64;
-        result.value = ~i;
-        return result;
+        result->tag = DYN_TAG_INT64;
+        result->value = ~i;
+        return;
     }
 
     fg_panic("Runtime Error: Unknown unary operator. %s\n", to_string_op_code(op));
-    return result;
+    return;
 }
 
 // ==========================================

@@ -397,13 +397,14 @@ void Builtins::initializeInternalFunctions() {
   createInternalFunction(
       std::string(ir_gen::constants::functions::kPerform_dynamic_op_fn),
       {Builtins::m_dynamic_type_instance, Builtins::m_dynamic_type_instance,
-       Builtins::m_int32_type_instance},
-      {Builtins::m_dynamic_type_instance}, false);
+       Builtins::m_dynamic_type_instance, Builtins::m_int32_type_instance},
+      {Builtins::m_nthg_type_instance}, false);
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kPerform_dynamic_unary_op_fn),
-      {Builtins::m_dynamic_type_instance, Builtins::m_int32_type_instance},
-      {Builtins::m_dynamic_type_instance}, false);
+      {Builtins::m_dynamic_type_instance, Builtins::m_dynamic_type_instance,
+       Builtins::m_int32_type_instance},
+      {Builtins::m_nthg_type_instance}, false);
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kIndex_out_of_bounds_fn),

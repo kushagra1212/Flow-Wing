@@ -169,11 +169,11 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         if update_mode:
                             action_tag = "[UPDATED]" if expect_file.exists() else "[CREATED]"
                             try:
-                                with open(expect_file, 'w') as f: f.write(actual_compile_out)
+                                with open(expect_file, 'w', encoding='utf-8') as f: f.write(actual_compile_out)
                                 return True, f"{Colors.OKBLUE}{action_tag}{Colors.ENDC} {file_path.name}"
                             except Exception as e:
                                 return False, f"{Colors.FAIL}[WRITE ERROR]{Colors.ENDC} Could not write {expect_file}: {e}"
-                        with open(expect_file, 'r') as f:
+                        with open(expect_file, 'r', encoding='utf-8') as f:
                             expected_compile_out = f.read()
                         if actual_compile_out == expected_compile_out:
                             return True, f"{Colors.OKGREEN}[PASS (COMPILED)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
@@ -234,14 +234,14 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
             if update_mode or not expect_file.exists():
                 action_tag = "[UPDATED]" if expect_file.exists() else "[CREATED]"
                 try:
-                    with open(expect_file, 'w') as f: f.write(actual_output)
+                    with open(expect_file, 'w', encoding='utf-8') as f: f.write(actual_output)
                     return True, f"{Colors.OKBLUE}{action_tag}{Colors.ENDC} {file_path.name}"
                 except Exception as e:
                     if not keep_going:
                         with dir_lock: failed_dirs.add(parent_dir)
                     return False, f"{Colors.FAIL}[WRITE ERROR]{Colors.ENDC} Could not write {expect_file}: {e}"
 
-            with open(expect_file, 'r') as f: expected_output = f.read()
+            with open(expect_file, 'r', encoding='utf-8') as f: expected_output = f.read()
 
             if actual_output == expected_output:
                 return True, f"{Colors.OKGREEN}[PASS (COMPILED)]{Colors.ENDC} {file_path.name} ({duration:.1f}ms)"
