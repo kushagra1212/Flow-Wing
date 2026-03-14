@@ -85,6 +85,20 @@ jobs:
         if: success() || failure()
         run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Yarn
+        run: corepack enable
+
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
+
+      - name: Run LSP tests
+        run: make lsp-test
+
   ## ------------------ Windows Jobs (x86_64) ------------------ ##
 
   windows_x86_64_build_deps:
@@ -148,6 +162,20 @@ jobs:
       # Removed --parallel from AOT
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Yarn
+        run: corepack enable
+
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
+
+      - name: Run LSP tests
+        run: make lsp-test
 
   ## ------------------ Linux Jobs (x86_64) ------------------ ##
 
@@ -220,3 +248,17 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Yarn
+        run: corepack enable
+
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
+
+      - name: Run LSP tests
+        run: make lsp-test
