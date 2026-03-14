@@ -380,6 +380,11 @@ BoundBinaryOperator::bind(lexer::TokenKind operator_kind,
                           std::shared_ptr<types::Type> left_type,
                           std::shared_ptr<types::Type> right_type) {
 
+  // Reject nthg (void) in binary operations
+  if (left_type->isNthg() || right_type->isNthg()) {
+    return nullptr;
+  }
+
   // Handling Exceptional Cases
   if ((left_type->isDynamic() && right_type->isDynamic()) ||
       (left_type->isDynamic() && right_type->isPrimitive()) ||

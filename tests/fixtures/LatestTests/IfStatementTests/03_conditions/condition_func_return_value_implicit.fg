@@ -1,0 +1,10 @@
+fun doSideEffect() {
+  println("x")
+  return 1
+}
+
+if (doSideEffect() == 1) {
+  println("match")
+} else {
+  println("no match")
+}

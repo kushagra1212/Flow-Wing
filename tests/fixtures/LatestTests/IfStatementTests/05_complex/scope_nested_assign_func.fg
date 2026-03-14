@@ -1,0 +1,18 @@
+fun getOuter() -> int {
+  return 10
+}
+
+fun getInner() -> int {
+  return 5
+}
+
+var x: int = 0
+
+if (true) {
+  x = getOuter()
+  if (x > 5) {
+    var y: int = getInner()
+    println(x, y)
+  }
+}
+println(x)

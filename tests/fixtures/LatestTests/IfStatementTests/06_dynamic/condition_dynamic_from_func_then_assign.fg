@@ -1,0 +1,11 @@
+fun getDynamic() {
+  return 99
+}
+
+var x = getDynamic()
+
+if (x) {
+  println("truthy")
+} else {
+  println("falsy")
+}

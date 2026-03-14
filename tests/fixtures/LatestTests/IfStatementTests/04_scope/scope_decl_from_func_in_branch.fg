@@ -1,0 +1,12 @@
+fun getVal() -> int {
+  return 42
+}
+
+if (true) {
+  var y: int = getVal()
+  println(y)
+} else {
+  var y: int = 0
+  println(y)
+}
+println("done")

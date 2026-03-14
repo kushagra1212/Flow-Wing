@@ -1,0 +1,7 @@
+var x: int = 5
+
+if (-x < 0) {
+  println("negative")
+} else {
+  println("non-negative")
+}

@@ -1,0 +1,9 @@
+fun getVal() -> int {
+  return 42
+}
+
+if (getVal() == 42) {
+  println("match")
+} else {
+  println("no match")
+}

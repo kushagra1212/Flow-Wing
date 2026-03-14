@@ -1,0 +1,9 @@
+fun getDeci() -> deci {
+  return 3.14
+}
+
+if (getDeci()) {
+  println("nonzero")
+} else {
+  println("zero")
+}

@@ -1,0 +1,9 @@
+fun getChar() -> char {
+  return 'x'
+}
+
+if (getChar()) {
+  println("nonzero")
+} else {
+  println("zero")
+}

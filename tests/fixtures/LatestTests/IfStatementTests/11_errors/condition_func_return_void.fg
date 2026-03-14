@@ -1,8 +1,6 @@
 /; EXPECT_ERROR: InvalidBinaryOperationWithTypes
-fun doSideEffect()  {
+fun doSideEffect() -> nthg {
   println("x")
-
-  return 2
 }
 
 if (doSideEffect() == 1) {

@@ -1,0 +1,8 @@
+var a: int = 2
+var b: int = 3
+
+if (a * b > 5) {
+  println("gt5")
+} else {
+  println("le5")
+}

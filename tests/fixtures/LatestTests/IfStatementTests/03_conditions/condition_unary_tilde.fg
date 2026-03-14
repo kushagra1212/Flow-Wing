@@ -1,6 +1,6 @@
-var x: int = 42
+var x: int = 0
 
-if (x) {
+if (~x) {
   println("nonzero")
 } else {
   println("zero")

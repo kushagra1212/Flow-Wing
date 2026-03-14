@@ -1,0 +1,13 @@
+fun getVal() -> int {
+  return 100
+}
+
+var x: int = 0
+
+if (true) {
+  x = getVal()
+  println(x)
+} else {
+  x = 200
+}
+println(x)

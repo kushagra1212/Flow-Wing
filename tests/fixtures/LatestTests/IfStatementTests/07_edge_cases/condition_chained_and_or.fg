@@ -1,0 +1,10 @@
+var a: bool = true
+var b: bool = false
+var c: bool = true
+var d: bool = false
+
+if (a && b || c && !d) {
+  println("true")
+} else {
+  println("false")
+}

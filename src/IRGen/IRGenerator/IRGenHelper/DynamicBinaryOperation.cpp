@@ -82,7 +82,8 @@ uint32_t IRGenerator::getRuntimeOpCode(lexer::TokenKind kind) {
 // 2. Helper to wrap primitives into a Dynamic struct alloca
 llvm::Value *IRGenerator::ensureDynamic(llvm::Value *value, types::Type *type) {
   if (type->isDynamic()) {
-    return value;
+
+    return ensurePointer(value, type, "dyn_operand");
   }
 
   llvm::Type *dynType = m_ir_gen_context.getTypeBuilder()->getLLVMType(
