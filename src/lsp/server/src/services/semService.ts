@@ -314,7 +314,7 @@ function getArrayElementTypeId(
   return undefined;
 }
 
-/** Resolve the type name for a dotted path (e.g. "c.b.b", "c[0].b" -> "int"). Returns undefined if path cannot be resolved. */
+/** Resolve the type name for a dotted path (e.g. "c.b.b", "c[0].b", "getPoints()[0].x" -> "int"). Returns undefined if path cannot be resolved. */
 function resolveTypeForPath(
   symbols: Record<string, SemSymbol>,
   types: Record<string, SemType>,
@@ -329,6 +329,14 @@ function resolveTypeForPath(
 
   let currentTypeId: string | undefined = baseSym.type_id;
   let currentTypeName: string | undefined;
+
+  // For function calls (e.g. getPoints()), use return type instead of function type
+  if (baseSym.kind === "Function" && currentTypeId) {
+    const funcType = types[currentTypeId];
+    if (funcType?.kind === "Function" && funcType.return_type_ids?.length) {
+      currentTypeId = funcType.return_type_ids[0];
+    }
+  }
 
   if (/\[\d+\]$/.test(parts[0])) {
     currentTypeId = getArrayElementTypeId(types, currentTypeId);
@@ -408,10 +416,17 @@ export function getNestedObjectLiteralContext(
     const c = prefix[i];
     if (c === "[") {
       const top = stack[stack.length - 1];
-      const typeEntry = Object.entries(types).find(([id, t]) => t.name === top || resolveTypeName(id, types) === top);
+      const typeEntry = Object.entries(types).find(
+        ([id, t]) =>
+          (t.kind === "Array" || t.kind === "ArrayType") &&
+          (t.name === top || resolveTypeName(id, types) === top)
+      );
       const arrayBase = typeEntry ? (typeEntry[1].base_type_id ?? typeEntry[1].underlying_type_id) : undefined;
-      
-      if (arrayBase) {
+      const elemTypeId = typeEntry ? getArrayElementTypeId(types, typeEntry[0]) : undefined;
+
+      if (elemTypeId) {
+        stack.push(resolveExpectedTypeName(resolveTypeName(elemTypeId, types), types));
+      } else if (arrayBase) {
         stack.push(resolveExpectedTypeName(resolveTypeName(arrayBase, types), types));
       } else if (top.endsWith("]")) {
         stack.push(resolveExpectedTypeName(top.slice(0, top.lastIndexOf("[")).trim(), types));
@@ -850,6 +865,13 @@ export function getCompletionItemsFromSem(
 
     if (baseSym) {
       currentTypeId = baseSym.type_id;
+      // For function calls (e.g. getPoints()), use return type
+      if (baseSym.kind === "Function" && currentTypeId) {
+        const funcType = types[currentTypeId];
+        if (funcType?.kind === "Function" && funcType.return_type_ids?.length) {
+          currentTypeId = funcType.return_type_ids[0];
+        }
+      }
       if (/\[\d+\]$/.test(parts[0])) {
         currentTypeId = getArrayElementTypeId(types, currentTypeId);
       }

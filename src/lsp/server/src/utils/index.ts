@@ -55,8 +55,39 @@ export const getIdentifierAtPosition = (
 };
 
 /**
- * Extracts the full dotted path at position (e.g. "c", "c.b", "c[0].b", "c[0].b.b").
+ * Extracts the argument prefix at position from document content (e.g. "" for test(|), "{" for test({|).
+ * Uses the actual document text, not repaired tokens, so test(|) yields "" not "{}".
+ */
+export const getArgumentPrefixFromDocument = (
+  content: string,
+  position: { line: number; character: number }
+): string => {
+  const lines = content.split("\n");
+  let offset = 0;
+  for (let i = 0; i < position.line; i++) offset += (lines[i]?.length ?? 0) + 1;
+  offset += position.character;
+  const before = content.slice(0, offset);
+  let depth = 0;
+  let lastOpen = -1;
+  for (let i = before.length - 1; i >= 0; i--) {
+    const c = before[i];
+    if (c === ")") depth--;
+    else if (c === "(") {
+      depth++;
+      if (depth === 1) {
+        lastOpen = i;
+        break;
+      }
+    }
+  }
+  if (lastOpen < 0) return "";
+  return before.slice(lastOpen + 1).replace(/\s+$/, "");
+};
+
+/**
+ * Extracts the full dotted path at position (e.g. "c", "c.b", "c[0].b", "getPoints()[0].x").
  * Used for hover on member expressions and completion to resolve nested types.
+ * Supports: id, id(), id()[0], id()[0].field, id.field, id[0].field, etc.
  */
 export const getFullPathAtPosition = (
   content: string,
@@ -66,8 +97,11 @@ export const getFullPathAtPosition = (
   const line = lines[position.line];
   if (!line) return "";
   const before = line.slice(0, position.character);
-  // Match: id, id.id, id[0].id, id[0].id.id, etc. (optional trailing .)
-  const match = before.match(/(\w+(?:\[\d+\])?(?:\.\w+(?:\[\d+\])?)*)(?:\.)?$/);
+  // Match path: id or id() or id()[0], optionally followed by .field chains.
+  // (?:\(\))? and (?:\[\d+\])? are optional so we match both obj.field and getPoints()[0].x
+  const match = before.match(
+    /(\w+(?:\(\))?(?:\[\d+\])?(?:\.\w+(?:\(\))?(?:\[\d+\])?)*)(?:\.)?$/
+  );
   return match ? match[1] : "";
 };
 
@@ -127,24 +161,82 @@ export const tryRepairDotForSem = (
   return null;
 };
 
+/** Parse type definitions and var declarations for inout placeholder resolution. */
+function buildTypeContext(content: string): {
+  typeFields: Map<string, Record<string, string>>;
+  varTypes: Map<string, string>;
+} {
+  const typeFields = new Map<string, Record<string, string>>();
+  const varTypes = new Map<string, string>();
+  for (const m of content.matchAll(/\btype\s+([A-Z]\w*)\s*=\s*\{([^}]*)\}/g)) {
+    const fields: Record<string, string> = {};
+    for (const f of m[2].matchAll(/([a-zA-Z_]\w*)\s*:\s*([A-Za-z0-9_[\]]+)/g)) {
+      fields[f[1]] = f[2].trim();
+    }
+    typeFields.set(m[1], fields);
+  }
+  for (const m of content.matchAll(/\b(?:var|const)\s+([a-zA-Z_]\w*)\s*:\s*([A-Za-z0-9_[\]]+)/g)) {
+    varTypes.set(m[1], m[2].trim());
+  }
+  return { typeFields, varTypes };
+}
+
+/** Find a variable path for inout param of type targetType (e.g. "c[0].b" for B, "c" for A[2]). */
+function findInoutPlaceholder(
+  targetType: string,
+  typeFields: Map<string, Record<string, string>>,
+  varTypes: Map<string, string>
+): string | null {
+  const targetBase = targetType.replace(/\[\d*\]/g, "").trim();
+  for (const [varName, typeStr] of varTypes) {
+    if (typeStr === targetType) return varName;
+    const baseMatch = typeStr.match(/^([A-Z]\w*)(\[\d*\])?$/);
+    if (!baseMatch) continue;
+    const baseType = baseMatch[1];
+    const isArray = !!baseMatch[2];
+    const fields = typeFields.get(baseType);
+    if (!fields) continue;
+    for (const [fieldName, fieldType] of Object.entries(fields)) {
+      const fieldBase = fieldType.replace(/\[\d*\]/g, "").trim();
+      if (fieldBase === targetBase || fieldType === targetType) {
+        return isArray ? `${varName}[0].${fieldName}` : `${varName}.${fieldName}`;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Tries to repair content for sem when calls have wrong argument count.
  * E.g. funName() when funName(a:int, b:deci) -> funName(0, 0.0)
+ * For inout object params, uses a variable path (e.g. c[0].b) so the compiler accepts it.
  */
 export const tryRepairCallForSem = (content: string): string | null => {
-  const funcParams = new Map<string, string[]>();
+  const funcParams = new Map<string, { types: string[]; inout: boolean[] }>();
   const funMatch = content.matchAll(
     /\bfun\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g
   );
   for (const m of funMatch) {
     const name = m[1];
-    const params = m[2]
-      .split(",")
-      .map((p) => p.trim().split(":")[1]?.trim())
-      .filter(Boolean);
-    funcParams.set(name, params);
+    const params = m[2].split(",").map((p) => p.trim());
+    const types: string[] = [];
+    const inout: boolean[] = [];
+    for (const p of params) {
+      const inoutMatch = p.startsWith("inout ");
+      const typePart = inoutMatch ? p.slice(6).trim() : p;
+      const colonIdx = typePart.indexOf(":");
+      const typeStr = colonIdx >= 0 ? typePart.slice(colonIdx + 1).trim() : "";
+      types.push(typeStr);
+      inout.push(inoutMatch);
+    }
+    funcParams.set(name, { types: types.filter(Boolean), inout });
   }
-  const placeholderForType = (t: string): string => {
+  const { typeFields, varTypes } = buildTypeContext(content);
+  const placeholderForType = (t: string, isInout: boolean): string => {
+    if (isInout && /^[A-Z]\w*(\[\d*\])?$/.test(t)) {
+      const path = findInoutPlaceholder(t, typeFields, varTypes);
+      if (path) return path;
+    }
     const lower = t.toLowerCase();
     if (lower.includes("int") || lower === "i32" || lower === "i64") return "0";
     if (lower.includes("deci") || lower.includes("float") || lower === "f32")
@@ -155,10 +247,12 @@ export const tryRepairCallForSem = (content: string): string | null => {
     if (/^[A-Z]\w*$/.test(t) || lower.includes("object")) return "{}";
     return "0";
   };
-  for (const [name, types] of funcParams) {
+  for (const [name, { types, inout }] of funcParams) {
     if (types.length === 0) continue;
-    const placeholders = types.map(placeholderForType).join(", ");
-    // Repair funName() -> funName(0, 0.0)
+    const placeholders = types
+      .map((t, i) => placeholderForType(t, inout[i] ?? false))
+      .join(", ");
+    // Repair funName() -> funName(0, 0.0) or funName(c[0].b) for inout
     const emptyCall = new RegExp(`\\b${name}\\s*\\(\\s*\\)`, "g");
     let repaired = content.replace(emptyCall, `${name}(${placeholders})`);
     if (repaired !== content) return repaired;
@@ -166,6 +260,58 @@ export const tryRepairCallForSem = (content: string): string | null => {
     const bareId = new RegExp(`\\b${name}\\b(?!\\s*\\()`, "g");
     repaired = content.replace(bareId, `${name}(${placeholders})`);
     if (repaired !== content) return repaired;
+    // Repair inout + object/array literal: test({}) -> test(c[0].b), test([{}]) -> test(c)
+    const callRegex = new RegExp(`\\b${name}\\s*\\(`, "g");
+    let m: RegExpExecArray | null;
+    while ((m = callRegex.exec(content)) !== null) {
+      const start = m.index + m[0].length;
+      let depth = 1;
+      let i = start;
+      const args: string[] = [];
+      let argStart = start;
+      let argDepth = 0;
+      while (i < content.length && depth > 0) {
+        const c = content[i];
+        if (c === "(" || c === "{" || c === "[") {
+          if (depth === 1) argDepth++;
+          depth++;
+        } else if (c === ")" || c === "}" || c === "]") {
+          depth--;
+          if (depth === 1 && argDepth > 0) {
+            argDepth--;
+            if (argDepth === 0) {
+              args.push(content.slice(argStart, i).trim());
+              argStart = i + 1;
+              while (argStart < content.length && /[,\s]/.test(content[argStart])) argStart++;
+              i = argStart - 1;
+            }
+          }
+        } else if (depth === 1 && c === ",") {
+          args.push(content.slice(argStart, i).trim());
+          argStart = i + 1;
+          while (argStart < content.length && /[,\s]/.test(content[argStart])) argStart++;
+          i = argStart - 1;
+        }
+        i++;
+      }
+      if (depth === 0) {
+        const lastArg = content.slice(argStart, i - 1).trim();
+        if (lastArg) args.push(lastArg);
+        const newArgs = args.map((arg, idx) => {
+          if (!inout[idx]) return arg;
+          const trimmed = arg.trim();
+          const isLiteral = (trimmed.startsWith("{") || trimmed.startsWith("[")) && trimmed.length > 0;
+          if (!isLiteral) return arg;
+          const ph = placeholderForType(types[idx] ?? "", true);
+          return ph;
+        });
+        if (JSON.stringify(args) !== JSON.stringify(newArgs)) {
+          const before = content.slice(0, start);
+          const after = content.slice(i - 1);
+          return before + newArgs.join(", ") + after;
+        }
+      }
+    }
   }
   return null;
 };
@@ -231,6 +377,17 @@ export const makeCodeCompleteForLsp = (content: string): string => {
     if (open === "(") suffix += ")";
     if (open === "{") suffix += "}";
     if (open === "[") suffix += "]";
+  }
+
+  // Incomplete if/else if/while/for need a body: "if (expr)" -> "if (expr) {}"
+  const beforeTrailing = trimmed + suffix;
+  const lastLine = beforeTrailing.split("\n").pop()?.trimEnd() ?? "";
+  if (
+    lastLine.endsWith(")") &&
+    !lastLine.includes("{") &&
+    /^\s*(if|else\s+if|while|for)\s*\(/.test(lastLine)
+  ) {
+    suffix += " {}";
   }
 
   return trimmed + suffix + trailing;

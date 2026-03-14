@@ -9,6 +9,7 @@ import {
   makeCodeCompleteForLsp,
   getDefinedSymbolsFromContent,
   getIdentifierAtPosition,
+  getFullPathAtPosition,
   tryRepairContentForSem,
   tryRepairCallForSem,
 } from "../utils";
@@ -80,6 +81,28 @@ describe("checkForFunctionSignatures", () => {
     assert.equal(result.data?.argumentNumber, 1);
     assert.equal(result.data?.argumentPrefix, "funNam");
     assert.equal(result.word, "println");
+  });
+});
+
+describe("getFullPathAtPosition", () => {
+  it("extracts path for variable: obj.field", () => {
+    const content = "println(obj.field)";
+    // Cursor at end of 'field' (before ')') so we match obj.field
+    assert.equal(getFullPathAtPosition(content, { line: 0, character: 17 }), "obj.field");
+  });
+  it("extracts path for array index: pts[0].x", () => {
+    const content = "println(pts[0].x)";
+    // Cursor after 'x' (before ')') so before = "println(pts[0].x"
+    assert.equal(getFullPathAtPosition(content, { line: 0, character: 16 }), "pts[0].x");
+  });
+  it("extracts path for function return: getPoints()[0].x", () => {
+    const content = "println(getPoints()[0].x)";
+    // Cursor after 'x' (before ')')
+    assert.equal(getFullPathAtPosition(content, { line: 0, character: 24 }), "getPoints()[0].x");
+  });
+  it("extracts path when cursor after dot: getPoints()[0].", () => {
+    const content = "println(getPoints()[0].)";
+    assert.equal(getFullPathAtPosition(content, { line: 0, character: 22 }), "getPoints()[0]");
   });
 });
 

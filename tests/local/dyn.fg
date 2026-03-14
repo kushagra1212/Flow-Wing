@@ -1,13 +1,18 @@
-type Point = {
+type A = {
   x: int
   y: int
 }
 
-fun getPoints() -> Point[2] {
-  return [{ x: 1, y:2 }, {  y: 4,x:2 }]
+type Point = {
+  x: A 
 }
 
-if (getPoints()[0].x == 1) {
+fun getPoints() -> Point[2] {
+  return [{ x: { x: 1, y:2 } }, {  x:{} }]
+}
+var p:Point = {x:{}}
+
+if (getPoints()[0].x.x == 1) {
   println("p0_x_eq_1")
 } else {
   println("p0_x_ne_1")

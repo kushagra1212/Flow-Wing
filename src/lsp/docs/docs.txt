@@ -266,7 +266,12 @@ f(2,2.2,"Sss",false,printS)
   main2(printX)
 
 
-or if else Statements
+Conditional Statements: if, or if (else if), else
+
+The `if` keyword starts a conditional block. Use `or if` for else-if branches and `else` for the final fallback.
+
+Syntax:
+  if (condition) { ... } or if (condition2) { ... } else { ... }
 
 Ex - 1
 

@@ -124,10 +124,11 @@ test({})
       const content = `
 type B = { b: int }
 type A = { a: int, b: B }
+var c: A = {a: 0, b: {b: 0}}
 fun test(inout a2: A) { a2.b.b = 5 }
 test({b:{}})
 `;
-      const pos = { line: 5, character: 10 };
+      const pos = { line: 6, character: 10 };
       const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
       const items = await getObjectSuggestion(
         { textDocument: { uri: doc.uri }, position: pos },
@@ -141,10 +142,11 @@ test({b:{}})
       const content = `
 type B = { b: int }
 type A = { a: int, b: B }
+var c: A = {a: 0, b: {b: 0}}
 fun test(inout a2: A) { a2.b.b = 5 }
 test({b:{}})
 `;
-      const pos = { line: 5, character: 11 };
+      const pos = { line: 6, character: 11 };
       const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
       const items = await getObjectSuggestion(
         { textDocument: { uri: doc.uri }, position: pos },
@@ -177,10 +179,11 @@ test({b:,a:5})
       const content = `
 type B = { b: int }
 type A = { a: int, b: B }
+var c: A = {a: 0, b: {b: 0}}
 fun test(inout a2: A) { a2.b.b = 5 }
 test({b:{},a:5})
 `;
-      const pos = { line: 5, character: 10 };
+      const pos = { line: 6, character: 10 };
       const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
       const items = await getObjectSuggestion(
         { textDocument: { uri: doc.uri }, position: pos },
@@ -316,10 +319,11 @@ var x: int = 1
       const content = `
 type B = { b: int }
 type A = { a: int, b: B }
+var c: A[2] = [{a:0, b:{b:0}}, {a:0, b:{b:0}}]
 fun test(inout d: A[2]) { d[0].a = 5 }
 test([{}])
 `;
-      const pos = { line: 4, character: 6 }; // Inside the {}
+      const pos = { line: 5, character: 6 }; // Inside the {}
       const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
       const items = await getObjectSuggestion(
         { textDocument: { uri: doc.uri }, position: pos },

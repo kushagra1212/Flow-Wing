@@ -10,6 +10,7 @@ import {
   checkForObjectSuggestions,
   checkForFunctionSignatures,
   getFullPathAtPosition,
+  getArgumentPrefixFromDocument,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import {
@@ -74,10 +75,20 @@ export const getObjectSuggestion = async (
   // 1. Try completion in function call context
   const funcSuggestion = checkForFunctionSignatures(tokens);
 
-  if (funcSuggestion.hasFunctionSignature && funcSuggestion.word) {
+  const CONTROL_KEYWORDS = new Set(["if", "else", "or if", "while", "for"]);
+  const isControlKeyword = (w: string) =>
+    CONTROL_KEYWORDS.has(w) || w.startsWith("else ");
+
+  if (
+    funcSuggestion.hasFunctionSignature &&
+    funcSuggestion.word &&
+    !isControlKeyword(funcSuggestion.word)
+  ) {
     const funcName = funcSuggestion.word;
     const argNum = funcSuggestion.data?.argumentNumber ?? 1;
-    const argPrefix = funcSuggestion.data?.argumentPrefix ?? "";
+    // Use document-based prefix so test(|) yields "" not "{}" from repaired tokens
+    const content = document.getText();
+    const argPrefix = getArgumentPrefixFromDocument(content, pos) ?? funcSuggestion.data?.argumentPrefix ?? "";
     const semPath = await getSemPathForDocument(document, {
       position: { line: pos.line, character: pos.character },
       partialId: argPrefix || undefined,
@@ -146,9 +157,33 @@ export const getObjectSuggestion = async (
   }
 
   // 2. Tree-based context: get AST without repair for incomplete code
-  const astPathNoRepair = await getAstPathForDocumentNoRepair(document, { position: pos });
   const content = document.getText();
   const posObj = { line: pos.line, character: pos.character };
+
+  // Early exit for "cursor after dot" (e.g. if (getPoints()[0].|), println(getPoints()[0].|))
+  // Do this before AST block so we reliably get member completions when AST position may not align
+  const line = content.split("\n")[pos.line] ?? "";
+  const charBefore = pos.character > 0 ? line[pos.character - 1] : "";
+  if (charBefore === ".") {
+    const fullPath = getFullPathAtPosition(content, posObj);
+    if (fullPath) {
+      const semPath = await getSemPathForFileNoRepair(document.uri, content, { position: posObj });
+      if (semPath) {
+        const semContent = await fileUtils.readFile(semPath);
+        const semParsed = JSON.parse(semContent);
+        if (isSemFormat(semParsed)) {
+          const memberItems = getCompletionItemsFromSem(
+            semParsed,
+            { word: fullPath, data: { isDot: true } },
+            _textDocsParams.textDocument.uri
+          );
+          if (memberItems?.length) return memberItems;
+        }
+      }
+    }
+  }
+
+  const astPathNoRepair = await getAstPathForDocumentNoRepair(document, { position: pos });
 
   if (astPathNoRepair) {
     try {

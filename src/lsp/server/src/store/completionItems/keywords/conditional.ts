@@ -9,17 +9,17 @@ export const conditionalCompletionItems: CompletionItem[] = [
     documentation: {
       kind: "markdown",
       value: `
-**Conditional Statement**
-	
-The \`if\` keyword is used to declare a conditional statement.
-	
-	### Example:
+**Conditional Statement (if)**
+
+The \`if\` keyword starts a conditional block. The block executes only when the condition is true.
+
+### Example:
 \`\`\`flowwing
-	if (condition) {
-	  /; Code to execute if the condition is true
-	}
+if (condition) {
+  /; Code to execute if the condition is true
+}
 \`\`\`
-		  `,
+      `,
     },
   },
   {
@@ -30,19 +30,21 @@ The \`if\` keyword is used to declare a conditional statement.
     documentation: {
       kind: "markdown",
       value: `
-**Else If Statement**
-	
-The \`or if\` keyword is used to declare an else if statement.
-	
+**Else If Statement (or if)**
+
+The \`or if\` keyword adds an else-if branch. Use it between \`if\` and \`else\` to chain multiple conditions.
+
 ### Example:
 \`\`\`flowwing
-	if (condition1) {
-	  /; Code to execute if condition1 is true
-	} or if (condition2) {
-	  /; Code to execute if condition2 is true
-	}
+if (condition1) {
+  /; Code if condition1 is true
+} or if (condition2) {
+  /; Code if condition2 is true
+} else {
+  /; Code if neither is true
+}
 \`\`\`
-		  `,
+      `,
     },
   },
   {
@@ -54,18 +56,18 @@ The \`or if\` keyword is used to declare an else if statement.
       kind: "markdown",
       value: `
 **Else Statement**
-	
-The \`else\` keyword is used to declare an else statement.
-	
+
+The \`else\` keyword provides the fallback block when all \`if\` and \`or if\` conditions are false.
+
 ### Example:
 \`\`\`flowwing
-	if (condition) {
-	  /; Code to execute if the condition is true
-	} else {
-	  /; Code to execute if the condition is false
-	}
+if (condition) {
+  /; Code if condition is true
+} else {
+  /; Code if condition is false
+}
 \`\`\`
-		  `,
+      `,
     },
   },
   {

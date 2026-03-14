@@ -41,15 +41,19 @@ export const getTokensForContext = async (
       content,
       makeCodeCompleteForLsp(content),
     ];
-    
+
+    // Call repair helps when cursor is in test(|) with no partial identifier
+    const callRepaired = tryRepairCallForSem(content);
+    if (callRepaired) variants.push(makeCodeCompleteForLsp(callRepaired));
+
     const partialId = getIdentifierAtPosition(content, position);
     logger.trace("tokens", "position", position, "partialId", partialId);
     if (partialId) {
       const repaired = tryRepairContentForSem(content, partialId, position);
       if (repaired) {
         variants.push(makeCodeCompleteForLsp(repaired));
-        const callRepaired = tryRepairCallForSem(repaired);
-        if (callRepaired) variants.push(makeCodeCompleteForLsp(callRepaired));
+        const callRepairedFromContent = tryRepairCallForSem(repaired);
+        if (callRepairedFromContent) variants.push(makeCodeCompleteForLsp(callRepairedFromContent));
       }
     }
 

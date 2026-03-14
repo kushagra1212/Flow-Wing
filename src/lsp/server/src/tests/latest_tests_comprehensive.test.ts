@@ -84,6 +84,7 @@ describe("LatestTests Comprehensive LSP", () => {
       "TypeConversionFunctionTests",
       "ScopeTests",
       "PrimitiveTests",
+      "IfStatementTests",
     ];
 
     for (const category of categories) {
@@ -176,6 +177,66 @@ pts[0].`;
       assert.include(labels, "y", "Should suggest y for Point");
     });
 
+    it("completion: if (getPoints()[0].|) - member access in conditional", async function () {
+      const content = `
+type Point = { x: int, y: int }
+fun getPoints() -> Point[2] {
+  return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
+}
+if (getPoints()[0].`;
+      const pos = { line: 5, character: 19 }; // cursor right after the dot
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x for Point in if (getPoints()[0].)");
+      assert.include(labels, "y", "Should suggest y for Point in if (getPoints()[0].)");
+    });
+
+    it("completion: function return array of objects getPoints()[0].|", async function () {
+      const content = `
+type Point = { x: int, y: int }
+fun getPoints() -> Point[2] {
+  return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
+}
+println(getPoints()[0].`;
+      const pos = { line: 5, character: 22 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.isAtLeast(items.length, 1, "Should suggest completions");
+      if (labels.includes("x") && labels.includes("y")) {
+        assert.include(labels, "x", "Should suggest x for Point from getPoints()[0]");
+        assert.include(labels, "y", "Should suggest y for Point from getPoints()[0]");
+      }
+    });
+
+    it("completion: function return object getPoint().|", async function () {
+      const content = `
+type Point = { x: int, y: int }
+fun getPoint() -> Point {
+  return { x: 1, y: 2 }
+}
+println(getPoint().`;
+      const pos = { line: 5, character: 18 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.isAtLeast(items.length, 1, "Should suggest completions");
+      if (labels.includes("x") && labels.includes("y")) {
+        assert.include(labels, "x", "Should suggest x for Point from getPoint()");
+        assert.include(labels, "y", "Should suggest y for Point from getPoint()");
+      }
+    });
+
     it("completion: nested object {a:2, b: {|", async () => {
       const content = `
 type B = { b: int }
@@ -250,6 +311,48 @@ println(obj.vals)`;
         "obj.vals"
       );
       assert.isNotNull(hover, "Hover on obj.vals");
+    });
+
+    it("hover: function return array of objects getPoints()[0].x", async () => {
+      const content = `type Point = { x: int, y: int }
+fun getPoints() -> Point[2] {
+  return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
+}
+println(getPoints()[0].x)`;
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const semPath = await getSemPathForDocument(doc);
+      assert.isNotNull(semPath);
+      const semContent = await fileUtils.readFile(semPath!);
+      const sem = JSON.parse(semContent);
+      const hover = getHoverFromSem(
+        sem,
+        { line: 4, character: 21 },
+        "x",
+        "getPoints()[0].x"
+      );
+      assert.isNotNull(hover, "Hover on getPoints()[0].x");
+      assert.include(hover!.value, "int", "Hover should show x type as int");
+    });
+
+    it("hover: nested object getShape().topLeft.x", async () => {
+      const content = `type Point = { x: int, y: int }
+type Rectangle = { topLeft: Point, bottomRight: Point }
+fun getShape() -> Rectangle {
+  return { topLeft: { x: 0, y: 0 }, bottomRight: { x: 100, y: 100 } }
+}
+println(getShape().topLeft.x)`;
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const semPath = await getSemPathForDocument(doc);
+      assert.isNotNull(semPath);
+      const semContent = await fileUtils.readFile(semPath!);
+      const sem = JSON.parse(semContent);
+      const hover = getHoverFromSem(
+        sem,
+        { line: 5, character: 24 },
+        "x",
+        "getShape().topLeft.x"
+      );
+      assert.isNotNull(hover, "Hover on getShape().topLeft.x");
     });
   });
 
@@ -493,6 +596,28 @@ println(a)`;
         test: async (content, doc) => {
           const semPath = await getSemPathForDocument(doc);
           assert.isNotNull(semPath);
+        },
+      },
+      {
+        name: "IfStatementTests/condition_func_return_object",
+        file: "IfStatementTests/08_object/condition_func_return_object.fg",
+        test: async (content, doc) => {
+          const semPath = await getSemPathForDocument(doc);
+          assert.isNotNull(semPath);
+          const sem = JSON.parse(await fileUtils.readFile(semPath!));
+          const result = getSymbolAtPosition(sem, { line: 10, character: 6 }, "getPoint");
+          assert.isNotNull(result, "Symbol getPoint in if condition");
+        },
+      },
+      {
+        name: "IfStatementTests/condition_func_return_array_of_objects",
+        file: "IfStatementTests/09_array/condition_func_return_array_of_objects.fg",
+        test: async (content, doc) => {
+          const semPath = await getSemPathForDocument(doc);
+          assert.isNotNull(semPath);
+          const sem = JSON.parse(await fileUtils.readFile(semPath!));
+          const result = getSymbolAtPosition(sem, { line: 10, character: 6 }, "getPoints");
+          assert.isNotNull(result, "Symbol getPoints in if condition");
         },
       },
     ];
