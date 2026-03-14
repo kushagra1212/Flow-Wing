@@ -355,9 +355,9 @@ lsp-compile:
 run-lsp: lsp-compile
 	$(ECHO_MSG) "--> Launching Flow-Wing LSP..."
 	@if command -v cursor >/dev/null 2>&1; then \
-		cursor --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests/fixtures/LatestTests"; \
+		cursor --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests"; \
 	elif command -v code >/dev/null 2>&1; then \
-		code --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests/fixtures/LatestTests"; \
+		code --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests"; \
 	else \
 		echo "Install 'code' (VS Code) or 'cursor' CLI: run 'Shell Command: Install code/cursor command' from Command Palette"; \
 		exit 1; \
