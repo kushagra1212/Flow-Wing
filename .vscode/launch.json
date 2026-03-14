@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Flow-Wing LSP",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/lsp"],
+      "outFiles": ["${workspaceFolder}/src/lsp/client/out/**/*.js"]
+    },
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Flow-Wing LSP (build first)",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/lsp"],
+      "outFiles": ["${workspaceFolder}/src/lsp/client/out/**/*.js"],
+      "preLaunchTask": "compile-lsp"
+    },
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Flow-Wing LSP (with debug logging)",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/lsp"],
+      "outFiles": ["${workspaceFolder}/src/lsp/client/out/**/*.js"],
+      "preLaunchTask": "compile-lsp",
+      "env": { "FLOWWING_LSP_DEBUG": "1" }
+    }
+  ]
+}

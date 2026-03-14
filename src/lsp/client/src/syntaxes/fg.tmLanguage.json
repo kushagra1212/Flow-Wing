@@ -1,169 +1,37 @@
 {
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "FlowWing",
   "scopeName": "source.fg",
   "fileTypes": ["fg"],
   "patterns": [
-    {
-      "include": "#punctuation"
-    },
-    {
-      "include": "#comments"
-    },
-    {
-      "include": "#imports"
-    },
-    {
-      "include": "#modules"
-    },
-    {
-      "include": "#keywords"
-    },
-    {
-      "include": "#strings"
-    },
-    {
-      "include": "#constants"
-    },
-    {
-      "include": "#numbers"
-    },
-    {
-      "include": "#types"
-    },
-    {
-      "include": "#functions"
-    },
-    {
-      "include": "#lvariables"
-    },
-    {
-      "include": "#variables"
-    },
-    {
-      "include": "#attributes"
-    }
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#template-strings" },
+    { "include": "#character-literals" },
+    { "include": "#numbers" },
+    { "include": "#attributes" },
+    { "include": "#imports" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#functions" },
+    { "include": "#type-declarations" },
+    { "include": "#type-references" },
+    { "include": "#constants" },
+    { "include": "#special-variables" },
+    { "include": "#punctuation" }
   ],
   "repository": {
     "comments": {
       "patterns": [
         {
-          "name": "comment.line.fg",
+          "name": "comment.line.double-slash.fg",
           "match": "/;.*$"
         },
         {
           "name": "comment.block.fg",
           "begin": "/#",
-          "end": "#/"
-        }
-      ]
-    },
-    "keywords": {
-      "patterns": [
-        {
-          "comment": "control flow keywords",
-          "name": "keyword.control.fg",
-          "match": "\\b(break|continue|else|for|if|or if|return|while)\\b"
-        },
-        {
-          "comment": "storage keywords",
-          "name": "keyword.other.fg storage.type.fg",
-          "match": "\\b(expose|var)\\b"
-        },
-        {
-          "comment": "const keyword",
-          "name": "storage.modifier.fg",
-          "match": "\\b(const)\\b"
-        },
-        {
-          "comment": "type keyword",
-          "name": "keyword.declaration.type.fg storage.type.fg",
-          "match": "\\b(type)\\b"
-        },
-        {
-          "comment": "logical operators",
-          "name": "keyword.operator.logical.fg",
-          "match": "(\\^|\\||\\|\\||&&|<<|>>|!)(?!=)"
-        },
-        {
-          "comment": "dashrocket, skinny arrow",
-          "name": "keyword.operator.arrow.skinny.fg",
-          "match": "->"
-        },
-        {
-          "comment": "math operators",
-          "name": "keyword.operator.math.fg",
-          "match": "(([+%]|(\\*(?!\\w)))(?!=))|(-(?!>))|(/(?!/))"
-        },
-        {
-          "comment": "comparison operators",
-          "name": "keyword.operator.comparison.fg",
-          "match": "(=(=)?(?!>)|!=|<=|(?<!=)>=)"
-        },
-        {
-          "comment": "less than, greater than (special case)",
-          "match": "(?:\\b|(?:(\\))|(\\])|(\\})))[ \\t]+([<>])[ \\t]+(?:\\b|(?:(\\()|(\\[)|(\\{)))",
-          "captures": {
-            "1": {
-              "name": "punctuation.brackets.round.fg"
-            },
-            "2": {
-              "name": "punctuation.brackets.square.fg"
-            },
-            "3": {
-              "name": "punctuation.brackets.curly.fg"
-            },
-            "4": {
-              "name": "keyword.operator.comparison.fg"
-            },
-            "5": {
-              "name": "punctuation.brackets.round.fg"
-            },
-            "6": {
-              "name": "punctuation.brackets.square.fg"
-            },
-            "7": {
-              "name": "punctuation.brackets.curly.fg punctuation.definition.brackets.curly.fg"
-            }
-          }
-        },
-        {
-          "comment": "fn",
-          "name": "keyword.other.fun.fg",
-          "match": "\\bfun\\b"
-        },
-        {
-          "comment": "single equal",
-          "name": "keyword.operator.assignment.equal.fg",
-          "match": "(?<![<>])=(?!=|>)"
-        },
-        {
-          "comment": "dot access",
-          "name": "keyword.operator.access.dot.fg",
-          "match": "\\.(?!\\.)"
-        },
-        {
-          "name": "keyword.other.fg",
-          "match": "\\b(inout|as|decl|const|var|type|extends|init|class|if|else|for|fill|while|switch|case|default|return|new)\\b"
-        }
-      ]
-    },
-    "imports": {
-      "patterns": [
-        {
-          "name": "keyword.import.fg",
-          "match": "\\bbring\\b"
-        },
-        {
-          "name": "keyword.from.fg",
-          "match": "\\bfrom\\b"
-        }
-      ]
-    },
-    "modules": {
-      "patterns": [
-        {
-          "name": "keyword.module.fg",
-          "match": "\\bmodule\\b"
+          "end": "#/",
+          "patterns": [{ "include": "#comments" }]
         }
       ]
     },
@@ -176,14 +44,18 @@
           "patterns": [
             {
               "name": "constant.character.escape.fg",
-              "match": "\\\\."
+              "match": "\\\\[\\\\\"nrt0]"
             }
           ]
-        },
+        }
+      ]
+    },
+    "template-strings": {
+      "patterns": [
         {
-          "name": "string.quoted.double.fg",
-          "begin": "'",
-          "end": "'",
+          "name": "string.quoted.template.fg",
+          "begin": "`",
+          "end": "`",
           "patterns": [
             {
               "name": "constant.character.escape.fg",
@@ -193,11 +65,18 @@
         }
       ]
     },
-    "constants": {
+    "character-literals": {
       "patterns": [
         {
-          "name": "constant.language.fg",
-          "match": "\\b(true|false|null)\\b"
+          "name": "constant.character.fg",
+          "begin": "'(?!')",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.fg",
+              "match": "\\\\[\\\\'nrt0]"
+            }
+          ]
         }
       ]
     },
@@ -205,7 +84,11 @@
       "patterns": [
         {
           "name": "constant.numeric.float.fg",
-          "match": "\\b\\d+\\.\\d+(d|f)?\\b"
+          "match": "\\b\\d+\\.\\d+([dDfF])?\\b"
+        },
+        {
+          "name": "constant.numeric.hex.fg",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
         },
         {
           "name": "constant.numeric.integer.fg",
@@ -213,22 +96,114 @@
         }
       ]
     },
+    "keywords": {
+      "patterns": [
+        {
+          "comment": "control flow",
+          "name": "keyword.control.fg",
+          "match": "\\b(if|else|for|while|break|continue|return|switch|case|default)\\b"
+        },
+        {
+          "comment": "or if (two-word)",
+          "name": "keyword.control.fg",
+          "match": "\\bor\\s+if\\b"
+        },
+        {
+          "comment": "declaration",
+          "name": "keyword.declaration.fg",
+          "match": "\\b(type|fun|var|const)\\b"
+        },
+        {
+          "comment": "storage modifiers",
+          "name": "storage.modifier.fg",
+          "match": "\\b(inout|expose)\\b"
+        },
+        {
+          "comment": "other keywords",
+          "name": "keyword.other.fg",
+          "match": "\\b(bring|from|module|class|extends|init|new|as|decl|fill|to)\\b"
+        },
+        {
+          "comment": "operators - arrow",
+          "name": "keyword.operator.arrow.fg",
+          "match": "->"
+        },
+        {
+          "comment": "operators - comparison",
+          "name": "keyword.operator.comparison.fg",
+          "match": "===|!==|==|!=|<=|>=|(?<![=!<>])<(?!<|=)|(?<![=!<>])>(?!>|=)"
+        },
+        {
+          "comment": "operators - logical",
+          "name": "keyword.operator.logical.fg",
+          "match": "\\|\\||&&|!"
+        },
+        {
+          "comment": "operators - bitwise",
+          "name": "keyword.operator.bitwise.fg",
+          "match": "\\^|\\||&|<<|>>"
+        },
+        {
+          "comment": "operators - arithmetic",
+          "name": "keyword.operator.arithmetic.fg",
+          "match": "\\+|-|\\*|/|%"
+        },
+        {
+          "comment": "operators - assignment",
+          "name": "keyword.operator.assignment.fg",
+          "match": "=(?!=|>)"
+        },
+        {
+          "comment": "operators - member access",
+          "name": "keyword.operator.member.fg",
+          "match": "\\.(?!\\.)"
+        },
+        {
+          "comment": "operators - module access",
+          "name": "keyword.operator.namespace.fg",
+          "match": "::"
+        }
+      ]
+    },
+    "imports": {
+      "patterns": [
+        {
+          "name": "keyword.control.import.fg",
+          "match": "\\bbring\\b"
+        },
+        {
+          "name": "keyword.control.import.fg",
+          "match": "\\bfrom\\b"
+        }
+      ]
+    },
     "types": {
       "patterns": [
         {
-          "name": "storage.type.fg",
-          "match": "\\b(int|deci32|str|bool|nthg|deci)\\b"
-        },
+          "name": "storage.type.primitive.fg",
+          "match": "\\b(int8|int32|int64|int|char|deci|deci32|str|bool|nthg|null)\\b"
+        }
+      ]
+    },
+    "type-declarations": {
+      "patterns": [
         {
-          "comment": "struct declarations",
-          "match": "\\b(type)\\s+(_?[A-Z][A-Za-z0-9_]*)\\b",
+          "name": "meta.type.declaration.fg",
+          "match": "\\btype\\s+([A-Z][A-Za-z0-9_]*)\\b",
           "captures": {
-            "1": {
-              "name": "keyword.declaration.type.fg storage.type.fg"
-            },
-            "2": {
-              "name": "entity.name.type.declaration.fg"
-            }
+            "1": { "name": "entity.name.type.fg" }
+          }
+        }
+      ]
+    },
+    "type-references": {
+      "patterns": [
+        {
+          "comment": "type after colon in var/param: var x: Type",
+          "name": "meta.type.annotation.fg",
+          "match": ":\\s*([A-Z][A-Za-z0-9_]*(?:\\[\\d*\\])?)",
+          "captures": {
+            "1": { "name": "entity.name.type.fg" }
           }
         }
       ]
@@ -236,113 +211,92 @@
     "functions": {
       "patterns": [
         {
-          "name": "entity.name.function.fg",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "comment": "function definition",
+          "name": "meta.function.definition.fg",
+          "match": "\\bfun\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
           "captures": {
-            "0": { "name": "entity.name.function.fg" }
+            "1": { "name": "entity.name.function.fg" }
           }
+        },
+        {
+          "comment": "function call",
+          "name": "entity.name.function.call.fg",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
         }
       ]
     },
-    "operators": {
+    "constants": {
       "patterns": [
         {
-          "name": "keyword.operator.fg",
-          "match": "\\{|\\}|\\+|\\-|\\*|\\/|\\%|\\=|\\!|\\>|\\<|\\&|\\||\\^|\\~|\\?"
+          "name": "constant.language.boolean.fg",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.fg",
+          "match": "\\bnull\\b"
         }
       ]
     },
-    "lvariables": {
+    "special-variables": {
       "patterns": [
         {
-          "comment": "self",
           "name": "variable.language.self.fg",
           "match": "\\bself\\b"
         },
         {
-          "comment": "super",
           "name": "variable.language.super.fg",
           "match": "\\bsuper\\b"
-        }
-      ]
-    },
-    "variables": {
-      "patterns": [
-        {
-          "comment": "variables",
-          "name": "variable.other.fg",
-          "match": "\\b(?<!(?<!\\.)\\.)(?:r#(?!(self|super)))?[a-z0-9_]+\\b"
         }
       ]
     },
     "punctuation": {
       "patterns": [
         {
-          "comment": "comma",
-          "name": "punctuation.comma.fg",
-          "match": ","
-        },
-        {
-          "comment": "curly braces",
-          "name": "punctuation.brackets.curly.fg",
-          "match": "[{}]"
-        },
-        {
-          "comment": "parentheses, round brackets",
-          "name": "punctuation.brackets.round.fg",
-          "match": "[()]"
-        },
-        {
-          "comment": "semicolon",
-          "name": "punctuation.semi.fg",
+          "name": "punctuation.terminator.fg",
           "match": ";"
         },
         {
-          "comment": "square brackets",
-          "name": "punctuation.brackets.square.fg",
+          "name": "punctuation.separator.comma.fg",
+          "match": ","
+        },
+        {
+          "name": "punctuation.separator.colon.fg",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.definition.brackets.curly.fg",
+          "match": "[{}]"
+        },
+        {
+          "name": "punctuation.definition.brackets.round.fg",
+          "match": "[()]"
+        },
+        {
+          "name": "punctuation.definition.brackets.square.fg",
           "match": "[\\[\\]]"
         },
         {
-          "comment": "angle brackets",
-          "name": "punctuation.brackets.angle.fg",
-          "match": "(?<!=)[<>]"
+          "name": "punctuation.definition.brackets.angle.fg",
+          "match": "(?<!=)[<>](?!=)"
         }
       ]
     },
     "attributes": {
-      "comment": "attributes",
       "name": "meta.attribute.fg",
-      "begin": "(#)(\\!?)(\\[)",
+      "begin": "(#)(!?)(\\[)",
       "beginCaptures": {
-        "1": {
-          "name": "punctuation.definition.attribute.fg"
-        },
-        "3": {
-          "name": "punctuation.brackets.attribute.fg"
-        }
+        "1": { "name": "punctuation.definition.attribute.fg" },
+        "3": { "name": "punctuation.brackets.attribute.fg" }
       },
       "end": "\\]",
       "endCaptures": {
-        "0": {
-          "name": "punctuation.brackets.attribute.fg"
-        }
+        "0": { "name": "punctuation.brackets.attribute.fg" }
       },
       "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#keywords"
-        },
-        {
-          "include": "#punctuation"
-        },
-        {
-          "include": "#strings"
-        },
-        {
-          "include": "#types"
-        }
+        { "include": "#comments" },
+        { "include": "#keywords" },
+        { "include": "#strings" },
+        { "include": "#types" }
       ]
     }
   }

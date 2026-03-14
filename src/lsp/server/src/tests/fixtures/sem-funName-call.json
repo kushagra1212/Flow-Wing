@@ -1,0 +1,72 @@
+{
+  "sem": {
+    "symbols": {
+      "0x4": {
+        "kind": "Function",
+        "name": "funName",
+        "type_id": "0x5",
+        "parameters": ["0x6", "0x7"]
+      },
+      "0x6": {
+        "kind": "Parameter",
+        "name": "a",
+        "type_id": "0x1"
+      },
+      "0x7": {
+        "kind": "Parameter",
+        "name": "b",
+        "type_id": "0x2"
+      },
+      "0xB": {
+        "kind": "Function",
+        "name": "println",
+        "type_id": "0xA"
+      }
+    },
+    "types": {
+      "0x1": { "kind": "Primitive", "name": "int" },
+      "0x2": { "kind": "Primitive", "name": "deci" },
+      "0x3": { "kind": "ReturnType", "base_type_id": "0x1" },
+      "0x5": {
+        "kind": "Function",
+        "parameter_type_ids": ["0x1", "0x2"],
+        "return_type_ids": ["0x3"]
+      },
+      "0x8": { "kind": "Primitive", "name": "nthg" },
+      "0x9": { "kind": "ReturnType", "base_type_id": "0x8" },
+      "0xA": { "kind": "Function", "return_type_ids": ["0x9"] }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "statements": [
+        {
+          "kind": "FunctionStatement",
+          "symbol_id": "0x4",
+          "range": { "start": [0, 0], "end": [2, 1] }
+        },
+        {
+          "kind": "ExpressionStatement",
+          "expression": {
+            "kind": "CallExpression",
+            "symbol_id": "0xB",
+            "arguments": [
+              {
+                "kind": "CallExpression",
+                "symbol_id": "0x4",
+                "arguments": [
+                  {
+                    "kind": "NumberLiteral",
+                    "value": 1,
+                    "range": { "start": [4, 15], "end": [4, 16] }
+                  }
+                ],
+                "range": { "start": [4, 8], "end": [4, 18] }
+              }
+            ],
+            "range": { "start": [4, 0], "end": [4, 19] }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "sem": {
+    "symbols": {
+      "0x4": {
+        "kind": "Function",
+        "name": "funName",
+        "type_id": "0x3"
+      }
+    },
+    "types": {
+      "0x1": { "kind": "Primitive", "name": "int" },
+      "0x2": { "kind": "ReturnType", "base_type_id": "0x1" },
+      "0x3": { "kind": "Function", "return_type_ids": ["0x2"] }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "statements": [
+        {
+          "kind": "FunctionStatement",
+          "symbol_id": "0x4",
+          "range": { "start": [0, 0], "end": [2, 1] }
+        }
+      ]
+    }
+  }
+}

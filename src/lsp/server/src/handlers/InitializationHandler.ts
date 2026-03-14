@@ -5,15 +5,11 @@ import {
   InitializeResult,
   TextDocuments,
   TextDocumentSyncKind,
-  WorkspaceFolder,
 } from "vscode-languageserver";
-import {
-  doesFlowWingCompilerExist,
-  validateFile,
-} from "../services/documentService";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { fileUtils } from "../utils/fileUtils";
-import { getFileFullPath, getModulePath } from "../utils";
+import { existsSync } from "fs";
+import { join } from "path";
+import { doesFlowWingCompilerExist } from "../services/documentService";
+import { getModulePath } from "../utils";
 import { flowWingConfig } from "../config";
 
 export class InitializationHandler {
@@ -26,6 +22,14 @@ export class InitializationHandler {
   public initialize() {
     this.connection.onInitialize((params: InitializeParams) => {
       const capabilities = params.capabilities;
+
+      // Set compiler path from client immediately to avoid race with document open
+      const opts = params.initializationOptions as
+        | { compilerPath?: string; modulePath?: string }
+        | undefined;
+      if (opts?.compilerPath) {
+        flowWingConfig.flowWingPath = opts.compilerPath;
+      }
 
       // Does the client support the `workspace/configuration` request?
       // If not, we fall back using global settings.
@@ -47,10 +51,11 @@ export class InitializationHandler {
           // Tell the client that this server supports code completion.
           completionProvider: {
             resolveProvider: true,
-            triggerCharacters: [".", ",", "{"],
+            triggerCharacters: [".", ",", "{", "("],
           },
           signatureHelpProvider: {
             triggerCharacters: ["(", ","],
+            retriggerCharacters: [","],
           },
           hoverProvider: true,
           callHierarchyProvider: true,
@@ -76,18 +81,43 @@ export class InitializationHandler {
     this.connection.onInitialized((handler) => {
       this.connection.workspace
         .getConfiguration("FlowWing")
-        .then((config) => {
+        .then(async (config) => {
           if (config?.modulePath) {
             flowWingConfig.modulePath = config.modulePath;
           } else {
             flowWingConfig.modulePath = getModulePath();
           }
-          if (config?.compilerPath) {
-            flowWingConfig.flowWingPath = config?.compilerPath;
-            console.info(
-              `FlowWing compiler path: ${flowWingConfig.flowWingPath}`
+          let compilerPath = config?.compilerPath ?? "FlowWing";
+          if (compilerPath === "FlowWing") {
+            const folders = await this.connection.workspace
+              .getWorkspaceFolders()
+              .catch(() => []);
+            const paths = (folders ?? []).map((f) =>
+              f.uri.replace(/^file:\/\/?/, "")
             );
+            const findCompiler = (dir: string): string | null => {
+              const candidate = join(dir, "build", "sdk", "bin", "FlowWing");
+              return existsSync(candidate) ? candidate : null;
+            };
+            for (const p of paths.sort((a, b) => a.length - b.length)) {
+              let dir = p;
+              for (let i = 0; i < 10 && dir; i++) {
+                const found = findCompiler(dir);
+                if (found) {
+                  compilerPath = found;
+                  break;
+                }
+                const parent = join(dir, "..");
+                if (parent === dir) break;
+                dir = parent;
+              }
+              if (compilerPath !== "FlowWing") break;
+            }
           }
+          flowWingConfig.flowWingPath = compilerPath;
+          this.connection.console.info(
+            `FlowWing compiler path: ${flowWingConfig.flowWingPath}`
+          );
           doesFlowWingCompilerExist().then((exists) => {
             flowWingConfig.doesFlowWingExist = exists;
             if (!flowWingConfig.doesFlowWingExist) {
@@ -109,12 +139,9 @@ export class InitializationHandler {
         );
       }
       if (this.hasWorkspaceFolderCapability) {
-        this.connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-          this.connection.console.log(
-            "Workspace folder change event received."
-          );
+        this.connection.workspace.onDidChangeWorkspaceFolders(() => {
+          this.connection.console.log("Workspace folder change received.");
         });
-        this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
       }
     });
   }
@@ -126,27 +153,4 @@ export class InitializationHandler {
     return this.hasWorkspaceFolderCapability;
   }
 
-  private async validateAll(folders: WorkspaceFolder[]) {
-    if (folders) {
-      folders.forEach((folder) => {
-        const rootPath = getModulePath();
-
-        if (rootPath) {
-          fileUtils.bfsTraverseVisit(rootPath, async (uri) => {
-            try {
-              const data = await fileUtils.readFile(uri);
-              const path = await fileUtils.createTempFile({
-                fileName: uri,
-                data,
-              });
-
-              await validateFile("file:/" + uri, path);
-            } catch (err) {
-              console.log("Error in validateAll", err);
-            }
-          });
-        }
-      });
-    }
-  }
 }

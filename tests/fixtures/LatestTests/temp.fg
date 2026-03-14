@@ -1,0 +1,16 @@
+type B = {
+    b: int
+}
+type A = {
+    a: int
+    b: B
+}
+
+
+var c: A[2] = [{a:2,b:{b:5}}]
+
+fun test(inout d: A[2]) {
+    d[0].b.b =5
+}
+
+test([{b:{b:2},a:2}])

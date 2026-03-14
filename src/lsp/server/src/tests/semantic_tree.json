@@ -1,0 +1,228 @@
+{
+  "generatedAt": 1773481645656094,
+  "sem": {
+    "symbols": {
+      "0x7": {
+        "is_declaration": false,
+        "kind": "Function",
+        "name": "funName",
+        "parameters": [
+          "0x8",
+          "0x9"
+        ],
+        "type_id": "0x6"
+      },
+      "0x8": {
+        "has_default_value": false,
+        "kind": "Parameter",
+        "name": "a",
+        "type_id": "0x1"
+      },
+      "0x9": {
+        "has_default_value": false,
+        "kind": "Parameter",
+        "name": "b",
+        "type_id": "0x3"
+      },
+      "0xB": {
+        "isConst": false,
+        "kind": "Variable",
+        "name": "x",
+        "type_id": "0x1"
+      }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "range": {
+        "end": [
+          2,
+          1
+        ],
+        "start": [
+          0,
+          0
+        ]
+      },
+      "statements": [
+        {
+          "body": {
+            "kind": "BlockStatement",
+            "range": {
+              "end": [
+                0,
+                46
+              ],
+              "start": [
+                0,
+                34
+              ]
+            },
+            "statements": [
+              {
+                "function_symbol_id": "0x7",
+                "kind": "ReturnStatement",
+                "range": {
+                  "end": [
+                    0,
+                    44
+                  ],
+                  "start": [
+                    0,
+                    36
+                  ]
+                },
+                "return_expressions": [
+                  {
+                    "kind": "NumberLiteralExpression",
+                    "range": {
+                      "end": [
+                        0,
+                        44
+                      ],
+                      "start": [
+                        0,
+                        43
+                      ]
+                    },
+                    "type_id": "0xA",
+                    "value": 2
+                  }
+                ]
+              }
+            ]
+          },
+          "kind": "FunctionStatement",
+          "parameters": [
+            {
+              "parameter_symbol_id": "0x8"
+            },
+            {
+              "parameter_symbol_id": "0x9"
+            }
+          ],
+          "range": {
+            "end": [
+              0,
+              46
+            ],
+            "start": [
+              0,
+              0
+            ]
+          },
+          "return_type_ids": [
+            "0x5"
+          ],
+          "symbol_id": "0x7"
+        },
+        {
+          "initializer_expressions": [
+            {
+              "arguments": [
+                {
+                  "kind": "NumberLiteralExpression",
+                  "range": {
+                    "end": [
+                      1,
+                      22
+                    ],
+                    "start": [
+                      1,
+                      21
+                    ]
+                  },
+                  "type_id": "0xA",
+                  "value": 3
+                },
+                {
+                  "kind": "NumberLiteralExpression",
+                  "range": {
+                    "end": [
+                      1,
+                      25
+                    ],
+                    "start": [
+                      1,
+                      24
+                    ]
+                  },
+                  "type_id": "0xA",
+                  "value": 5
+                }
+              ],
+              "kind": "CallExpression",
+              "range": {
+                "end": [
+                  1,
+                  26
+                ],
+                "start": [
+                  1,
+                  13
+                ]
+              },
+              "symbol_id": "0xB"
+            }
+          ],
+          "kind": "VariableDeclaration",
+          "range": {
+            "end": [
+              1,
+              26
+            ],
+            "start": [
+              1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "types": {
+      "0x1": {
+        "kind": "Primitive",
+        "name": "int"
+      },
+      "0x2": {
+        "base_type_id": "0x1",
+        "constness": "Mutable",
+        "kind": "ParameterType",
+        "type_convention": "FlowWing",
+        "value_kind": "ByValue"
+      },
+      "0x3": {
+        "kind": "Primitive",
+        "name": "deci"
+      },
+      "0x4": {
+        "base_type_id": "0x3",
+        "constness": "Mutable",
+        "kind": "ParameterType",
+        "type_convention": "FlowWing",
+        "value_kind": "ByValue"
+      },
+      "0x5": {
+        "base_type_id": "0x1",
+        "kind": "ReturnType",
+        "type_convention": "FlowWing"
+      },
+      "0x6": {
+        "kind": "Function",
+        "name": "Function: <(int, deci) -> int>",
+        "parameter_type_ids": [
+          "0x2",
+          "0x4"
+        ],
+        "return_type_ids": [
+          "0x5"
+        ]
+      },
+      "0xA": {
+        "kind": "Primitive",
+        "name": "int8"
+      }
+    }
+  },
+  "source": "/Users/apple/code/per/Flow-Wing/src/lsp/server/src/tests/test.fg",
+  "stage": "semantic analysis"
+}

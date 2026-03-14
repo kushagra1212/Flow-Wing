@@ -342,6 +342,32 @@ test-aot: build-aot-release
 
 
 
+#! ----- LSP -----
+
+.PHONY: lsp-compile run-lsp lsp-test
+#? Compile the Flow-Wing LSP extension
+lsp-compile:
+	$(ECHO_MSG) "--> Compiling LSP..."
+	@cd src/lsp && yarn compile
+
+#? Run the LSP in Extension Development Host (opens new editor window with project + tests)
+# Uses 'cursor' if available (Cursor IDE), otherwise 'code' (VS Code)
+run-lsp: lsp-compile
+	$(ECHO_MSG) "--> Launching Flow-Wing LSP..."
+	@if command -v cursor >/dev/null 2>&1; then \
+		cursor --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests/fixtures/LatestTests"; \
+	elif command -v code >/dev/null 2>&1; then \
+		code --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests/fixtures/LatestTests"; \
+	else \
+		echo "Install 'code' (VS Code) or 'cursor' CLI: run 'Shell Command: Install code/cursor command' from Command Palette"; \
+		exit 1; \
+	fi
+
+#? Run LSP unit tests (semService, completion, hover, definitions, signature help)
+lsp-test: lsp-compile
+	$(ECHO_MSG) "--> Running LSP tests..."
+	@cd src/lsp && yarn test
+
 #! ----- Visualization -----
 
 #? Visualization Output Directory

@@ -14,6 +14,7 @@ import { Stack } from "../ds/stack";
 import path = require("path");
 import { keywordsCompletionItems } from "../store";
 import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
+import { logger } from "../services/loggerService";
 import os = require("os");
 // eslint-disable-next-line no-control-regex
 const COLOR_REGEX = /\x1b\[[0-9;]*m/g;
@@ -22,33 +23,265 @@ export const deColorize = (str: string): string => {
   return str.replace(COLOR_REGEX, "");
 };
 
-export const parseErrorAndExtractLocation = (error: string): ErrorResult => {
+/**
+ * Extracts defined function/variable names from content for sem repair.
+ * Matches: fun name(, var name =, etc.
+ */
+export const getDefinedSymbolsFromContent = (content: string): string[] => {
+  const symbols: string[] = [];
+  const funMatch = content.matchAll(/\bfun\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g);
+  for (const m of funMatch) symbols.push(m[1]);
+  const varMatch = content.matchAll(
+    /\b(?:var|const)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*[:=]/g
+  );
+  for (const m of varMatch) symbols.push(m[1]);
+  return [...new Set(symbols)];
+};
+
+/**
+ * Extracts the identifier (word) at the given position from content.
+ * Used when tokens are unavailable (e.g. compiler fails on undefined identifier).
+ */
+export const getIdentifierAtPosition = (
+  content: string,
+  position: { line: number; character: number }
+): string => {
+  const lines = content.split("\n");
+  const line = lines[position.line];
+  if (!line) return "";
+  const before = line.slice(0, position.character);
+  const match = before.match(/\w+$/);
+  return match ? match[0] : "";
+};
+
+/**
+ * Extracts the full dotted path at position (e.g. "c", "c.b", "c[0].b", "c[0].b.b").
+ * Used for hover on member expressions and completion to resolve nested types.
+ */
+export const getFullPathAtPosition = (
+  content: string,
+  position: { line: number; character: number }
+): string => {
+  const lines = content.split("\n");
+  const line = lines[position.line];
+  if (!line) return "";
+  const before = line.slice(0, position.character);
+  // Match: id, id.id, id[0].id, id[0].id.id, etc. (optional trailing .)
+  const match = before.match(/(\w+(?:\[\d+\])?(?:\.\w+(?:\[\d+\])?)*)(?:\.)?$/);
+  return match ? match[1] : "";
+};
+
+/**
+ * Tries to repair content for sem by replacing partial identifier with a defined symbol.
+ * E.g. println(funNa) with funName defined -> println(funName)
+ */
+export const tryRepairContentForSem = (
+  content: string,
+  partialId: string,
+  position: { line: number; character: number }
+): string | null => {
+  const symbols = getDefinedSymbolsFromContent(content);
+  const match = symbols.find((s) =>
+    s.toLowerCase().startsWith(partialId.toLowerCase())
+  );
+  if (!match) return null;
+  const lines = content.split("\n");
+  const line = lines[position.line];
+  if (!line) return null;
+  const before = line.slice(0, position.character);
+  const after = line.slice(position.character);
+  const idStart = Math.max(0, before.search(/\w+$/));
+  const repairedLine = line.slice(0, idStart) + match + after;
+  lines[position.line] = repairedLine;
+  return lines.join("\n");
+};
+
+/**
+ * Tries to repair content for sem by removing a trailing dot at position.
+ * E.g. d[0].b. -> d[0].b
+ */
+export const tryRepairDotForSem = (
+  content: string,
+  position: { line: number; character: number }
+): string | null => {
+  const lines = content.split("\n");
+  const line = lines[position.line];
+  if (line === undefined) return null;
+  const before = line.slice(0, position.character);
+  const after = line.slice(position.character);
+
+  // Case 1: Cursor is after dot (e.g., d[0].|)
+  if (before.trim().endsWith(".")) {
+    const repairedLine =
+      before.replace(/\.\s*$/, "") + after;
+    lines[position.line] = repairedLine;
+    return lines.join("\n");
+  }
+  // Case 2: Cursor is at dot (e.g., d[0]|.)
+  if (after.trim().startsWith(".")) {
+    const repairedLine =
+      before + after.replace(/^\s*\./, "");
+    lines[position.line] = repairedLine;
+    return lines.join("\n");
+  }
+  return null;
+};
+
+/**
+ * Tries to repair content for sem when calls have wrong argument count.
+ * E.g. funName() when funName(a:int, b:deci) -> funName(0, 0.0)
+ */
+export const tryRepairCallForSem = (content: string): string | null => {
+  const funcParams = new Map<string, string[]>();
+  const funMatch = content.matchAll(
+    /\bfun\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g
+  );
+  for (const m of funMatch) {
+    const name = m[1];
+    const params = m[2]
+      .split(",")
+      .map((p) => p.trim().split(":")[1]?.trim())
+      .filter(Boolean);
+    funcParams.set(name, params);
+  }
+  const placeholderForType = (t: string): string => {
+    const lower = t.toLowerCase();
+    if (lower.includes("int") || lower === "i32" || lower === "i64") return "0";
+    if (lower.includes("deci") || lower.includes("float") || lower === "f32")
+      return "0.0";
+    if (lower.includes("str")) return '""';
+    if (lower.includes("bool")) return "false";
+    if (lower.includes("char")) return "'\\0'";
+    if (/^[A-Z]\w*$/.test(t) || lower.includes("object")) return "{}";
+    return "0";
+  };
+  for (const [name, types] of funcParams) {
+    if (types.length === 0) continue;
+    const placeholders = types.map(placeholderForType).join(", ");
+    // Repair funName() -> funName(0, 0.0)
+    const emptyCall = new RegExp(`\\b${name}\\s*\\(\\s*\\)`, "g");
+    let repaired = content.replace(emptyCall, `${name}(${placeholders})`);
+    if (repaired !== content) return repaired;
+    // Repair bare funName (e.g. println(funName)) -> println(funName(0, 0.0))
+    const bareId = new RegExp(`\\b${name}\\b(?!\\s*\\()`, "g");
+    repaired = content.replace(bareId, `${name}(${placeholders})`);
+    if (repaired !== content) return repaired;
+  }
+  return null;
+};
+
+/**
+ * Makes incomplete code parseable for LSP (tokens, sem, ast).
+ * Closes unclosed parentheses; adds placeholder when ending with comma.
+ * E.g. funName( -> funName(); funName(1, -> funName(1,0)
+ */
+export const makeCodeCompleteForLsp = (content: string): string => {
+  const match = content.match(/(\s*)$/);
+  const trailing = match ? match[1] : "";
+  let trimmed = content.slice(0, content.length - trailing.length);
+
+  const stack: string[] = [];
+  let inString = false;
+  let lastChar = "";
+
+  for (let i = 0; i < trimmed.length; i++) {
+    const c = trimmed[i];
+    if (c === '"' && lastChar !== "\\") inString = !inString;
+    if (inString) {
+      lastChar = c;
+      continue;
+    }
+    if (c === "(" || c === "{" || c === "[") {
+      stack.push(c);
+    } else if (c === ")" && stack[stack.length - 1] === "(") {
+      stack.pop();
+    } else if (c === "}" && stack[stack.length - 1] === "{") {
+      stack.pop();
+    } else if (c === "]" && stack[stack.length - 1] === "[") {
+      stack.pop();
+    }
+    lastChar = c;
+  }
+
+  // Remove trailing dot for semantic analysis of the base expression
+  if (trimmed.endsWith(".")) {
+    trimmed = trimmed.replace(/\.\s*$/, "");
+  }
+
+  // Multi-colon repair: handle all empty fields {a:, b:|, c: }
+  trimmed = trimmed.replace(/:\s*(?=[,}\]])/g, ": 0 ");
+
+  const lastCharNoSpace = trimmed.trimEnd().slice(-1);
+  let suffix = "";
+
+  if (lastCharNoSpace === ":") {
+    suffix += "0"; // Placeholder for value after colon
+  } else if (lastCharNoSpace === ",") {
+    // Only add placeholder if NOT in an object literal (innermost '{')
+    // because Flow-Wing allows trailing commas in objects but rejects them in calls/arrays,
+    // and '0' can cause type mismatch in objects.
+    if (stack[stack.length - 1] !== "{") {
+      suffix += "0";
+    }
+  }
+
+  // Close unclosed symbols
+  while (stack.length > 0) {
+    const open = stack.pop();
+    if (open === "(") suffix += ")";
+    if (open === "{") suffix += "}";
+    if (open === "[") suffix += "]";
+  }
+
+  return trimmed + suffix + trailing;
+};
+
+/**
+ * Parses compiler stderr output from the FlowWing compiler (pipeline-based).
+ * Format: [Error:ErrorCode] : Line X:Y "message"
+ * Line/column are 0-based in compiler output (same as LSP).
+ */
+export const parseErrorAndExtractLocation = (stderr: string): ErrorResult => {
   const result: ErrorResult = {
     lineNumber: 0,
     columnNumber: 0,
     errorMessage: "",
     stdoutWithoutColors: "",
     location: null,
-    hasError: true,
+    hasError: false,
     errorObject: null,
   };
 
-  // eslint-disable-next-line no-control-regex
+  const plain = deColorize(stderr);
+  result.stdoutWithoutColors = plain;
 
-  // Remove all colors from the stdout
-  result.stdoutWithoutColors = deColorize(error);
-  const regex = /Line (\d+):(\d+)\s(.*)/g;
-  const ans = regex.exec(result.stdoutWithoutColors);
+  // Match: [Error:ErrorCode] : Line X:Y "message"
+  const errorRegex = /\[Error:([^\]]+)\]\s*:\s*Line\s+(\d+):(\d+)\s+"([^"]*)"/;
+  const match = errorRegex.exec(plain);
 
-  if (ans?.length !== 4) {
+  if (!match) {
     return result;
   }
 
-  result.lineNumber = parseInt(ans[1]) - 1; // Convert to 0-based index
-  result.columnNumber = parseInt(ans[2]) - 1; // Convert to 0-based index
-  result.errorMessage = ans[3];
-  const locationRegex = /(Location:)\s(.*)/g;
-  result.location = locationRegex.exec(result.stdoutWithoutColors);
+  const [, errorCode, lineStr, colStr, message] = match;
+  const line = parseInt(lineStr, 10);
+  const column = parseInt(colStr, 10);
+
+  result.hasError = true;
+  result.lineNumber = line;
+  result.columnNumber = column;
+  result.errorMessage = message;
+  result.errorObject = {
+    error: true,
+    level: "Error",
+    location: {
+      line,
+      column,
+      length: 1, // Compiler doesn't provide length; highlight 1 char
+    },
+    message,
+    type: "Semantic", // Error code (e.g. InvalidAssignmentToConstantVariable) in relatedInformation
+  };
 
   return result;
 };
@@ -144,6 +377,9 @@ export interface SuggestHandler {
   data?: {
     isDot?: boolean;
     argumentNumber?: number;
+    argumentPrefix?: string;
+    /** When true, use empty prefix for completion (value after colon in object literal) */
+    isValueCompletion?: boolean;
   };
   shouldNotProvideSuggestion?: boolean;
   hasObjectSuggestions?: boolean;
@@ -168,6 +404,7 @@ export const defaultValueNoSuggestion: SuggestHandler = {
 };
 
 export const checkForHover = (tokens: Token[]): SuggestHandler => {
+  if (tokens.length === 0) return defaultValueNoSuggestion;
   let i = tokens.length - 1;
   let isDot = false;
   let word = "";
@@ -278,6 +515,7 @@ export const checkForHover = (tokens: Token[]): SuggestHandler => {
 
 export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
   let argNumber = 0;
+  let lastCommaIndex = -1;
   let braceCount = 0,
     bracketCount = 0,
     parenthesesCount = 0;
@@ -314,11 +552,15 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
       }
     }
     if (tokens[i].value === ",") {
-      argNumber++;
+      // Only treat comma as argument separator when at top level of call (not inside {}, [], ())
+      if (braceCount === 0 && bracketCount === 0 && parenthesesCount === 0) {
+        if (lastCommaIndex < 0) lastCommaIndex = i;
+        argNumber++;
+      }
       continue;
     }
 
-    if (i - 1 >= 0 && tokens[i].value === "(") {
+    if (parenthesesCount === 0 && i - 1 >= 0 && tokens[i].value === "(") {
       let isDot = false;
       let word = "",
         token = null;
@@ -342,6 +584,17 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
         token = tokens[i - 1];
       }
 
+      const argumentPrefix =
+        lastCommaIndex >= 0
+          ? tokens
+              .slice(lastCommaIndex + 1)
+              .map((t) => t.value)
+              .join("")
+          : tokens
+              .slice(i + 1)
+              .map((t) => t.value)
+              .join("");
+
       return {
         hasFunctionSignature: true,
         token: token,
@@ -349,6 +602,7 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
         data: {
           isDot: isDot,
           argumentNumber: argNumber + 1,
+          argumentPrefix,
         },
       };
     }
@@ -358,18 +612,86 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
 };
 
 export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
+  tokens = tokens.filter((t) => t.value !== "");
+  if (tokens.length === 0) return defaultValueNoSuggestion;
   let word = "";
+
+  logger.trace("objectSuggestions", "lastToken", tokens[tokens.length - 1]?.value, "tokens.length", tokens.length);
 
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;
   }
   if (tokens.length && isValidVariableName(tokens[tokens.length - 1].value)) {
+    // If the token before this identifier is ',' or '{' (and not ':'), it's likely a key
+    if (tokens.length >= 2) {
+      const prev = tokens[tokens.length - 2].value;
+      if (prev === "," || prev === "{") {
+        // This might be a key. Let's let the loop below find the object base.
+      } else if (prev === ".") {
+        // path.ident - member access, typing partial member name (e.g. d[0].abc)
+        return {
+          hasObjectSuggestions: true,
+          token: tokens[tokens.length - 1],
+          word: tokens[tokens.length - 1].value,
+          data: {
+            isDot: true,
+            argumentNumber: 0,
+          },
+        };
+      } else {
+        return {
+          hasObjectSuggestions: true,
+          token: tokens[tokens.length - 1],
+          word: tokens[tokens.length - 1].value,
+          data: {
+            isDot: false,
+            argumentNumber: 0,
+          },
+        };
+      }
+    } else {
+      return {
+        hasObjectSuggestions: true,
+        token: tokens[tokens.length - 1],
+        word: tokens[tokens.length - 1].value,
+        data: {
+          isDot: false,
+          argumentNumber: 0,
+        },
+      };
+    }
+  }
+
+  // Handle b. case - cursor is after a dot
+  if (
+    tokens.length >= 2 &&
+    tokens[tokens.length - 1].value === "." &&
+    isValidVariableName(tokens[tokens.length - 2].value)
+  ) {
     return {
       hasObjectSuggestions: true,
-      token: tokens[tokens.length - 1],
-      word: tokens[tokens.length - 1].value,
+      token: tokens[tokens.length - 2],
+      word: tokens[tokens.length - 2].value,
       data: {
-        isDot: false,
+        isDot: true,
+        argumentNumber: 0,
+      },
+    };
+  }
+
+  // Handle {a: } case - cursor is after a colon and identifier (value completion)
+  if (
+    tokens.length >= 2 &&
+    tokens[tokens.length - 1].value === ":" &&
+    isValidVariableName(tokens[tokens.length - 2].value)
+  ) {
+    return {
+      hasObjectSuggestions: true,
+      token: tokens[tokens.length - 2],
+      word: tokens[tokens.length - 2].value, // Field name for context
+      data: {
+        isDot: false, // Value completion, not member access
+        isValueCompletion: true, // Use empty prefix so we suggest all symbols (x, etc.)
         argumentNumber: 0,
       },
     };
@@ -431,7 +753,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         return {
           hasObjectSuggestions: true,
           token: tokens[i - 4],
-          word: tokens[i - 4].value + "." + word,
+          word: tokens[i - 4].value + (word ? "." + word : ""),
           data: {
             isDot: true,
             argumentNumber: 0,
@@ -442,7 +764,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       return {
         hasObjectSuggestions: true,
         token: tokens[i - 2],
-        word: tokens[i - 2].value + "." + word,
+        word: tokens[i - 2].value + (word ? "." + word : ""),
         data: {
           isDot: true,
           argumentNumber: 0,
@@ -453,7 +775,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       tokens[i].value === "{" &&
       tokens[i - 1].value === ":"
     ) {
-      word = tokens[i - 2].value + "." + word;
+      word = tokens[i - 2].value + (word ? "." + word : "");
     } else if (
       i - 3 >= 0 &&
       tokens[i].value === "{" &&
@@ -463,7 +785,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       i--; // skip {
       i--; // skip [
       i--; // skip :
-      word = tokens[i].value + "[]" + "." + word;
+      word = tokens[i].value + "[]" + (word ? "." + word : "");
     } else if (
       i - 3 >= 0 &&
       tokens[i].value === "{" &&
@@ -534,7 +856,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         return {
           hasObjectSuggestions: true,
           token: tokens[i],
-          word: tokens[i].value + "." + word,
+          word: tokens[i].value + (word ? "." + word : ""),
           data: {
             isDot: true,
             argumentNumber: argumentNumber + 1,
@@ -543,7 +865,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       }
       let bracket = "";
       let index = i - 1;
-      if (tokens[index].value === "]") {
+      if (index >= 0 && tokens[index].value === "]") {
         while (index >= 0) {
           if (tokens[index].value !== "]") {
             break;
@@ -563,7 +885,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           return {
             hasObjectSuggestions: true,
             token: tokens[index - 2],
-            word: tokens[index - 2].value + bracket + "." + word,
+            word: tokens[index - 2].value + bracket + (word ? "." + word : ""),
             data: {
               isDot: true,
               argumentNumber: 0,
@@ -573,7 +895,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           return {
             hasObjectSuggestions: true,
             token: tokens[index],
-            word: tokens[index].value + bracket + "." + word,
+            word: tokens[index].value + bracket + (word ? "." + word : ""),
             data: {
               isDot: true,
               argumentNumber: 0,
@@ -581,6 +903,8 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           };
         }
       }
+
+      return getDefaultValue();
     } else if (
       i - 2 >= 0 &&
       tokens[i].value === "{" &&
@@ -633,7 +957,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         return {
           hasObjectSuggestions: true,
           token: tokens[i],
-          word: tokens[i].value + "." + word,
+          word: tokens[i].value + (word ? "." + word : ""),
           data: {
             isDot: true,
             argumentNumber: argumentNumber + 1,
@@ -729,15 +1053,26 @@ export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
 };
 
 /**
- * Extracts and returns the full file path from a given URI.
+ * Extracts the file path from a file URI for use as a temp file basename.
+ * Handles file://, file:///, and file:/ schemes.
  *
- * This function splits the URI string to remove the "file:/" prefix and the ".fg" extension.
- *
- * @param {string} uri - The URI string from which to extract the file path.
- * @returns {string} The full file path extracted from the URI.
+ * @param uri - The URI string (e.g. file:///path/to/file.fg or file:///path/to/file)
+ * @returns A path-like string suitable for temp file names (no leading slashes)
  */
 export const getFileFullPath = (uri: string): string => {
-  return uri.split("file:/")[1].split(".fg")[0];
+  try {
+    // file:///path or file:/path - extract path part
+    const match = uri.match(/^file:\/\/?(.+?)(\.fg)?$/);
+    if (match) {
+      let pathPart = match[1];
+      // Remove leading slashes for consistent temp file naming
+      pathPart = pathPart.replace(/^\/+/, "").replace(/\/+/g, "_");
+      return pathPart;
+    }
+    return uri.replace(/[^a-zA-Z0-9_-]/g, "_");
+  } catch {
+    return "unknown";
+  }
 };
 
 export const createRange = (token: Token | null) => {
@@ -783,6 +1118,7 @@ export const getImportedFileUri = async (
     if (doesFileExits) {
       return "file://" + filePath;
     }
+    return "file://" + path.resolve(currentFileUri.replace("file://", ""), _filePath);
   } catch (err) {
     console.log(`Error in getImportedFileUri: ${err}`);
   }
@@ -800,6 +1136,21 @@ export const userDefinedKeywordsFilter = (keyword: CompletionItem) => {
   if (index === -1) return true;
 
   return false;
+};
+
+/**
+ * Filter completion items by prefix (case-insensitive).
+ * Used when typing partial identifiers so "funNa" suggests "funName".
+ */
+export const filterCompletionItemsByPrefix = (
+  items: import("vscode-languageserver").CompletionItem[],
+  prefix: string
+): import("vscode-languageserver").CompletionItem[] => {
+  if (!prefix) return items;
+  const p = prefix.toLowerCase();
+  return items.filter(
+    (item) => item.label && (item.label as string).toLowerCase().startsWith(p)
+  );
 };
 
 export const getUnique = (

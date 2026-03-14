@@ -12,21 +12,20 @@ export const createDiagnostic = (
   errorObject: ErrorObject,
   textDocument: TextDocument
 ): Diagnostic => {
+  // Compiler uses 0-based line and column (same as LSP)
+  const line = Math.max(0, errorObject.location.line);
+  const character = Math.max(0, errorObject.location.column);
+  const length = Math.max(1, errorObject.location.length);
+
   const range = Range.create(
-    Position.create(
-      errorObject.location.line - 1,
-      errorObject.location.column - 1
-    ),
-    Position.create(
-      errorObject.location.line - 1,
-      errorObject.location.column + errorObject.location.length - 1
-    )
+    Position.create(line, character),
+    Position.create(line, character + length)
   );
   return {
     severity: DiagnosticSeverity.Error,
     range,
     message: deColorize(errorObject.message),
-    source: textDocument.uri,
+    source: "flowwing",
     relatedInformation: [
       {
         location: {

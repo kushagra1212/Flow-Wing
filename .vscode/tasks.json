@@ -9,6 +9,15 @@
       "group": "build",
       "problemMatcher": [],
       "detail": "CMake template build task"
+    },
+    {
+      "label": "compile-lsp",
+      "type": "shell",
+      "command": "yarn compile",
+      "options": { "cwd": "${workspaceFolder}/src/lsp" },
+      "group": "build",
+      "presentation": { "panel": "shared", "reveal": "silent" },
+      "problemMatcher": ["$tsc"]
     }
   ]
 }

@@ -1,8 +1,17 @@
-
-fun get2D() -> int[2][3] {
-    var flat: int[2][3]
-    return flat
+type B = {
+    b: int
 }
-var temp: int[2][3] = get2D()
-temp[0][0] = 8
-println(temp[0][0])
+type A = {
+    a: int
+    b: B
+}
+
+
+var c: A[2] = [{a:2,b:{b:5}}]
+
+fun test(inout a2: A) {
+    a2.b.b =5
+}
+
+test({b:{b:2},a:5})
+println(c[0].a)
