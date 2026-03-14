@@ -1,0 +1,36 @@
+type Point = {
+  x: int
+  y: int
+}
+
+type Rectangle = {
+  topLeft: Point
+  bottomRight: Point
+}
+
+type Shape = {
+  name: str
+  rect: Rectangle
+}
+
+fun getShape() -> Shape {
+  return {
+    name: "box",
+    rect: {
+      topLeft: { x: 0, y: 0 },
+      bottomRight: { x: 10, y: 20 }
+    }
+  }
+}
+
+if (getShape().rect.topLeft.x == 0) {
+  println("nested_x_0")
+} else {
+  println("nested_x_ne_0")
+}
+
+if (getShape().rect.bottomRight.y == 20) {
+  println("nested_y_20")
+} else {
+  println("nested_y_ne_20")
+}
