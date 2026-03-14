@@ -1,0 +1,8 @@
+if (true) {
+  var a: int = 1
+  println(a)
+} else {
+  var a: int = 2
+  println(a)
+}
+println("done")

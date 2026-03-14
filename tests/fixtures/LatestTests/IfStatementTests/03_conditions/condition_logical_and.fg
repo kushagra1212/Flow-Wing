@@ -1,0 +1,8 @@
+var a: bool = true
+var b: bool = true
+
+if (a && b) {
+  println("both true")
+} else {
+  println("not both")
+}

@@ -1,0 +1,7 @@
+var c: char = '\0'
+
+if (c) {
+  println("nonzero")
+} else {
+  println("zero")
+}

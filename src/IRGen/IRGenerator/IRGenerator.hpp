@@ -87,6 +87,7 @@ private:
   llvm::Value *convertToString(llvm::Value *value, llvm::Type *type,
                                bool is_char = false);
   llvm::Value *convertToBool(llvm::Value *value, llvm::Type *type);
+  llvm::Value *getConditionAsBool(llvm::Value *value, types::Type *type);
   llvm::Value *convertToInt8(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt32(llvm::Value *value, llvm::Type *type);
   llvm::Value *convertToInt64(llvm::Value *value, llvm::Type *type);

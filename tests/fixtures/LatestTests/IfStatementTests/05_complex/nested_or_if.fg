@@ -1,0 +1,11 @@
+if (false) {
+  println(1)
+} or if (true) {
+  if (2 > 3) {
+    println(2)
+  } else {
+    println(3)
+  }
+} else {
+  println(4)
+}

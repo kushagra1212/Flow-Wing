@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,25 @@ BoundIfStatement::BoundIfStatement(
 
 NodeKind BoundIfStatement::getKind() const { return NodeKind::kIfStatement; }
 
+const std::unique_ptr<BoundExpression> &
+BoundIfStatement::getIfCondition() const {
+  return m_if_condition;
+}
+const std::unique_ptr<BoundStatement> &
+BoundIfStatement::getIfStatement() const {
+  return m_if_statement;
+}
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundIfStatement::getOrIfConditions() const {
+  return m_or_if_conditions;
+}
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundIfStatement::getOrIfStatements() const {
+  return m_or_if_statements;
+}
+const std::unique_ptr<BoundStatement> &BoundIfStatement::getElseClause() const {
+  return m_else_clause;
+}
 void BoundIfStatement::accept(visitor::BoundTreeVisitor *visitor) {
   visitor->visit(this);
 }

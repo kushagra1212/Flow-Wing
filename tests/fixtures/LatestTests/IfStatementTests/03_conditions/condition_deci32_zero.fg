@@ -1,0 +1,7 @@
+var d: deci32 = 0.0f
+
+if (d) {
+  println("nonzero")
+} else {
+  println("zero")
+}

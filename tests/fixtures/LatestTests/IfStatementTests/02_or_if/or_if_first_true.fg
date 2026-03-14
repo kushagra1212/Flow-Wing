@@ -1,0 +1,7 @@
+if (false) {
+  println(4)
+} or if (true) {
+  println(5)
+} else {
+  println(6)
+}

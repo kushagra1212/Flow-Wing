@@ -1,0 +1,13 @@
+var a = 0
+var b = 0.0
+var c = 42
+
+if (a) {
+  println("a")
+} or if (b) {
+  println("b")
+} or if (c) {
+  println("c")
+} else {
+  println("all falsy")
+}

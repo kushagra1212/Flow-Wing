@@ -1,0 +1,7 @@
+var n: int = 0
+
+if (n) {
+  println("nonzero")
+} else {
+  println("zero")
+}

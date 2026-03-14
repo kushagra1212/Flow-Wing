@@ -1,0 +1,7 @@
+var a: bool = false
+
+if (!a) {
+  println("not false")
+} else {
+  println("not true")
+}

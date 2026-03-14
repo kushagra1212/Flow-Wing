@@ -302,6 +302,71 @@ llvm::Value *IRGenerator::convertToBool(llvm::Value *value, llvm::Type *type) {
       "string_length_is_zero");
 }
 
+llvm::Value *IRGenerator::getConditionAsBool(llvm::Value *value,
+                                             types::Type *type) {
+  auto &builder = *m_ir_gen_context.getLLVMBuilder();
+  auto *module = m_ir_gen_context.getLLVMModule();
+  auto *llvm_type = value->getType();
+
+  if (type == analysis::Builtins::m_bool_type_instance.get()) {
+    return value;
+  }
+  if (type == analysis::Builtins::m_int8_type_instance.get() ||
+      type == analysis::Builtins::m_int32_type_instance.get() ||
+      type == analysis::Builtins::m_int64_type_instance.get() ||
+      type == analysis::Builtins::m_char_type_instance.get()) {
+    return builder.CreateICmpNE(value,
+                               llvm::ConstantInt::get(llvm_type, 0),
+                               "cond_as_bool");
+  }
+  if (type == analysis::Builtins::m_deci32_type_instance.get() ||
+      type == analysis::Builtins::m_deci_type_instance.get()) {
+    return builder.CreateFCmpONE(
+        value, llvm::ConstantFP::get(llvm_type, 0.0), "cond_as_bool");
+  }
+  if (type == analysis::Builtins::m_str_type_instance.get()) {
+    auto *string_length_function =
+        module->getFunction(constants::functions::kString_length_fn);
+    assert(string_length_function && "Function string_length not found");
+    return builder.CreateICmpNE(
+        builder.CreateCall(string_length_function, {value}),
+        builder.getInt32(0), "cond_as_bool");
+  }
+  if (type == analysis::Builtins::m_nirast_type_instance.get()) {
+    return builder.getFalse();
+  }
+  if (type->isDynamic()) {
+    auto *unbox_bool_fn =
+        module->getFunction(constants::functions::kUnbox_bool_fn);
+    assert(unbox_bool_fn && "Function fg_unbox_bool not found");
+    llvm::Value *ptr = ensurePointer(value, type, "cond_dynamic");
+    llvm::Value *result =
+        builder.CreateCall(unbox_bool_fn, {ptr}, "unbox_bool");
+    return builder.CreateICmpNE(result,
+                               llvm::ConstantInt::get(result->getType(), 0),
+                               "cond_as_bool");
+  }
+  if (type->getKind() == types::TypeKind::kObject) {
+    llvm::Value *ptr = ensurePointer(value, type, "cond_obj");
+    if (llvm::isa<llvm::AllocaInst>(ptr) ||
+        llvm::isa<llvm::GEPOperator>(ptr) ||
+        llvm::isa<llvm::GlobalVariable>(ptr)) {
+      auto *expected_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+      ptr = builder.CreateLoad(expected_type->getPointerTo(), ptr,
+                               "load_obj_ptr");
+    }
+    return builder.CreateNot(builder.CreateIsNull(ptr, "is_null"),
+                            "cond_as_bool");
+  }
+  if (type->getKind() == types::TypeKind::kArray) {
+    return builder.getTrue();
+  }
+
+  assert(false && "Unsupported type for condition");
+  return nullptr;
+}
+
 llvm::Value *IRGenerator::convertToTargetType(llvm::Value *value,
                                               types::Type *target_type,
                                               types::Type *source_type) {

@@ -85,7 +85,20 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundIfStatement *if_statement) {
   PARSER_DEBUG_LOG("Visiting Bound If Statement", "BOUND TREE");
-  assert(false && "If statement not supported");
+  nlohmann::json if_statement_json;
+  if_statement_json["kind"] = toString(if_statement->getKind());
+  serializeChild(if_statement->getIfCondition(), if_statement_json,
+                 "if_condition");
+  serializeChild(if_statement->getIfStatement(), if_statement_json,
+                 "if_statement");
+  serializeArray(if_statement->getOrIfConditions(), if_statement_json,
+                 "or_if_conditions");
+  serializeArray(if_statement->getOrIfStatements(), if_statement_json,
+                 "or_if_statements");
+  serializeChild(if_statement->getElseClause(), if_statement_json,
+                 "else_clause");
+  if_statement_json["range"] = toJsonRange(if_statement->getSourceLocation());
+  m_last_node_json = std::move(if_statement_json);
 }
 
 void BoundTreeJson::visit(

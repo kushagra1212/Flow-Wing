@@ -1,0 +1,6 @@
+var a: int = 2
+
+if (a == 2) {
+  println("match")
+}
+println("after")

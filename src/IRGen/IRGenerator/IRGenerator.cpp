@@ -143,9 +143,6 @@ void IRGenerator::visit(
   assert(false && "Expose statement not supported");
 }
 
-void IRGenerator::visit([[maybe_unused]] binding::BoundIfStatement *statement) {
-  assert(false && "If statement not supported");
-}
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundWhileStatement *statement) {
   assert(false && "While statement not supported");

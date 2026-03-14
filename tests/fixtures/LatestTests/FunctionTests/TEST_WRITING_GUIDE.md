@@ -185,7 +185,6 @@ print("\n")
 ## Limitations (LatestTests Only)
 
 - **No loops** (`for`, `while`) — not supported in current LatestTests.
-- **No `if`/`else`** — not supported in current LatestTests.
 - **Functions can only be declared globally** (not inside other functions or blocks).
 - **Scoped blocks `{ ... }`** are allowed for grouping variable declarations that shadow globals.
 
@@ -215,6 +214,24 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 - [ ] Place files in the appropriate subdirectory
 - [ ] Run `make test-jit ARGS="--filter=LatestTests --keep-going --parallel"` to verify
 - [ ] Fix any mismatches (output may need adjustment based on actual compiler output)
+
+---
+
+## Test Categories for If Statements
+
+| Category             | Subdirectory              | Coverage                                                                              |
+| -------------------- | ------------------------- | ------------------------------------------------------------------------------------- |
+| Basic                | `01_basic`                | Simple if, if-else, else if                                                           |
+| Or if                | `02_or_if`                | `or if` syntax, multiple or-if, else branch                                           |
+| Conditions           | `03_conditions`           | Bool, int, string, binary ops, logical and, function calls                             |
+| Scope                | `04_scope`                | Variable shadowing, declarations in branches                                          |
+| Complex              | `05_complex`              | Nested if, nested or-if, assignment in branches                                        |
+| Dynamic              | `06_dynamic`              | Dynamic type conditions (truthy/falsy)                                                |
+| Edge cases           | `07_edge_cases`           | Nir/null, deci, if without else                                                       |
+| Object               | `08_object`               | Object as condition (non-null, null, uninitialized), or-if, nested                    |
+| Array                | `09_array`                | Array as condition (non-null, uninitialized), or-if                                   |
+| Dynamic edge         | `10_dynamic_edge`         | Dynamic string (empty/nonempty), bool false, deci zero, from function, or-if          |
+| Errors               | `11_errors`               | VariableNotFound, FunctionNotFound, InvalidBinaryOperationWithTypes, InvalidUnaryOperator, etc. |
 
 ---
 

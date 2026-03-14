@@ -1,0 +1,7 @@
+var s: str = ""
+
+if (s) {
+  println("nonempty")
+} else {
+  println("empty")
+}

@@ -1,0 +1,8 @@
+var a: int = 10
+var b: int = 5
+
+if (a >= b) {
+  println("ge")
+} else {
+  println("lt")
+}

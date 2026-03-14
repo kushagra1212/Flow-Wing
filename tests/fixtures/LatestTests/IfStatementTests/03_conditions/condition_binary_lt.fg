@@ -1,0 +1,8 @@
+var a: int = 1
+var b: int = 5
+
+if (a < b) {
+  println("less")
+} else {
+  println("not less")
+}

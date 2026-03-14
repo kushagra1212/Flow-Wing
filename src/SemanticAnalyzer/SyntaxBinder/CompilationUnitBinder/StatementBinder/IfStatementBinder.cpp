@@ -79,6 +79,7 @@ StatementBinder::bindIfStatement(syntax::IfStatementSyntax *statement) {
       return bound_or_if_statement;
     }
 
+    or_if_conditions.push_back(std::move(bound_or_if_condition));
     or_if_statements.push_back(std::move(bound_or_if_statement));
 
     m_context->getSymbolTable()->leaveScope();

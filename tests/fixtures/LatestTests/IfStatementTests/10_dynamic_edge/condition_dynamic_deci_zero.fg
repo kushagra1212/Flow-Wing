@@ -1,0 +1,7 @@
+var d = 0.0
+
+if (d) {
+  println("truthy")
+} else {
+  println("falsy")
+}

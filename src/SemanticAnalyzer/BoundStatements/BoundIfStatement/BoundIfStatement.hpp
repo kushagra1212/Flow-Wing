@@ -20,8 +20,8 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
-#include <vector>
 #include <memory>
+#include <vector>
 namespace flow_wing {
 namespace binding {
 
@@ -43,6 +43,12 @@ public:
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
+  const std::unique_ptr<BoundExpression> &getIfCondition() const;
+  const std::unique_ptr<BoundStatement> &getIfStatement() const;
+  const std::vector<std::unique_ptr<BoundExpression>> &
+  getOrIfConditions() const;
+  const std::vector<std::unique_ptr<BoundStatement>> &getOrIfStatements() const;
+  const std::unique_ptr<BoundStatement> &getElseClause() const;
 
 private:
   std::unique_ptr<BoundExpression> m_if_condition;

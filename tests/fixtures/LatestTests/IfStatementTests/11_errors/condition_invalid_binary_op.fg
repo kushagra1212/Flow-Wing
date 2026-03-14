@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+var a: bool = true
+var b: int = 1
+if (a + b) {
+  println("x")
+}

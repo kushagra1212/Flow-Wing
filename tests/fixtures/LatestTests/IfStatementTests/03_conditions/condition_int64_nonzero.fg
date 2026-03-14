@@ -1,0 +1,7 @@
+var x: int64 = 100
+
+if (x) {
+  println("nonzero")
+} else {
+  println("zero")
+}

@@ -1,0 +1,7 @@
+var outer: int = 42
+
+if (true) {
+  var inner: int = 10
+  println(outer + inner)
+}
+println(outer)

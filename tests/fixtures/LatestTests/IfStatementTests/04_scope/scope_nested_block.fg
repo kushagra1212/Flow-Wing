@@ -1,0 +1,10 @@
+var x: int = 0
+
+if (true) {
+  var y: int = 1
+  if (true) {
+    var z: int = 2
+    println(x, y, z)
+  }
+}
+println("done")

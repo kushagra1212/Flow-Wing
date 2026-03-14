@@ -1,0 +1,9 @@
+fun getVal() {
+  return 10
+}
+
+if (getVal()) {
+  println("truthy")
+} else {
+  println("falsy")
+}

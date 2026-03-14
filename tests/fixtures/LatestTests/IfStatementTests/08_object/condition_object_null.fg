@@ -1,0 +1,12 @@
+type Point = {
+  x: int
+  y: int
+}
+
+var p: Point = null
+
+if (p) {
+  println("nonnull")
+} else {
+  println("null")
+}

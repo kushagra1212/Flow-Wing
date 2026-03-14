@@ -1,0 +1,7 @@
+var n = null
+
+if (n) {
+  println("truthy")
+} else {
+  println("falsy")
+}

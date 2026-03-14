@@ -313,7 +313,11 @@ void fg_perform_dynamic_unary_op(DynamicValue* result, DynamicValue* val, int op
                 truthy = (d != 0.0);
                 break;
             }
-            case DYN_TAG_STRING:  truthy = true; break; // Non-null pointer is true
+            case DYN_TAG_STRING: {
+                char* s = (char*)(intptr_t)val->value;
+                truthy = (s != NULL && strlen(s) > 0); // Empty strings are falsy
+                break;
+            }
             case DYN_TAG_NIRAST:  truthy = false; break;
             default: truthy = false;
         }
@@ -440,7 +444,10 @@ bool fg_unbox_bool(DynamicValue* v) {
             double d; memcpy(&d, &v->value, sizeof(double));
             return (d != 0.0);
         }
-        case DYN_TAG_STRING:  return true; // Non-null strings are true
+        case DYN_TAG_STRING: {
+            char* s = (char*)(intptr_t)v->value;
+            return s != NULL && strlen(s) > 0; // Empty strings are falsy
+        }
         case DYN_TAG_NIRAST:  return false;
         default: return false;
     }

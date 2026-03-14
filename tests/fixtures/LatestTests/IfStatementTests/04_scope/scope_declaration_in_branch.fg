@@ -1,0 +1,5 @@
+if (true) {
+  var y: int = 42
+  println(y)
+}
+println("done")
