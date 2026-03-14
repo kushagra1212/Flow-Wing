@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
@@ -143,12 +144,37 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
 
     if (!function_type->isVariadic()) {
       for (size_t i = 0; i < size; i++) {
-        auto parameter_type = function_type->getParameterTypes()[i]->type;
+        auto param = function_type->getParameterTypes()[i];
+        auto parameter_type = param->type;
         auto argument_type = arguments[i]->getType();
 
         DEBUG_LOG("Argument Type", "Argument Type", argument_type->getName());
         DEBUG_LOG("Parameter Type", "Parameter Type",
                   parameter_type->getName());
+
+        // inout parameters require an lvalue (variable, index, or member access)
+        if (param->value_kind == types::ValueKind::kByReference) {
+          const BoundExpression *e = arguments[i].get();
+          while (e &&
+                 e->getKind() == NodeKind::kParenthesizedExpression) {
+            e = static_cast<const BoundParenthesizedExpression *>(e)
+                    ->getExpression()
+                    .get();
+          }
+          const bool is_lvalue =
+              e &&
+              (e->getKind() == NodeKind::kIdentifierExpression ||
+               e->getKind() == NodeKind::kIndexExpression ||
+               e->getKind() == NodeKind::kMemberAccessExpression);
+          if (!is_lvalue) {
+            auto error_expression = std::make_unique<BoundErrorExpression>(
+                arguments[i]->getSourceLocation(),
+                diagnostic::DiagnosticCode::kLiteralCannotBePassedToInoutParameter,
+                std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                    function_name + "(" + function_type->getName() + ")"});
+            return std::move(error_expression);
+          }
+        }
 
         if (*argument_type > *parameter_type) {
 

@@ -13,4 +13,10 @@ fun test(inout d: A[2]) {
     d[0].b.b =5
 }
 
+fun test2(inout d: int) {
+    println(d)
+}
+
+
+test2(1)
 test([{b:{b:2},a:2}])

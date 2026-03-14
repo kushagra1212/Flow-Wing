@@ -1,0 +1,14 @@
+/; EXPECT_ERROR: LiteralCannotBePassedToInoutParameter
+type B = {
+  b: int
+}
+type A = {
+  a: int
+  b: B
+}
+
+fun test(inout d: A[2]) {
+  d[0].b.b = 5
+}
+
+test([{b: {b: 2}, a: 2}])

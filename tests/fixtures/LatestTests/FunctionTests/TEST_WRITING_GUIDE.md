@@ -72,6 +72,7 @@ These are the error names to use in the `/; EXPECT_ERROR:` comment:
 | `FunctionAlreadyDeclared`                | Defining the same function twice     |
 | `FunctionArgumentCountMismatch`          | Too few or too many args passed      |
 | `FunctionArgumentTypeMismatch`           | Arg type doesn't match param type    |
+| `LiteralCannotBePassedToInoutParameter`  | Literal passed to inout param (use var) |
 | `VariableNotFound`                       | Using an undeclared variable         |
 | `AssignmentExpressionCountMismatch`      | Mismatched count in multi-assign     |
 | `InvalidBinaryOperationWithTypes`        | Binary op not valid for types        |

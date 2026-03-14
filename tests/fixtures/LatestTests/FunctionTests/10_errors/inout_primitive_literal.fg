@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: LiteralCannotBePassedToInoutParameter
+fun test2(inout d: int) {
+  println(d)
+}
+
+test2(1)

@@ -539,6 +539,13 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Ensure that the argument type is valid and matches the expected type "
       "for the function '{2}'."}},
 
+    {(DiagnosticCode::kLiteralCannotBePassedToInoutParameter),
+     {"Literal (object, array, or primitive) cannot be passed to inout "
+      "parameter in function '{0}'. Use a variable instead.",
+      "Please pass a variable reference for the inout parameter.",
+      "inout parameters require a modifiable lvalue (variable). Literals "
+      "cannot be modified and thus cannot be passed by reference."}},
+
     {(DiagnosticCode::kMemberAccessOnNonObjectVariable),
      {"Type '{0}' is not an object. Cannot perform member access "
       "operation.",
@@ -896,6 +903,8 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "FunctionArgumentCountMismatch";
   case DiagnosticCode::kFunctionArgumentTypeMismatch:
     return "FunctionArgumentTypeMismatch";
+  case DiagnosticCode::kLiteralCannotBePassedToInoutParameter:
+    return "LiteralCannotBePassedToInoutParameter";
 
     // Member Access Expression Errors
   case DiagnosticCode::kMemberAccessOnNonObjectVariable:

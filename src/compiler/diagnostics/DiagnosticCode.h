@@ -132,6 +132,7 @@ enum class DiagnosticCode : int16_t {
   kTypeIsNotAFunction,
   kFunctionArgumentCountMismatch,
   kFunctionArgumentTypeMismatch,
+  kLiteralCannotBePassedToInoutParameter,
 
   // Member Access Expression Errors
   kMemberAccessOnNonObjectVariable,
