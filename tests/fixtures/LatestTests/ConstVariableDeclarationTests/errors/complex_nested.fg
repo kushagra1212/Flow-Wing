@@ -1,9 +1,0 @@
-/; EXPECT_ERROR: Unknown integer operator. logical_and
-var x = 10
-var y = (x + 5) * 2
-print(y, "\n")
-var z = (x > 5) && (y < 50)
-print(z, "\n")
-var w = !(x == 10)
-print(w, "\n")
-

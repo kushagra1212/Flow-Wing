@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
       analysis::Builtins::m_dynamic_type_instance->getName();
 
   m_context->getSymbolTable()->enterScope();
+  m_context->getSymbolTable()->pushBreakScope();
 
   std::unique_ptr<BoundStatement> bound_for_variable_declaration = nullptr;
   std::unique_ptr<BoundExpression> bound_for_assignment_expression = nullptr;
@@ -71,6 +72,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
 
     if (bound_for_variable_declaration->getKind() ==
         NodeKind::kErrorStatement) {
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return bound_for_variable_declaration;
     }
     auto bound_variable_declaration = static_cast<BoundVariableDeclaration *>(
@@ -84,6 +87,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
           diagnostic::DiagnosticArgs{std::to_string(1),
                                      std::to_string(variable_symbols.size())});
       m_context->reportError(error_statement.get());
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return std::move(error_statement);
     }
 
@@ -96,6 +101,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
               compatible_type_names,
               variable_symbols[0]->getType()->getName()});
       m_context->reportError(error_statement.get());
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return std::move(error_statement);
     }
   } else {
@@ -104,6 +111,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
 
     if (bound_for_assignment_expression->getKind() ==
         NodeKind::kErrorExpression) {
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return std::make_unique<BoundErrorStatement>(
           std::move(bound_for_assignment_expression));
     }
@@ -120,6 +129,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
               kMultiTargetAssignmentNotAllowedForForLoopAssignmentExpression,
           diagnostic::DiagnosticArgs{});
       m_context->reportError(error_statement.get());
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return std::move(error_statement);
     }
 
@@ -133,6 +144,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
           diagnostic::DiagnosticArgs{compatible_type_names,
                                      assignment_expression_type->getName()});
       m_context->reportError(error_statement.get());
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
       return std::move(error_statement);
     }
   }
@@ -141,6 +154,8 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
       m_expression_binder->bind(for_statement->getUpperBound().get());
 
   if (bound_upper_bound->getKind() == NodeKind::kErrorExpression) {
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return std::make_unique<BoundErrorStatement>(std::move(bound_upper_bound));
   }
 
@@ -152,12 +167,16 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
         diagnostic::DiagnosticArgs{compatible_type_names,
                                    bound_upper_bound->getType()->getName()});
     m_context->reportError(error_statement.get());
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return std::move(error_statement);
   }
 
   auto bound_step = m_expression_binder->bind(for_statement->getStep().get());
 
   if (bound_step->getKind() == NodeKind::kErrorExpression) {
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return std::make_unique<BoundErrorStatement>(std::move(bound_step));
   }
 
@@ -169,15 +188,20 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
         diagnostic::DiagnosticArgs{compatible_type_names,
                                    bound_step->getType()->getName()});
     m_context->reportError(error_statement.get());
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return std::move(error_statement);
   }
 
   auto bound_for_loop_statement = bind(for_statement->getBody().get());
 
   if (bound_for_loop_statement->getKind() == NodeKind::kErrorStatement) {
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return bound_for_loop_statement;
   }
 
+  m_context->getSymbolTable()->popBreakScope();
   m_context->getSymbolTable()->leaveScope();
 
   return std::make_unique<BoundForStatement>(

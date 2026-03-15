@@ -185,7 +185,7 @@ print("\n")
 
 ## Limitations (LatestTests Only)
 
-- **`while`** is supported; **`for`**, **`break`**, and **`continue`** are not supported in current LatestTests.
+- **`while`** is supported; **`for`** is not. **`break`** and **`continue`** are parsed and bound but not yet implemented in IR generation; tests in `WhileTests/10_break_continue/` document expected behavior (error tests for outside-loop usage, runtime tests for when break/continue are implemented).
 - **Functions can only be declared globally** (not inside other functions or blocks).
 - **Scoped blocks `{ ... }`** are allowed for grouping variable declarations that shadow globals.
 
@@ -249,6 +249,8 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Dynamic    | `06_dynamic`    | Condition from dynamic func return, dynamic zero, dynamic truthy          |
 | Object     | `07_object`     | Object nonnull/null as condition, member access in body                   |
 | Array      | `08_array`      | Func return array, array index in body, accumulate array                  |
+| Short-circuit | `09_short_circuit` | && / \|\| in condition (literals, vars, dynamic, chained, nested, with func calls) |
+| Break/Continue | `10_break_continue` | Error tests (outside loop); basic/edge/nested/complex/scope tests (require break/continue IR gen) |
 
 ---
 

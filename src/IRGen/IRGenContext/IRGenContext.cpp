@@ -180,6 +180,25 @@ llvm::Value *IRGenContext::getSymbol(const std::string &name) {
 
 bool IRGenContext::isGlobalScope() const { return m_symbol_table.size() == 1; }
 
+void IRGenContext::pushLoop(llvm::BasicBlock *cond_block,
+                            llvm::BasicBlock *after_block) {
+  m_loop_stack.push_back({cond_block, after_block});
+}
+
+void IRGenContext::popLoop() { m_loop_stack.pop_back(); }
+
+llvm::BasicBlock *IRGenContext::getCurrentLoopCond() const {
+  if (m_loop_stack.empty())
+    return nullptr;
+  return m_loop_stack.back().cond_block;
+}
+
+llvm::BasicBlock *IRGenContext::getCurrentLoopAfter() const {
+  if (m_loop_stack.empty())
+    return nullptr;
+  return m_loop_stack.back().after_block;
+}
+
 llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
                                               [[maybe_unused]] bool is_global) {
 

@@ -46,6 +46,7 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
       static_cast<syntax::SwitchStatementSyntax *>(statement);
 
   m_context->getSymbolTable()->enterScope();
+  m_context->getSymbolTable()->pushBreakScope();
 
   auto bound_switch_condition_expression = m_expression_binder->bind(
       switch_statement->getSwitchConditionExpression().get());
@@ -133,6 +134,7 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
     }
   }
 
+  m_context->getSymbolTable()->popBreakScope();
   m_context->getSymbolTable()->leaveScope();
 
   return std::make_unique<BoundSwitchStatement>(

@@ -48,8 +48,10 @@ void IRGenerator::visit(binding::BoundWhileStatement *statement) {
   builder->CreateCondBr(cond_value, body_block, after_block);
 
   m_ir_gen_context.setInsertPoint(body_block);
+  m_ir_gen_context.pushLoop(cond_block, after_block);
   statement->getStatement()->accept(this);
   clearLast();
+  m_ir_gen_context.popLoop();
   if (builder->GetInsertBlock()->getTerminator() == nullptr) {
     m_ir_gen_context.createBranch(cond_block);
   }

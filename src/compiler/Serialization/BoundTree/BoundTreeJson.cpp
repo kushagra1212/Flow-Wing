@@ -122,15 +122,23 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundBreakStatement *break_statement) {
+    binding::BoundBreakStatement *break_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Break Statement", "BOUND TREE");
-  assert(false && "Break statement not supported");
+  nlohmann::json break_statement_json;
+  break_statement_json["kind"] = toString(break_statement->getKind());
+  break_statement_json["range"] =
+      toJsonRange(break_statement->getSourceLocation());
+  m_last_node_json = std::move(break_statement_json);
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundContinueStatement *continue_statement) {
+    binding::BoundContinueStatement *continue_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Continue Statement", "BOUND TREE");
-  assert(false && "Continue statement not supported");
+  nlohmann::json continue_statement_json;
+  continue_statement_json["kind"] = toString(continue_statement->getKind());
+  continue_statement_json["range"] =
+      toJsonRange(continue_statement->getSourceLocation());
+  m_last_node_json = std::move(continue_statement_json);
 }
 
 void BoundTreeJson::visit(

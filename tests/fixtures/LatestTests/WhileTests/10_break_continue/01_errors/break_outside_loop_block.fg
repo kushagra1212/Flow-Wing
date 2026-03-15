@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: BreakStatementNotAllowedOutsideOfLoop
+var x = 0
+if (true) {
+  break
+}
+println(x)

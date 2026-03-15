@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,20 +45,26 @@ StatementBinder::bindWhileStatement(syntax::WhileStatementSyntax *statement) {
   auto while_statement = static_cast<syntax::WhileStatementSyntax *>(statement);
 
   m_context->getSymbolTable()->enterScope();
+  m_context->getSymbolTable()->pushBreakScope();
 
   auto while_condition =
       m_expression_binder->bind(while_statement->getCondition().get());
 
   if (while_condition->getKind() == NodeKind::kErrorExpression) {
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return std::make_unique<BoundErrorStatement>(std::move(while_condition));
   }
 
   auto bound_while_statement = bind(while_statement->getStatement().get());
 
   if (bound_while_statement->getKind() == NodeKind::kErrorStatement) {
+    m_context->getSymbolTable()->popBreakScope();
+    m_context->getSymbolTable()->leaveScope();
     return bound_while_statement;
   }
 
+  m_context->getSymbolTable()->popBreakScope();
   m_context->getSymbolTable()->leaveScope();
 
   return std::make_unique<BoundWhileStatement>(

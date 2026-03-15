@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,8 +44,15 @@ bool ScopedSymbolTable::define(std::shared_ptr<Symbol> symbol) {
   return inserted;
 }
 
+void ScopedSymbolTable::pushBreakScope() { ++m_break_scope_depth; }
+
+void ScopedSymbolTable::popBreakScope() {
+  if (m_break_scope_depth > 0)
+    --m_break_scope_depth;
+}
+
 bool ScopedSymbolTable::isInBreakScope() const {
-  return m_scope_stack.back()->size() > 1;
+  return m_break_scope_depth > 0;
 }
 
 bool ScopedSymbolTable::isInReturnScope() const {

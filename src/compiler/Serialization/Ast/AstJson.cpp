@@ -747,11 +747,12 @@ void AstJson::visit([[maybe_unused]] syntax::FunctionStatementSyntax *node) {
   function_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(function_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::BreakStatementSyntax *node) {
+void AstJson::visit(syntax::BreakStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BreakStatementSyntax", "AST");
 
   nlohmann::json break_statement_json;
   break_statement_json["kind"] = syntax::toString(node->getKind());
+  break_statement_json["keyword"] = "break";
   break_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(break_statement_json);
 }
@@ -792,11 +793,12 @@ void AstJson::visit([[maybe_unused]] syntax::ClassStatementSyntax *node) {
   class_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(class_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ContinueStatementSyntax *node) {
+void AstJson::visit(syntax::ContinueStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ContinueStatementSyntax", "AST");
 
   nlohmann::json continue_statement_json;
   continue_statement_json["kind"] = syntax::toString(node->getKind());
+  continue_statement_json["keyword"] = "continue";
   continue_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(continue_statement_json);
 }

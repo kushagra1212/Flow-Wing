@@ -149,14 +149,10 @@ void IRGenerator::visit(
     [[maybe_unused]] binding::BoundForStatement *statement) {
   assert(false && "For statement not supported");
 }
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundBreakStatement *statement) {
-  assert(false && "Break statement not supported");
-}
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundContinueStatement *statement) {
-  assert(false && "Continue statement not supported");
-}
+
+// BoundBreakStatement is implemented in BreakStatementIrGen.cpp
+// BoundContinueStatement is implemented in ContinueStatementIrGen.cpp
+
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundClassStatement *statement) {
   assert(false && "Class statement not supported");
@@ -164,7 +160,8 @@ void IRGenerator::visit(
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorStatement *statement) {
-  assert(false && "Error statement not supported");
+  // No code generation for error statements (e.g. break/continue outside loop).
+  // Diagnostics were already reported during binding.
 }
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorExpression *statement) {

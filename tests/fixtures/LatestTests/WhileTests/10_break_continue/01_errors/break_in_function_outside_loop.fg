@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: BreakStatementNotAllowedOutsideOfLoop
+fun foo() {
+  var x = 1
+  if (x > 0) {
+    break
+  }
+  println(x)
+}
+foo()

@@ -90,6 +90,12 @@ public:
   bool isGlobalScope() const;
   llvm::Constant *getDefaultValue(types::Type *type, bool is_global = false);
 
+  // --- Loop targets for break/continue ---
+  void pushLoop(llvm::BasicBlock *cond_block, llvm::BasicBlock *after_block);
+  void popLoop();
+  llvm::BasicBlock *getCurrentLoopCond() const;
+  llvm::BasicBlock *getCurrentLoopAfter() const;
+
 private:
   CompilationContext &m_context;
   llvm::LLVMContext *m_llvm_context;
@@ -97,6 +103,12 @@ private:
   std::unique_ptr<llvm::IRBuilder<>> m_llvm_builder;
 
   std::vector<std::unordered_map<std::string, llvm::Value *>> m_symbol_table;
+
+  struct LoopTargets {
+    llvm::BasicBlock *cond_block = nullptr;
+    llvm::BasicBlock *after_block = nullptr;
+  };
+  std::vector<LoopTargets> m_loop_stack;
 
   std::unique_ptr<LLVMTypeBuilder> m_type_builder;
   void initializeLLVM();

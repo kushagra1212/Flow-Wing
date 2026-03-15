@@ -30,6 +30,8 @@ public:
   void lookupSymbol(std::function<bool(const Symbol *symbol)> predicate,
                     SymbolKind kind) const;
 
+  void pushBreakScope();
+  void popBreakScope();
   bool isInBreakScope() const;
   bool isInReturnScope() const;
 
@@ -40,6 +42,7 @@ public:
 private:
   std::vector<std::unique_ptr<SymbolTable>> m_scope_stack;
   const FunctionSymbol *m_current_function_symbol = nullptr;
+  int64_t m_break_scope_depth = 0;
 };
 
 } // namespace analysis

@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: ContinueStatementNotAllowedOutsideOfLoop
+var n = 0
+if (n > 0) {
+  println("pos")
+} else {
+  continue
+}
+println("end")
