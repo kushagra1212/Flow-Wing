@@ -42,6 +42,15 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
     assert(false && "Unsupported equality comparison");
   }
 
+  if (left_type->isDynamic() || right_type->isDynamic()) {
+    llvm::Value *result_alloca = getDynamicBinaryResult(
+        left_value, right_value, lexer::TokenKind::kEqualsEqualsToken,
+        left_type, right_type);
+    types::Type *dynamic_type =
+        analysis::Builtins::m_dynamic_type_instance.get();
+    return getConditionAsBool(result_alloca, dynamic_type);
+  }
+
   if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
       right_type == analysis::Builtins::m_deci_type_instance.get()) {
     return m_ir_gen_context.getLLVMBuilder()->CreateFCmpOEQ(

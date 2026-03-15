@@ -1,0 +1,13 @@
+var a: int64 = 100
+
+switch a {
+  case 99:{
+    println("ninety nine")
+  }
+  case 100:{
+    println("hundred")
+  }
+  default:{
+    println("default")
+  }
+}

@@ -179,7 +179,23 @@ char* to_string_op_code(int op) {
          result->value = (intptr_t)resStr;
          return;
      }
- 
+
+     // String equality: OP_EQ / OP_NEQ when BOTH operands are strings (compare content via strcmp)
+     if ((op == OP_EQ || op == OP_NEQ) && lhs->tag == DYN_TAG_STRING && rhs->tag == DYN_TAG_STRING) {
+         char* s1 = (char*)(intptr_t)lhs->value;
+         char* s2 = (char*)(intptr_t)rhs->value;
+         int cmp = 0;
+         if (s1 != NULL && s2 != NULL) {
+             cmp = strcmp(s1, s2);
+         } else if (s1 != s2) {
+             cmp = (s1 == NULL) ? -1 : 1;  /* one null, one not -> not equal */
+         }
+         bool eq = (cmp == 0);
+         result->tag = DYN_TAG_BOOLEAN;
+         result->value = (op == OP_EQ) ? (int64_t)eq : (int64_t)(!eq);
+         return;
+     }
+
      // Floating Point Promotion Rule
      // If any operand is float/double, promote calculation to double.
      bool is_float_op = (lhs->tag == DYN_TAG_FLOAT64 || lhs->tag == DYN_TAG_FLOAT32 ||

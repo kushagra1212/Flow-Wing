@@ -1,0 +1,17 @@
+fun getVal() -> int {
+  return 7
+}
+
+var a: int = 1
+var x: int = 0
+
+switch a {
+  case 1:{
+    x = getVal()
+    println(x)
+  }
+  default:{
+    println(0)
+  }
+}
+println(x)

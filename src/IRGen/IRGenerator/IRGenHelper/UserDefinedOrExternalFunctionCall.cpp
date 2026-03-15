@@ -227,9 +227,11 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
         m_last_value = builder->CreateLoad(llvm_ret_type->getPointerTo(),
                                            return_slot, "ret_load");
       } else {
-        // Primitives and arrays load their value directly
+        // Primitives and arrays: ret_slot is a struct, load from first field
+        llvm::Value *field_ptr = builder->CreateStructGEP(
+            return_struct_type, return_slot, 0, "ret_field_ptr");
         m_last_value =
-            builder->CreateLoad(llvm_ret_type, return_slot, "ret_load");
+            builder->CreateLoad(llvm_ret_type, field_ptr, "ret_load");
       }
       m_last_type = ret_type;
 

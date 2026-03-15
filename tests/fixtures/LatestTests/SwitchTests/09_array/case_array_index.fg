@@ -1,0 +1,17 @@
+var arr: int[3] = [1, 2, 3]
+var i: int = 0
+
+switch arr[i] {
+  case 1:{
+    println("one")
+  }
+  case 2:{
+    println("two")
+  }
+  case 3:{
+    println("three")
+  }
+  default:{
+    println("default")
+  }
+}

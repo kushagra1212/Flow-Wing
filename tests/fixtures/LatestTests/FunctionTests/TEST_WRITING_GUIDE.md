@@ -271,11 +271,16 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 
 | Category       | Subdirectory      | Coverage                                                                 |
 | -------------- | ----------------- | ------------------------------------------------------------------------- |
-| Basic          | `01_basic`        | Switch on int, bool, str; case match; default branch                      |
+| Basic          | `01_basic`        | Switch on int, int8, int64, bool, str, deci, deci32, char; case match; default |
 | Default order  | `02_default_order`| Default first in source; match vs no match                                |
-| Conditions     | `03_conditions`   | Case with expression, case with variable                                  |
+| Conditions     | `03_conditions`   | Case with expression, variable, function call, binary expr               |
 | Nested         | `03_nested`       | Nested switch statements                                                  |
-| Edge cases     | `04_edge_cases`   | No match uses default, deci/char, only default                             |
+| Edge cases     | `04_edge_cases`   | No match, deci/char, only default, return in switch; int zero/negative; first match wins; empty str |
 | Errors         | `05_errors`       | MultipleDefaultCaseStatements, CaseExpressionTypeMismatch                 |
+| Scope          | `06_scope`        | Variable declaration/assignment in case; shadowing; nested block; decl from func |
+| Complex        | `07_complex`      | Empty case block; func return in case body; switch on func call; deeply nested switch |
+| Dynamic        | `08_dynamic`      | Switch on dynamic from function (int, str)                                |
+| Array          | `09_array`        | Switch on array element; case with array index                           |
+| Object         | `10_object`       | Object decl in case; func return object in case; object member access   |
 
 **Switch syntax:** Use `case value:{` (no space between `:` and `{`) so the parser does not treat `:` as part of an expression.

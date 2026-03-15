@@ -1,0 +1,15 @@
+var a: int = 1
+
+switch a {
+  case 1:{
+    var u: int = 11
+    println(u)
+  }
+  case 2:{
+    var v: int = 22
+    println(v)
+  }
+  default:{
+    println("default")
+  }
+}

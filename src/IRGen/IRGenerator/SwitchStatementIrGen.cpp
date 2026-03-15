@@ -71,7 +71,8 @@ void IRGenerator::visit(binding::BoundSwitchStatement *statement) {
 
     case_expressions[i]->accept(this);
     llvm::Value *case_value = resolveValue(m_last_value, m_last_type);
-    types::Type *case_type = m_last_type;
+    // Use bound expression type so dynamic switch always boxes case literal (e.g. str "hi")
+    types::Type *case_type = case_expressions[i]->getType().get();
     clearLast();
 
     llvm::Value *eq_result = getEqualityComparisonBoolResult(

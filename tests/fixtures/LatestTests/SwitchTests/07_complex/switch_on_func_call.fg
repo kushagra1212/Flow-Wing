@@ -1,0 +1,18 @@
+fun getVal() -> int {
+  return 3
+}
+
+switch getVal() {
+  case 1:{
+    println("one")
+  }
+  case 2:{
+    println("two")
+  }
+  case 3:{
+    println("three")
+  }
+  default:{
+    println("other")
+  }
+}

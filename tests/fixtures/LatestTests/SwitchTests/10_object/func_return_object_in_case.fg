@@ -1,0 +1,20 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun getPoint() -> Point {
+  return { x: 5, y: 10 }
+}
+
+var a: int = 1
+
+switch a {
+  case 1:{
+    var p: Point = getPoint()
+    println(p.x)
+  }
+  default:{
+    println(0)
+  }
+}
