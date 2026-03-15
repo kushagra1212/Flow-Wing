@@ -42,7 +42,12 @@ public:
   // Overrides
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
+
   // Getters
+  const std::unique_ptr<BoundExpression> &getSwitchConditionExpression() const;
+  const std::unique_ptr<BoundStatement> &getDefaultCaseStatement() const;
+  const std::vector<std::unique_ptr<BoundExpression>> &getCaseExpressions() const;
+  const std::vector<std::unique_ptr<BoundStatement>> &getCaseStatements() const;
 
 private:
   std::unique_ptr<BoundExpression> m_switch_condition_expression;

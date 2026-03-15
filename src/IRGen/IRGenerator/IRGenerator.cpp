@@ -160,10 +160,6 @@ void IRGenerator::visit(
   assert(false && "Continue statement not supported");
 }
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundSwitchStatement *statement) {
-  assert(false && "Switch statement not supported");
-}
-void IRGenerator::visit(
     [[maybe_unused]] binding::BoundClassStatement *statement) {
   assert(false && "Class statement not supported");
 }

@@ -1,0 +1,13 @@
+var a: str = "hello"
+
+switch a {
+  case "hello":{
+    println("hello")
+  }
+  case "world":{
+    println("world")
+  }
+  default:{
+    println("default")
+  }
+}

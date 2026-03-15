@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: CaseExpressionTypeMismatch
+var a: int = 1
+
+switch a {
+  case "hello":{
+    println("str case")
+  }
+  default:{
+    println("default")
+  }
+}

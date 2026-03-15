@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
 #include "src/syntax/statements/DefaultCaseStatementSyntax/DefaultCaseStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
@@ -52,8 +54,10 @@ std::unique_ptr<syntax::StatementSyntax> CaseStatementParser::parse() {
   } else {
     auto case_keyword = m_ctx->match(lexer::TokenKind::kCaseKeyword); // case
 
-    auto case_expression =
-        PrecedenceAwareExpressionParser::parse(m_ctx); // case_expression
+    const int colon_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+        lexer::TokenKind::kColonToken);
+    auto case_expression = PrecedenceAwareExpressionParser::parse(
+        m_ctx, colon_precedence); // case_expression
 
     auto colon_token = m_ctx->match(lexer::TokenKind::kColonToken); // :
 

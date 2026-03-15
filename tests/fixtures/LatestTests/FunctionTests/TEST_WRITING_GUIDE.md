@@ -264,3 +264,18 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Var decl and assignment | `03_var_decl_assignment`  | Variable declaration and reassignment with ternary                        |
 | Func return             | `04_func_return`          | Ternary with function calls (int and object return types)                  |
 | Errors                  | `05_errors`               | `IncompatibleTypesForTernaryExpression` (`.fg` only, no `.expect`)        |
+
+---
+
+## Test Categories for Switch
+
+| Category       | Subdirectory      | Coverage                                                                 |
+| -------------- | ----------------- | ------------------------------------------------------------------------- |
+| Basic          | `01_basic`        | Switch on int, bool, str; case match; default branch                      |
+| Default order  | `02_default_order`| Default first in source; match vs no match                                |
+| Conditions     | `03_conditions`   | Case with expression, case with variable                                  |
+| Nested         | `03_nested`       | Nested switch statements                                                  |
+| Edge cases     | `04_edge_cases`   | No match uses default, deci/char, only default                             |
+| Errors         | `05_errors`       | MultipleDefaultCaseStatements, CaseExpressionTypeMismatch                 |
+
+**Switch syntax:** Use `case value:{` (no space between `:` and `{`) so the parser does not treat `:` as part of an expression.

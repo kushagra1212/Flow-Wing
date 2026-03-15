@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,26 @@ void BoundSwitchStatement::accept(visitor::BoundTreeVisitor *visitor) {
 
 NodeKind BoundSwitchStatement::getKind() const {
   return NodeKind::kSwitchStatement;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundSwitchStatement::getSwitchConditionExpression() const {
+  return m_switch_condition_expression;
+}
+
+const std::unique_ptr<BoundStatement> &
+BoundSwitchStatement::getDefaultCaseStatement() const {
+  return m_default_case_statement;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundSwitchStatement::getCaseExpressions() const {
+  return m_case_expressions;
+}
+
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundSwitchStatement::getCaseStatements() const {
+  return m_case_statements;
 }
 
 } // namespace binding

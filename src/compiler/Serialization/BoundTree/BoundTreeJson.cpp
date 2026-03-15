@@ -144,7 +144,19 @@ void BoundTreeJson::visit(
 void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Switch Statement", "BOUND TREE");
-  assert(false && "Switch statement not supported");
+  nlohmann::json switch_statement_json;
+  switch_statement_json["kind"] = toString(switch_statement->getKind());
+  serializeChild(switch_statement->getSwitchConditionExpression(),
+                 switch_statement_json, "switch_condition_expression");
+  serializeChild(switch_statement->getDefaultCaseStatement(),
+                 switch_statement_json, "default_case_statement");
+  serializeArray(switch_statement->getCaseExpressions(), switch_statement_json,
+                 "case_expressions");
+  serializeArray(switch_statement->getCaseStatements(), switch_statement_json,
+                 "case_statements");
+  switch_statement_json["range"] =
+      toJsonRange(switch_statement->getSourceLocation());
+  m_last_node_json = std::move(switch_statement_json);
 }
 
 void BoundTreeJson::visit(
@@ -235,18 +247,20 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundParenthesizedExpression
   m_last_node_json = std::move(parenthesized_expression_json);
 }
 
-void BoundTreeJson::visit(
-    binding::BoundTernaryExpression *ternary_expression) {
+void BoundTreeJson::visit(binding::BoundTernaryExpression *ternary_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Ternary Expression", "BOUND TREE");
   nlohmann::json ternary_expression_json;
-  ternary_expression_json["kind"] =
-      toString(ternary_expression->getKind());
+  ternary_expression_json["kind"] = toString(ternary_expression->getKind());
   serializeChild(ternary_expression->getConditionExpression(),
                  ternary_expression_json, "condition");
   serializeChild(ternary_expression->getTrueExpression(),
                  ternary_expression_json, "true_expression");
   serializeChild(ternary_expression->getFalseExpression(),
                  ternary_expression_json, "false_expression");
+
+  ternary_expression_json["result_type_id"] =
+      getTypeId(ternary_expression->getType().get());
+
   ternary_expression_json["range"] =
       toJsonRange(ternary_expression->getSourceLocation());
   m_last_node_json = std::move(ternary_expression_json);
