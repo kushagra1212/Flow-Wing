@@ -334,4 +334,165 @@ test([{}])
       assert.include(labels, "b", "Should suggest field 'b' of A inside test([{}])");
     });
   });
+
+  describe("Complex nested types (array of objects, nested objects, multi-level member access)", () => {
+    it("getPoints()[0].x.| suggests x, y (fields of A when Point.x: A)", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+fun getPoints() -> Point[2] {
+  return [{ x: { x: 1, y: 2 } }, { x: { x: 3, y: 4 } }]
+}
+getPoints()[0].x.`;
+      const pos = { line: 6, character: 18 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x (field of A) after getPoints()[0].x.");
+      assert.include(labels, "y", "Should suggest y (field of A) after getPoints()[0].x.");
+    });
+
+    it("getPoints()[0].x.x.| suggests nothing or primitives (A.x is int)", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+fun getPoints() -> Point[2] {
+  return [{ x: { x: 1, y: 2 } }, { x: { x: 3, y: 4 } }]
+}
+getPoints()[0].x.x.`;
+      const pos = { line: 6, character: 20 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.notInclude(labels, "x", "int has no field x");
+      assert.notInclude(labels, "y", "int has no field y");
+    });
+
+    it("if (getPoints()[0].x.|) suggests x, y (fields of A in conditional)", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+fun getPoints() -> Point[2] {
+  return [{ x: { x: 1, y: 2 } }, { x: { x: 3, y: 4 } }]
+}
+if (getPoints()[0].x.`;
+      const pos = { line: 6, character: 22 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x for A in if (getPoints()[0].x.)");
+      assert.include(labels, "y", "Should suggest y for A in if (getPoints()[0].x.)");
+    });
+
+    it("var p: Point = { x: { | } } - inside nested object suggests x, y of A", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+var p: Point = { x: {  } }`;
+      const pos = { line: 3, character: 22 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x (field of A) inside { x: { }");
+      assert.include(labels, "y", "Should suggest y (field of A) inside { x: { }");
+    });
+
+    it("var p: Point = { x: {} } cursor inside {} suggests x, y of A", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+var p: Point = { x: {} }`;
+      const pos = { line: 3, character: 20 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x (field of A) inside { x: {} }");
+      assert.include(labels, "y", "Should suggest y (field of A) inside { x: {} }");
+    });
+
+    it("p.x.| suggests x, y when p: Point and Point.x: A", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+var p: Point = { x: { x: 1, y: 2 } }
+p.x.`;
+      const pos = { line: 4, character: 5 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x (field of A) for p.x.");
+      assert.include(labels, "y", "Should suggest y (field of A) for p.x.");
+    });
+
+    it("array of nested: pts[0].x.| suggests x, y of A", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+var pts: Point[2] = [{ x: { x: 1, y: 2 } }, { x: { x: 3, y: 4 } }]
+pts[0].x.`;
+      const pos = { line: 4, character: 11 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x for pts[0].x. (A)");
+      assert.include(labels, "y", "Should suggest y for pts[0].x. (A)");
+    });
+
+    it("nested array type: var v: T with T.arr: A[2], v.arr[0].| suggests A fields", async () => {
+      const content = `
+type A = { x: int, y: int }
+type T = { arr: A[2] }
+var v: T = { arr: [{ x: 1, y: 2 }, { x: 3, y: 4 }] }
+v.arr[0].`;
+      const pos = { line: 4, character: 11 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x for v.arr[0]. (A)");
+      assert.include(labels, "y", "Should suggest y for v.arr[0]. (A)");
+    });
+
+    it("function return nested: getPoints()[1].x.| suggests x, y of A", async () => {
+      const content = `
+type A = { x: int, y: int }
+type Point = { x: A }
+fun getPoints() -> Point[2] {
+  return [{ x: { x: 1, y: 2 } }, { x: { x: 3, y: 4 } }]
+}
+getPoints()[1].x.`;
+      const pos = { line: 6, character: 18 };
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const items = await getObjectSuggestion(
+        { textDocument: { uri: doc.uri }, position: pos },
+        mockDocuments(doc)
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "x", "Should suggest x for getPoints()[1].x.");
+      assert.include(labels, "y", "Should suggest y for getPoints()[1].x.");
+    });
+  });
 });

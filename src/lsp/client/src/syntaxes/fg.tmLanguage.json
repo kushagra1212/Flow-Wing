@@ -181,7 +181,7 @@
       "patterns": [
         {
           "name": "storage.type.primitive.fg",
-          "match": "\\b(int8|int32|int64|int|char|deci|deci32|str|bool|nthg|null)\\b"
+          "match": "\\b(int8|int64|int|char|deci|deci32|str|bool|nthg|null)\\b"
         }
       ]
     },

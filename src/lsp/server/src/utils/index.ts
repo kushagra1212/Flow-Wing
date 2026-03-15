@@ -85,6 +85,38 @@ export const getArgumentPrefixFromDocument = (
 };
 
 /**
+ * If the cursor is inside an object literal that is a variable initializer (e.g. "var p: Point = { x: {} }"),
+ * returns the variable's type and the object literal prefix from the opening "{" to the cursor.
+ * Used for nested object literal completion (e.g. suggest x, y of A inside { x: { } }).
+ */
+export const getVariableInitializerObjectContext = (
+  content: string,
+  position: { line: number; character: number }
+): { type: string; prefix: string } | undefined => {
+  const lines = content.split("\n");
+  let offset = 0;
+  for (let i = 0; i < position.line; i++) offset += (lines[i]?.length ?? 0) + 1;
+  offset += position.character;
+  const before = content.slice(0, offset);
+  let depth = 0;
+  let rootOpen = -1;
+  for (let i = 0; i < before.length; i++) {
+    const c = before[i];
+    if (c === "{") {
+      depth++;
+      if (depth === 1 && rootOpen === -1) rootOpen = i;
+    } else if (c === "}") depth--;
+  }
+  if (depth < 1 || rootOpen < 0) return undefined;
+  const beforeRoot = content.slice(0, rootOpen).trimEnd();
+  const varMatch = beforeRoot.match(/\bvar\s+[a-zA-Z_][a-zA-Z0-9_]*\s*:\s*([a-zA-Z_][a-zA-Z0-9_\s\[\]]*)\s*=\s*$/);
+  if (!varMatch) return undefined;
+  const type = varMatch[1].trim();
+  const prefix = content.slice(rootOpen, offset);
+  return { type, prefix };
+};
+
+/**
  * Extracts the full dotted path at position (e.g. "c", "c.b", "c[0].b", "getPoints()[0].x").
  * Used for hover on member expressions and completion to resolve nested types.
  * Supports: id, id(), id()[0], id()[0].field, id.field, id[0].field, etc.

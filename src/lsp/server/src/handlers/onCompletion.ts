@@ -11,6 +11,7 @@ import {
   checkForFunctionSignatures,
   getFullPathAtPosition,
   getArgumentPrefixFromDocument,
+  getVariableInitializerObjectContext,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import {
@@ -160,25 +161,56 @@ export const getObjectSuggestion = async (
   const content = document.getText();
   const posObj = { line: pos.line, character: pos.character };
 
-  // Early exit for "cursor after dot" (e.g. if (getPoints()[0].|), println(getPoints()[0].|))
+  // Early exit for member completion: cursor after dot (getPoints()[0].|) or after member name (getPoints()[0].x|)
   // Do this before AST block so we reliably get member completions when AST position may not align
   const line = content.split("\n")[pos.line] ?? "";
   const charBefore = pos.character > 0 ? line[pos.character - 1] : "";
-  if (charBefore === ".") {
-    const fullPath = getFullPathAtPosition(content, posObj);
-    if (fullPath) {
-      const semPath = await getSemPathForFileNoRepair(document.uri, content, { position: posObj });
-      if (semPath) {
+  const fullPath = getFullPathAtPosition(content, posObj);
+  const isMemberCompletionPosition =
+    fullPath &&
+    (charBefore === "." || (fullPath.includes(".") && /\.\w+$/.test(fullPath)) || /\[\d+\]$/.test(fullPath));
+  if (fullPath && isMemberCompletionPosition) {
+    const semPath = await getSemPathForFileNoRepair(document.uri, content, { position: posObj });
+    if (semPath) {
+      const semContent = await fileUtils.readFile(semPath);
+      const semParsed = JSON.parse(semContent);
+      if (isSemFormat(semParsed)) {
+        const memberItems = getCompletionItemsFromSem(
+          semParsed,
+          { word: fullPath, data: { isDot: true } },
+          _textDocsParams.textDocument.uri
+        );
+        if (memberItems?.length) return memberItems;
+      }
+    }
+  }
+
+  // Variable initializer object literal (e.g. "var p: Point = { x: {} }" -> suggest x, y of A inside inner {})
+  const varInitCtx = getVariableInitializerObjectContext(content, posObj);
+  if (varInitCtx) {
+    const semPath = await getSemPathForFileNoRepair(document.uri, content, { position: posObj });
+    if (semPath) {
+      try {
         const semContent = await fileUtils.readFile(semPath);
         const semParsed = JSON.parse(semContent);
         if (isSemFormat(semParsed)) {
-          const memberItems = getCompletionItemsFromSem(
+          const nested = getNestedObjectLiteralContext(
             semParsed,
-            { word: fullPath, data: { isDot: true } },
-            _textDocsParams.textDocument.uri
+            varInitCtx.type,
+            varInitCtx.prefix
           );
-          if (memberItems?.length) return memberItems;
+          if (nested) {
+            const memberItems = getObjectMemberCompletionItems(
+              semParsed,
+              nested.expectedType,
+              nested.existingMembers,
+              _textDocsParams.textDocument.uri
+            );
+            if (memberItems?.length) return memberItems;
+          }
         }
+      } catch {
+        /* fall through */
       }
     }
   }

@@ -1,5 +1,5 @@
 type A = {
-  x: int
+  x: int32
   y: int
 }
 
@@ -7,19 +7,15 @@ type Point = {
   x: A 
 }
 
-fun getPoints() -> Point[2] {
-  return [{ x: { x: 1, y:2 } }, {  x:{} }]
+fun getPoints() {
+  return 2
 }
 var p:Point = {x:{}}
 
-if (getPoints()[0].x.x == 1) {
+if (getPoints() == 1) {
   println("p0_x_eq_1")
 } else {
   println("p0_x_ne_1")
 }
 
-if (getPoints()[1].y > 3) {
-  println("p1_y_gt_3")
-} else {
-  println("p1_y_le_3")
-}
+

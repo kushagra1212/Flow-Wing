@@ -293,20 +293,28 @@ function getArrayElementTypeId(
   if ((t.kind === "ParameterType" || t.kind === "ReturnType") && t.base_type_id) {
     return getArrayElementTypeId(types, t.base_type_id);
   }
+  // Unwrap type alias (e.g. Row = Item[5]) so we can get the array element type
+  if (t.kind === "Type" && t.base_type_id) {
+    return getArrayElementTypeId(types, t.base_type_id);
+  }
   const arrayBase = t.base_type_id ?? t.underlying_type_id;
   if ((t.kind === "Array" || t.kind === "ArrayType") && arrayBase) {
     return arrayBase;
   }
-  // Compiler may serialize Array without underlying_type_id; parse from name "Array: <X[n]>"
+  // Compiler may serialize Array without underlying_type_id; parse from name "Array: <X[n]>", "Array: <Item[2][2]>", etc.
   if ((t.kind === "Array" || t.kind === "ArrayType") && t.name) {
-    const m = t.name.match(/^Array:\s*<(.+)\[\d+\]>$/);
-    if (m) {
-      const elementTypeName = m[1].trim();
+    const innerMatch = t.name.match(/^Array:\s*<(.+)>$/);
+    if (innerMatch) {
+      const inner = innerMatch[1].trim();
+      const withoutLastIndex = inner.replace(/\[\d+\]$/, "");
+      const elementTypeName = withoutLastIndex.trim();
       const found = Object.entries(types).find(
         ([, tt]) =>
           tt.name === elementTypeName ||
           tt.name?.startsWith(elementTypeName + " ") ||
-          tt.name?.startsWith(`Object: <${elementTypeName}`)
+          tt.name?.startsWith(`Object: <${elementTypeName}`) ||
+          tt.name === `Array: <${elementTypeName}>` ||
+          tt.name?.startsWith(`Array: <${elementTypeName}`)
       );
       return found?.[0];
     }
@@ -338,32 +346,37 @@ function resolveTypeForPath(
     }
   }
 
-  if (/\[\d+\]$/.test(parts[0])) {
-    currentTypeId = getArrayElementTypeId(types, currentTypeId);
+  const firstPartIndices = parts[0].match(/\[\d+\]/g);
+  if (firstPartIndices?.length) {
+    for (let j = 0; j < firstPartIndices.length && currentTypeId; j++) {
+      currentTypeId = getArrayElementTypeId(types, currentTypeId);
+    }
     if (!currentTypeId) return undefined;
   }
 
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i];
-    const isIndexed = /\[\d+\]$/.test(part);
+    const indexMatch = part.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\[(\d+)\]$/);
+    const fieldName = indexMatch ? indexMatch[1] : part;
+    const isIndexedPart = !!indexMatch;
 
-    if (isIndexed) {
+    currentTypeName = resolveTypeName(currentTypeId, types);
+    if (!currentTypeName?.startsWith("Object:")) return undefined;
+    const content = getNestedContent(currentTypeName, "{", "}");
+    if (!content) return undefined;
+    const fields = getTopLevelFields(content);
+    const field = fields.find((f) => f.name === fieldName);
+    if (!field) return undefined;
+    currentTypeName = field.type;
+    let typeEntry = Object.entries(types).find(
+      ([, t]) =>
+        t.name === currentTypeName || t.name?.startsWith(`Object: <${currentTypeName}`)
+    );
+    currentTypeId = typeEntry?.[0];
+    if (isIndexedPart && currentTypeId) {
       currentTypeId = getArrayElementTypeId(types, currentTypeId);
       if (!currentTypeId) return undefined;
-    } else {
       currentTypeName = resolveTypeName(currentTypeId, types);
-      if (!currentTypeName?.startsWith("Object:")) return undefined;
-      const content = getNestedContent(currentTypeName, "{", "}");
-      if (!content) return undefined;
-      const fields = getTopLevelFields(content);
-      const field = fields.find((f) => f.name === part);
-      if (!field) return undefined;
-      currentTypeName = field.type;
-      const typeEntry = Object.entries(types).find(
-        ([, t]) =>
-          t.name === currentTypeName || t.name?.startsWith(`Object: <${currentTypeName}`)
-      );
-      currentTypeId = typeEntry?.[0];
     }
   }
   return (currentTypeName ?? resolveTypeName(currentTypeId, types)) || undefined;
@@ -872,40 +885,50 @@ export function getCompletionItemsFromSem(
           currentTypeId = funcType.return_type_ids[0];
         }
       }
-      if (/\[\d+\]$/.test(parts[0])) {
-        currentTypeId = getArrayElementTypeId(types, currentTypeId);
+      // Apply each [n] in the first part (e.g. matrix[0][0] -> Item)
+      const firstPartIndices = parts[0].match(/\[\d+\]/g);
+      if (firstPartIndices?.length) {
+        for (let j = 0; j < firstPartIndices.length && currentTypeId; j++) {
+          currentTypeId = getArrayElementTypeId(types, currentTypeId);
+        }
       }
 
       for (let i = 1; i < parts.length && currentTypeId; i++) {
         const part = parts[i];
-        const isIndexed = /\[\d+\]$/.test(part);
-        logger.debug("semCompletion", "Traversing part", part, "isIndexed", isIndexed);
+        const indexMatch = part.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\[(\d+)\]$/);
+        const fieldName = indexMatch ? indexMatch[1] : part;
+        const isIndexedPart = !!indexMatch;
+        logger.debug("semCompletion", "Traversing part", part, "fieldName", fieldName, "isIndexedPart", isIndexedPart);
 
-        if (isIndexed) {
+        currentTypeName = resolveTypeName(currentTypeId, types);
+        if (!currentTypeName?.startsWith("Object:")) {
+          currentTypeName = undefined;
+          break;
+        }
+        const content = getNestedContent(currentTypeName, "{", "}");
+        if (!content) {
+          currentTypeName = undefined;
+          break;
+        }
+        const fields = getTopLevelFields(content);
+        const field = fields.find((f) => f.name === fieldName);
+        if (!field) {
+          currentTypeName = undefined;
+          break;
+        }
+        currentTypeName = field.type;
+        let typeEntry = Object.entries(types).find(
+          ([, t]) =>
+            t.name === currentTypeName || t.name?.startsWith(`Object: <${currentTypeName}`)
+        );
+        currentTypeId = typeEntry?.[0];
+        if (isIndexedPart && currentTypeId) {
           currentTypeId = getArrayElementTypeId(types, currentTypeId);
-        } else {
+          if (!currentTypeId) {
+            currentTypeName = undefined;
+            break;
+          }
           currentTypeName = resolveTypeName(currentTypeId, types);
-          if (!currentTypeName?.startsWith("Object:")) {
-            currentTypeName = undefined;
-            break;
-          }
-          const content = getNestedContent(currentTypeName, "{", "}");
-          if (!content) {
-            currentTypeName = undefined;
-            break;
-          }
-          const fields = getTopLevelFields(content);
-          const field = fields.find((f) => f.name === part);
-          if (!field) {
-            currentTypeName = undefined;
-            break;
-          }
-          currentTypeName = field.type;
-          const typeEntry = Object.entries(types).find(
-            ([, t]) =>
-              t.name === currentTypeName || t.name?.startsWith(`Object: <${currentTypeName}`)
-          );
-          currentTypeId = typeEntry?.[0];
         }
       }
       if (!currentTypeName && currentTypeId) {

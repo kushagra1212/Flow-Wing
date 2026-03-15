@@ -55,8 +55,10 @@ describe("diagnostics", () => {
       const diagnostic = createDiagnostic(errorResult.errorObject, doc);
 
       assert.equal(diagnostic.severity, 1); // Error
-      assert.equal(diagnostic.range.start.line, 4); // 0-based (compiler uses 0-based)
+      assert.equal(diagnostic.range.start.line, 4);
       assert.equal(diagnostic.range.start.character, 8);
+      assert.equal(diagnostic.range.end.line, 4);
+      assert.equal(diagnostic.range.end.character, 15, "Range should span full token 'funName' (8 + 7)");
       assert.include(diagnostic.message, "expects");
     });
   });
