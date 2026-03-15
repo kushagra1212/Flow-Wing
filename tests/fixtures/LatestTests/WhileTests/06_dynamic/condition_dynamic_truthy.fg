@@ -1,0 +1,11 @@
+fun getCount() {
+  return 1
+}
+
+var i = 0
+var step = getCount()
+while (i < 3) {
+  i = i + step
+  println(i)
+}
+println("end")

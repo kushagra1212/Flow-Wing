@@ -1,0 +1,10 @@
+fun check(n: int) -> bool {
+  return n < 3
+}
+
+var i = 0
+while (check(i)) {
+  println(i)
+  i = i + 1
+}
+println("done")

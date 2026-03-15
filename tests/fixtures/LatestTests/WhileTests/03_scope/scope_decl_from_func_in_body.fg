@@ -1,0 +1,11 @@
+fun getVal() -> int {
+  return 7
+}
+
+var i = 0
+while (i < 2) {
+  var x: int = getVal()
+  println(x)
+  i = i + 1
+}
+println("done")

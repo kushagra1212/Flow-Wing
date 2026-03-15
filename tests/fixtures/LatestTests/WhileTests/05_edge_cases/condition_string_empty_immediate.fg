@@ -1,0 +1,6 @@
+var s: str = ""
+var n = 0
+while (s) {
+  n = n + 1
+}
+println(n)

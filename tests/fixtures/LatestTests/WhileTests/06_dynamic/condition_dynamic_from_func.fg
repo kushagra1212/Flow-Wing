@@ -1,0 +1,11 @@
+fun getVal() {
+  return 2
+}
+
+var i = 0
+var limit = getVal()
+while (i < limit) {
+  println(i)
+  i = i + 1
+}
+println("done")

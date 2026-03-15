@@ -1,0 +1,10 @@
+fun ok() -> bool {
+  return true
+}
+
+var flag: bool = true
+while (ok() && flag) {
+  println("once")
+  flag = false
+}
+println("done")

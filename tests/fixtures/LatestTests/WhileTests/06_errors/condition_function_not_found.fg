@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: FunctionNotFound
+var i = 0
+while (unknownFunc(i)) {
+  i = i + 1
+}
+println(i)

@@ -1,0 +1,7 @@
+var a: bool = true
+var b: bool = true
+while (a && b) {
+  println("ok")
+  a = false
+}
+println("done")

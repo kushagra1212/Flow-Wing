@@ -1,0 +1,15 @@
+type Point = {
+  x: int
+  y: int
+}
+
+var p: Point = { x: 1, y: 2 }
+var i = 0
+while (p) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    p = null
+  }
+}
+println("done")

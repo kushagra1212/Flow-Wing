@@ -241,11 +241,14 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Category   | Subdirectory    | Coverage                                                                 |
 | ---------- | --------------- | ------------------------------------------------------------------------- |
 | Basic      | `01_basic`      | Simple while, print each iteration, zero iterations                      |
-| Conditions | `02_conditions` | Bool, int nonzero, binary comparison as condition                          |
-| Scope      | `03_scope`      | Variable declaration in loop body                                        |
-| Complex    | `04_complex`    | While with if/else, factorial, nested while                               |
-| Edge cases | `05_edge_cases` | Empty body, single iteration                                              |
-| Errors     | `06_errors`     | VariableNotFound in condition or body                                     |
+| Conditions | `02_conditions` | Bool, int nonzero, binary comparison, func return bool/int, logical, string, deci, char, unary not, arithmetic in condition |
+| Scope      | `03_scope`      | Variable in body, shadow in body, outer/inner while, assign/decl from func, nested block, reassign outer |
+| Complex    | `04_complex`    | While with if/else, factorial, nested while, condition from func, assign from func, deeply nested while/if, ternary in body, multi-var assign |
+| Edge cases | `05_edge_cases` | Empty body, single iteration, int negative, deci small, many iterations, int zero stops, string empty immediate |
+| Errors     | `06_errors`     | VariableNotFound, FunctionNotFound, InvalidBinaryOperationWithTypes (condition/void) |
+| Dynamic    | `06_dynamic`    | Condition from dynamic func return, dynamic zero, dynamic truthy          |
+| Object     | `07_object`     | Object nonnull/null as condition, member access in body                   |
+| Array      | `08_array`      | Func return array, array index in body, accumulate array                  |
 
 ---
 

@@ -1,0 +1,11 @@
+var d: deci = 2.0
+var n = 0
+while (d) {
+  println(n)
+  n = n + 1
+  d = d - 1.0
+  if (n >= 2) {
+    d = 0.0
+  }
+}
+println("end")

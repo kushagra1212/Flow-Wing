@@ -1,0 +1,6 @@
+var flag = true
+while (flag || false) {
+  println("once")
+  flag = false
+}
+println("done")

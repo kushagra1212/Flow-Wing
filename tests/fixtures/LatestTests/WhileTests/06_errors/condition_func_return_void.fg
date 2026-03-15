@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+fun doVoid() -> nthg {
+  println("x")
+}
+
+var i = 0
+while (doVoid() == true) {
+  i = i + 1
+}
+println(i)

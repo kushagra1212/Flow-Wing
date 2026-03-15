@@ -1,3 +1,0 @@
-/; EXPECT_ERROR: Unknown integer operator. logical_or
-var x = 5
-var y = x || 0

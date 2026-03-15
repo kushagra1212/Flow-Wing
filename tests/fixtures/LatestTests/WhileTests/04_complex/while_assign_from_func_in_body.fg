@@ -1,0 +1,12 @@
+fun step() -> int {
+  return 1
+}
+
+var acc = 0
+var i = 0
+while (i < 3) {
+  acc = acc + step()
+  println(acc)
+  i = i + 1
+}
+println("done")

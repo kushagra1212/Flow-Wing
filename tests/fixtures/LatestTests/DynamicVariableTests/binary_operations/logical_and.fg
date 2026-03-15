@@ -1,4 +1,4 @@
-/; EXPECT_ERROR: Unknown integer operator. logical_and
+
 var x = 5
 var y = x && 3
 print(y, "\n")

@@ -1,0 +1,9 @@
+var a = 0
+var b = 5
+while (a < 2 || b > 3) {
+  println(a)
+  println(b)
+  a = a + 1
+  b = b - 1
+}
+println("end")

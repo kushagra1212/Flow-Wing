@@ -1,0 +1,8 @@
+var x: int = 1
+var i = 0
+while (i < 2) {
+  var x: int = 10
+  println(x)
+  i = i + 1
+}
+println(x)

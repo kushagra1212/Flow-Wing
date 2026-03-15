@@ -1,0 +1,12 @@
+var i = 0
+var stop = false
+var extra = true
+while (i < 2 && (!stop || extra)) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    stop = true
+    extra = false
+  }
+}
+println("done")

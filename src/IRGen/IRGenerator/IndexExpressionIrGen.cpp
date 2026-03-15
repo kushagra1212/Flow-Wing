@@ -18,6 +18,7 @@
  */
 
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "src/common/types/ArrayType/ArrayType.hpp"
@@ -77,7 +78,19 @@ void IRGenerator::visit(
     CODEGEN_DEBUG_LOG("Final Index Expression Type",
                       final_index_type->getName());
     dimension_clause_expression->accept(this);
-    llvm::Value *index_val = resolveValue(m_last_value, m_last_type);
+    types::Type *index_expr_type = m_last_type;
+    llvm::Value *index_val = nullptr;
+    if (index_expr_type->isDynamic()) {
+      llvm::Type *dynamic_struct_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(index_expr_type);
+      auto [value_storage, _type_tag] =
+          DynamicValueHandler::extractDynamicValue(
+              m_last_value, dynamic_struct_type,
+              m_ir_gen_context.getLLVMBuilder().get());
+      index_val = value_storage; // already i64
+    } else {
+      index_val = resolveValue(m_last_value, m_last_type);
+    }
     clearLast();
 
     {
