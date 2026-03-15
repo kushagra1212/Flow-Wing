@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,13 +50,14 @@ StatementBinder::bindSwitchStatement(syntax::SwitchStatementSyntax *statement) {
   auto bound_switch_condition_expression = m_expression_binder->bind(
       switch_statement->getSwitchConditionExpression().get());
 
-  auto condition_type = bound_switch_condition_expression->getType();
-
   if (bound_switch_condition_expression->getKind() ==
       NodeKind::kErrorExpression) {
     return std::make_unique<BoundErrorStatement>(
         std::move(bound_switch_condition_expression));
   }
+
+  auto condition_type = bound_switch_condition_expression->getType();
+
   std::unique_ptr<BoundStatement> bound_default_case_statement = nullptr;
 
   std::vector<std::unique_ptr<BoundExpression>> bound_case_expressions;
