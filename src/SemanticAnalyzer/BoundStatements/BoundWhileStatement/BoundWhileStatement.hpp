@@ -39,6 +39,8 @@ public:
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
   // Getters
+  const std::unique_ptr<BoundExpression> &getCondition() const;
+  const std::unique_ptr<BoundStatement> &getStatement() const;
 
 private:
   std::unique_ptr<BoundExpression> m_condition;

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,16 @@ BoundWhileStatement::~BoundWhileStatement() = default;
 
 NodeKind BoundWhileStatement::getKind() const {
   return NodeKind::kWhileStatement;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundWhileStatement::getCondition() const {
+  return m_condition;
+}
+
+const std::unique_ptr<BoundStatement> &
+BoundWhileStatement::getStatement() const {
+  return m_statement;
 }
 
 void BoundWhileStatement::accept(visitor::BoundTreeVisitor *visitor) {

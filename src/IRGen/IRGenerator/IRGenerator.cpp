@@ -143,10 +143,8 @@ void IRGenerator::visit(
   assert(false && "Expose statement not supported");
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundWhileStatement *statement) {
-  assert(false && "While statement not supported");
-}
+// BoundWhileStatement is implemented in WhileStatementIrGen.cpp
+
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundForStatement *statement) {
   assert(false && "For statement not supported");

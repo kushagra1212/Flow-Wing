@@ -1,0 +1,9 @@
+var n = 0
+var flag = true
+while (flag) {
+  n = n + 1
+  if (n >= 3) {
+    flag = false
+  }
+}
+println(n)

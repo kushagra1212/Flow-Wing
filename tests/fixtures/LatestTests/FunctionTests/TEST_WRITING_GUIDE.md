@@ -185,7 +185,7 @@ print("\n")
 
 ## Limitations (LatestTests Only)
 
-- **No loops** (`for`, `while`) — not supported in current LatestTests.
+- **`while`** is supported; **`for`**, **`break`**, and **`continue`** are not supported in current LatestTests.
 - **Functions can only be declared globally** (not inside other functions or blocks).
 - **Scoped blocks `{ ... }`** are allowed for grouping variable declarations that shadow globals.
 
@@ -233,6 +233,19 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Array                | `09_array`                | Array as condition (non-null, uninitialized), or-if                                   |
 | Dynamic edge         | `10_dynamic_edge`         | Dynamic string (empty/nonempty), bool false, deci zero, from function, or-if          |
 | Errors               | `11_errors`               | VariableNotFound, FunctionNotFound, InvalidBinaryOperationWithTypes, InvalidUnaryOperator, etc. |
+
+---
+
+## Test Categories for While
+
+| Category   | Subdirectory    | Coverage                                                                 |
+| ---------- | --------------- | ------------------------------------------------------------------------- |
+| Basic      | `01_basic`      | Simple while, print each iteration, zero iterations                      |
+| Conditions | `02_conditions` | Bool, int nonzero, binary comparison as condition                          |
+| Scope      | `03_scope`      | Variable declaration in loop body                                        |
+| Complex    | `04_complex`    | While with if/else, factorial, nested while                               |
+| Edge cases | `05_edge_cases` | Empty body, single iteration                                              |
+| Errors     | `06_errors`     | VariableNotFound in condition or body                                     |
 
 ---
 

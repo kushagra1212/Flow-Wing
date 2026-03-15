@@ -102,9 +102,17 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundWhileStatement *while_statement) {
+    binding::BoundWhileStatement *while_statement) {
   PARSER_DEBUG_LOG("Visiting Bound While Statement", "BOUND TREE");
-  assert(false && "While statement not supported");
+  nlohmann::json while_statement_json;
+  while_statement_json["kind"] = toString(while_statement->getKind());
+  serializeChild(while_statement->getCondition(), while_statement_json,
+                 "condition");
+  serializeChild(while_statement->getStatement(), while_statement_json,
+                 "loop_body");
+  while_statement_json["range"] =
+      toJsonRange(while_statement->getSourceLocation());
+  m_last_node_json = std::move(while_statement_json);
 }
 
 void BoundTreeJson::visit(

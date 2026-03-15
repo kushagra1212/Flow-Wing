@@ -1,0 +1,7 @@
+var x = 0
+while (x < 2) {
+  var inner = x * 10
+  println(inner)
+  x = x + 1
+}
+println(x)

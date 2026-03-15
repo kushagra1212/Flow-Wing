@@ -1,11 +1,29 @@
-var a: deci = 2.5
+fun getArray() -> int[3] {
+  return [10, 20, 30]
+}
 
-switch a {
-  case 2.5:{
-    println("two point five")
+var arr = getArray()
+var idx: int = 0
+
+switch arr[0] {
+  case 10:{
+    println("ten")
   }
-  case 3.14:{
-    println("pi")
+  case 20:{
+    println("twenty")
+  }
+  default:{
+    println("default")
+  }
+}
+
+
+switch arr[1] {
+  case 10:{
+    println("ten")
+  }
+  case 20:{
+    println("twenty")
   }
   default:{
     println("default")
