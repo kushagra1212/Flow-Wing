@@ -8,10 +8,11 @@ import { getSemPathForDocument } from "../services/documentService";
 import { getHoverFromSem, getCompletionItemsFromSem } from "../services/semService";
 import { checkForObjectSuggestions } from "../utils";
 import { fileUtils } from "../utils/fileUtils";
+import { getTestCompilerPath, getTestFixturesDir } from "./testCompilerPath";
 
 describe("Professional Feature Tests (LatestTests)", () => {
-  const compilerPath = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
-  const fixturesDir = "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests";
+  const compilerPath = getTestCompilerPath();
+  const fixturesDir = getTestFixturesDir();
 
   before(async () => {
     flowWingConfig.flowWingPath = compilerPath;

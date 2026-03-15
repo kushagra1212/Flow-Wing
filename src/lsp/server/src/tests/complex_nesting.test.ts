@@ -9,7 +9,8 @@ import { getObjectSuggestion } from "../handlers/onCompletion";
 import { flowWingConfig } from "../config";
 import { clearDocumentCache } from "../services/documentService";
 
-const COMPILER_PATH = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
+import { getTestCompilerPath } from "./testCompilerPath";
+const COMPILER_PATH = getTestCompilerPath();
 
 const mockDocuments = (doc: TextDocument) => {
   const docs = new TextDocuments(TextDocument);

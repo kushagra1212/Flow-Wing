@@ -3,9 +3,10 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { TextDocuments } from "vscode-languageserver";
 import { getObjectSuggestion } from "../handlers/onCompletion";
 import { flowWingConfig } from "../config";
+import { getTestCompilerPath } from "./testCompilerPath";
 
 describe("Object and Member Completion Reproduction", () => {
-  const compilerPath = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
+  const compilerPath = getTestCompilerPath();
 
   before(function () {
     flowWingConfig.flowWingPath = compilerPath;

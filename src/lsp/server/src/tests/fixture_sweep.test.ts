@@ -10,10 +10,11 @@ import {
   isSemFormat 
 } from "../services/semService";
 import { fileUtils } from "../utils/fileUtils";
+import { getTestCompilerPath, getTestFixturesDir } from "./testCompilerPath";
 
 describe("Systematic Fixture Sweep (LatestTests)", () => {
-    const compilerPath = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
-    const fixturesDir = "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests";
+    const compilerPath = getTestCompilerPath();
+    const fixturesDir = getTestFixturesDir();
 
     before(async () => {
         flowWingConfig.flowWingPath = compilerPath;

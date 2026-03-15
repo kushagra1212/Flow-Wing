@@ -96,6 +96,9 @@ jobs:
       - name: Install LSP dependencies
         run: cd src/lsp && yarn install
 
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing" >> $GITHUB_ENV
+
       - name: Run LSP tests
         run: make lsp-test
 
@@ -173,6 +176,9 @@ jobs:
 
       - name: Install LSP dependencies
         run: cd src/lsp && yarn install
+
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing.exe" >> $GITHUB_ENV
 
       - name: Run LSP tests
         run: make lsp-test
@@ -259,6 +265,9 @@ jobs:
 
       - name: Install LSP dependencies
         run: cd src/lsp && yarn install
+
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing" >> $GITHUB_ENV
 
       - name: Run LSP tests
         run: make lsp-test

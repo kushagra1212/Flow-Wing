@@ -1,18 +1,11 @@
-for (var i: int = 0 to 2 : 1) {
-  for (var j: int = 0 to 2 : 1) {
-    switch j {
-      case 0: {
-        println(0)
+fun main2() -> int {
+      var x = 2
+      print(2) print(x) print(x+2) print(x+true) print(x+false)
+      print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)
+      x  =  true
+      print(x==false) print(x+false)
+      print(x+true) print(x+1) print(x+1.1)
+      print(x+"Hello")
+      return (0)
       }
-      case 1: {
-        println(1)
-        break
-      }
-      default: {
-        println(2)
-      }
-    }
-  }
-  println(i)
-}
-println("done")
+      var y:int = main2()

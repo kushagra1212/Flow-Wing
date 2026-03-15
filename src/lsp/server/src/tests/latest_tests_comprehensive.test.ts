@@ -24,9 +24,10 @@ import {
   isSemFormat,
 } from "../services/semService";
 import { fileUtils } from "../utils/fileUtils";
+import { getTestCompilerPath, getTestFixturesDir } from "./testCompilerPath";
 
-const FIXTURES_DIR = "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests";
-const COMPILER_PATH = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
+const FIXTURES_DIR = getTestFixturesDir();
+const COMPILER_PATH = getTestCompilerPath();
 
 function getFilesRecursive(dir: string, ext = ".fg"): string[] {
   if (!fs.existsSync(dir)) return [];

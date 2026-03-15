@@ -10,9 +10,10 @@ import {
 } from "../services/documentService";
 import { fileUtils } from "../utils/fileUtils";
 import { flowWingConfig } from "../config";
+import { getTestCompilerPath } from "./testCompilerPath";
 
 describe("LSP Robustness and Caching", () => {
-  const compilerPath = "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing";
+  const compilerPath = getTestCompilerPath();
   const testUri = "file:///Users/apple/code/per/Flow-Wing/src/lsp/server/src/tests/robustness_test.fg";
 
   before(async () => {

@@ -18,10 +18,11 @@
   "devDependencies": {
     "@types/mocha": "^10.0.0",
     "chai": "^4.3.0",
+    "cross-env": "^7.0.3",
     "mocha": "^10.0.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha 'out/tests/**/*.test.js' --timeout 15000 --parallel --exit",
-    "test:debug": "FLOWWING_LSP_DEBUG=1 mocha 'out/tests/**/*.test.js' --timeout 15000"
+    "test": "cross-env NODE_ENV=test mocha 'out/tests/**/*.test.js' --timeout 15000 --parallel --exit",
+    "test:debug": "cross-env FLOWWING_LSP_DEBUG=1 mocha 'out/tests/**/*.test.js' --timeout 15000"
   }
 }
