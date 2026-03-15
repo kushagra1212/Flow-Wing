@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  */
 #include "TokenKind.h"
 #include <unordered_map>
@@ -135,6 +135,7 @@ bool isType(TokenKind kind) {
   case TokenKind::kDeciKeyword:
   case TokenKind::kDeci32Keyword:
   case TokenKind::kStrKeyword:
+  case TokenKind::kCharKeyword:
     return true;
   default:
     return false;

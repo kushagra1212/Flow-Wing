@@ -1,0 +1,12 @@
+fun getBound() -> int {
+  return 5
+}
+
+fun getStep() -> int {
+  return 2
+}
+
+for (var i: int = 0 to getBound() : getStep()) {
+  println(i)
+}
+println("done")

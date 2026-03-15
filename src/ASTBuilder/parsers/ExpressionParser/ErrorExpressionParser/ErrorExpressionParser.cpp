@@ -86,6 +86,7 @@ std::unique_ptr<syntax::ExpressionSyntax> ErrorExpressionParser::parse() {
 
 bool ErrorExpressionParser::isExpressionDelimiter(
     lexer::TokenKind token_kind) const {
+
   switch (token_kind) {
 
   case lexer::TokenKind::kCloseBraceToken:
@@ -108,6 +109,7 @@ bool ErrorExpressionParser::isExpressionDelimiter(
   case lexer::TokenKind::kOpenBraceToken:
   case lexer::TokenKind::kOpenBracketToken:
   case lexer::TokenKind::kOpenParenthesisToken:
+
     return true;
   default:
     break;
