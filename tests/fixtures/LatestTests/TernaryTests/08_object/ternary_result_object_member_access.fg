@@ -1,0 +1,11 @@
+type T = {
+  v: int
+}
+
+fun makeT(x: int) -> T {
+  return { v: x }
+}
+
+var a: T = (true ? makeT(1) : makeT(2))
+
+println(a.v)

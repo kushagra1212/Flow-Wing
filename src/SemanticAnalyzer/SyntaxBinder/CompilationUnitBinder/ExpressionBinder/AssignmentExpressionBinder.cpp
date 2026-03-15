@@ -155,6 +155,17 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       if (var_idx >= left_expressions.size())
         break;
 
+      if (right_type->isNthg()) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                left_expressions[var_idx]->getType()->getName(),
+                right_type->getName()});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+
       auto &left_expression = left_expressions[var_idx];
       auto left_type = left_expression->getType();
 

@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+fun printA() {
+  println("A")
+}
+fun printB() {
+  println("B")
+}
+
+var a = 'A'
+var x = (a == 'B') ? printA() : printB()
+println(x)

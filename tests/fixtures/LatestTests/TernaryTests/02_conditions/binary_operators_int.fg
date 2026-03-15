@@ -1,0 +1,6 @@
+println((1 > 2) ? "Hello" : "Bye")
+println((1 < 2) ? "Hello" : "Bye")
+println((1 == 2) ? "Hello" : "Bye")
+println((1 != 2) ? "Hello" : "Bye")
+println((1 >= 2) ? "Hello" : "Bye")
+println((1 <= 2) ? "Hello" : "Bye")

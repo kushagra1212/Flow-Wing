@@ -31,6 +31,7 @@ public:
   BoundTernaryExpression(std::unique_ptr<BoundExpression> condition_expression,
                          std::unique_ptr<BoundExpression> true_expression,
                          std::unique_ptr<BoundExpression> false_expression,
+                         std::shared_ptr<types::Type> result_type,
                          const flow_wing::diagnostic::SourceLocation &location);
   ~BoundTernaryExpression() = default;
 
@@ -48,6 +49,7 @@ private:
   std::unique_ptr<BoundExpression> m_conditionExpression;
   std::unique_ptr<BoundExpression> m_trueExpression;
   std::unique_ptr<BoundExpression> m_falseExpression;
+  std::shared_ptr<types::Type> m_resultType;
 };
 } // namespace binding
 } // namespace flow_wing

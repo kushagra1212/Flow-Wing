@@ -109,13 +109,13 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "this "
       "error."}},
     {(DiagnosticCode::kFunctionArgumentCountMismatch),
-     {"The function '{0}' expects at least {1} arguments, but only {2} "
+     {"The function '{0}' expects {1} arguments, but only {2} "
       "were "
       "provided.",
-      "Please provide at least {1} arguments when calling the function "
+      "Please provide {1} arguments when calling the function "
       "'{0}'.",
       "Ensure that the number of arguments passed to the function '{0}' "
-      "meets the minimum requirement. It expects at least {1} arguments, "
+      "meets the minimum requirement. It expects {1} arguments, "
       "but "
       "{2} were provided."}},
     {(DiagnosticCode::kUnexpectedExpression),

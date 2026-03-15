@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
@@ -52,21 +53,17 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindTernaryExpression(
     return false_expression;
   }
 
+  std::shared_ptr<types::Type> result_type;
   if (*true_expression->getType() != *false_expression->getType()) {
-
-    auto error_expression = std::make_unique<BoundErrorExpression>(
-        expression->getSourceLocation(),
-        diagnostic::DiagnosticCode::kIncompatibleTypesForTernaryExpression,
-        diagnostic::DiagnosticArgs{true_expression->getType()->getName(),
-                                   false_expression->getType()->getName()});
-
-    m_context->reportError(error_expression.get());
-    return std::move(error_expression);
+    result_type = analysis::Builtins::m_dynamic_type_instance;
+  } else {
+    result_type = true_expression->getType();
   }
 
   return std::make_unique<BoundTernaryExpression>(
       std::move(condition_expression), std::move(true_expression),
-      std::move(false_expression), expression->getSourceLocation());
+      std::move(false_expression), std::move(result_type),
+      expression->getSourceLocation());
 }
 
 } // namespace binding

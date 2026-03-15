@@ -10,13 +10,13 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 describe("diagnostics", () => {
   describe("parseErrorAndExtractLocation", () => {
     it("parses FunctionArgumentCountMismatch error from compiler stderr", () => {
-      const stderr = `[Error:FunctionArgumentCountMismatch] : Line 4:8 "The function 'funName(Function: <(int, deci) -> int>)' expects at least 2 arguments, but only 0 were provided."`;
+      const stderr = `[Error:FunctionArgumentCountMismatch] : Line 4:8 "The function 'funName(Function: <(int, deci) -> int>)' expects 2 arguments, but only 0 were provided."`;
       const result = parseErrorAndExtractLocation(stderr);
 
       assert.isTrue(result.hasError);
       assert.equal(result.lineNumber, 4); // 0-based (compiler uses 0-based)
       assert.equal(result.columnNumber, 8);
-      assert.include(result.errorMessage!, "expects at least 2 arguments");
+      assert.include(result.errorMessage!, "expects 2 arguments");
       assert.exists(result.errorObject);
     });
 
@@ -58,7 +58,11 @@ describe("diagnostics", () => {
       assert.equal(diagnostic.range.start.line, 4);
       assert.equal(diagnostic.range.start.character, 8);
       assert.equal(diagnostic.range.end.line, 4);
-      assert.equal(diagnostic.range.end.character, 15, "Range should span full token 'funName' (8 + 7)");
+      assert.equal(
+        diagnostic.range.end.character,
+        15,
+        "Range should span full token 'funName' (8 + 7)"
+      );
       assert.include(diagnostic.message, "expects");
     });
   });

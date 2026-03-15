@@ -21,6 +21,8 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -152,6 +154,23 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
         auto variable_type = variable_symbols[var_idx]->getType();
 
+        if (expression_type->isNthg()) {
+          auto error_expression = std::make_unique<BoundErrorExpression>(
+              expr->getSourceLocation(),
+              diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
+              diagnostic::DiagnosticArgs{
+                  variable_type->getName(), expression_type->getName(),
+                  variable_symbols[var_idx]->getName()});
+          m_context->reportError(error_expression.get());
+          static_cast<analysis::VariableSymbol *>(
+              variable_symbols[var_idx].get())
+              ->setInitializerExpression(std::move(error_expression));
+          if (!is_multi)
+            expr = nullptr;
+          var_idx++;
+          continue;
+        }
+
         BINDER_DEBUG_LOG("Expression Type: ", expression_type->getName());
         BINDER_DEBUG_LOG("Expression is Dynamic: ",
                          expression_type->isDynamic());
@@ -179,7 +198,22 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
                 ->setInitializerExpression(std::move(expr));
           }
         } else if (expression_type->isDynamic()) {
-          if (!is_multi) {
+          if (!variable_type->isDynamic() && expr &&
+              expr->getKind() == NodeKind::kTernaryExpression) {
+            auto *ternary = static_cast<BoundTernaryExpression *>(expr.get());
+            auto error_expression = std::make_unique<BoundErrorExpression>(
+                expr->getSourceLocation(),
+                diagnostic::DiagnosticCode::kIncompatibleTypesForTernaryExpression,
+                diagnostic::DiagnosticArgs{
+                    ternary->getTrueExpression()->getType()->getName(),
+                    ternary->getFalseExpression()->getType()->getName()});
+            m_context->reportError(error_expression.get());
+            static_cast<analysis::VariableSymbol *>(
+                variable_symbols[var_idx].get())
+                ->setInitializerExpression(std::move(error_expression));
+            if (!is_multi)
+              expr = nullptr;
+          } else if (!is_multi) {
             static_cast<analysis::VariableSymbol *>(
                 variable_symbols[var_idx].get())
                 ->setInitializerExpression(std::move(expr));

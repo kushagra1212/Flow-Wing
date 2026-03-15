@@ -236,9 +236,20 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundParenthesizedExpression
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundTernaryExpression *ternary_expression) {
+    binding::BoundTernaryExpression *ternary_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Ternary Expression", "BOUND TREE");
-  assert(false && "Ternary expression not supported");
+  nlohmann::json ternary_expression_json;
+  ternary_expression_json["kind"] =
+      toString(ternary_expression->getKind());
+  serializeChild(ternary_expression->getConditionExpression(),
+                 ternary_expression_json, "condition");
+  serializeChild(ternary_expression->getTrueExpression(),
+                 ternary_expression_json, "true_expression");
+  serializeChild(ternary_expression->getFalseExpression(),
+                 ternary_expression_json, "false_expression");
+  ternary_expression_json["range"] =
+      toJsonRange(ternary_expression->getSourceLocation());
+  m_last_node_json = std::move(ternary_expression_json);
 }
 
 void BoundTreeJson::visit(

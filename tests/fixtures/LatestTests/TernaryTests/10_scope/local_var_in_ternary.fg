@@ -1,0 +1,6 @@
+fun f() {
+  var local: int = 3
+  println(local == 3 ? "eq" : "ne")
+}
+
+f()

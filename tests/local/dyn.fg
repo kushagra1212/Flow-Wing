@@ -1,21 +1,13 @@
-type A = {
-  x: int32
-  y: int
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+fun printA() {
+  println("A")
+}
+fun printB() {
+  println("B")
+}
+fun takeInt(x: int) {
+  println(x)
 }
 
-type Point = {
-  x: A 
-}
-
-fun getPoints() {
-  return 2
-}
-var p:Point = {x:{}}
-
-if (getPoints() == 1) {
-  println("p0_x_eq_1")
-} else {
-  println("p0_x_ne_1")
-}
-
-
+var a = 'A'
+printB((a == 'B') ? printA() : printB())

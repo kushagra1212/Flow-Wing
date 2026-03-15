@@ -1,0 +1,7 @@
+fun getDynamic() {
+  return 42
+}
+
+var x = true ? getDynamic() : 0
+
+println(x)

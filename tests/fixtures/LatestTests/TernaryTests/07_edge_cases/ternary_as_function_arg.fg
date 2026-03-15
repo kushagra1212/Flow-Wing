@@ -1,0 +1,6 @@
+fun show(s: str) {
+  println(s)
+}
+
+show(true ? "a" : "b")
+show(false ? "a" : "b")

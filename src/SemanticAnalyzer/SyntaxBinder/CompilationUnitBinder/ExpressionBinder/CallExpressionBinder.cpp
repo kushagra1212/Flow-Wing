@@ -141,10 +141,27 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     }
 
     auto const size = arguments.size();
+    const auto &param_types = function_type->getParameterTypes();
+
+    for (size_t i = 0; i < size; i++) {
+      if (arguments[i]->getType()->isNthg()) {
+        types::Type *expected_type =
+            i < param_types.size()
+                ? param_types[i]->type.get()
+                : param_types.back()->type.get();
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            arguments[i]->getSourceLocation(),
+            diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                expected_type->getName(), arguments[i]->getType()->getName(),
+                function_name + "(" + function_type->getName() + ")"});
+        return std::move(error_expression);
+      }
+    }
 
     if (!function_type->isVariadic()) {
       for (size_t i = 0; i < size; i++) {
-        auto param = function_type->getParameterTypes()[i];
+        auto param = param_types[i];
         auto parameter_type = param->type;
         auto argument_type = arguments[i]->getType();
 

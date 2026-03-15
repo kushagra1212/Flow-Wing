@@ -1,0 +1,9 @@
+var a: int[2] = true ? [1, 2] : [3, 4]
+
+println(a[0])
+println(a[1])
+
+var b: int[2] = false ? [1, 2] : [3, 4]
+
+println(b[0])
+println(b[1])

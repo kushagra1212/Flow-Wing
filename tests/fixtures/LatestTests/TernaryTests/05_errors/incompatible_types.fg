@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: IncompatibleTypesForTernaryExpression
+var x: int = true ? 1 : "bad"
+
+println(x)

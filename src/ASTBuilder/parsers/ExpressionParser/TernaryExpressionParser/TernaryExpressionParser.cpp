@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "TernaryExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
@@ -34,11 +35,14 @@ std::unique_ptr<syntax::ExpressionSyntax> TernaryExpressionParser::parsePostfix(
     std::unique_ptr<syntax::ExpressionSyntax> condition_expression,
     const syntax::SyntaxToken *question_token) {
 
-  auto true_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 2
+  const int colon_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+      lexer::TokenKind::kColonToken);
+  auto true_expression =
+      PrecedenceAwareExpressionParser::parse(m_ctx, colon_precedence);
 
   auto colon_token = m_ctx->match(lexer::TokenKind::kColonToken); // :
 
-  auto false_expression = PrecedenceAwareExpressionParser::parse(m_ctx); // 3
+  auto false_expression = PrecedenceAwareExpressionParser::parse(m_ctx);
 
   return std::make_unique<syntax::TernaryExpressionSyntax>(
       std::move(condition_expression), question_token,

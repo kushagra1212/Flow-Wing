@@ -1,0 +1,4 @@
+var a: bool = true
+var b: bool = true
+
+println((a && b) ? "both true" : "not both")

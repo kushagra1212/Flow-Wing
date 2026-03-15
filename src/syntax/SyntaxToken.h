@@ -45,6 +45,8 @@ public:
   const std::string &getText() const { return m_text; }
   const std::any &getValue() const { return m_value; }
   const lexer::TokenKind &getTokenKind() const { return m_token_kind; }
+  /** True if any leading token (e.g. before this token) is EndOfLine. */
+  bool hasLeadingEndOfLine() const;
 
 private:
   lexer::TokenKind m_token_kind;

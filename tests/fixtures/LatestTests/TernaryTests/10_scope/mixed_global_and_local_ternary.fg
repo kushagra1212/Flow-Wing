@@ -1,0 +1,9 @@
+var g: int = 10
+
+fun useBoth() {
+  var local: int = 2
+  println(g > local ? "g_gt" : "g_le")
+  println((g == 10 && local == 2) ? "match" : "nomatch")
+}
+
+useBoth()

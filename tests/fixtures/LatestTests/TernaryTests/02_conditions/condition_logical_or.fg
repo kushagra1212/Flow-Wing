@@ -1,0 +1,4 @@
+var a: bool = false
+var b: bool = true
+
+println((a || b) ? "or true" : "or false")

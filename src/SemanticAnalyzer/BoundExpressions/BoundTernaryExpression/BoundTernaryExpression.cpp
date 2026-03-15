@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,13 @@ BoundTernaryExpression::BoundTernaryExpression(
     std::unique_ptr<BoundExpression> condition_expression,
     std::unique_ptr<BoundExpression> true_expression,
     std::unique_ptr<BoundExpression> false_expression,
+    std::shared_ptr<types::Type> result_type,
     const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location),
       m_conditionExpression(std::move(condition_expression)),
       m_trueExpression(std::move(true_expression)),
-      m_falseExpression(std::move(false_expression)) {}
+      m_falseExpression(std::move(false_expression)),
+      m_resultType(std::move(result_type)) {}
 
 NodeKind BoundTernaryExpression::getKind() const {
   return NodeKind::kTernaryExpression;
@@ -44,23 +46,22 @@ void BoundTernaryExpression::accept(visitor::BoundTreeVisitor *visitor) {
 }
 
 std::shared_ptr<types::Type> BoundTernaryExpression::getType() const {
-  return m_trueExpression->getType();
+  return m_resultType;
 }
 
 const std::unique_ptr<BoundExpression> &
 BoundTernaryExpression::getConditionExpression() {
-
-  return std::move(m_conditionExpression);
+  return m_conditionExpression;
 }
 
 const std::unique_ptr<BoundExpression> &
 BoundTernaryExpression::getTrueExpression() {
-  return std::move(m_trueExpression);
+  return m_trueExpression;
 }
 
 const std::unique_ptr<BoundExpression> &
 BoundTernaryExpression::getFalseExpression() {
-  return std::move(m_falseExpression);
+  return m_falseExpression;
 }
 
 } // namespace binding

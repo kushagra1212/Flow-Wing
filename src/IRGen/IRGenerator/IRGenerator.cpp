@@ -177,10 +177,7 @@ void IRGenerator::visit(
   assert(false && "Error expression not supported");
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundTernaryExpression *statement) {
-  assert(false && "Ternary expression not supported");
-}
+// BoundTernaryExpression is implemented in TernaryExpressionIrGen.cpp
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundNewExpression *statement) {
   assert(false && "New expression not supported");

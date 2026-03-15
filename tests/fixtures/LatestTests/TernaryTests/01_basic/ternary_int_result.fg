@@ -1,0 +1,3 @@
+var x: int = true ? 1 : 0
+
+println(x)

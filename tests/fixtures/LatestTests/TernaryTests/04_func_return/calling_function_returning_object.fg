@@ -1,0 +1,18 @@
+type B = {
+  s: int
+}
+
+fun printA() -> B {
+  println("A")
+  return {s: 0}
+}
+
+fun printB() -> B {
+  println("B")
+  return {s: 2}
+}
+
+var g: int = 2
+var x: B = (g == 2) ? printA() : printB()
+
+println(x)

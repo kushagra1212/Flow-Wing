@@ -1,0 +1,5 @@
+fun getStr() -> str {
+  return "x"
+}
+
+println((getStr() != "") ? "nonempty" : "empty")

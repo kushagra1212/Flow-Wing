@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,14 @@ const std::vector<const SyntaxNode *> &SyntaxToken::getChildren() const {
 }
 
 NodeKind SyntaxToken::getKind() const { return NodeKind::kTokenNode; }
+
+bool SyntaxToken::hasLeadingEndOfLine() const {
+  for (const auto &t : m_leading_tokens) {
+    if (t && t->getTokenKind() == lexer::TokenKind::kEndOfLineToken)
+      return true;
+  }
+  return false;
+}
 
 } // namespace syntax
 } // namespace flow_wing

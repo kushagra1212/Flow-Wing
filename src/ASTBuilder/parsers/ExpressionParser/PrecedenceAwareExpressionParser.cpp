@@ -25,7 +25,9 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/PrimaryExpressionParserFactory.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/TernaryExpressionParser/TernaryExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
+#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 #include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
 #include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
@@ -77,6 +79,14 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
 
     if (postfix_precedence != 0 && postfix_precedence > parent_precedence) {
       // --- Handle Postfix Operators ---
+      // not parsing '(' as call postfix when it is after a newline (e.g.
+      // "3\n(expr)" should not be 3(expr)).
+      if (ctx->getCurrentTokenKind() ==
+          lexer::TokenKind::kOpenParenthesisToken) {
+        const auto *cur = ctx->getCurrent();
+        if (cur && cur->hasLeadingEndOfLine())
+          break;
+      }
 
       switch (ctx->getCurrentTokenKind()) {
       case lexer::TokenKind::kColonColonToken:

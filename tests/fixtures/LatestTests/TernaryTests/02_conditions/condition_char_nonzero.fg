@@ -1,0 +1,3 @@
+var c: char = 'a'
+
+println(c ? "nonzero" : "zero")

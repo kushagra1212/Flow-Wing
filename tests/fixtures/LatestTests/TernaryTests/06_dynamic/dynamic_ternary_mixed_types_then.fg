@@ -1,0 +1,3 @@
+var x = true ? 1 : "bad"
+
+println(x)

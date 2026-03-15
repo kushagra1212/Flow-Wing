@@ -85,6 +85,7 @@ These are the error names to use in the `/; EXPECT_ERROR:` comment:
 | `InvalidAssignmentToConstantVariable`    | Assigning to `const` variable        |
 | `ExpectedAnIntegerForIndexing`           | Non-integer used as array index      |
 | `FunctionNameConflictsWithBuiltin`       | Function name conflicts with builtin |
+| `IncompatibleTypesForTernaryExpression`  | Ternary branches have different types |
 
 ---
 
@@ -251,3 +252,15 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Errors               | `10_errors`               | Compile-time errors for functions                                                     |
 | Return stmt          | `11_return_stmt`          | Return statement variations                                                           |
 | Multi-decl mixed     | `12_multi_decl_mixed`     | Multi-assign with literals + single/multi-return funcs                                |
+
+---
+
+## Test Categories for Ternary
+
+| Category                | Subdirectory              | Coverage                                                                 |
+| ----------------------- | ------------------------- | ------------------------------------------------------------------------- |
+| Basic                   | `01_basic`                | Simple ternary, then/else branches, int/string results, truthy values     |
+| Conditions              | `02_conditions`           | Bool, int nonzero, binary operators (int and other types)                 |
+| Var decl and assignment | `03_var_decl_assignment`  | Variable declaration and reassignment with ternary                        |
+| Func return             | `04_func_return`          | Ternary with function calls (int and object return types)                  |
+| Errors                  | `05_errors`               | `IncompatibleTypesForTernaryExpression` (`.fg` only, no `.expect`)        |

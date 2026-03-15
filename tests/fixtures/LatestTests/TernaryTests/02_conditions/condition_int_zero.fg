@@ -1,0 +1,3 @@
+var n: int = 0
+
+println(n ? "nonzero" : "zero")
