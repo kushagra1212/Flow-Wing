@@ -185,7 +185,7 @@ print("\n")
 
 ## Limitations (LatestTests Only)
 
-- **`while`** is supported; **`for`** is not. **`break`** and **`continue`** are parsed and bound but not yet implemented in IR generation; tests in `WhileTests/10_break_continue/` document expected behavior (error tests for outside-loop usage, runtime tests for when break/continue are implemented).
+- **`while`** and **`for`** are supported. **`break`** and **`continue`** are implemented in IR generation for both while and for loops.
 - **Functions can only be declared globally** (not inside other functions or blocks).
 - **Scoped blocks `{ ... }`** are allowed for grouping variable declarations that shadow globals.
 
@@ -251,6 +251,18 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Array      | `08_array`      | Func return array, array index in body, accumulate array                  |
 | Short-circuit | `09_short_circuit` | && / \|\| in condition (literals, vars, dynamic, chained, nested, with func calls) |
 | Break/Continue | `10_break_continue` | Error tests (outside loop); basic/edge/nested/complex/scope tests (require break/continue IR gen) |
+
+---
+
+## Test Categories for For
+
+| Category       | Subdirectory      | Coverage                                                                 |
+| -------------- | ----------------- | ------------------------------------------------------------------------- |
+| Basic          | `01_basic`        | Simple for with step, for without step (default 1), inclusive upper bound |
+| Break/Continue | `02_break_continue` | break, continue, nested loops, loop inside function, break/continue with if |
+| Errors         | `03_errors`       | break/continue outside loop (EXPECT_ERROR)                               |
+
+**For syntax:** `for (var i: int = start to end : step) { body }` or `for (var i: int = start to end) { body }` (step defaults to 1). Use explicit `int` (or `int64`/`int8`) for the loop variable to avoid literal inference issues.
 
 ---
 

@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.hpp"
@@ -50,12 +51,14 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
   auto for_statement = static_cast<syntax::ForStatementSyntax *>(statement);
 
   auto isForLoopCompatibleType = [](const std::shared_ptr<types::Type> &type) {
-    return type == analysis::Builtins::m_int32_type_instance ||
+    return type == analysis::Builtins::m_int8_type_instance ||
+           type == analysis::Builtins::m_int32_type_instance ||
            type == analysis::Builtins::m_int64_type_instance ||
            type == analysis::Builtins::m_dynamic_type_instance;
   };
 
   auto compatible_type_names =
+      analysis::Builtins::m_int8_type_instance->getName() + ", " +
       analysis::Builtins::m_int32_type_instance->getName() + ", " +
       analysis::Builtins::m_int64_type_instance->getName() + ", " +
       analysis::Builtins::m_dynamic_type_instance->getName();
@@ -172,25 +175,51 @@ StatementBinder::bindForStatement(syntax::ForStatementSyntax *statement) {
     return std::move(error_statement);
   }
 
-  auto bound_step = m_expression_binder->bind(for_statement->getStep().get());
+  std::unique_ptr<BoundExpression> bound_step = nullptr;
+  if (for_statement->getStep() != nullptr) {
+    bound_step = m_expression_binder->bind(for_statement->getStep().get());
 
-  if (bound_step->getKind() == NodeKind::kErrorExpression) {
-    m_context->getSymbolTable()->popBreakScope();
-    m_context->getSymbolTable()->leaveScope();
-    return std::make_unique<BoundErrorStatement>(std::move(bound_step));
-  }
+    if (bound_step->getKind() == NodeKind::kErrorExpression) {
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
+      return std::make_unique<BoundErrorStatement>(std::move(bound_step));
+    }
 
-  if (!isForLoopCompatibleType(bound_step->getType())) {
+    if (!isForLoopCompatibleType(bound_step->getType())) {
 
-    auto error_statement = std::make_unique<BoundErrorStatement>(
-        for_statement->getStep()->getSourceLocation(),
-        diagnostic::DiagnosticCode::kInvalidStepTypeForForLoop,
-        diagnostic::DiagnosticArgs{compatible_type_names,
-                                   bound_step->getType()->getName()});
-    m_context->reportError(error_statement.get());
-    m_context->getSymbolTable()->popBreakScope();
-    m_context->getSymbolTable()->leaveScope();
-    return std::move(error_statement);
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          for_statement->getStep()->getSourceLocation(),
+          diagnostic::DiagnosticCode::kInvalidStepTypeForForLoop,
+          diagnostic::DiagnosticArgs{compatible_type_names,
+                                     bound_step->getType()->getName()});
+      m_context->reportError(error_statement.get());
+      m_context->getSymbolTable()->popBreakScope();
+      m_context->getSymbolTable()->leaveScope();
+      return std::move(error_statement);
+    }
+  } else {
+    std::shared_ptr<types::Type> step_type;
+    if (bound_for_variable_declaration != nullptr) {
+      auto *var_decl = static_cast<BoundVariableDeclaration *>(
+          bound_for_variable_declaration.get());
+      step_type = var_decl->getSymbols()[0]->getType();
+    } else {
+      step_type = bound_for_assignment_expression->getType();
+    }
+    const auto &loc = for_statement->getSourceLocation();
+    if (*step_type == *analysis::Builtins::m_int8_type_instance) {
+      bound_step = std::make_unique<BoundIntegerLiteralExpression>(
+          1, analysis::Builtins::m_int8_type_instance, loc);
+    } else if (*step_type == *analysis::Builtins::m_int32_type_instance) {
+      bound_step = std::make_unique<BoundIntegerLiteralExpression>(
+          1, analysis::Builtins::m_int32_type_instance, loc);
+    } else if (*step_type == *analysis::Builtins::m_int64_type_instance) {
+      bound_step = std::make_unique<BoundIntegerLiteralExpression>(
+          1, analysis::Builtins::m_int64_type_instance, loc);
+    } else {
+      bound_step = std::make_unique<BoundIntegerLiteralExpression>(
+          1, analysis::Builtins::m_dynamic_type_instance, loc);
+    }
   }
 
   auto bound_for_loop_statement = bind(for_statement->getBody().get());

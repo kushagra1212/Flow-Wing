@@ -22,7 +22,9 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/FunctionReturnTypeExpressionParser/FunctionReturnTypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/syntax/SyntaxToken.h"
@@ -73,6 +75,14 @@ std::unique_ptr<syntax::StatementSyntax> FunctionStatementParser::parse() {
 
   auto close_parenthesis_token =
       m_ctx->match(lexer::TokenKind::kCloseParenthesisToken); // )
+
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kColonToken) {
+    m_ctx->reportError(
+        flow_wing::diagnostic::DiagnosticCode::kUseArrowForFunctionReturnType,
+        {}, m_ctx->getCurrent()->getSourceLocation());
+    m_ctx->nextToken(); // consume ':'
+    std::make_unique<TypeExpressionParser>(m_ctx)->parse(); // consume type
+  }
 
   auto right_arrow_token =
       m_ctx->matchIf(lexer::TokenKind::kRightArrowToken); // ->

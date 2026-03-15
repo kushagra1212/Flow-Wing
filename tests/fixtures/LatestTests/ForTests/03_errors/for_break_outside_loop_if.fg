@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: BreakStatementNotAllowedOutsideOfLoop
+fun foo() {
+  if (true) {
+    break
+  }
+}
+foo()

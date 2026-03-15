@@ -1,0 +1,11 @@
+fun countTo(n: int) -> int {
+  var c: int = 0
+  for (var i: int = 0 to n : 1) {
+    c = c + 1
+  }
+  return c
+}
+
+var r: int = countTo(4)
+println(r)
+println("done")

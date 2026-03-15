@@ -41,7 +41,13 @@ public:
   // Overrides
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
+
   // Getters
+  const std::unique_ptr<BoundStatement> &getVariableDeclaration() const;
+  const std::unique_ptr<BoundExpression> &getAssignmentExpression() const;
+  const std::unique_ptr<BoundExpression> &getUpperBound() const;
+  const std::unique_ptr<BoundExpression> &getStep() const;
+  const std::unique_ptr<BoundStatement> &getBody() const;
 
 private:
   std::unique_ptr<BoundStatement> m_variable_declaration;

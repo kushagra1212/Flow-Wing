@@ -115,10 +115,21 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(while_statement_json);
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundForStatement *for_statement) {
+void BoundTreeJson::visit(binding::BoundForStatement *for_statement) {
   PARSER_DEBUG_LOG("Visiting Bound For Statement", "BOUND TREE");
-  assert(false && "For statement not supported");
+  nlohmann::json for_statement_json;
+  for_statement_json["kind"] = toString(for_statement->getKind());
+  serializeChild(for_statement->getVariableDeclaration(), for_statement_json,
+                 "variable_declaration");
+  serializeChild(for_statement->getAssignmentExpression(), for_statement_json,
+                 "assignment_expression");
+  serializeChild(for_statement->getUpperBound(), for_statement_json,
+                 "upper_bound");
+  serializeChild(for_statement->getStep(), for_statement_json, "step");
+  serializeChild(for_statement->getBody(), for_statement_json, "loop_body");
+  for_statement_json["range"] =
+      toJsonRange(for_statement->getSourceLocation());
+  m_last_node_json = std::move(for_statement_json);
 }
 
 void BoundTreeJson::visit(

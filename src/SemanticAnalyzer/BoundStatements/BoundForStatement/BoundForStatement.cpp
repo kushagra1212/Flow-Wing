@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,25 @@ NodeKind BoundForStatement::getKind() const { return NodeKind::kForStatement; }
 
 void BoundForStatement::accept(visitor::BoundTreeVisitor *visitor) {
   visitor->visit(this);
+}
+
+const std::unique_ptr<BoundStatement> &
+BoundForStatement::getVariableDeclaration() const {
+  return m_variable_declaration;
+}
+const std::unique_ptr<BoundExpression> &
+BoundForStatement::getAssignmentExpression() const {
+  return m_assignment_expression;
+}
+const std::unique_ptr<BoundExpression> &
+BoundForStatement::getUpperBound() const {
+  return m_upper_bound;
+}
+const std::unique_ptr<BoundExpression> &BoundForStatement::getStep() const {
+  return m_step;
+}
+const std::unique_ptr<BoundStatement> &BoundForStatement::getBody() const {
+  return m_body;
 }
 
 } // namespace binding

@@ -1,0 +1,17 @@
+for (var i: int = 0 to 3 : 1) {
+  switch i {
+    case 0:{
+      println("zero")
+    }
+    case 1:{
+      println("one")
+    }
+    case 2:{
+      println("two")
+    }
+    default:{
+      println("other")
+    }
+  }
+}
+println("done")

@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: UseArrowForFunctionReturnType
+fun getBound(): int {
+  return 3
+}
+getBound()

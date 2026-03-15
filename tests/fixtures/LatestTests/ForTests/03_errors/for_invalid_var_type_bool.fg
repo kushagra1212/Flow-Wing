@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidVariableDeclarationTypeForForLoopVariableDeclaration
+for (var flag: bool = true to false : true) {
+  println(flag)
+}

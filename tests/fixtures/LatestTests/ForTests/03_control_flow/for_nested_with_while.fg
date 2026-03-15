@@ -1,0 +1,9 @@
+var w: int = 0
+for (var i: int = 0 to 2 : 1) {
+  while (w < 2) {
+    println(w)
+    w = w + 1
+  }
+  println(i)
+}
+println("done")

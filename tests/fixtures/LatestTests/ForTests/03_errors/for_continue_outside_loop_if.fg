@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: ContinueStatementNotAllowedOutsideOfLoop
+fun foo() {
+  if (true) {
+    continue
+  }
+}
+foo()

@@ -1,0 +1,4 @@
+for (var i: int = 3 to 0 : -1) {
+  println(i)
+}
+println("done")

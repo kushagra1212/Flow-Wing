@@ -144,11 +144,7 @@ void IRGenerator::visit(
 }
 
 // BoundWhileStatement is implemented in WhileStatementIrGen.cpp
-
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundForStatement *statement) {
-  assert(false && "For statement not supported");
-}
+// BoundForStatement is implemented in ForStatementIrGen.cpp
 
 // BoundBreakStatement is implemented in BreakStatementIrGen.cpp
 // BoundContinueStatement is implemented in ContinueStatementIrGen.cpp

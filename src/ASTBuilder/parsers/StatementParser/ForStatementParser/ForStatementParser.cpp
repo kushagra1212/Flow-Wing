@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/ASTBuilder/parsers/StatementParser/VariableDeclarationParser/VariableDeclarationParser.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
@@ -55,7 +57,10 @@ std::unique_ptr<syntax::StatementSyntax> ForStatementParser::parse() {
 
   auto to_keyword = m_ctx->match(lexer::TokenKind::kToKeyword); // to
 
-  auto upper_bound = PrecedenceAwareExpressionParser::parse(m_ctx); // 10
+  const int colon_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+      lexer::TokenKind::kColonToken);
+  auto upper_bound =
+      PrecedenceAwareExpressionParser::parse(m_ctx, colon_precedence); // 10
 
   const syntax::SyntaxToken *step_colon_token = nullptr;
   std::unique_ptr<syntax::ExpressionSyntax> step = nullptr;

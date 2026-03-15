@@ -157,8 +157,17 @@ IRGenerator::getLogicalOrBoolResult(llvm::Value *left_value,
 llvm::Value *
 IRGenerator::getLessThanBoolResult(llvm::Value *left_value,
                                    llvm::Value *right_value,
-                                   [[maybe_unused]] types::Type *left_type,
-                                   [[maybe_unused]] types::Type *right_type) {
+                                   types::Type *left_type,
+                                   types::Type *right_type) {
+
+  if (left_type->isDynamic() || right_type->isDynamic()) {
+    llvm::Value *result_alloca = getDynamicBinaryResult(
+        left_value, right_value, lexer::TokenKind::kLessToken, left_type,
+        right_type);
+    types::Type *dynamic_type =
+        analysis::Builtins::m_dynamic_type_instance.get();
+    return getConditionAsBool(result_alloca, dynamic_type);
+  }
 
   if (left_type == analysis::Builtins::m_deci_type_instance.get() ||
       right_type == analysis::Builtins::m_deci_type_instance.get()) {
