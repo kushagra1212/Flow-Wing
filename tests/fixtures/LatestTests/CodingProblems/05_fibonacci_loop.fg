@@ -1,0 +1,19 @@
+fun fibonacci(n: int) -> int {
+  if (n <= 1) {
+    return n
+  }
+  var a: int = 0
+  var b: int = 1
+  var c: int = 0
+  for (var i: int = 2 to n : 1) {
+    c = a + b
+    a = b
+    b = c
+  }
+  return b
+}
+
+println(fibonacci(10))
+println(fibonacci(0))
+println(fibonacci(1))
+println("done")
