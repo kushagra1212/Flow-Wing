@@ -24,7 +24,7 @@ import {
   isSemFormat,
 } from "../services/semService";
 import { fileUtils } from "../utils/fileUtils";
-import { getTestCompilerPath, getTestFixturesDir } from "./testCompilerPath";
+import { getTestCompilerPath, getTestFixturesDir, pathToFileUri } from "./testCompilerPath";
 
 const FIXTURES_DIR = getTestFixturesDir();
 const COMPILER_PATH = getTestCompilerPath();
@@ -103,7 +103,7 @@ describe("LatestTests Comprehensive LSP", () => {
         for (const filePath of sample) {
           const content = fs.readFileSync(filePath, "utf-8");
           const doc = TextDocument.create(
-            `file://${filePath}`,
+            pathToFileUri(filePath),
             "flowwing",
             0,
             content
@@ -629,7 +629,7 @@ println(a)`;
         if (!fs.existsSync(filePath)) return this.skip();
         const content = fs.readFileSync(filePath, "utf-8");
         const doc = TextDocument.create(
-          `file://${filePath}`,
+          pathToFileUri(filePath),
           "flowwing",
           0,
           content

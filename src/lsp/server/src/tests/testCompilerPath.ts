@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import { pathToFileURL } from "url";
 
 /**
  * Repo root when tests run via "yarn test" from src/lsp (cwd is src/lsp/server).
@@ -29,6 +30,14 @@ export function getTestCompilerPath(): string {
  */
 export function getTestFixturesDir(): string {
   return path.join(getTestRepoRoot(), "tests", "fixtures", "LatestTests");
+}
+
+/**
+ * Converts a file system path to a file URI (cross-platform).
+ * Use when creating TextDocument URIs from paths so Windows paths (e.g. C:\...) become file:///C:/...
+ */
+export function pathToFileUri(filePath: string): string {
+  return pathToFileURL(filePath).toString();
 }
 
 /**

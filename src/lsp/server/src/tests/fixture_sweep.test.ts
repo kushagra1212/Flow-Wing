@@ -10,7 +10,7 @@ import {
   isSemFormat 
 } from "../services/semService";
 import { fileUtils } from "../utils/fileUtils";
-import { getTestCompilerPath, getTestFixturesDir } from "./testCompilerPath";
+import { getTestCompilerPath, getTestFixturesDir, pathToFileUri } from "./testCompilerPath";
 
 describe("Systematic Fixture Sweep (LatestTests)", () => {
     const compilerPath = getTestCompilerPath();
@@ -69,7 +69,7 @@ describe("Systematic Fixture Sweep (LatestTests)", () => {
         const relativePath = path.relative(dir, filePath);
         try {
             const content = fs.readFileSync(filePath, "utf-8");
-            const document = TextDocument.create(`file://${filePath}`, "flowwing", 0, content);
+            const document = TextDocument.create(pathToFileUri(filePath), "flowwing", 0, content);
 
             const semPath = await getSemPathForDocument(document, { position: { line: 0, character: 0 } });
             const isErrorFile = relativePath.includes("error") || content.includes("EXPECT_ERROR");
