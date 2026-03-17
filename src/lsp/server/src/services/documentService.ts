@@ -4,7 +4,7 @@ import { fileUtils } from "../utils/fileUtils";
 import { flowWingConfig } from "../config";
 import { ErrorResult } from "../utils/types";
 import {
-  getFileFullPath,
+  getTempFileBasename,
   makeCodeCompleteForLsp,
   parseErrorAndExtractLocation,
   tryRepairCallForSem,
@@ -38,7 +38,7 @@ export const validateTextDocument = async (
   try {
     const text = textDocument.getText();
     const tempPath = await fileUtils.createTempFile({
-      fileName: getFileFullPath(textDocument.uri) + ".fg",
+      fileName: getTempFileBasename(textDocument.uri) + ".fg",
       data: text,
     });
 
@@ -201,7 +201,7 @@ export const getSemPathForFileNoRepair = async (
   options?: { position?: Position }
 ): Promise<string | null> => {
   const basename = uriOrBasename.includes("file:")
-    ? getFileFullPath(uriOrBasename)
+    ? getTempFileBasename(uriOrBasename)
     : uriOrBasename.replace(/[^a-zA-Z0-9_-]/g, "_");
   const outputDir = path.join(
     os.tmpdir(),
@@ -245,7 +245,7 @@ export const getSemPathForFile = async (
   options?: { position?: Position; partialId?: string }
 ): Promise<string | null> => {
   const basename = uriOrBasename.includes("file:")
-    ? getFileFullPath(uriOrBasename)
+    ? getTempFileBasename(uriOrBasename)
     : uriOrBasename.replace(/[^a-zA-Z0-9_-]/g, "_");
   const outputDir = path.join(os.tmpdir(), `flowwing-lsp-sem-${Date.now()}-${randomBytes(4).toString("hex")}`);
 
@@ -317,7 +317,7 @@ export const getAstPathForFileNoRepair = async (
   options?: { position?: Position }
 ): Promise<string | null> => {
   const basename = uriOrBasename.includes("file:")
-    ? getFileFullPath(uriOrBasename)
+    ? getTempFileBasename(uriOrBasename)
     : uriOrBasename.replace(/[^a-zA-Z0-9_-]/g, "_");
   const outputDir = path.join(
     os.tmpdir(),
@@ -365,7 +365,7 @@ export const getAstPathForFile = async (
   options?: { position?: Position; partialId?: string }
 ): Promise<string | null> => {
   const basename = uriOrBasename.includes("file:")
-    ? getFileFullPath(uriOrBasename)
+    ? getTempFileBasename(uriOrBasename)
     : uriOrBasename.replace(/[^a-zA-Z0-9_-]/g, "_");
   const outputDir = path.join(os.tmpdir(), `flowwing-lsp-ast-${Date.now()}-${randomBytes(4).toString("hex")}`);
 
@@ -504,7 +504,7 @@ export const formatFlowWingFile = async (
 ): Promise<string> => {
   try {
     const tempPath = await fileUtils.createTempFile({
-      fileName: getFileFullPath(textDocUri) + "-formatted.fg",
+      fileName: getTempFileBasename(textDocUri) + "-formatted.fg",
       data: text,
     });
     await formatFile(tempPath);

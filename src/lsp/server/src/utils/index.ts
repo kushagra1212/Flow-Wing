@@ -9,7 +9,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/completionItems/keywords/types";
 import { Token } from "../types";
 import { fileUtils } from "./fileUtils";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { Stack } from "../ds/stack";
 import path = require("path");
 import { keywordsCompletionItems } from "../store";
@@ -1241,6 +1241,9 @@ export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
   return result;
 };
 
+/** Max basename length for temp files to avoid Windows MAX_PATH (260) when joined with temp dir. */
+export const MAX_TEMP_BASENAME_LENGTH = 80;
+
 /**
  * Extracts the file path from a file URI for use as a temp file basename.
  * Handles file://, file:///, and file:/ schemes.
@@ -1254,14 +1257,25 @@ export const getFileFullPath = (uri: string): string => {
     const match = uri.match(/^file:\/\/?(.+?)(\.fg)?$/);
     if (match) {
       let pathPart = match[1];
-      // Remove leading slashes for consistent temp file naming
-      pathPart = pathPart.replace(/^\/+/, "").replace(/\/+/g, "_");
+      // Remove leading slashes and normalize all path separators (/, \) to underscore
+      // so path.join(tempDir, basename) never produces an absolute path on Windows
+      pathPart = pathPart.replace(/^\/+/, "").replace(/[/\\]+/g, "_");
       return pathPart;
     }
     return uri.replace(/[^a-zA-Z0-9_-]/g, "_");
   } catch {
     return "unknown";
   }
+};
+
+/**
+ * Returns a temp-file-safe basename for the given file URI. Shortens via hash when
+ * getFileFullPath(uri) would exceed MAX_TEMP_BASENAME_LENGTH (avoids Windows MAX_PATH).
+ */
+export const getTempFileBasename = (uri: string): string => {
+  const full = getFileFullPath(uri);
+  if (full.length <= MAX_TEMP_BASENAME_LENGTH) return full;
+  return createHash("sha256").update(uri).digest("hex").slice(0, 32);
 };
 
 export const createRange = (token: Token | null) => {

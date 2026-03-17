@@ -5,7 +5,7 @@ import {
 } from "vscode-languageserver";
 import {
   defaultValueNoSuggestion,
-  getFileFullPath,
+  getTempFileBasename,
   getIdentifierAtPosition,
   makeCodeCompleteForLsp,
   tryRepairCallForSem,
@@ -33,7 +33,7 @@ export const getTokensForContext = async (
   position: { line: number; character: number }
 ): Promise<Token[]> => {
   try {
-    const basename = getFileFullPath(document.uri);
+    const basename = getTempFileBasename(document.uri);
     const content = document.getText();
     const outputDir = path.join(os.tmpdir(), `flowwing-lsp-tokens-${Date.now()}-${randomBytes(4).toString("hex")}`);
 
@@ -98,7 +98,7 @@ export const getDocumentationForCompletionItem = async (
   documentText: string
 ): Promise<string | null | MarkupContent> => {
   try {
-    const basename = getFileFullPath(textDocUri);
+    const basename = getTempFileBasename(textDocUri);
     const outputDir = path.join(os.tmpdir(), `flowwing-lsp-hover-${Date.now()}-${randomBytes(4).toString("hex")}`);
 
     let treePath: string | null = null;
