@@ -395,14 +395,22 @@ BoundBinaryOperator::bind(lexer::TokenKind operator_kind,
   }
 
   if (left_type->getKind() == types::TypeKind::kClass ||
-      right_type->getKind() == types::TypeKind::kClass ||
-      left_type->isNirast() || right_type->isNirast()) {
+      right_type->getKind() == types::TypeKind::kClass) {
     return bindClassType(operator_kind, left_type, right_type);
   }
 
   if (left_type->getKind() == types::TypeKind::kObject ||
       right_type->getKind() == types::TypeKind::kObject) {
     return bindObjectType(operator_kind, left_type, right_type);
+  }
+
+  if (operator_kind == lexer::TokenKind::kAmpersandAmpersandToken ||
+      operator_kind == lexer::TokenKind::kPipePipeToken) {
+    const auto &boolTy = analysis::Builtins::m_bool_type_instance;
+    if ((left_type->isNirast() && right_type == boolTy) ||
+        (right_type->isNirast() && left_type == boolTy)) {
+      return bindClassType(operator_kind, left_type, right_type);
+    }
   }
 
   // Handling Normal Cases
