@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,16 @@ NodeKind BoundClassStatement::getKind() const {
 
 void BoundClassStatement::accept(visitor::BoundTreeVisitor *visitor) {
   visitor->visit(this);
+}
+
+const std::shared_ptr<analysis::Symbol> &
+BoundClassStatement::getClassSymbol() const {
+  return m_class_symbol;
+}
+
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundClassStatement::getClassMemberStatements() const {
+  return m_class_member_statements;
 }
 
 } // namespace binding

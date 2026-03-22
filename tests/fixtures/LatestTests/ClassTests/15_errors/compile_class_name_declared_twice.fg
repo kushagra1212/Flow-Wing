@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: ClassAlreadyDeclared
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+class A {
+  var y: int
+}

@@ -97,6 +97,13 @@ llvm::Value *IRGenerator::getBoolResult(llvm::Value *value,
             value, "is_null_result");
       }
     }
+
+    if (expression_type->getKind() == types::TypeKind::kClass) {
+      if (operator_kind == lexer::TokenKind::kBangToken) {
+        return m_ir_gen_context.getLLVMBuilder()->CreateIsNull(
+            value, "is_null_result");
+      }
+    }
   }
   default: {
     assert(false && "Unsupported unary operator for bool result type");

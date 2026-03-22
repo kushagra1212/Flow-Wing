@@ -28,6 +28,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 #include <cassert>
@@ -85,6 +86,11 @@ std::unique_ptr<BoundExpression> BinderContext::createDefaultValueExpression(
         analysis::Builtins::m_nirast_type_instance, location);
   }
 
+  if (type->getKind() == types::TypeKind::kClass) {
+    return std::make_unique<BoundNirastLiteralExpression>(
+        analysis::Builtins::m_nirast_type_instance, location);
+  }
+
   if (type->getKind() == types::TypeKind::kObject) {
 
     std::vector<std::unique_ptr<BoundExpression>> colon_expressions;
@@ -135,10 +141,10 @@ std::unique_ptr<BoundExpression> BinderContext::createDefaultValueExpression(
           static_cast<types::ArrayType *>(leaf_type)->getUnderlyingType().get();
     }
 
-    types::Type *leaf_default_type =
-        (leaf_type->getKind() == types::TypeKind::kObject)
-            ? analysis::Builtins::m_nirast_type_instance.get()
-            : leaf_type;
+    // Value-typed arrays (e.g. `X[2]` where `X` is a `{ str, int }` object) must
+    // default each element with `createDefaultValueExpression(X)` so `str`
+    // fields get `""`, not `nirast` (null pointers → "(null)" at runtime).
+    types::Type *leaf_default_type = leaf_type;
 
     size_t total = 1;
     for (auto d : dims)

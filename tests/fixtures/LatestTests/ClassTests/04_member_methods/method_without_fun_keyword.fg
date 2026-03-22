@@ -1,0 +1,13 @@
+class A {
+  var x: int
+  fun init(v: int) -> nthg {
+    self.x = v
+  }
+  doubleX() -> int {
+    return x * 2
+  }
+}
+
+var a: A = new A(20)
+print(a.doubleX())
+println("")

@@ -1,0 +1,7 @@
+class A {
+  var x: int
+}
+
+if (new A()) {
+  println("ok")
+}

@@ -21,11 +21,10 @@ public:
   void enterScope();
   void leaveScope();
 
-  // Defines a symbol in the current (innermost) scope.
-  // Returns false if the symbol is already defined in this scope.
   bool define(std::shared_ptr<Symbol> symbol);
 
-  // Looks up a symbol, searching from the innermost scope outwards.
+  bool defineInEnclosingScope(std::shared_ptr<Symbol> symbol);
+
   std::shared_ptr<Symbol> lookup(const std::string &name) const;
   void lookupSymbol(std::function<bool(const Symbol *symbol)> predicate,
                     SymbolKind kind) const;

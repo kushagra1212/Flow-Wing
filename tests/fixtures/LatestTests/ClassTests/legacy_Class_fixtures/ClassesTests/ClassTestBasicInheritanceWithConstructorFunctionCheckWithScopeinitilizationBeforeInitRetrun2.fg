@@ -1,0 +1,36 @@
+type T = {
+    a:int,
+    b:str
+}
+class A {
+var i:deci32
+var x:int 
+var s:str 
+var t:T
+var g:T[2]
+init(s: str) -> nthg{
+  self.s = s 
+}
+
+getT(b:str) -> T {
+   t.b = b
+   return t  
+  }
+
+getTA(b:str ) -> T[2] {
+  g[0].b =b 
+    return g
+  }
+}
+
+fun printT(t: T) -> nthg {
+  print(t)
+}
+fun printTAr(ta:T[2]) -> nthg {
+    print(ta)
+  }
+
+var a:A = new A("Hello")
+
+printT(a.getT("IH"))
+printTAr(a.getTA("Hi"))

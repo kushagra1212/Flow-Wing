@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/LiteralExpressionParser/LiteralExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/NirastExpressionParser/NirastExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/SuperExpressionParser/SuperExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/ObjectExpressionParser/ObjectExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/ParenthesizedExpressionParser/ParenthesizedExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
@@ -58,6 +59,10 @@ PrimaryExpressionParserFactory::create(ParserContext *ctx,
 
   case lexer::TokenKind::kIdentifierToken: {
     return std::make_unique<IdentifierExpressionParser>(ctx);
+  }
+
+  case lexer::TokenKind::kSuperKeyword: {
+    return std::make_unique<SuperExpressionParser>(ctx);
   }
 
   case lexer::TokenKind::kOpenBracketToken: {

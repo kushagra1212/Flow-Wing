@@ -20,8 +20,9 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include <vector>
+#include <cstddef>
 #include <memory>
+#include <vector>
 
 namespace flow_wing {
 namespace analysis {
@@ -49,9 +50,22 @@ public:
 
   const std::vector<std::unique_ptr<BoundExpression>> &getArguments() const;
 
+  bool getUseVirtualDispatch() const { return m_use_virtual_dispatch; }
+  std::size_t getVirtualSlot() const { return m_virtual_slot; }
+  void setVirtualDispatch(bool use, std::size_t slot) {
+    m_use_virtual_dispatch = use;
+    m_virtual_slot = slot;
+  }
+
+  void setImplicitReceiverLast(bool v) { m_implicit_receiver_last = v; }
+  bool getImplicitReceiverLast() const { return m_implicit_receiver_last; }
+
 private:
   analysis::FunctionSymbol *m_symbol;
   std::vector<std::unique_ptr<BoundExpression>> m_arguments;
+  bool m_use_virtual_dispatch = false;
+  std::size_t m_virtual_slot = 0;
+  bool m_implicit_receiver_last = false;
 };
 } // namespace binding
 } // namespace flow_wing

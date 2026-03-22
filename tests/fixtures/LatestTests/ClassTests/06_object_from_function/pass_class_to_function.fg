@@ -1,0 +1,13 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+
+fun printA(a: A) -> nthg {
+  println(a.x)
+}
+
+var a: A = new A(55)
+printA(a)

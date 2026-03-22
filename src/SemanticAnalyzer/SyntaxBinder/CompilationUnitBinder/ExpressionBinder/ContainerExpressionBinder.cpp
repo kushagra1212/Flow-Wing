@@ -37,6 +37,12 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindContainerExpression(
       bindContainerExpressionElements(expression);
 
   if (elements.empty()) {
+    if (auto expected = m_context->peekExpectedType()) {
+      if (expected->getKind() == types::TypeKind::kArray) {
+        return BinderContext::createDefaultValueExpression(
+            expected.get(), expression->getSourceLocation());
+      }
+    }
     auto error_expression = std::make_unique<BoundErrorExpression>(
         expression->getSourceLocation(),
         diagnostic::DiagnosticCode::kEmptyContainerExpression,

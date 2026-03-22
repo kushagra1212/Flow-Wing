@@ -1,0 +1,18 @@
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  fun init(a: int, b: str, d: deci, e: bool) -> nthg {
+    self.a = a
+    self.b = b
+    self.d = d
+    self.e = e
+  }
+}
+
+var obj: A = new A(42, "world", 3.14, true)
+println(obj.a)
+println(obj.b)
+println(obj.d)
+println(obj.e)

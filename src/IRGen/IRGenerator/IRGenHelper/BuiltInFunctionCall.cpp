@@ -360,11 +360,13 @@ llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
     }
   }
 
-  bool is_object = (type->getKind() == types::TypeKind::kObject) &&
-                   !is_inline_object &&
-                   (llvm::isa<llvm::AllocaInst>(value) ||
-                    llvm::isa<llvm::GEPOperator>(value) ||
-                    llvm::isa<llvm::GlobalVariable>(value));
+  bool is_object =
+      (type->getKind() == types::TypeKind::kObject ||
+       type->getKind() == types::TypeKind::kClass) &&
+      !is_inline_object &&
+      (llvm::isa<llvm::AllocaInst>(value) ||
+       llvm::isa<llvm::GEPOperator>(value) ||
+       llvm::isa<llvm::GlobalVariable>(value));
 
   bool is_inline_array = false;
   if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(value)) {

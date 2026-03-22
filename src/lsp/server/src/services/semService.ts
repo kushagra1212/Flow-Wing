@@ -26,6 +26,8 @@ export interface SemSymbol {
   parameters?: string[];
   is_declaration?: boolean;
   isConst?: boolean;
+  /** Omit this many trailing parameters from LSP signatures (class member `self`). */
+  hide_trailing_params_for_display?: number;
 }
 
 export interface SemType {
@@ -35,6 +37,11 @@ export interface SemType {
   underlying_type_id?: string; // ArrayType uses this for element type
   return_type_ids?: string[];
   parameter_type_ids?: string[];
+  /** Class instance: flattened inherited fields (name → field type id). */
+  member_fields?: { name: string; type_id: string }[];
+  /** Class instance: flattened methods (name → function type id); derived overrides base. */
+  methods?: { name: string; type_id: string }[];
+  base_class_type_id?: string;
 }
 
 export interface SemRange {
@@ -73,6 +80,7 @@ function resolveTypeName(
   if (!typeId) return "";
   const t = types[typeId];
   if (!t) return "";
+  if (t.kind === "Class" && t.name) return t.name;
   if (t.name && (t.kind === "Primitive" || t.kind === "Type")) return t.name;
   if ((t.kind === "ReturnType" || t.kind === "ParameterType") && t.base_type_id) {
     return resolveTypeName(t.base_type_id, types);
@@ -89,6 +97,20 @@ function resolveTypeName(
     return resolveTypeName(arrayBase, types) + "[]";
   }
   return t.name ?? t.kind;
+}
+
+/** Resolve field or method member on a class type (flattened sem from compiler). */
+function resolveClassMemberTypeId(
+  types: Record<string, SemType>,
+  classTypeId: string,
+  memberName: string
+): string | undefined {
+  const t = types[classTypeId];
+  if (!t || t.kind !== "Class") return undefined;
+  const field = t.member_fields?.find((m) => m.name === memberName);
+  if (field) return field.type_id;
+  const method = t.methods?.find((m) => m.name === memberName);
+  return method?.type_id;
 }
 
 function getParamName(
@@ -109,10 +131,13 @@ function getFunctionSignature(
   if (!typeId) return `${sym.name}()`;
   const t = types[typeId];
   if (!t || t.kind !== "Function") return `${sym.name}()`;
+  const hide = sym.hide_trailing_params_for_display ?? 0;
   const paramIds = sym.parameters ?? [];
   const paramTypes = t.parameter_type_ids ?? [];
+  const n = Math.max(paramIds.length, paramTypes.length);
+  const visibleLen = Math.max(0, n - hide);
   const parts: string[] = [];
-  for (let i = 0; i < Math.max(paramIds.length, paramTypes.length); i++) {
+  for (let i = 0; i < visibleLen; i++) {
     const name = symbols ? getParamName(symbols, paramIds[i]) : paramIds[i] ?? `p${i}`;
     const type = paramTypes[i] ? resolveTypeName(paramTypes[i], types) : "";
     parts.push(type ? `${name}: ${type}` : name);
@@ -359,6 +384,18 @@ function resolveTypeForPath(
     const indexMatch = part.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\[(\d+)\]$/);
     const fieldName = indexMatch ? indexMatch[1] : part;
     const isIndexedPart = !!indexMatch;
+
+    const cls = currentTypeId ? types[currentTypeId] : undefined;
+    if (cls?.kind === "Class") {
+      const nextId = resolveClassMemberTypeId(types, currentTypeId!, fieldName);
+      if (!nextId) return undefined;
+      currentTypeId = nextId;
+      if (isIndexedPart && currentTypeId) {
+        currentTypeId = getArrayElementTypeId(types, currentTypeId);
+        if (!currentTypeId) return undefined;
+      }
+      continue;
+    }
 
     currentTypeName = resolveTypeName(currentTypeId, types);
     if (!currentTypeName?.startsWith("Object:")) return undefined;
@@ -900,6 +937,25 @@ export function getCompletionItemsFromSem(
         const isIndexedPart = !!indexMatch;
         logger.debug("semCompletion", "Traversing part", part, "fieldName", fieldName, "isIndexedPart", isIndexedPart);
 
+        const cls = types[currentTypeId];
+        if (cls?.kind === "Class") {
+          const nextId = resolveClassMemberTypeId(types, currentTypeId, fieldName);
+          if (!nextId) {
+            currentTypeName = undefined;
+            currentTypeId = undefined;
+            break;
+          }
+          currentTypeId = nextId;
+          if (isIndexedPart && currentTypeId) {
+            currentTypeId = getArrayElementTypeId(types, currentTypeId);
+            if (!currentTypeId) {
+              currentTypeName = undefined;
+              break;
+            }
+          }
+          continue;
+        }
+
         currentTypeName = resolveTypeName(currentTypeId, types);
         if (!currentTypeName?.startsWith("Object:")) {
           currentTypeName = undefined;
@@ -934,6 +990,31 @@ export function getCompletionItemsFromSem(
       if (!currentTypeName && currentTypeId) {
         currentTypeName = resolveTypeName(currentTypeId, types);
       }
+    }
+
+    if (currentTypeId && types[currentTypeId]?.kind === "Class") {
+      const t = types[currentTypeId];
+      for (const m of t.member_fields ?? []) {
+        if (!seen.has(m.name)) {
+          seen.add(m.name);
+          items.push({
+            label: m.name,
+            kind: CompletionItemKind.Field,
+            detail: `Member of ${word}`,
+          });
+        }
+      }
+      for (const m of t.methods ?? []) {
+        if (!seen.has(m.name)) {
+          seen.add(m.name);
+          items.push({
+            label: m.name,
+            kind: CompletionItemKind.Method,
+            detail: `Method of ${word}`,
+          });
+        }
+      }
+      return items;
     }
 
     if (currentTypeName && currentTypeName.startsWith("Object:")) {
@@ -992,7 +1073,12 @@ function symbolToCompletionItem(
   uri: string,
   symbols: Record<string, SemSymbol>
 ): CompletionItem {
-  const typeName = resolveTypeName(symbol.type_id, types);
+  const hide =
+    symbol.kind === "Function" ? (symbol.hide_trailing_params_for_display ?? 0) : 0;
+  const typeName =
+    symbol.kind === "Function"
+      ? getFunctionSignature(symbol, types, symbols)
+      : resolveTypeName(symbol.type_id, types);
   const doc: MarkupContent = {
     kind: "markdown",
     value: typeName
@@ -1004,12 +1090,17 @@ function symbolToCompletionItem(
   if (symbol.kind === "Function") kind = CompletionItemKind.Function;
   else if (symbol.kind === "Variable" || symbol.kind === "Parameter")
     kind = CompletionItemKind.Variable;
-  else if (symbol.kind === "Type") kind = CompletionItemKind.Class;
+  else if (symbol.kind === "Type" || symbol.kind === "Class")
+    kind = CompletionItemKind.Class;
 
   const type = types[symbol.type_id ?? ""];
   const paramIds = symbol.parameters ?? [];
   const paramTypeIds = type?.parameter_type_ids ?? [];
-  const params = paramIds.map((paramId, i) => {
+  const visibleParamCount = Math.max(
+    0,
+    Math.max(paramIds.length, paramTypeIds.length) - hide
+  );
+  const params = paramIds.slice(0, visibleParamCount).map((paramId, i) => {
     const name = getParamName(symbols, paramId);
     const tid = paramTypeIds[i];
     const t = tid ? resolveTypeName(tid, types) : "";
@@ -1064,10 +1155,13 @@ export function getHoverFromSem(
   const typeName = resolveTypeName(symbol.type_id, types);
 
   let value = `**${symbol.name}**`;
-  if (typeName) value += `\n\nType: \`${typeName}\``;
   if (symbol.kind === "Function") {
     const sig = getFunctionSignature(symbol, types, sem?.symbols);
     value += `\n\n\`\`\`flowwing\n${sig}\n\`\`\``;
+  } else if (symbol.kind === "Class" && typeName) {
+    value += `\n\n\`\`\`flowwing\nclass ${typeName}\n\`\`\``;
+  } else if (typeName) {
+    value += `\n\nType: \`${typeName}\``;
   }
 
   return { kind: "markdown", value };
@@ -1104,16 +1198,23 @@ export function getSignatureHelpFromSem(
   const types = semJson.sem?.types ?? {};
   const typeName = resolveTypeName(symbol.type_id, types);
   const sem = semJson.sem;
+  const hide = symbol.hide_trailing_params_for_display ?? 0;
   const paramIds = symbol.parameters ?? [];
   const type = types[symbol.type_id ?? ""];
   const paramTypeIds = type?.parameter_type_ids ?? [];
+  const visibleCount = Math.max(
+    0,
+    Math.max(paramIds.length, paramTypeIds.length) - hide
+  );
 
-  const params: ParameterInformation[] = paramIds.map((paramId, i) => {
-    const name = sem?.symbols[paramId]?.name ?? `p${i}`;
-    const tid = paramTypeIds[i];
-    const t = tid ? resolveTypeName(tid, types) : "";
-    return ParameterInformation.create(t ? `${name}: ${t}` : name);
-  });
+  const params: ParameterInformation[] = paramIds
+    .slice(0, visibleCount)
+    .map((paramId, i) => {
+      const name = sem?.symbols[paramId]?.name ?? `p${i}`;
+      const tid = paramTypeIds[i];
+      const t = tid ? resolveTypeName(tid, types) : "";
+      return ParameterInformation.create(t ? `${name}: ${t}` : name);
+    });
 
   const sig: SignatureInformation = {
     label: getFunctionSignature(symbol, types, sem?.symbols),

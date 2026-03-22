@@ -50,6 +50,7 @@
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
+#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
@@ -465,6 +466,14 @@ void AstJson::visit([[maybe_unused]] syntax::NirastExpressionSyntax *node) {
   nirast_expression_json["kind"] = syntax::toString(node->getKind());
   nirast_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(nirast_expression_json);
+}
+void AstJson::visit([[maybe_unused]] syntax::SuperExpressionSyntax *node) {
+  PARSER_DEBUG_LOG("Visiting SuperExpressionSyntax", "AST");
+
+  nlohmann::json super_expression_json;
+  super_expression_json["kind"] = syntax::toString(node->getKind());
+  super_expression_json["range"] = toJsonRange(node->getSourceLocation());
+  m_last_node_json = std::move(super_expression_json);
 }
 void AstJson::visit([[maybe_unused]] syntax::ObjectExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ObjectExpressionSyntax", "AST");

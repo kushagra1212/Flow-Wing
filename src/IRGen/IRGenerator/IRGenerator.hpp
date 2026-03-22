@@ -5,7 +5,14 @@
 #include "src/common/types/Type.hpp"
 #include "llvm/IR/Value.h"
 
+namespace llvm {
+class StructType;
+}
+
 namespace flow_wing {
+namespace types {
+class ClassType;
+}
 namespace ir_gen {
 
 class IRGenerator : public visitor::BoundTreeVisitor {
@@ -209,6 +216,14 @@ private:
                           types::CustomObjectType *src_type);
   void emitArrayCopy(llvm::Value *dest_ptr, types::ArrayType *dest_type,
                      llvm::Value *src_ptr, types::ArrayType *src_type);
+
+  void emitClassInstanceFieldInitializers(types::ClassType *root_class,
+                                          llvm::StructType *struct_type,
+                                          llvm::Value *heap_ptr);
+  void emitClassInstanceFieldInitializersImpl(types::ClassType *root_class,
+                                              types::ClassType *level,
+                                              llvm::StructType *struct_type,
+                                              llvm::Value *heap_ptr);
 
   void handleReturn();
   void verifyModule();

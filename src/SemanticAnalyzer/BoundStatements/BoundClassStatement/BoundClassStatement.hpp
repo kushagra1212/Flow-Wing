@@ -38,7 +38,11 @@ public:
   // Overrides
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
+
   // Getters
+  const std::shared_ptr<analysis::Symbol> &getClassSymbol() const;
+  const std::vector<std::unique_ptr<BoundStatement>> &
+  getClassMemberStatements() const;
 
 private:
   std::shared_ptr<analysis::Symbol> m_class_symbol;

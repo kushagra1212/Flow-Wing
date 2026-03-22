@@ -21,8 +21,11 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <cassert>
 
@@ -41,8 +44,27 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIdentifierExpression(
 
   auto symbol = m_context->getSymbolTable()->lookup(identifier).get();
 
-  if (!symbol) {
+  auto self_sh = m_context->getSymbolTable()->lookup("self");
+  std::shared_ptr<types::ClassType> ct;
+  if (self_sh)
+    ct = std::dynamic_pointer_cast<types::ClassType>(self_sh->getType());
+  if (!ct && m_context->getCurrentClassType())
+    ct = std::dynamic_pointer_cast<types::ClassType>(
+        m_context->getCurrentClassType());
+  if (ct && self_sh) {
+    auto field = ct->lookupField(identifier);
+    if (field && field->getKind() == analysis::SymbolKind::kVariable) {
+      if (!symbol || field.get() == symbol) {
+        auto self_expr = std::make_unique<BoundIdentifierExpression>(
+            self_sh.get(), expression->getSourceLocation());
+        return std::make_unique<BoundMemberAccessExpression>(
+            std::move(self_expr), identifier, field->getType(),
+            expression->getSourceLocation());
+      }
+    }
+  }
 
+  if (!symbol) {
     BINDER_DEBUG_LOG("Symbol not found", "IDENTIFIER EXPRESSION BINDER");
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
@@ -56,6 +78,20 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIdentifierExpression(
 
   return std::make_unique<BoundIdentifierExpression>(
       symbol, expression->getSourceLocation());
+}
+
+std::unique_ptr<BoundExpression> ExpressionBinder::bindSuperExpression(
+    syntax::SuperExpressionSyntax *expression) {
+  assert(expression != nullptr &&
+         "SuperExpressionBinder::bind: expression is null");
+
+  auto error_expression = std::make_unique<BoundErrorExpression>(
+      expression->getSourceLocation(),
+      diagnostic::DiagnosticCode::kVariableNotFound,
+      std::vector<flow_wing::diagnostic::DiagnosticArg>{std::string("super")});
+
+  m_context->reportError(error_expression.get());
+  return std::move(error_expression);
 }
 } // namespace binding
 } // namespace flow_wing

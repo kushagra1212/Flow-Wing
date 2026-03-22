@@ -20,6 +20,13 @@ public:
     BINDER_DEBUG_LOG("Creating FunctionSymbol: " + getName(), "FunctionSymbol");
   }
 
+  void setMangledName(std::string mangled) {
+    m_mangled_name = std::move(mangled);
+  }
+  const std::string &getMangledName() const {
+    return m_mangled_name.empty() ? getName() : m_mangled_name;
+  }
+
   ~FunctionSymbol() = default;
 
   // Setters
@@ -29,6 +36,13 @@ public:
 
   void addParameter(std::shared_ptr<analysis::ParameterSymbol> parameter) {
     m_parameters.push_back(std::move(parameter));
+  }
+
+  void setHideTrailingParamsForDisplay(uint32_t count) {
+    m_hide_trailing_params_for_display = count;
+  }
+  uint32_t getHideTrailingParamsForDisplay() const {
+    return m_hide_trailing_params_for_display;
   }
 
   // Getters
@@ -43,6 +57,10 @@ public:
 private:
   std::unique_ptr<binding::BoundStatement> m_body;
   std::vector<std::shared_ptr<analysis::ParameterSymbol>> m_parameters;
+  std::string m_mangled_name;
+  /// Number of trailing parameters to hide in IDE signatures (e.g. implicit
+  /// self).
+  uint32_t m_hide_trailing_params_for_display = 0;
 };
 } // namespace analysis
 } // namespace flow_wing

@@ -46,6 +46,10 @@ bool Type::operator<=(const Type &other) const {
     return true;
   }
 
+  if (this->isNirast() && other.getKind() == TypeKind::kClass) {
+    return true;
+  }
+
   // If types are equal, they are compatible
   if (*this == other) {
     return true;

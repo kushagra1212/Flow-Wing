@@ -1,0 +1,12 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+  fun add(y: int) -> int {
+    return self.x + y
+  }
+}
+
+var a: A = new A(10)
+println(a.add(5))

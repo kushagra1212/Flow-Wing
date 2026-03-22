@@ -19,6 +19,7 @@
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 
@@ -48,6 +49,12 @@ void IRGenerator::visit(
              llvm::isa<llvm::CallInst>(object_value) ||
              llvm::isa<llvm::BitCastInst>(object_value)) {
     is_inline_struct_ptr = true;
+  } else if (object_type->getKind() == types::TypeKind::kClass &&
+             llvm::isa<llvm::AllocaInst>(object_value)) {
+    auto *alloca = llvm::cast<llvm::AllocaInst>(object_value);
+    if (alloca->getAllocatedType() == llvm_obj_type_check) {
+      is_inline_struct_ptr = true;
+    }
   }
 
   if (!is_inline_struct_ptr) {
@@ -84,25 +91,32 @@ void IRGenerator::visit(
 
   m_ir_gen_context.setInsertPoint(continue_block);
 
-  auto *custom_object_type =
-      static_cast<types::CustomObjectType *>(object_type);
   const std::string &member_name = member_access_expression->getMemberName();
+  unsigned int field_index = 0;
 
-  size_t field_index = 0;
-  for (const auto &[field_name, field_type] :
-       custom_object_type->getFieldTypesMap()) {
-    if (field_name == member_name) {
-      break;
+  if (object_type->getKind() == types::TypeKind::kClass) {
+    auto *class_type = static_cast<types::ClassType *>(object_type);
+    int idx = class_type->getMemberFieldIndex(member_name);
+    assert(idx >= 0 && "Class member field index must be found");
+    field_index = static_cast<unsigned int>(idx);
+  } else {
+    auto *custom_object_type =
+        static_cast<types::CustomObjectType *>(object_type);
+    for (const auto &[field_name, field_type] :
+         custom_object_type->getFieldTypesMap()) {
+      (void)field_type;
+      if (field_name == member_name) {
+        break;
+      }
+      field_index++;
     }
-    field_index++;
   }
 
   auto *llvm_obj_type = static_cast<llvm::StructType *>(
       m_ir_gen_context.getTypeBuilder()->getLLVMType(object_type));
 
   llvm::Value *field_ptr = builder->CreateStructGEP(
-      llvm_obj_type, object_value, static_cast<unsigned int>(field_index),
-      member_name + "_ptr");
+      llvm_obj_type, object_value, field_index, member_name + "_ptr");
 
   types::Type *field_type = member_access_expression->getType().get();
 

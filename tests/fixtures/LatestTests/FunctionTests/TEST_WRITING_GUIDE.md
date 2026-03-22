@@ -314,3 +314,37 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Object         | `10_object`       | Object decl in case; func return object in case; object member access   |
 
 **Switch syntax:** Use `case value:{` (no space between `:` and `{`) so the parser does not treat `:` as part of an expression.
+
+---
+
+## Test categories for Class
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| Inference + mutation | `14_inference_and_external_mutate/` | Inferred `var x`, `init(s)` / `init(s: str)`, external `fun` mutating `a.x` |
+| Errors | `15_errors/` | `ClassAlreadyDeclared`, `ParentClassNotFound`, `ParentClassIsNotAClass`, `SuperCallOutsideConstructor`, `FunctionAlreadyDeclared`, **`InvalidInitFunctionCall`** (explicit `init()` / `self.init()` / `obj.init()`), **`NewExpressionConstructorArgumentCountMismatch`** / **`NewExpressionConstructorArgumentTypeMismatch`** for bad `new Class(...)` (preferred over generic function mismatch), `MemberAccessOnNonObjectVariable`, `IndexingNonArrayTypeVariable`, runtime OOB (`EXPECT_ERROR: Runtime`) |
+| Cross-feature | `16_cross_feature/` | `while`/`for`/`switch`/`or if`, `type` + object field, multi-return, default params |
+
+## Class tests (`ClassTests`)
+
+Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same **`.fg` + `.expect`** rules as above (`println` / stdout, exact newlines in `.expect`).
+
+**Follow this guide** for naming, structure, and expectations. Class-specific behavior and legacy migration notes are in:
+
+- [`tests/fixtures/LatestTests/ClassTests/CLASS_COMPATIBILITY.md`](../ClassTests/CLASS_COMPATIBILITY.md) — feature parity (vtable dispatch, `super`, etc.)
+- [`tests/fixtures/LatestTests/ClassTests/COVERAGE.md`](../ClassTests/COVERAGE.md) — what is tested vs `tests/fixtures/Class`
+
+**`fun` inside classes:** For member methods and `init`, the `fun` keyword is **optional**. The parser accepts `name(` … `)` the same as `fun name(` … `)`. Use whichever style fits the test:
+
+- Omit `fun` when the scenario is specifically **fun-less** method syntax (see `04_member_methods/method_without_fun_keyword.fg`).
+- Use `fun` when you want to mirror top-level function style or stress the explicit keyword — both are valid.
+
+**Legacy `tests/fixtures/Class`:** All **88** `.fg` files from that tree are **already mirrored** under [`ClassTests/legacy_Class_fixtures/`](../ClassTests/legacy_Class_fixtures/) with the **same relative paths** and a matching `.expect` each (so CI’s `--filter=LatestTests` still runs them). **Additionally**, curated tests live in `01_basic/`, `11_inheritance_basic/`, etc. — those consolidate or extend behavior without replacing the mirror. See `COVERAGE.md` / `CLASS_TEST_AUDIT.md`.
+
+**Cross-suite class usage** (e.g. `DynamicType/`, `InoutTest/`) is mostly covered by the **full** `tests/runner.py --dir tests/fixtures` run; high-value cases are **mirrored** under `ClassTests/12_integration/` and `ClassTests/13_cross_suite/` as documented in `CLASS_TEST_AUDIT.md`.
+
+**Newer curated suites:** `ClassTests/14_inference_and_external_mutate/` (inferred fields + external mutation), `ClassTests/15_errors/` (compile + runtime `EXPECT_ERROR`), `ClassTests/16_cross_feature/` (classes combined with control flow, `type`/`object`, multi-return). See `ClassTests/COVERAGE.md`.
+
+**Class compile-time errors:** Use `/; EXPECT_ERROR: ErrorName` on line 1 (same as other LatestTests). Class-specific names that appear in compiler output include `ParentClassNotFound`, `ParentClassIsNotAClass`, `SuperCallOutsideConstructor`, `MemberAccessOnNonObjectVariable`, `ClassAlreadyDeclared`, **`NewExpressionConstructorArgumentCountMismatch`**, **`NewExpressionConstructorArgumentTypeMismatch`** (for `new Class(...)` / constructor `init` issues — clearer than `FunctionArgument*`), plus `FunctionAlreadyDeclared`, `FunctionArgumentTypeMismatch`, `IndexingNonArrayTypeVariable`. For **runtime** failures (e.g. array OOB on a member array), use `/; EXPECT_ERROR: Runtime` — the runner matches the substring `Runtime` in stdout/stderr (same pattern as `ArrayTests/runtime_errors/`).
+
+**Comments:** Prefer no leading `//` as the first line of a `.fg` file if the compiler pipeline rejects it; keep programs starting with `class`, `type`, `fun`, or `var` as in other LatestTests. For error tests, the first line may be `/; EXPECT_ERROR: ...`.

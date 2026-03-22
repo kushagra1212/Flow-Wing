@@ -1,0 +1,14 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+var a: A = new A(0)
+if (a.x > 0) {
+  println(1)
+} or if (a.x == 0) {
+  println(2)
+} else {
+  println(3)
+}

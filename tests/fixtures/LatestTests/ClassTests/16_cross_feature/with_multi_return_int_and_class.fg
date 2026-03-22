@@ -1,0 +1,12 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+fun makePair() -> int, A {
+  return 3, new A(9)
+}
+var n: int, a: A = makePair()
+println(n)
+println(a.x)

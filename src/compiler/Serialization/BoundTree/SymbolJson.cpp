@@ -68,6 +68,8 @@ BoundTreeJson::getSymbolId(const analysis::FunctionSymbol *function_symbol) {
   const auto &symbol_id = getShortId(function_symbol);
   function_symbol_json["is_declaration"] =
       function_symbol->getBody() == nullptr;
+  function_symbol_json["hide_trailing_params_for_display"] =
+      function_symbol->getHideTrailingParamsForDisplay();
 
   for (const auto &parameter : function_symbol->getParameters()) {
     function_symbol_json["parameters"].push_back(getSymbolId(parameter.get()));

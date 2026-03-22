@@ -27,8 +27,11 @@
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/Type.hpp"
-#include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
+#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
@@ -95,6 +98,44 @@ ExpressionBinder::checkConstantVariableAssignment(
 
 std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     syntax::AssignmentExpressionSyntax *expression) {
+
+  auto isCommaTopLevel = [](syntax::ExpressionSyntax *e) -> bool {
+    if (e->getKind() != syntax::NodeKind::kBinaryExpression)
+      return false;
+    auto *bin = static_cast<syntax::BinaryExpressionSyntax *>(e);
+    return bin->getOperatorToken()->getTokenKind() ==
+           lexer::TokenKind::kCommaToken;
+  };
+
+  if (expression->isFullReAssignment() &&
+      expression->getRight()->getKind() ==
+          syntax::NodeKind::kObjectExpression &&
+      !isCommaTopLevel(expression->getLeft().get())) {
+    auto left_expressions = bindExpressionList(expression->getLeft().get());
+    for (auto &le : left_expressions) {
+      if (le->getKind() == NodeKind::kErrorExpression) {
+        return std::move(le);
+      }
+    }
+    if (left_expressions.size() == 1) {
+      auto lt = left_expressions[0]->getType();
+      if (lt->getKind() == types::TypeKind::kObject) {
+        auto right = bindObjectExpression(
+            static_cast<syntax::ObjectExpressionSyntax *>(
+                expression->getRight().get()),
+            lt);
+        if (right->getKind() == NodeKind::kErrorExpression) {
+          return right;
+        }
+        std::vector<std::unique_ptr<BoundExpression>> right_expressions;
+        right_expressions.push_back(std::move(right));
+        return std::make_unique<BoundAssignmentExpression>(
+            std::move(left_expressions), std::move(right_expressions),
+            expression->isFullReAssignment(),
+            expression->getSourceLocation());
+      }
+    }
+  }
 
   auto left_expressions = bindExpressionList(expression->getLeft().get());
 

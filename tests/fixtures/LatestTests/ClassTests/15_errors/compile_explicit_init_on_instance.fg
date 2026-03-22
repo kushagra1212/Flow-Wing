@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: InvalidInitFunctionCall
+class A {
+  fun init() -> nthg {
+  }
+  fun reset() -> nthg {
+    self.init()
+  }
+}

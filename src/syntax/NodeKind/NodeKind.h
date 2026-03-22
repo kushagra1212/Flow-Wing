@@ -47,6 +47,7 @@ enum class NodeKind : int {
   kIndexExpression,
   kContainerExpression,
   kNirastExpression,
+  kSuperExpression,
   kFillExpression,
   kBracketedExpression,
   kNewExpression,

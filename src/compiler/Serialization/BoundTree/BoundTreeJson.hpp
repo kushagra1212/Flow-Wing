@@ -6,9 +6,11 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/external/include/json.hpp"
+#include <map>
 #include <memory>
 
 namespace flow_wing::compiler::serializer {
@@ -87,6 +89,13 @@ private:
   std::string getTypeId(const types::ReturnType *type);
   std::string getTypeId(const types::Type *type);
   std::string getTypeId(const types::ArrayType *type);
+  std::string getTypeId(const types::ClassType *type);
+
+  void collectInstanceFieldsFlat(
+      const types::ClassType *class_type,
+      std::map<std::string, std::string> &name_to_type_id);
+  void collectMethodsFlat(const types::ClassType *class_type,
+                          std::map<std::string, std::string> &name_to_type_id);
 
   // operators
   nlohmann::json

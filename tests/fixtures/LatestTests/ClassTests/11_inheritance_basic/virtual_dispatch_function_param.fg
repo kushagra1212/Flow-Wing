@@ -1,0 +1,17 @@
+class Base {
+  fun tag() -> nthg {
+    println("Base")
+  }
+}
+
+class Derived extends Base {
+  fun tag() -> nthg {
+    println("Derived")
+  }
+}
+
+fun callTag(b: Base) -> nthg {
+  b.tag()
+}
+
+callTag(new Derived())

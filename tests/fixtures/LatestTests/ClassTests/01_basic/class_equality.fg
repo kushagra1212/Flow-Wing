@@ -1,0 +1,6 @@
+class A {
+  var x: int
+}
+
+println((new A()) != (new A()))
+println((new A()) == (new A()))

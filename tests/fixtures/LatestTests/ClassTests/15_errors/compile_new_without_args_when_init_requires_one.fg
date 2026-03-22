@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: NewExpressionConstructorArgumentCountMismatch
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+println(new A())

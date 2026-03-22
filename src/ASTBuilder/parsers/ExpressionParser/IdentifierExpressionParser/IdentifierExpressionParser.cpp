@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ IdentifierExpressionParser::IdentifierExpressionParser(ParserContext *ctx)
 
 std::unique_ptr<syntax::ExpressionSyntax> IdentifierExpressionParser::parse() {
 
-  return std::make_unique<syntax::IdentifierExpressionSyntax>(
-      m_ctx->match(lexer::TokenKind::kIdentifierToken)); // identifier
+  auto *tok = m_ctx->match(lexer::TokenKind::kIdentifierToken);
+  return std::make_unique<syntax::IdentifierExpressionSyntax>(tok);
 }
 
 } // namespace parser

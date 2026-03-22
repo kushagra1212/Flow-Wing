@@ -50,6 +50,7 @@ static const std::unordered_map<std::string, lexer::TokenKind> kKeywords = {
     {"deci32", lexer::TokenKind::kDeci32Keyword},
     {"null", lexer::TokenKind::kNirastKeyword},
     {"bring", lexer::TokenKind::kBringKeyword},
+    {"super", lexer::TokenKind::kSuperKeyword},
     {"expose", lexer::TokenKind::kExposeKeyword},
     {"from", lexer::TokenKind::kFromKeyword},
     {"fill", lexer::TokenKind::kFillKeyword},

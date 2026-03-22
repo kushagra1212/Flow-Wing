@@ -34,6 +34,8 @@ class Int64LiteralExpressionSyntax;
 // -- Nirast Expressions --
 class NirastExpressionSyntax;
 
+class SuperExpressionSyntax;
+
 // -- Index Expression --
 class IndexExpressionSyntax;
 
@@ -64,6 +66,9 @@ class ParenthesizedExpressionSyntax;
 // -- Object Expression --
 class ObjectExpressionSyntax;
 
+// -- Fill Expression ( [n fill x] ) --
+class FillExpressionSyntax;
+
 // -- Container Expression --
 class ContainerExpressionSyntax;
 
@@ -92,10 +97,21 @@ private:
   std::unique_ptr<BoundExpression>
   bindIdentifierExpression(syntax::IdentifierExpressionSyntax *expression);
 
+  std::unique_ptr<BoundExpression>
+  bindSuperExpression(syntax::SuperExpressionSyntax *expression);
+
   // -- Call Expression --
 
   std::unique_ptr<BoundExpression>
   bindCallExpression(syntax::CallExpressionSyntax *expression);
+
+  /// Base-class `init` call: `super(args)` inside a derived `init` only.
+  std::unique_ptr<BoundExpression>
+  bindSuperInitCall(syntax::CallExpressionSyntax *expression);
+
+  // -- Member Function Call (obj.method(args)) --
+  std::unique_ptr<BoundExpression>
+  bindMemberFunctionCall(syntax::CallExpressionSyntax *expression);
 
   // -- Literal Expressions --
   std::unique_ptr<BoundExpression>
@@ -159,6 +175,13 @@ private:
   // -- Object Expression --
   std::unique_ptr<BoundExpression>
   bindObjectExpression(syntax::ObjectExpressionSyntax *expression);
+  std::unique_ptr<BoundExpression>
+  bindObjectExpression(syntax::ObjectExpressionSyntax *expression,
+                       std::shared_ptr<types::Type> structureTypeHint);
+
+  // -- Fill Expression [n fill elem] --
+  std::unique_ptr<BoundExpression>
+  bindFillExpression(syntax::FillExpressionSyntax *expression);
 
   // -- Colon Expression --
   std::unique_ptr<BoundExpression>

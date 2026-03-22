@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/FunctionStatementParser/FunctionStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
@@ -61,10 +62,22 @@ std::unique_ptr<syntax::StatementSyntax> ClassStatementParser::parse() {
   while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
          m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    class_member_statements.push_back(
-        StatementParserFactory::create(*m_ctx)
-            ->parse()); //  CustomTypeStatement, FunctionDeclaration,
-                        //  VariableDeclaration
+    // Legacy syntax: `init(...) -> nthg { }` / `foo(...) -> T { }` without `fun`
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kFunctionKeyword) {
+      class_member_statements.push_back(
+          std::make_unique<FunctionStatementParser>(m_ctx)->parse());
+    } else if (m_ctx->getCurrentTokenKind() ==
+                   lexer::TokenKind::kIdentifierToken &&
+               m_ctx->peek(1) != nullptr &&
+               m_ctx->peek(1)->getTokenKind() ==
+                   lexer::TokenKind::kOpenParenthesisToken) {
+      class_member_statements.push_back(
+          std::make_unique<FunctionStatementParser>(m_ctx)->parse());
+    } else {
+      class_member_statements.push_back(
+          StatementParserFactory::create(*m_ctx)
+              ->parse()); // CustomTypeStatement, VariableDeclaration, ...
+    }
   }
 
   auto close_brace_token =

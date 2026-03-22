@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/types/Type.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/diagnostics/DiagnosticFactory.h"
+#include <cassert>
 
 namespace flow_wing {
 namespace binding {
@@ -74,6 +76,42 @@ void BinderContext::reportError(binding::BoundErrorStatement *error_statement) {
 void BinderContext::switchSymbolTable(
     std::shared_ptr<analysis::ScopedSymbolTable> symbol_table) {
   m_symbol_table = symbol_table;
+}
+
+void BinderContext::setCurrentClassType(
+    std::shared_ptr<types::Type> class_type) {
+  m_current_class_type = std::move(class_type);
+}
+
+std::shared_ptr<types::Type> BinderContext::getCurrentClassType() const {
+  return m_current_class_type;
+}
+
+void BinderContext::pushExpectedType(std::shared_ptr<types::Type> type) {
+  m_expected_type_stack.push_back(std::move(type));
+}
+
+void BinderContext::popExpectedType() {
+  assert(!m_expected_type_stack.empty() &&
+         "popExpectedType without matching push");
+  m_expected_type_stack.pop_back();
+}
+
+std::shared_ptr<types::Type> BinderContext::peekExpectedType() const {
+  if (m_expected_type_stack.empty())
+    return nullptr;
+  return m_expected_type_stack.back();
+}
+
+void BinderContext::recordDuplicateClassDeclaration(
+    const std::string &class_name) {
+  m_duplicate_class_declarations.insert(class_name);
+}
+
+bool BinderContext::isDuplicateClassDeclaration(
+    const std::string &class_name) const {
+  return m_duplicate_class_declarations.find(class_name) !=
+         m_duplicate_class_declarations.end();
 }
 
 } // namespace binding

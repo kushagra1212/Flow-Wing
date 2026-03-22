@@ -22,6 +22,7 @@
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
 #include "llvm/IR/Value.h"
@@ -49,6 +50,27 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
                                            ->getPointerTo()),
         target_addr);
 
+    return;
+  }
+
+  // CASE: Class variable holds pointer to instance; store the pointer.
+  if (target_type->getKind() == types::TypeKind::kClass) {
+    llvm::Value *source_value = source_raw_value;
+    if (llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
+      auto *expected_llvm_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type);
+      source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+          expected_llvm_type->getPointerTo(), source_raw_value, "load_class_ptr");
+    } else if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(source_raw_value)) {
+      // Result of "new A()" is an alloca of the struct; the alloca itself is the instance pointer.
+      if (alloca->getAllocatedType() !=
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(source_type)) {
+        source_value = m_ir_gen_context.getLLVMBuilder()->CreateLoad(
+            alloca->getAllocatedType()->getPointerTo(), source_raw_value,
+            "load_class_ptr");
+      }
+    }
+    builder->CreateStore(source_value, target_addr);
     return;
   }
 

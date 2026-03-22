@@ -26,14 +26,18 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include <string>
 
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm-c/Analysis.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
@@ -149,9 +153,17 @@ void IRGenerator::visit(
 // BoundBreakStatement is implemented in BreakStatementIrGen.cpp
 // BoundContinueStatement is implemented in ContinueStatementIrGen.cpp
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundClassStatement *statement) {
-  assert(false && "Class statement not supported");
+void IRGenerator::visit(binding::BoundClassStatement *statement) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Class Statement", "IR GENERATION");
+  auto class_type = std::static_pointer_cast<types::ClassType>(
+      statement->getClassSymbol()->getType());
+  (void)m_ir_gen_context.getTypeBuilder()->getLLVMType(class_type.get());
+
+  for (const auto &member_stmt : statement->getClassMemberStatements()) {
+    if (member_stmt->getKind() == binding::NodeKind::kFunctionStatement) {
+      member_stmt->accept(this);
+    }
+  }
 }
 
 void IRGenerator::visit(
@@ -164,10 +176,193 @@ void IRGenerator::visit(
   assert(false && "Error expression not supported");
 }
 
+namespace {
+
+static void emitClassInstanceDefaultStringFieldsImpl(
+    types::ClassType *root_class, types::ClassType *level,
+    llvm::StructType *struct_type, llvm::Value *heap_ptr, IRGenContext &ctx,
+    llvm::Constant *empty_str_const) {
+  auto &builder = ctx.getLLVMBuilder();
+  auto *str_ty = analysis::Builtins::m_str_type_instance.get();
+  if (level->getBaseClass()) {
+    emitClassInstanceDefaultStringFieldsImpl(
+        root_class, level->getBaseClass().get(), struct_type, heap_ptr, ctx,
+        empty_str_const);
+  }
+  for (const auto &[name, sym] : level->getFieldMembers()) {
+    if (sym->getKind() != analysis::SymbolKind::kVariable)
+      continue;
+    types::Type *ft = sym->getType().get();
+    if (*ft == *str_ty) {
+      int idx = root_class->getMemberFieldIndex(name);
+      assert(idx >= 0 && "str field must appear in class layout");
+      llvm::Value *field_ptr = builder->CreateStructGEP(
+          struct_type, heap_ptr, static_cast<unsigned>(idx), "strdef." + name);
+      builder->CreateStore(empty_str_const, field_ptr);
+    }
+  }
+}
+
+static void emitClassInstanceDefaultStringFields(types::ClassType *ct,
+                                                 llvm::StructType *struct_type,
+                                                 llvm::Value *heap_ptr,
+                                                 IRGenContext &ctx) {
+  llvm::Constant *empty =
+      ctx.getDefaultValue(analysis::Builtins::m_str_type_instance.get(), false);
+  emitClassInstanceDefaultStringFieldsImpl(ct, ct, struct_type, heap_ptr, ctx,
+                                           empty);
+}
+
+} // namespace
+
 // BoundTernaryExpression is implemented in TernaryExpressionIrGen.cpp
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundNewExpression *statement) {
-  assert(false && "New expression not supported");
+void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
+  CODEGEN_DEBUG_LOG("Visiting Bound New Expression", "IR GENERATION");
+  auto class_type_shared = new_expr->getType();
+  auto *class_type = class_type_shared.get();
+  assert(class_type->getKind() == types::TypeKind::kClass &&
+         "New expression type must be a class");
+  auto *ct = static_cast<types::ClassType *>(class_type);
+  auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(class_type);
+  assert(llvm_type->isStructTy() && "Class LLVM type must be a struct");
+  auto *struct_type = llvm::cast<llvm::StructType>(llvm_type);
+
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto *gc_malloc = m_ir_gen_context.getLLVMModule()->getFunction(
+      std::string(constants::functions::kGC_malloc_fn));
+  assert(gc_malloc && "GC_malloc function not found");
+  const llvm::DataLayout &dl =
+      m_ir_gen_context.getLLVMModule()->getDataLayout();
+  uint64_t type_size_bytes = dl.getTypeAllocSize(struct_type);
+  llvm::CallInst *malloc_call = builder->CreateCall(
+      gc_malloc, llvm::ConstantInt::get(
+                     llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+                     type_size_bytes));
+  malloc_call->setTailCall(false);
+  auto *heap_ptr = builder->CreateBitCast(
+      malloc_call, struct_type->getPointerTo(), "new." + class_type->getName());
+  builder->CreateStore(llvm::ConstantAggregateZero::get(struct_type), heap_ptr);
+
+  const std::string vt_name = std::string("__vt_") + ct->getName();
+  llvm::GlobalVariable *vt_global =
+      m_ir_gen_context.getLLVMModule()->getGlobalVariable(vt_name, true);
+  assert(vt_global && "class vtable global must exist before new()");
+  llvm::Value *vtable_as_ptr = builder->CreateBitCast(
+      vt_global, builder->getPtrTy(), "vtable." + ct->getName());
+  llvm::Value *vptr_field =
+      builder->CreateStructGEP(struct_type, heap_ptr, 0, "vptr_slot");
+  builder->CreateStore(vtable_as_ptr, vptr_field);
+
+  emitClassInstanceDefaultStringFields(ct, struct_type, heap_ptr,
+                                       m_ir_gen_context);
+
+  emitClassInstanceFieldInitializers(ct, struct_type, heap_ptr);
+
+  // Store heap pointer into a local alloca so that the rest of the pipeline
+  // (emitTypedStore, argument passing) can treat it uniformly as alloca→ptr.
+  llvm::Value *alloca = m_ir_gen_context.createAlloca(
+      builder->getPtrTy(), "new." + class_type->getName() + ".slot");
+  builder->CreateStore(heap_ptr, alloca);
+
+  const auto &ctor_args = new_expr->getArguments();
+  std::vector<std::shared_ptr<types::Type>> ctor_arg_types;
+  for (const auto &a : ctor_args) {
+    ctor_arg_types.push_back(a->getType());
+  }
+  std::shared_ptr<analysis::Symbol> init_member =
+      ct->resolveMethodForCall("init", ctor_arg_types);
+
+  if (init_member &&
+      init_member->getKind() == analysis::SymbolKind::kFunction) {
+    auto *init_fn_symbol =
+        static_cast<analysis::FunctionSymbol *>(init_member.get());
+    auto *init_fn_type =
+        static_cast<types::FunctionType *>(init_fn_symbol->getType().get());
+
+    auto *llvm_init_fn = m_ir_gen_context.getLLVMModule()->getFunction(
+        init_fn_symbol->getMangledName());
+    assert(llvm_init_fn && "init function not found in LLVM module");
+
+    std::vector<llvm::Value *> llvm_args;
+
+    bool is_void_return = true;
+    bool is_ret_via_arg = false;
+    if (!init_fn_type->getReturnTypes().empty()) {
+      auto *ret_raw = init_fn_type->getReturnTypes()[0]->type.get();
+      is_void_return =
+          (*ret_raw == *analysis::Builtins::m_nthg_type_instance.get()) &&
+          !ret_raw->isDynamic();
+      is_ret_via_arg = !is_void_return &&
+                       init_fn_type->getReturnTypes()[0]->type_convention !=
+                           types::TypeConvention::kC;
+    }
+    if (is_ret_via_arg) {
+      auto *ret_slot = m_ir_gen_context.createAlloca(
+          m_ir_gen_context.getTypeBuilder()->createOrGetStructType(
+              {init_fn_type->getReturnTypes()[0]->type.get()}),
+          "init_ret_slot");
+      llvm_args.push_back(ret_slot);
+    }
+
+    const auto &param_types = init_fn_type->getParameterTypes();
+    const size_t visible_param_count = param_types.size() - 1; // exclude self
+    const size_t default_start = init_fn_type->getDefaultValueStartIndex();
+
+    auto emit_one_init_param = [&](size_t i) {
+      assert(m_last_value && "m_last_value is null");
+      auto *param_raw_type = param_types[i]->type.get();
+
+      llvm::Value *arg_slot = nullptr;
+      llvm::Value *val = nullptr;
+      if (param_raw_type->getKind() == types::TypeKind::kObject ||
+          param_raw_type->getKind() == types::TypeKind::kClass) {
+        arg_slot =
+            m_ir_gen_context.createAlloca(builder->getPtrTy(), "init_obj_arg");
+        if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
+            llvm::isa<llvm::GlobalVariable>(m_last_value)) {
+          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                        ->getLLVMType(param_raw_type)
+                                        ->getPointerTo(),
+                                    m_last_value, "heap_ptr");
+        } else {
+          val = m_last_value;
+        }
+        builder->CreateStore(val, arg_slot);
+      } else {
+        arg_slot = m_ir_gen_context.createAlloca(
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type),
+            "init_arg");
+        val = resolveValue(m_last_value, m_last_type);
+        emitTypedStore(arg_slot, param_raw_type, val, m_last_type);
+      }
+      llvm_args.push_back(arg_slot);
+      clearLast();
+    };
+
+    for (size_t i = 0; i < visible_param_count; i++) {
+      if (i < ctor_args.size()) {
+        ctor_args[i]->accept(this);
+      } else {
+        if (default_start == static_cast<size_t>(-1) || i < default_start) {
+          assert(false && "missing ctor argument without default value");
+        }
+        auto *param_sym = init_fn_symbol->getParameters()[i].get();
+        assert(param_sym->getDefaultValueExpression() &&
+               "default value missing for init parameter");
+        param_sym->getDefaultValueExpression()->accept(this);
+      }
+      emit_one_init_param(i);
+    }
+
+    // self argument (last parameter) — alloca is already ptr* holding heap_ptr
+    llvm_args.push_back(alloca);
+
+    builder->CreateCall(llvm_init_fn, llvm_args);
+  }
+
+  m_last_value = alloca;
+  m_last_llvm_type = llvm_type->getPointerTo();
+  m_last_type = new_expr->getType().get();
 }
 
 void IRGenerator::visit([[maybe_unused]] binding::BoundDimensionClauseExpression
@@ -199,7 +394,15 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
     return value;
   }
 
-  if (type->getKind() == types::TypeKind::kObject) {
+  if (type->getKind() == types::TypeKind::kObject ||
+      type->getKind() == types::TypeKind::kClass) {
+    if (llvm::isa<llvm::AllocaInst>(value) ||
+        llvm::isa<llvm::GlobalVariable>(value)) {
+      auto *ptr_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(type)->getPointerTo();
+      return m_ir_gen_context.getLLVMBuilder()->CreateLoad(ptr_type, value,
+                                                           "load_class_or_obj");
+    }
     return ensurePointer(value, type, "aggregate_spill");
   }
 
@@ -217,25 +420,26 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
                                                          value, "arg_load");
   }
 
-  // Handle GEPs (Both Instructions and Constant Expressions)
-  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(value)) {
-    // Determine what type of data the GEP points to
-
-    // Determine what type we actually want
+  // Handle GEPs (Instructions and Constant Expressions); GetElementPtrInst
+  // may not cast to GEPOperator in all LLVM versions.
+  llvm::Type *source_elem_ty = nullptr;
+  if (auto *gep_inst = llvm::dyn_cast<llvm::GetElementPtrInst>(value)) {
+    source_elem_ty = gep_inst->getSourceElementType();
+  } else if (auto *gep_op = llvm::dyn_cast<llvm::GEPOperator>(value)) {
+    source_elem_ty = gep_op->getSourceElementType();
+  }
+  if (source_elem_ty) {
     auto expected_llvm_type =
         m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
 
-    if (gep->getSourceElementType()->isStructTy()) {
+    if (source_elem_ty->isStructTy()) {
       return m_ir_gen_context.getLLVMBuilder()->CreateLoad(expected_llvm_type,
                                                            value, "field_load");
     }
 
-    if (gep->getSourceElementType()->isArrayTy()) {
-
-      auto *array_type =
-          llvm::cast<llvm::ArrayType>(gep->getSourceElementType());
-      llvm::Type *element_type =
-          array_type->getElementType(); // e.g., i8 or i32
+    if (source_elem_ty->isArrayTy()) {
+      auto *array_type = llvm::cast<llvm::ArrayType>(source_elem_ty);
+      llvm::Type *element_type = array_type->getElementType();
 
       if (element_type->isIntegerTy(8) && expected_llvm_type->isPointerTy()) {
         return value;
@@ -292,6 +496,44 @@ llvm::Value *IRGenerator::ensurePointer(llvm::Value *value, types::Type *type,
   m_ir_gen_context.getLLVMBuilder()->CreateStore(value, alloca_inst);
 
   return alloca_inst;
+}
+
+void IRGenerator::emitClassInstanceFieldInitializersImpl(
+    types::ClassType *root_class, types::ClassType *level,
+    llvm::StructType *struct_type, llvm::Value *heap_ptr) {
+  if (level->getBaseClass()) {
+    emitClassInstanceFieldInitializersImpl(
+        root_class, level->getBaseClass().get(), struct_type, heap_ptr);
+  }
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  for (const auto &[name, sym] : level->getFieldMembers()) {
+    if (sym->getKind() != analysis::SymbolKind::kVariable)
+      continue;
+    auto *vs = static_cast<analysis::VariableSymbol *>(sym.get());
+    const auto &init_expr = vs->getInitializerExpression();
+    if (!init_expr)
+      continue;
+    if (init_expr->getKind() == binding::NodeKind::kErrorExpression)
+      continue;
+
+    types::Type *field_ty = sym->getType().get();
+    int idx = root_class->getMemberFieldIndex(name);
+    assert(idx >= 0 && "class field must have LLVM layout index");
+    llvm::Value *field_ptr = builder->CreateStructGEP(
+        struct_type, heap_ptr, static_cast<unsigned>(idx), "fldinit." + name);
+
+    init_expr->accept(this);
+    assert(m_last_value && "class field initializer produced no value");
+    emitTypedStore(field_ptr, field_ty, m_last_value, m_last_type);
+    clearLast();
+  }
+}
+
+void IRGenerator::emitClassInstanceFieldInitializers(
+    types::ClassType *root_class, llvm::StructType *struct_type,
+    llvm::Value *heap_ptr) {
+  emitClassInstanceFieldInitializersImpl(root_class, root_class, struct_type,
+                                         heap_ptr);
 }
 
 } // namespace ir_gen

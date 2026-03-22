@@ -22,15 +22,19 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
+#include "src/syntax/expression/MemberAccessExpressionSyntax/MemberAccessExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <cassert>
 #include <string>
@@ -44,6 +48,17 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
          "CallExpressionBinder::bind: expression is null");
 
   auto identifier_expression = expression->getIdentifier().get();
+
+  // Handle member function calls: obj.method(args)
+  if (identifier_expression->getKind() ==
+      syntax::NodeKind::kMemberAccessExpression) {
+    return bindMemberFunctionCall(expression);
+  }
+
+  if (identifier_expression->getKind() ==
+      syntax::NodeKind::kSuperExpression) {
+    return bindSuperInitCall(expression);
+  }
 
   if (identifier_expression->getKind() !=
       syntax::NodeKind::kIdentifierExpression) {
@@ -62,6 +77,16 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
   auto function_name =
       static_cast<syntax::IdentifierExpressionSyntax *>(identifier_expression)
           ->getValue();
+
+  // `init` is only invoked by `new Class(...)`; explicit calls are invalid.
+  if (function_name == "init") {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kInvalidInitFunctionCall,
+        diagnostic::DiagnosticArgs{});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
 
   auto handleCallExpression =
       [&](analysis::Symbol *symbol) -> std::unique_ptr<BoundExpression> {
@@ -145,10 +170,17 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
 
     for (size_t i = 0; i < size; i++) {
       if (arguments[i]->getType()->isNthg()) {
-        types::Type *expected_type =
-            i < param_types.size()
-                ? param_types[i]->type.get()
-                : param_types.back()->type.get();
+        types::Type *expected_type = nullptr;
+        if (!param_types.empty()) {
+          expected_type = i < param_types.size()
+                              ? param_types[i]->type.get()
+                              : param_types.back()->type.get();
+        } else {
+          // Variadic builtins like print() / println() have no formal
+          // parameters in the type signature; avoid param_types.back() on an
+          // empty vector.
+          expected_type = analysis::Builtins::m_dynamic_type_instance.get();
+        }
         auto error_expression = std::make_unique<BoundErrorExpression>(
             arguments[i]->getSourceLocation(),
             diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
@@ -169,24 +201,24 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
         DEBUG_LOG("Parameter Type", "Parameter Type",
                   parameter_type->getName());
 
-        // inout parameters require an lvalue (variable, index, or member access)
+        // inout parameters require an lvalue (variable, index, or member
+        // access)
         if (param->value_kind == types::ValueKind::kByReference) {
           const BoundExpression *e = arguments[i].get();
-          while (e &&
-                 e->getKind() == NodeKind::kParenthesizedExpression) {
+          while (e && e->getKind() == NodeKind::kParenthesizedExpression) {
             e = static_cast<const BoundParenthesizedExpression *>(e)
                     ->getExpression()
                     .get();
           }
           const bool is_lvalue =
-              e &&
-              (e->getKind() == NodeKind::kIdentifierExpression ||
-               e->getKind() == NodeKind::kIndexExpression ||
-               e->getKind() == NodeKind::kMemberAccessExpression);
+              e && (e->getKind() == NodeKind::kIdentifierExpression ||
+                    e->getKind() == NodeKind::kIndexExpression ||
+                    e->getKind() == NodeKind::kMemberAccessExpression);
           if (!is_lvalue) {
             auto error_expression = std::make_unique<BoundErrorExpression>(
                 arguments[i]->getSourceLocation(),
-                diagnostic::DiagnosticCode::kLiteralCannotBePassedToInoutParameter,
+                diagnostic::DiagnosticCode::
+                    kLiteralCannotBePassedToInoutParameter,
                 std::vector<flow_wing::diagnostic::DiagnosticArg>{
                     function_name + "(" + function_type->getName() + ")"});
             return std::move(error_expression);
@@ -235,12 +267,330 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     result = handleCallExpression(symbols.get());
   }
 
+  if (result->getKind() == NodeKind::kErrorExpression &&
+      function_name != "init") {
+    auto self_sh = m_context->getSymbolTable()->lookup("self");
+    auto ct = std::dynamic_pointer_cast<types::ClassType>(
+        m_context->getCurrentClassType());
+    if (self_sh && ct) {
+      auto argument_expression = expression->getArgumentExpression().get();
+      std::vector<std::unique_ptr<BoundExpression>> arguments;
+      std::vector<std::shared_ptr<types::Type>> argument_types;
+      bool arg_ok = true;
+      if (argument_expression) {
+        arguments = bindExpressionList(argument_expression);
+        for (auto &argument : arguments) {
+          if (argument->getKind() == NodeKind::kErrorExpression) {
+            arg_ok = false;
+            break;
+          }
+          argument_types.push_back(argument->getType());
+        }
+      }
+      if (arg_ok) {
+        auto member_symbol =
+            ct->resolveMethodForCall(function_name, argument_types);
+        if (member_symbol &&
+            member_symbol->getKind() == analysis::SymbolKind::kFunction) {
+          auto *function_symbol =
+              static_cast<analysis::FunctionSymbol *>(member_symbol.get());
+          auto self_expr = std::make_unique<BoundIdentifierExpression>(
+              self_sh.get(), expression->getSourceLocation());
+          arguments.push_back(std::move(self_expr));
+          auto call = std::make_unique<BoundCallExpression>(
+              function_symbol, std::move(arguments),
+              expression->getSourceLocation());
+          call->setImplicitReceiverLast(true);
+          const int slot = ct->getVirtualSlotForMethod(function_symbol);
+          if (slot >= 0)
+            call->setVirtualDispatch(true, static_cast<std::size_t>(slot));
+          result = std::move(call);
+        }
+      }
+    }
+  }
+
   if (result->getKind() == NodeKind::kErrorExpression) {
 
     m_context->reportError(static_cast<BoundErrorExpression *>(result.get()));
   }
 
   return result;
+}
+
+std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberFunctionCall(
+    syntax::CallExpressionSyntax *expression) {
+
+  auto *member_access = static_cast<syntax::MemberAccessExpressionSyntax *>(
+      expression->getIdentifier().get());
+
+  auto bound_object = bind(member_access->getLeftExpression().get());
+  if (bound_object->getKind() == NodeKind::kErrorExpression) {
+    return bound_object;
+  }
+
+  auto object_type = bound_object->getType();
+  if (object_type->getKind() != types::TypeKind::kClass) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        member_access->getLeftExpression()->getSourceLocation(),
+        diagnostic::DiagnosticCode::kMemberAccessOnNonObjectVariable,
+        diagnostic::DiagnosticArgs{object_type->getName()});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto *class_type = static_cast<types::ClassType *>(object_type.get());
+
+  auto *member_id = static_cast<syntax::IdentifierExpressionSyntax *>(
+      member_access->getRightExpression().get());
+  const auto &method_name = member_id->getValue();
+
+  if (method_name == "init") {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        member_id->getSourceLocation(),
+        diagnostic::DiagnosticCode::kInvalidInitFunctionCall,
+        diagnostic::DiagnosticArgs{});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  // Bind explicit arguments
+  std::vector<std::unique_ptr<BoundExpression>> arguments;
+  std::vector<std::shared_ptr<types::Type>> argument_types;
+
+  auto argument_expression = expression->getArgumentExpression().get();
+  if (argument_expression) {
+    arguments = bindExpressionList(argument_expression);
+    for (auto &argument : arguments) {
+      if (argument->getKind() == NodeKind::kErrorExpression) {
+        return std::move(argument);
+      }
+      argument_types.push_back(argument->getType());
+    }
+  }
+
+  auto member_symbol =
+      class_type->resolveMethodForCall(method_name, argument_types);
+  if (!member_symbol) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        member_id->getSourceLocation(),
+        diagnostic::DiagnosticCode::kFunctionNotFound,
+        diagnostic::DiagnosticArgs{method_name});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto *function_symbol =
+      static_cast<analysis::FunctionSymbol *>(member_symbol.get());
+  auto *function_type =
+      static_cast<types::FunctionType *>(function_symbol->getType().get());
+
+  const auto &param_types = function_type->getParameterTypes();
+
+  for (size_t i = 0; i < arguments.size(); i++) {
+    if (arguments[i]->getType()->isNthg()) {
+      auto *expected_type = param_types[i]->type.get();
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          arguments[i]->getSourceLocation(),
+          diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+          diagnostic::DiagnosticArgs{expected_type->getName(),
+                                     arguments[i]->getType()->getName(),
+                                     method_name});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+  }
+
+  if (!function_type->isVariadic()) {
+    for (size_t i = 0; i < arguments.size(); i++) {
+      auto parameter_type = param_types[i]->type;
+      auto argument_type = arguments[i]->getType();
+
+      if (param_types[i]->value_kind == types::ValueKind::kByReference) {
+        const BoundExpression *e = arguments[i].get();
+        while (e && e->getKind() == NodeKind::kParenthesizedExpression) {
+          e = static_cast<const BoundParenthesizedExpression *>(e)
+                  ->getExpression()
+                  .get();
+        }
+        const bool is_lvalue =
+            e && (e->getKind() == NodeKind::kIdentifierExpression ||
+                  e->getKind() == NodeKind::kIndexExpression ||
+                  e->getKind() == NodeKind::kMemberAccessExpression);
+        if (!is_lvalue) {
+          auto error_expression = std::make_unique<BoundErrorExpression>(
+              arguments[i]->getSourceLocation(),
+              diagnostic::DiagnosticCode::
+                  kLiteralCannotBePassedToInoutParameter,
+              diagnostic::DiagnosticArgs{method_name + "(" +
+                                         function_type->getName() + ")"});
+          m_context->reportError(error_expression.get());
+          return std::move(error_expression);
+        }
+      }
+
+      if (*argument_type > *parameter_type) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            arguments[i]->getSourceLocation(),
+            diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+            diagnostic::DiagnosticArgs{parameter_type->getName(),
+                                       argument_type->getName(), method_name});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+    }
+  }
+
+  // Append the receiver as the implicit self (last) argument
+  bool is_bare_self = false;
+  if (bound_object->getKind() == NodeKind::kIdentifierExpression) {
+    auto *bid = static_cast<BoundIdentifierExpression *>(bound_object.get());
+    if (bid->getSymbol()->getName() == "self")
+      is_bare_self = true;
+  }
+  arguments.push_back(std::move(bound_object));
+
+  auto call = std::make_unique<BoundCallExpression>(
+      function_symbol, std::move(arguments), expression->getSourceLocation());
+  call->setImplicitReceiverLast(true);
+
+  if (method_name != "init" && !is_bare_self) {
+    const int slot = class_type->getVirtualSlotForMethod(function_symbol);
+    if (slot >= 0)
+      call->setVirtualDispatch(true, static_cast<std::size_t>(slot));
+  }
+
+  return call;
+}
+
+std::unique_ptr<BoundExpression>
+ExpressionBinder::bindSuperInitCall(syntax::CallExpressionSyntax *expression) {
+  auto *identifier_expression = expression->getIdentifier().get();
+
+  const analysis::FunctionSymbol *cur_fn =
+      m_context->getSymbolTable()->getCurrentFunctionSymbol();
+  if (!cur_fn || cur_fn->getName() != "init") {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kSuperCallOutsideConstructor,
+        diagnostic::DiagnosticArgs{});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto ct = std::dynamic_pointer_cast<types::ClassType>(
+      m_context->getCurrentClassType());
+  if (!ct) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kSuperCallOutsideConstructor,
+        diagnostic::DiagnosticArgs{});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto base = ct->getBaseClass();
+  if (!base) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kClassMissingSuperclass,
+        diagnostic::DiagnosticArgs{ct->getName()});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto argument_expression = expression->getArgumentExpression().get();
+  std::vector<std::unique_ptr<BoundExpression>> arguments;
+  std::vector<std::shared_ptr<types::Type>> argument_types;
+
+  if (argument_expression) {
+    arguments = bindExpressionList(argument_expression);
+    for (auto &argument : arguments) {
+      if (argument->getKind() == NodeKind::kErrorExpression) {
+        return std::move(argument);
+      }
+      argument_types.push_back(argument->getType());
+    }
+  }
+
+  auto member_symbol = base->resolveMethodForCall("init", argument_types);
+  if (!member_symbol) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kFunctionNotFound,
+        diagnostic::DiagnosticArgs{std::string("super")});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto *function_symbol =
+      static_cast<analysis::FunctionSymbol *>(member_symbol.get());
+  auto *function_type =
+      static_cast<types::FunctionType *>(function_symbol->getType().get());
+
+  const auto &param_types = function_type->getParameterTypes();
+  const size_t visible_count = param_types.size() - 1;
+
+  if (argument_types.size() > visible_count) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kFunctionArgumentCountMismatch,
+        diagnostic::DiagnosticArgs{std::string("super"),
+                                   std::to_string(visible_count),
+                                   std::to_string(argument_types.size())});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  for (size_t i = 0; i < arguments.size(); i++) {
+    if (arguments[i]->getType()->isNthg()) {
+      auto *expected_type = param_types[i]->type.get();
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          arguments[i]->getSourceLocation(),
+          diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+          diagnostic::DiagnosticArgs{expected_type->getName(),
+                                     arguments[i]->getType()->getName(),
+                                     std::string("super")});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+  }
+
+  if (!function_type->isVariadic()) {
+    for (size_t i = 0; i < arguments.size(); i++) {
+      auto parameter_type = param_types[i]->type;
+      auto argument_type = arguments[i]->getType();
+      if (*argument_type > *parameter_type) {
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+            arguments[i]->getSourceLocation(),
+            diagnostic::DiagnosticCode::kFunctionArgumentTypeMismatch,
+            diagnostic::DiagnosticArgs{parameter_type->getName(),
+                                       argument_type->getName(),
+                                       std::string("super")});
+        m_context->reportError(error_expression.get());
+        return std::move(error_expression);
+      }
+    }
+  }
+
+  auto self_sh = m_context->getSymbolTable()->lookup("self");
+  if (!self_sh) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        identifier_expression->getSourceLocation(),
+        diagnostic::DiagnosticCode::kVariableNotFound,
+        diagnostic::DiagnosticArgs{std::string("self")});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  auto self_expr = std::make_unique<BoundIdentifierExpression>(
+      self_sh.get(), expression->getSourceLocation());
+  arguments.push_back(std::move(self_expr));
+
+  auto super_call = std::make_unique<BoundCallExpression>(
+      function_symbol, std::move(arguments), expression->getSourceLocation());
+  super_call->setImplicitReceiverLast(true);
+  return super_call;
 }
 
 } // namespace binding

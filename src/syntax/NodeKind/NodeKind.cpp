@@ -32,6 +32,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kIndexExpression, "IndexExpression"},
       {NodeKind::kContainerExpression, "ContainerExpression"},
       {NodeKind::kNirastExpression, "NirastExpression"},
+      {NodeKind::kSuperExpression, "SuperExpression"},
       {NodeKind::kFillExpression, "FillExpression"},
       {NodeKind::kBracketedExpression, "BracketedExpression"},
       {NodeKind::kTernaryExpression, "TernaryExpression"},

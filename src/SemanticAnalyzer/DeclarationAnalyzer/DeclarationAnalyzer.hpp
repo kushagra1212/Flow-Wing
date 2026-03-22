@@ -38,6 +38,7 @@ public:
   void visit(syntax::ModuleAccessExpressionSyntax *node) override;
   void visit(syntax::NewExpressionSyntax *node) override;
   void visit(syntax::NirastExpressionSyntax *node) override;
+  void visit(syntax::SuperExpressionSyntax *node) override;
   void visit(syntax::ObjectExpressionSyntax *node) override;
   void visit(syntax::ColonExpressionSyntax *node) override;
   void visit(syntax::ParenthesizedExpressionSyntax *node) override;

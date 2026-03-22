@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: SuperCallOutsideConstructor
+class Base {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+class D extends Base {
+  fun bump() -> nthg {
+    super(1)
+  }
+}

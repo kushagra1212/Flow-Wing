@@ -194,6 +194,20 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "object construction and should not be called explicitly.",
       "Avoid calling the 'init' function manually. Use a constructor to "
       "create and initialize objects."}},
+    {(DiagnosticCode::kNewExpressionConstructorArgumentCountMismatch),
+     {"`new {0}(...)` does not match any `init` overload: need {1} "
+      "constructor argument(s), but {2} were given.",
+      "Add the missing values inside the parentheses, e.g. `new {0}(42)` or "
+      "`new {0}(a, b)` to match a declared `init`.",
+      "Writing `new {0}(...)` runs the class `init` method. The number of "
+      "expressions in `(...)` must match one of the `init` overloads (the "
+      "implicit `self` parameter is not counted)."}},
+    {(DiagnosticCode::kNewExpressionConstructorArgumentTypeMismatch),
+     {"`new {0}(...)`: constructor argument type mismatch for `init` — "
+      "expected `{1}` but got `{2}`.",
+      "Pass a value compatible with `{1}` for this `init` parameter.",
+      "Each argument to `new {0}(...)` is passed to the corresponding "
+      "visible parameter of `init` (before `self`)."}},
     {(DiagnosticCode::kIncorrectArgumentCount),
      {"Function '{0}' requires {1} argument(s), but {2} were provided.",
       "Ensure that the function '{0}' is called with exactly {1} "
@@ -891,6 +905,10 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "SuperCallOutsideConstructor";
   case DiagnosticCode::kInvalidInitFunctionCall:
     return "InvalidInitFunctionCall";
+  case DiagnosticCode::kNewExpressionConstructorArgumentCountMismatch:
+    return "NewExpressionConstructorArgumentCountMismatch";
+  case DiagnosticCode::kNewExpressionConstructorArgumentTypeMismatch:
+    return "NewExpressionConstructorArgumentTypeMismatch";
 
     // Index Expression Errors
   case DiagnosticCode::kIndexingNonArrayTypeVariable:

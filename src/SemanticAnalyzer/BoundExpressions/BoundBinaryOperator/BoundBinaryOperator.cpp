@@ -395,7 +395,8 @@ BoundBinaryOperator::bind(lexer::TokenKind operator_kind,
   }
 
   if (left_type->getKind() == types::TypeKind::kClass ||
-      right_type->getKind() == types::TypeKind::kClass) {
+      right_type->getKind() == types::TypeKind::kClass ||
+      left_type->isNirast() || right_type->isNirast()) {
     return bindClassType(operator_kind, left_type, right_type);
   }
 
@@ -479,6 +480,25 @@ std::shared_ptr<BoundBinaryOperator>
 BoundBinaryOperator::bindClassType(lexer::TokenKind operator_kind,
                                    std::shared_ptr<types::Type> left_type,
                                    std::shared_ptr<types::Type> right_type) {
+
+  const auto &boolTy = analysis::Builtins::m_bool_type_instance;
+  auto isBool = [&](const std::shared_ptr<types::Type> &t) {
+    return t == boolTy;
+  };
+  auto isClassOrNirast = [&](const std::shared_ptr<types::Type> &t) {
+    return t->getKind() == types::TypeKind::kClass ||
+           t == analysis::Builtins::m_nirast_type_instance;
+  };
+
+  if (operator_kind == lexer::TokenKind::kAmpersandAmpersandToken ||
+      operator_kind == lexer::TokenKind::kPipePipeToken) {
+    if ((isClassOrNirast(left_type) && isBool(right_type)) ||
+        (isBool(left_type) && isClassOrNirast(right_type))) {
+      return std::make_shared<BoundBinaryOperator>(
+          operator_kind, left_type, right_type,
+          analysis::Builtins::m_bool_type_instance);
+    }
+  }
 
   if (!((left_type->getKind() == types::TypeKind::kClass ||
          left_type == analysis::Builtins::m_nirast_type_instance) &&

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,13 @@ BoundNewExpression::BoundNewExpression(
     const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location), m_expression(std::move(expression)) {}
 
+BoundNewExpression::BoundNewExpression(
+    std::unique_ptr<BoundExpression> expression,
+    std::vector<std::unique_ptr<BoundExpression>> arguments,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_expression(std::move(expression)),
+      m_arguments(std::move(arguments)) {}
+
 NodeKind BoundNewExpression::getKind() const {
   return NodeKind::kNewExpression;
 }
@@ -43,6 +50,11 @@ std::shared_ptr<types::Type> BoundNewExpression::getType() const {
 const std::unique_ptr<BoundExpression> &
 BoundNewExpression::getExpression() const {
   return m_expression;
+}
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundNewExpression::getArguments() const {
+  return m_arguments;
 }
 
 } // namespace binding

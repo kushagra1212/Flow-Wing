@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
@@ -29,6 +30,7 @@
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
@@ -52,11 +54,41 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
 
   const auto &function_name = function_identifier->getValue();
 
-  const auto &symbol = m_context->getSymbolTable()->lookup(function_name);
+  std::shared_ptr<analysis::Symbol> symbol;
+  if (m_context->getCurrentClassType()) {
+    auto ct = std::dynamic_pointer_cast<types::ClassType>(
+        m_context->getCurrentClassType());
+    if (ct) {
+      std::vector<std::shared_ptr<types::ParameterType>> visible;
+      for (auto &param : function_statement->getParameters()) {
+        auto *param_expr =
+            static_cast<syntax::ParameterExpressionSyntax *>(param.get());
+        visible.push_back(
+            m_context->getTypeResolver()->resolveParameterExpression(param_expr));
+      }
+      auto fs = ct->resolveMethod(function_name, visible);
+      if (!fs) {
+        auto error_statement = std::make_unique<BoundErrorStatement>(
+            function_identifier->getSourceLocation(),
+            diagnostic::DiagnosticCode::kFunctionNotFound,
+            diagnostic::DiagnosticArgs{function_name});
+        m_context->reportError(error_statement.get());
+        return std::move(error_statement);
+      }
+      symbol = fs;
+    }
+  }
+  if (!symbol)
+    symbol = m_context->getSymbolTable()->lookup(function_name);
 
-  assert(symbol != nullptr && "FunctionStatementBinder::bind: symbol is null");
-  assert(symbol->getKind() == analysis::SymbolKind::kFunction &&
-         "FunctionStatementBinder::bind: symbol is not a function");
+  if (!symbol || symbol->getKind() != analysis::SymbolKind::kFunction) {
+    auto error_statement = std::make_unique<BoundErrorStatement>(
+        function_identifier->getSourceLocation(),
+        diagnostic::DiagnosticCode::kFunctionNotFound,
+        diagnostic::DiagnosticArgs{function_name});
+    m_context->reportError(error_statement.get());
+    return std::move(error_statement);
+  }
 
   auto function_symbol = static_cast<analysis::FunctionSymbol *>(symbol.get());
 
@@ -71,10 +103,14 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
 
   assert(function_type != nullptr &&
          "FunctionStatementBinder::bind: function type is null");
-  assert(function_type->getParameterTypes().size() ==
-             function_statement->getParameters().size() &&
-         "FunctionStatementBinder::bind: number of parameters does not match "
-         "number of parameter types");
+
+  const bool is_member_function =
+      m_context->getCurrentClassType() != nullptr;
+  const size_t syntax_param_count = function_statement->getParameters().size();
+  const size_t type_param_count = function_type->getParameterTypes().size();
+  assert((type_param_count == syntax_param_count ||
+          (is_member_function && type_param_count == syntax_param_count + 1)) &&
+         "FunctionStatementBinder::bind: parameter count mismatch");
 
   size_t param_index = 0;
 
@@ -160,6 +196,21 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
     function_symbol->addParameter(param_symbol);
 
     param_index++;
+  }
+
+  if (is_member_function && type_param_count == syntax_param_count + 1) {
+    auto self_param = std::make_shared<analysis::ParameterSymbol>(
+        "self", function_type->getParameterTypes().back()->type, nullptr);
+    if (!symbol_table->define(self_param)) {
+      auto error_statement = std::make_unique<BoundErrorStatement>(
+          function_statement->getSourceLocation(),
+          diagnostic::DiagnosticCode::kParameterAlreadyDeclared,
+          diagnostic::DiagnosticArgs{"self", function_name});
+      m_context->reportError(error_statement.get());
+      return std::move(error_statement);
+    }
+    function_symbol->addParameter(self_param);
+    function_symbol->setHideTrailingParamsForDisplay(1);
   }
 
   int64_t num_nthg_return_types = 0;

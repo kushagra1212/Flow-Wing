@@ -1,0 +1,14 @@
+class A {
+  var x
+  init(s) {
+    self.x = s
+  }
+}
+
+fun printA(a: A) {
+      println(a.x)
+      a.x = "Hello2"
+  println(a.x)
+}
+
+printA(new A(10))

@@ -19,9 +19,11 @@
 
 #include "DeclarationAnalyzer.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "src/syntax/statements/ExposeStatementSyntax/ExposeStatementSyntax.h"
 
@@ -125,6 +127,9 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::NirastExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::SuperExpressionSyntax *node) {}
+
+void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ObjectExpressionSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
@@ -194,7 +199,33 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::CaseStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
-    [[maybe_unused]] syntax::ClassStatementSyntax *node) {}
+    [[maybe_unused]] syntax::ClassStatementSyntax *node) {
+  auto *name_expr = static_cast<syntax::IdentifierExpressionSyntax *>(
+      node->getClassNameIdentifierExpr().get());
+  const auto &class_name = name_expr->getValue();
+
+  std::shared_ptr<types::ClassType> parent_class_type = nullptr;
+  if (node->getParentClassIdentifierExpr()) {
+    auto &parent_name =
+        static_cast<syntax::IdentifierExpressionSyntax *>(
+            node->getParentClassIdentifierExpr().get())
+            ->getValue();
+    auto parent_sym =
+        m_binder_context.getSymbolTable()->lookup(parent_name);
+    if (parent_sym && parent_sym->getKind() == analysis::SymbolKind::kClass) {
+      parent_class_type =
+          std::dynamic_pointer_cast<types::ClassType>(parent_sym->getType());
+    }
+  }
+
+  auto class_type =
+      std::make_shared<types::ClassType>(class_name, parent_class_type);
+  auto class_symbol = std::make_shared<analysis::Symbol>(
+      class_name, analysis::SymbolKind::kClass, class_type);
+  if (!m_binder_context.getSymbolTable()->define(class_symbol)) {
+    m_binder_context.recordDuplicateClassDeclaration(class_name);
+  }
+}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ContinueStatementSyntax *node) {}

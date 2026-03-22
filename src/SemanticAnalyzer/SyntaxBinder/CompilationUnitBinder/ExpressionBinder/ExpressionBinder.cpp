@@ -34,6 +34,7 @@
 #include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 #include "src/syntax/expression/DimensionClauseExpressionSyntax/DimensionClauseExpressionSyntax.h"
 #include "src/syntax/expression/DoubleLiteralExpressionSyntax/DoubleLiteralExpressionSyntax.h"
+#include "src/syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "src/syntax/expression/FloatLiteralExpressionSyntax/FloatLiteralExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
@@ -43,6 +44,7 @@
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
+#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
@@ -82,6 +84,10 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kIdentifierExpression:
     return bindIdentifierExpression(
         static_cast<syntax::IdentifierExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kSuperExpression:
+    return bindSuperExpression(
+        static_cast<syntax::SuperExpressionSyntax *>(expression));
 
     // ---- Index Expressions ----
   case syntax::NodeKind::kIndexExpression:
@@ -164,6 +170,10 @@ ExpressionBinder::bind(syntax::ExpressionSyntax *expression) {
   case syntax::NodeKind::kDimensionClauseExpression:
     return bindDimensionClauseExpression(
         static_cast<syntax::DimensionClauseExpressionSyntax *>(expression));
+
+  case syntax::NodeKind::kFillExpression:
+    return bindFillExpression(
+        static_cast<syntax::FillExpressionSyntax *>(expression));
 
   default:
     BINDER_DEBUG_LOG("Unexpected expression kind for ExpressionBinder: ",

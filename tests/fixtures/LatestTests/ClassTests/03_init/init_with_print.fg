@@ -1,0 +1,11 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+    print("init called ")
+    println(x)
+  }
+}
+
+var a: A = new A(42)
+println(a.x)

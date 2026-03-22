@@ -44,6 +44,14 @@ bool ScopedSymbolTable::define(std::shared_ptr<Symbol> symbol) {
   return inserted;
 }
 
+bool ScopedSymbolTable::defineInEnclosingScope(std::shared_ptr<Symbol> symbol) {
+  if (m_scope_stack.size() < 2)
+    return false;
+  auto &parent_scope = *m_scope_stack[m_scope_stack.size() - 2];
+  auto [it, inserted] = parent_scope.try_emplace(symbol->getName(), symbol);
+  return inserted;
+}
+
 void ScopedSymbolTable::pushBreakScope() { ++m_break_scope_depth; }
 
 void ScopedSymbolTable::popBreakScope() {

@@ -24,6 +24,7 @@
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
@@ -226,6 +227,13 @@ TypeResolver::resolveObjectType(
                 flow_wing::diagnostic::DiagnosticCode::kCustomTypeNotFound,
                 diagnostic::DiagnosticArgs{
                     syntax->getObjectIdentifier()->getValue()})};
+  }
+
+  if (custom_type_symbol->getKind() == analysis::SymbolKind::kClass) {
+    auto class_type = std::dynamic_pointer_cast<types::ClassType>(
+        custom_type_symbol->getType());
+    assert(class_type && "Class symbol must carry ClassType");
+    return {class_type, nullptr};
   }
 
   auto custom_type_type = std::dynamic_pointer_cast<types::CustomObjectType>(

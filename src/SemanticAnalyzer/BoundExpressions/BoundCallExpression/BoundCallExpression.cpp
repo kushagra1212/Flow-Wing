@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ BoundCallExpression::BoundCallExpression(
     std::vector<std::unique_ptr<BoundExpression>> arguments,
     const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location), m_symbol(symbol),
-      m_arguments(std::move(arguments)) {}
+      m_arguments(std::move(arguments)), m_use_virtual_dispatch(false),
+      m_virtual_slot(0) {}
 
 NodeKind BoundCallExpression::getKind() const {
   return NodeKind::kCallExpression;

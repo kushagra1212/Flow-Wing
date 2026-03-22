@@ -1,0 +1,14 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+  fun doubleX() -> nthg {
+    self.x = self.x * 2
+  }
+}
+
+var a: A = new A(5)
+println(a.x)
+a.doubleX()
+println(a.x)

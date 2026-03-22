@@ -1,0 +1,56 @@
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(arr:Complex[2]) -> nthg {
+    self.arr = arr 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()

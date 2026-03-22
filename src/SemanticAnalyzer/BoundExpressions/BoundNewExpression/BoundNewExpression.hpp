@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include <memory>
+#include <vector>
 
 namespace flow_wing {
 namespace binding {
@@ -30,18 +31,23 @@ class BoundNewExpression : public BoundExpression {
 public:
   BoundNewExpression(std::unique_ptr<BoundExpression> expression,
                      const flow_wing::diagnostic::SourceLocation &location);
+  BoundNewExpression(
+      std::unique_ptr<BoundExpression> expression,
+      std::vector<std::unique_ptr<BoundExpression>> arguments,
+      const flow_wing::diagnostic::SourceLocation &location);
   ~BoundNewExpression() = default;
 
   // Overrides
   NodeKind getKind() const override;
   void accept(visitor::BoundTreeVisitor *visitor) override;
-  // Getters
   std::shared_ptr<types::Type> getType() const override;
 
   const std::unique_ptr<BoundExpression> &getExpression() const;
+  const std::vector<std::unique_ptr<BoundExpression>> &getArguments() const;
 
 private:
   std::unique_ptr<BoundExpression> m_expression;
+  std::vector<std::unique_ptr<BoundExpression>> m_arguments;
 };
 } // namespace binding
 } // namespace flow_wing

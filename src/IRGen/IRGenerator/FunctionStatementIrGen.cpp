@@ -40,7 +40,7 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       function_symbol->getType().get());
 
   auto llvm_function =
-      m_ir_gen_context.getLLVMModule()->getFunction(function_symbol->getName());
+      m_ir_gen_context.getLLVMModule()->getFunction(function_symbol->getMangledName());
 
   assert(llvm_function && "Function not found [BoundFunctionStatement::visit]");
 
@@ -95,7 +95,8 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       const llvm::DataLayout &data_layout =
           m_ir_gen_context.getLLVMModule()->getDataLayout();
 
-      if (param_raw_type->getKind() == types::TypeKind::kObject) {
+      if (param_raw_type->getKind() == types::TypeKind::kObject ||
+          param_raw_type->getKind() == types::TypeKind::kClass) {
         local_copy = m_ir_gen_context.createAlloca(builder->getPtrTy(),
                                                    param_name + "_local");
         llvm::Align alignment =

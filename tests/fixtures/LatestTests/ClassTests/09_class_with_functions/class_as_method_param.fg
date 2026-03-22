@@ -1,0 +1,23 @@
+class B {
+  var val: int
+  fun init(val: int) -> nthg {
+    self.val = val
+  }
+  fun getVal() -> int {
+    return self.val
+  }
+}
+
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+  fun addB(b: B) -> int {
+    return self.x + b.getVal()
+  }
+}
+
+var a: A = new A(10)
+var b: B = new B(32)
+println(a.addB(b))

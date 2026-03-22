@@ -1,0 +1,18 @@
+class Calculator {
+  var result: int
+  fun init() -> nthg {
+    self.result = 0
+  }
+  fun add(a: int, b: int) -> int {
+    self.result = a + b
+    return self.result
+  }
+  fun getResult() -> int {
+    return self.result
+  }
+}
+
+var calc: Calculator = new Calculator()
+var sum: int = calc.add(10, 32)
+println(sum)
+println(calc.getResult())

@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
@@ -46,7 +47,8 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
 
   auto left_type = left_expression->getType();
 
-  if (left_type->getKind() != types::TypeKind::kObject) {
+  if (left_type->getKind() != types::TypeKind::kObject &&
+      left_type->getKind() != types::TypeKind::kClass) {
 
     auto error_expression = std::make_unique<BoundErrorExpression>(
         expression->getLeftExpression()->getSourceLocation(),
@@ -57,27 +59,49 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindMemberAccessExpression(
     return std::move(error_expression);
   }
 
-  auto object_type = static_cast<types::CustomObjectType *>(left_type.get());
-
   auto member_identifier = static_cast<syntax::IdentifierExpressionSyntax *>(
       expression->getRightExpression().get());
   const auto &member_name = member_identifier->getValue();
 
-  const auto &field_type_it = object_type->getFieldTypesMap().find(member_name);
+  std::shared_ptr<types::Type> field_type;
 
-  if (field_type_it == object_type->getFieldTypesMap().end()) {
-
-    auto error_expression = std::make_unique<BoundErrorExpression>(
-        member_identifier->getSourceLocation(),
-        diagnostic::DiagnosticCode::kMemberNotFoundInObject,
-        diagnostic::DiagnosticArgs{member_name, object_type->getName()});
-
-    m_context->reportError(error_expression.get());
-    return std::move(error_expression);
+  if (left_type->getKind() == types::TypeKind::kObject) {
+    auto object_type = static_cast<types::CustomObjectType *>(left_type.get());
+    const auto &field_type_it =
+        object_type->getFieldTypesMap().find(member_name);
+    if (field_type_it == object_type->getFieldTypesMap().end()) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          member_identifier->getSourceLocation(),
+          diagnostic::DiagnosticCode::kMemberNotFoundInObject,
+          diagnostic::DiagnosticArgs{member_name, object_type->getName()});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+    field_type = field_type_it->second;
+  } else {
+    auto class_type = static_cast<types::ClassType *>(left_type.get());
+    auto member_symbol = class_type->lookupField(member_name);
+    if (!member_symbol) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          member_identifier->getSourceLocation(),
+          diagnostic::DiagnosticCode::kMemberNotFoundInObject,
+          diagnostic::DiagnosticArgs{member_name, class_type->getName()});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+    if (member_symbol->getKind() != analysis::SymbolKind::kVariable) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          member_identifier->getSourceLocation(),
+          diagnostic::DiagnosticCode::kMemberNotFoundInObject,
+          diagnostic::DiagnosticArgs{member_name, class_type->getName()});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+    field_type = member_symbol->getType();
   }
 
   return std::make_unique<BoundMemberAccessExpression>(
-      std::move(left_expression), member_name, field_type_it->second,
+      std::move(left_expression), member_name, field_type,
       expression->getSourceLocation());
 
   /*

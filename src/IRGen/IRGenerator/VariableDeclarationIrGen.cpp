@@ -21,6 +21,7 @@
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
+#include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
@@ -61,6 +62,9 @@ void IRGenerator::visit(
         auto *var_type = variable_symbol->getType().get();
         auto *llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
+        if (var_type->getKind() == types::TypeKind::kClass) {
+          llvm_type = llvm_type->getPointerTo();
+        }
         llvm::Value *storage_ptr = nullptr;
 
         if (m_ir_gen_context.isGlobalScope()) {
@@ -96,6 +100,9 @@ void IRGenerator::visit(
       auto *var_type = variable_symbol->getType().get();
       auto *llvm_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
+      if (var_type->getKind() == types::TypeKind::kClass) {
+        llvm_type = llvm_type->getPointerTo();
+      }
       llvm::Value *storage_ptr = nullptr;
 
       if (m_ir_gen_context.isGlobalScope()) {

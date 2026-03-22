@@ -31,6 +31,7 @@ class MemberAccessExpressionSyntax;
 class ModuleAccessExpressionSyntax;
 class NewExpressionSyntax;
 class NirastExpressionSyntax;
+class SuperExpressionSyntax;
 class ObjectExpressionSyntax;
 class ColonExpressionSyntax;
 class ParenthesizedExpressionSyntax;
@@ -104,6 +105,7 @@ public:
   virtual void visit(syntax::ModuleAccessExpressionSyntax *node) = 0;
   virtual void visit(syntax::NewExpressionSyntax *node) = 0;
   virtual void visit(syntax::NirastExpressionSyntax *node) = 0;
+  virtual void visit(syntax::SuperExpressionSyntax *node) = 0;
   virtual void visit(syntax::ObjectExpressionSyntax *node) = 0;
   virtual void visit(syntax::ColonExpressionSyntax *node) = 0;
   virtual void visit(syntax::ParenthesizedExpressionSyntax *node) = 0;

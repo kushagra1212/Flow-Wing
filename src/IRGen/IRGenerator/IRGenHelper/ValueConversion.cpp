@@ -359,6 +359,19 @@ llvm::Value *IRGenerator::getConditionAsBool(llvm::Value *value,
     return builder.CreateNot(builder.CreateIsNull(ptr, "is_null"),
                             "cond_as_bool");
   }
+  if (type->getKind() == types::TypeKind::kClass) {
+    llvm::Value *ptr = ensurePointer(value, type, "cond_class");
+    if (llvm::isa<llvm::AllocaInst>(ptr) ||
+        llvm::isa<llvm::GEPOperator>(ptr) ||
+        llvm::isa<llvm::GlobalVariable>(ptr)) {
+      auto *expected_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(type);
+      ptr = builder.CreateLoad(expected_type->getPointerTo(), ptr,
+                               "load_class_ptr");
+    }
+    return builder.CreateNot(builder.CreateIsNull(ptr, "is_null"),
+                            "cond_as_bool");
+  }
   if (type->getKind() == types::TypeKind::kArray) {
     return builder.getTrue();
   }

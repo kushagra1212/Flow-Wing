@@ -1,0 +1,6 @@
+class A {
+  var x: int
+}
+
+var a: A = new A()
+println(a.x)

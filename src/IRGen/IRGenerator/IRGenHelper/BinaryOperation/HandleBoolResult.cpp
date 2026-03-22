@@ -35,11 +35,25 @@ llvm::Value *IRGenerator::getEqualityComparisonBoolResult(
 
   if (left_type->getKind() == types::TypeKind::kClass &&
       right_type == analysis::Builtins::m_nirast_type_instance.get()) {
-    assert(false && "Unsupported equality comparison");
+    llvm::Value *ptr = ensurePointer(left_value, left_type, "class_eq");
+    auto *ptr_ty = llvm::cast<llvm::PointerType>(ptr->getType());
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        ptr, llvm::ConstantPointerNull::get(ptr_ty), "class_eq_nir");
   }
   if (left_type == analysis::Builtins::m_nirast_type_instance.get() &&
       right_type->getKind() == types::TypeKind::kClass) {
-    assert(false && "Unsupported equality comparison");
+    llvm::Value *ptr = ensurePointer(right_value, right_type, "class_eq");
+    auto *ptr_ty = llvm::cast<llvm::PointerType>(ptr->getType());
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        ptr, llvm::ConstantPointerNull::get(ptr_ty), "nir_eq_class");
+  }
+  if (left_type->getKind() == types::TypeKind::kClass &&
+      right_type->getKind() == types::TypeKind::kClass) {
+    llvm::Value *left_ptr = ensurePointer(left_value, left_type, "class_eq_l");
+    llvm::Value *right_ptr =
+        ensurePointer(right_value, right_type, "class_eq_r");
+    return m_ir_gen_context.getLLVMBuilder()->CreateICmpEQ(
+        left_ptr, right_ptr, "class_ref_eq");
   }
 
   if (left_type->isDynamic() || right_type->isDynamic()) {

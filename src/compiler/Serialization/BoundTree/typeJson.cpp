@@ -17,11 +17,40 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/common/Symbol/Symbol.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
+#include <map>
+#include <string>
 
 namespace flow_wing::compiler::serializer {
+
+void BoundTreeJson::collectInstanceFieldsFlat(
+    const types::ClassType *class_type,
+    std::map<std::string, std::string> &name_to_type_id) {
+  if (class_type->getBaseClass()) {
+    collectInstanceFieldsFlat(class_type->getBaseClass().get(), name_to_type_id);
+  }
+  for (const auto &[name, sym] : class_type->getFieldMembers()) {
+    if (sym->getKind() == analysis::SymbolKind::kVariable) {
+      name_to_type_id[name] = getTypeId(sym->getType().get());
+    }
+  }
+}
+
+void BoundTreeJson::collectMethodsFlat(
+    const types::ClassType *class_type,
+    std::map<std::string, std::string> &name_to_type_id) {
+  if (class_type->getBaseClass()) {
+    collectMethodsFlat(class_type->getBaseClass().get(), name_to_type_id);
+  }
+  class_type->forEachFunctionMember(
+      [&](const std::shared_ptr<analysis::Symbol> &sym) {
+        name_to_type_id[sym->getName()] = getTypeId(sym->getType().get());
+      });
+}
 
 std::string
 BoundTreeJson::getTypeId(const types::ParameterType *parameter_type) {
@@ -56,6 +85,16 @@ std::string BoundTreeJson::getTypeId(const types::ReturnType *return_type) {
 }
 
 std::string BoundTreeJson::getTypeId(const types::Type *type) {
+  switch (type->getKind()) {
+  case types::TypeKind::kFunction:
+    return getTypeId(static_cast<const types::FunctionType *>(type));
+  case types::TypeKind::kArray:
+    return getTypeId(static_cast<const types::ArrayType *>(type));
+  case types::TypeKind::kClass:
+    return getTypeId(static_cast<const types::ClassType *>(type));
+  default:
+    break;
+  }
   PARSER_DEBUG_LOG("Visiting Type", "BOUND TREE");
   nlohmann::json type_json;
   type_json["kind"] = types::Type::toString(type->getKind());
@@ -64,6 +103,46 @@ std::string BoundTreeJson::getTypeId(const types::Type *type) {
   const auto &type_id = getShortId(type);
 
   m_types_json[type_id] = type_json;
+
+  return type_id;
+}
+
+std::string BoundTreeJson::getTypeId(const types::ClassType *class_type) {
+  PARSER_DEBUG_LOG("Visiting Class Type", "BOUND TREE");
+  std::string type_id = getShortId(class_type);
+  // Methods/parameters may reference this class type (e.g. implicit self); register
+  // early so recursive getTypeId(class_type) returns without re-entering.
+  if (m_types_json.contains(type_id)) {
+    return type_id;
+  }
+  m_types_json[type_id] = nlohmann::json{{"kind", types::Type::toString(class_type->getKind())},
+                                          {"name", class_type->getName()}};
+
+  nlohmann::json type_json;
+  type_json["kind"] = types::Type::toString(class_type->getKind());
+  type_json["name"] = class_type->getName();
+  if (class_type->getBaseClass()) {
+    type_json["base_class_type_id"] =
+        getTypeId(class_type->getBaseClass().get());
+  }
+  std::map<std::string, std::string> fields_flat;
+  collectInstanceFieldsFlat(class_type, fields_flat);
+  for (const auto &[name, tid] : fields_flat) {
+    nlohmann::json mf;
+    mf["name"] = name;
+    mf["type_id"] = tid;
+    type_json["member_fields"].push_back(mf);
+  }
+  std::map<std::string, std::string> methods_flat;
+  collectMethodsFlat(class_type, methods_flat);
+  for (const auto &[name, tid] : methods_flat) {
+    nlohmann::json mo;
+    mo["name"] = name;
+    mo["type_id"] = tid;
+    type_json["methods"].push_back(mo);
+  }
+
+  m_types_json[type_id] = std::move(type_json);
 
   return type_id;
 }

@@ -100,6 +100,7 @@ const std::string &toString(TokenKind kind) {
       {TokenKind::kNthgKeyword, "NthgKeyword"},
       {TokenKind::kNirastKeyword, "NirastKeyword"},
       {TokenKind::kBringKeyword, "BringKeyword"},
+      {TokenKind::kSuperKeyword, "SuperKeyword"},
       {TokenKind::kInt32Keyword, "Int32Keyword"},
       {TokenKind::kInt64Keyword, "Int64Keyword"},
       {TokenKind::kInt8Keyword, "Int8Keyword"},

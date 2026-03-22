@@ -20,6 +20,8 @@
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/Symbol/Symbol.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/utils/LogConfig.h"
@@ -142,7 +144,13 @@ llvm::StructType *LLVMTypeBuilder::createOrGetStructType(
 
   std::vector<llvm::Type *> elements;
   for (const auto &type : types) {
-    elements.push_back(getLLVMType(type));
+    auto *llvm_ty = getLLVMType(type);
+    if (type->getKind() == types::TypeKind::kClass ||
+        type->getKind() == types::TypeKind::kObject) {
+      elements.push_back(llvm_ty->getPointerTo());
+    } else {
+      elements.push_back(llvm_ty);
+    }
   }
 
   struct_type->setBody(elements);
@@ -221,11 +229,50 @@ llvm::Type *LLVMTypeBuilder::convertArray(const types::ArrayType *type) {
 }
 
 llvm::Type *LLVMTypeBuilder::convertClass(
-    [[maybe_unused]] const types::ClassType *classType) {
+    const types::ClassType *classType) {
 
-  // Todo(kushagra): Implement this
-  assert(false && "Class type conversion not implemented");
-  return nullptr;
+  if (m_type_cache.find(classType) != m_type_cache.end()) {
+    return m_type_cache[classType];
+  }
+
+  llvm::StructType *struct_type =
+      llvm::StructType::create(m_context, classType->getName());
+  m_type_cache[classType] = struct_type;
+
+  std::vector<llvm::Type *> elements;
+
+  if (classType->getBaseClass()) {
+    llvm::Type *base_llvm = convertClass(classType->getBaseClass().get());
+    auto *base_struct = llvm::cast<llvm::StructType>(base_llvm);
+    for (unsigned i = 0, n = base_struct->getNumElements(); i < n; ++i) {
+      elements.push_back(base_struct->getElementType(i));
+    }
+  } else {
+    // Hidden vtable pointer (opaque i8*) at offset 0 for dynamic dispatch.
+    elements.push_back(llvm::Type::getInt8PtrTy(m_context));
+  }
+
+  for (const auto &[name, symbol] : classType->getFieldMembers()) {
+    if (symbol->getKind() != analysis::SymbolKind::kVariable)
+      continue;
+    auto member_type = symbol->getType();
+    llvm::Type *elem_llvm = getLLVMType(member_type.get());
+    if (!elem_llvm) {
+      assert(false && "Class member type has no LLVM type");
+      continue;
+    }
+    if (member_type->getKind() == types::TypeKind::kObject ||
+        member_type->getKind() == types::TypeKind::kClass) {
+      elements.push_back(elem_llvm->getPointerTo());
+    } else {
+      elements.push_back(elem_llvm);
+    }
+  }
+
+  struct_type->setBody(elements);
+  CODEGEN_DEBUG_LOG("Building Class Type", classType->getName(),
+                    struct_type->getStructName().str());
+  return struct_type;
 }
 } // namespace ir_gen
 

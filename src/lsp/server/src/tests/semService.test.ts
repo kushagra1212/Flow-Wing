@@ -148,6 +148,22 @@ describe("semService", () => {
       );
     });
 
+    it("class member method: completion detail omits implicit trailing self parameter", () => {
+      const parsed = loadFixture("sem-class-member-method.json");
+      const items = getCompletionItemsFromSem(
+        parsed as Parameters<typeof getCompletionItemsFromSem>[0],
+        "m",
+        false,
+        "file:///test.fg"
+      );
+      const mItem = items.find((i) => i.label === "m");
+      assert.exists(mItem);
+      const doc = (mItem!.documentation as { value?: string }).value ?? "";
+      assert.include(doc, "m(x: int)");
+      assert.notInclude(doc, "self");
+      assert.notInclude(doc, "self: A");
+    });
+
     it("after comma in function call: empty prefix returns completions (funName(1,))", () => {
       const parsed = loadFixture("sem-dynamic-printed.json");
       const items = getCompletionItemsFromSem(
@@ -162,6 +178,46 @@ describe("semService", () => {
       assert.include(labels, "println", "should suggest println");
       assert.include(labels, "num", "should suggest user function num");
       assert.include(labels, "x", "should suggest user variable x");
+    });
+
+    it("class instance: dot completion lists fields and methods from Class sem type", () => {
+      const parsed = {
+        sem: {
+          tree: {},
+          symbols: {
+            "0xv": { kind: "Variable", name: "dog", type_id: "0xDog" },
+          },
+          types: {
+            "0xDog": {
+              kind: "Class",
+              name: "Dog",
+              member_fields: [
+                { name: "breed", type_id: "0xstr" },
+                { name: "age", type_id: "0xint" },
+              ],
+              methods: [{ name: "getAge", type_id: "0xf" }],
+            },
+            "0xstr": { kind: "Primitive", name: "str" },
+            "0xint": { kind: "Primitive", name: "int" },
+            "0xf": {
+              kind: "Function",
+              name: "",
+              parameter_type_ids: [],
+              return_type_ids: ["0xint"],
+            },
+          },
+        },
+      };
+      const items = getCompletionItemsFromSem(
+        parsed as Parameters<typeof getCompletionItemsFromSem>[0],
+        "dog",
+        true,
+        "file:///test.fg"
+      );
+      const labels = items.map((i) => i.label);
+      assert.include(labels, "breed");
+      assert.include(labels, "age");
+      assert.include(labels, "getAge");
     });
   });
 
@@ -194,6 +250,34 @@ describe("semService", () => {
   });
 
   describe("getHoverFromSem", () => {
+    it("resolves hover type for class member path (dog.age)", () => {
+      const parsed = {
+        sem: {
+          tree: {},
+          symbols: {
+            "0xv": { kind: "Variable", name: "dog", type_id: "0xDog" },
+          },
+          types: {
+            "0xDog": {
+              kind: "Class",
+              name: "Dog",
+              member_fields: [{ name: "age", type_id: "0xint" }],
+              methods: [],
+            },
+            "0xint": { kind: "Primitive", name: "int" },
+          },
+        },
+      };
+      const hover = getHoverFromSem(
+        parsed as Parameters<typeof getHoverFromSem>[0],
+        Position.create(0, 0),
+        undefined,
+        "dog.age"
+      );
+      assert.exists(hover);
+      assert.include((hover as { value: string }).value, "int");
+    });
+
     it("returns hover for variable", () => {
       const parsed = loadFixture("sem-dynamic-printed.json");
       const hover = getHoverFromSem(

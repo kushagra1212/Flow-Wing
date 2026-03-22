@@ -43,7 +43,8 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
 
     llvm::Value *val;
     if (target_type->getKind() == types::TypeKind::kObject ||
-        target_type->getKind() == types::TypeKind::kArray) {
+        target_type->getKind() == types::TypeKind::kArray ||
+        target_type->getKind() == types::TypeKind::kClass) {
       val = m_last_value;
     } else {
       val = resolveValue(m_last_value, m_last_type);
@@ -72,7 +73,8 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
 
       llvm::Value *val;
       if (target_types[i]->getKind() == types::TypeKind::kObject ||
-          target_types[i]->getKind() == types::TypeKind::kArray) {
+          target_types[i]->getKind() == types::TypeKind::kArray ||
+          target_types[i]->getKind() == types::TypeKind::kClass) {
         val = return_values[i];
       } else {
         val = resolveValue(return_values[i], return_types[i]);

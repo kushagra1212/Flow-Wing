@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: MemberAccessOnNonObjectVariable
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+fun getA() -> A {
+  return new A(8)
+}
+var d = getA()
+println(d.x)

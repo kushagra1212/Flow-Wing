@@ -105,6 +105,8 @@ enum class DiagnosticCode : int16_t {
   kMemberFunctionOfClassAlreadyDeclared,
   kSuperCallOutsideConstructor,
   kInvalidInitFunctionCall,
+  kNewExpressionConstructorArgumentCountMismatch,
+  kNewExpressionConstructorArgumentTypeMismatch,
 
   // --- Module & Import Errors ---
   kModuleNotFound,

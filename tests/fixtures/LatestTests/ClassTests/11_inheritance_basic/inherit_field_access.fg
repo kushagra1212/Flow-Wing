@@ -1,0 +1,22 @@
+class Animal {
+  var name: str
+  var age: int
+  fun init(name: str, age: int) -> nthg {
+    self.name = name
+    self.age = age
+  }
+}
+
+class Dog extends Animal {
+  var breed: str
+  fun init(name: str, age: int, breed: str) -> nthg {
+    self.name = name
+    self.age = age
+    self.breed = breed
+  }
+}
+
+var d: Dog = new Dog("Rex", 5, "Labrador")
+println(d.name)
+println(d.age)
+println(d.breed)

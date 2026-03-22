@@ -23,6 +23,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/utils/LogConfig.h"
@@ -186,10 +187,17 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(switch_statement_json);
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundClassStatement *class_statement) {
+void BoundTreeJson::visit(binding::BoundClassStatement *class_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Class Statement", "BOUND TREE");
-  assert(false && "Class statement not supported");
+  nlohmann::json class_statement_json;
+  class_statement_json["kind"] = toString(class_statement->getKind());
+  class_statement_json["class_symbol_id"] =
+      getSymbolId(class_statement->getClassSymbol().get());
+  serializeArray(class_statement->getClassMemberStatements(),
+                 class_statement_json, "class_member_statements");
+  class_statement_json["range"] =
+      toJsonRange(class_statement->getSourceLocation());
+  m_last_node_json = std::move(class_statement_json);
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundIdentifierExpression

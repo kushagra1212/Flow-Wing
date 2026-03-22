@@ -21,15 +21,20 @@
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
+#include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
 
 namespace flow_wing {
 namespace ir_gen {
@@ -68,7 +73,8 @@ void GlobalDeclarationsInitializer::declareFunctions(
             llvm_function_type,
             function_type->isExternal() ? llvm::Function::ExternalLinkage
                                         : llvm::Function::InternalLinkage,
-            function_symbol->getName(), m_ir_gen_context.getLLVMModule());
+            function_symbol->getMangledName(),
+            m_ir_gen_context.getLLVMModule());
 
         if (!is_return_by_reference) {
           size_t arg_idx = 0;
@@ -134,13 +140,16 @@ void GlobalDeclarationsInitializer::visit(
     // Already handled in SemanticAnalyzer
     bool is_llvm_constant = false;
 
-    llvm::Constant *default_value =
-        m_ir_gen_context.getDefaultValue(variable_type, true);
+    llvm::Constant *default_value = nullptr;
 
     if (variable_type->getKind() == types::TypeKind::kObject ||
-        variable_type->getKind() == types::TypeKind::kArray) {
+        variable_type->getKind() == types::TypeKind::kArray ||
+        variable_type->getKind() == types::TypeKind::kClass) {
       llvm_type = llvm_type->getPointerTo();
-      default_value = llvm::ConstantPointerNull::get(llvm_type->getPointerTo());
+      default_value = llvm::ConstantPointerNull::get(
+          llvm::cast<llvm::PointerType>(llvm_type));
+    } else {
+      default_value = m_ir_gen_context.getDefaultValue(variable_type, true);
     }
 
     auto globalVar = new llvm::GlobalVariable(
@@ -183,7 +192,47 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {}
 void GlobalDeclarationsInitializer::visit(
-    [[maybe_unused]] binding::BoundClassStatement *class_statement) {}
+    [[maybe_unused]] binding::BoundClassStatement *class_statement) {
+  auto class_type = std::static_pointer_cast<types::ClassType>(
+      class_statement->getClassSymbol()->getType());
+
+  (void)m_ir_gen_context.getTypeBuilder()->getLLVMType(class_type.get());
+
+  class_type->forEachFunctionMember(
+      [&](const std::shared_ptr<analysis::Symbol> &symbol) {
+        auto *function_symbol =
+            static_cast<const analysis::FunctionSymbol *>(symbol.get());
+        auto *function_type = static_cast<const types::FunctionType *>(
+            function_symbol->getType().get());
+
+        auto *llvm_function_type =
+            m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
+
+        llvm::Function::Create(llvm_function_type,
+                               llvm::Function::InternalLinkage,
+                               function_symbol->getMangledName(),
+                               m_ir_gen_context.getLLVMModule());
+      });
+
+  llvm::Module *module = m_ir_gen_context.getLLVMModule();
+  llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
+  llvm::Type *i8p = llvm::Type::getInt8PtrTy(ctx);
+  const auto &vtable = class_type->getVtableEntries();
+  std::vector<llvm::Constant *> elems;
+  elems.reserve(vtable.size());
+  for (const auto &sym : vtable) {
+    llvm::Function *fn = module->getFunction(sym->getMangledName());
+    assert(fn && "vtable entry: LLVM function must exist");
+    elems.push_back(llvm::ConstantExpr::getBitCast(fn, i8p));
+  }
+  llvm::ArrayType *arr_ty = llvm::ArrayType::get(i8p, elems.size());
+  llvm::Constant *init = elems.empty()
+                             ? llvm::ConstantAggregateZero::get(arr_ty)
+                             : llvm::ConstantArray::get(arr_ty, elems);
+  new llvm::GlobalVariable(*module, arr_ty, true,
+                           llvm::GlobalValue::PrivateLinkage, init,
+                           "__vt_" + class_type->getName());
+}
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundIdentifierExpression
         *identifier_expression) {}

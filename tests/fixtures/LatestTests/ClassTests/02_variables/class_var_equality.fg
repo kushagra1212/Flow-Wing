@@ -1,0 +1,9 @@
+class A {
+  var x: int
+}
+
+var a: A = new A()
+var b: A = new A()
+println(a == a)
+println(a == b)
+println(a != b)
