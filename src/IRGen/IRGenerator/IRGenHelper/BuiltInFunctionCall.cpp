@@ -116,7 +116,7 @@ llvm::Function *IRGenerator::getOrCreateArrayPrinter(types::ArrayType *type) {
       builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
 
   llvm::Function *printer_fn = llvm::Function::Create(
-      fn_type, llvm::Function::ExternalLinkage, func_name, mod);
+      fn_type, llvm::Function::LinkOnceODRLinkage, func_name, mod);
 
   auto prev_block = builder->GetInsertBlock();
   auto prev_insert_point = builder->GetInsertPoint();
@@ -247,7 +247,7 @@ IRGenerator::getOrCreateObjectPrinter(types::CustomObjectType *type) {
       builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
 
   llvm::Function *printer_fn = llvm::Function::Create(
-      fn_type, llvm::Function::ExternalLinkage, func_name, mod);
+      fn_type, llvm::Function::LinkOnceODRLinkage, func_name, mod);
 
   auto prev_block = builder->GetInsertBlock();
   auto prev_insert_point = builder->GetInsertPoint();

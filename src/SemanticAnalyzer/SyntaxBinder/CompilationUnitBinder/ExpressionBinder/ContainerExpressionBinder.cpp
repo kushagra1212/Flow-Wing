@@ -28,6 +28,7 @@
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 #include <cassert>
+#include <vector>
 namespace flow_wing {
 namespace binding {
 std::unique_ptr<BoundExpression> ExpressionBinder::bindContainerExpression(
@@ -56,6 +57,44 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindContainerExpression(
 
     if (element->getExpression()->getKind() == NodeKind::kErrorExpression) {
       return std::move(element->getExpression());
+    }
+  }
+
+  // When a fixed 1-D array type is expected (e.g. field `b: TB[2]`), pad
+  // missing indices with default values so slots are not left null at runtime.
+  {
+    const diagnostic::SourceLocation loc = expression->getSourceLocation();
+    if (auto expected = m_context->peekExpectedType()) {
+      if (expected->getKind() == types::TypeKind::kArray) {
+        auto *expected_arr = static_cast<types::ArrayType *>(expected.get());
+        const auto &dims = expected_arr->getDimensions();
+        if (dims.size() == 1) {
+          const size_t need = dims[0];
+          if (need > 0) {
+            auto underlying = expected_arr->getUnderlyingType();
+            std::vector<char> seen(need, 0);
+            for (const auto &el : elements) {
+              const auto &ix = el->getIndices();
+              if (ix.size() == 1 && ix[0] < need) {
+                seen[ix[0]] = 1;
+              }
+            }
+            for (size_t i = 0; i < need; ++i) {
+              if (seen[i])
+                continue;
+              auto def = BinderContext::createDefaultValueExpression(
+                  underlying.get(), loc);
+              if (def->getKind() == NodeKind::kErrorExpression) {
+                return def;
+              }
+              auto elem = std::make_unique<BoundContainerExpressionElement>(
+                  std::move(def));
+              elem->addIndex(i);
+              elements.push_back(std::move(elem));
+            }
+          }
+        }
+      }
     }
   }
 

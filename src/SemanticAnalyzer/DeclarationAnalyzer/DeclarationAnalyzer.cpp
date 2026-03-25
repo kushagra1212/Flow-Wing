@@ -18,14 +18,20 @@
  */
 
 #include "DeclarationAnalyzer.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/common/Symbol/ModuleSymbol.hpp"
+#include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "src/syntax/statements/ExposeStatementSyntax/ExposeStatementSyntax.h"
+#include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 
 namespace flow_wing {
 namespace analysis {
@@ -46,8 +52,19 @@ void analysis::DeclarationAnalyzer::visit(syntax::CompilationUnitSyntax *node) {
 }
 
 void analysis::DeclarationAnalyzer::visit(syntax::ExposeStatementSyntax *node) {
-  if (node->getStatement()->getKind() == syntax::NodeKind::kFunctionStatement) {
-    node->getStatement()->accept(this);
+  // Keep in sync with ExposeStatementBinder: analyze wrapped declarations so
+  // symbol tables / class metadata match what binding expects (expose class was
+  // previously skipped, which could leave inconsistent state and crash IR/sem).
+  auto *inner = node->getStatement().get();
+  switch (inner->getKind()) {
+  case syntax::NodeKind::kFunctionStatement:
+  case syntax::NodeKind::kClassStatement:
+  case syntax::NodeKind::kVariableDeclaration:
+  case syntax::NodeKind::kCustomTypeStatement:
+    inner->accept(this);
+    break;
+  default:
+    break;
   }
 }
 
@@ -242,8 +259,42 @@ void analysis::DeclarationAnalyzer::visit(
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::IfStatementSyntax *node) {}
 
-void analysis::DeclarationAnalyzer::visit(
-    [[maybe_unused]] syntax::ModuleStatementSyntax *node) {}
+void analysis::DeclarationAnalyzer::visit(syntax::ModuleStatementSyntax *node) {
+  auto *name_expr = static_cast<syntax::IdentifierExpressionSyntax *>(
+      node->getModuleNameExpression().get());
+  const std::string &module_name = name_expr->getValue();
+
+  auto module_table = std::make_shared<analysis::ScopedSymbolTable>();
+  analysis::Builtins::registerIntoSymbolTable(module_table);
+
+  auto module_symbol =
+      std::make_shared<analysis::ModuleSymbol>(module_name, module_table);
+
+  if (!m_binder_context.getSymbolTable()->define(module_symbol)) {
+    m_binder_context.reportError(
+        flow_wing::diagnostic::DiagnosticCode::kModuleAlreadyDeclared,
+        {module_name}, name_expr->getSourceLocation());
+    return;
+  }
+
+  // Allow qualified access `m::name` from inside this module (module name
+  // resolves in the module's symbol table).
+  if (!module_table->define(module_symbol)) {
+    m_binder_context.reportError(
+        flow_wing::diagnostic::DiagnosticCode::kModuleAlreadyDeclared,
+        {module_name}, name_expr->getSourceLocation());
+    return;
+  }
+
+  auto saved = m_binder_context.getSymbolTable();
+  m_binder_context.switchSymbolTable(module_table);
+  m_binder_context.pushModuleScope(module_name);
+  for (const auto &stmt : node->getModuleMemberStatements()) {
+    stmt->accept(this);
+  }
+  m_binder_context.popModuleScope();
+  m_binder_context.switchSymbolTable(saved);
+}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::OrIfStatementSyntax *node) {}

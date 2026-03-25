@@ -20,6 +20,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/Symbol.hpp"
+#include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 
@@ -49,10 +50,16 @@ std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
 }
 
 std::string BoundTreeJson::getSymbolId(
-    [[maybe_unused]] const analysis::ModuleSymbol *module_symbol) {
+    const analysis::ModuleSymbol *module_symbol) {
   PARSER_DEBUG_LOG("Visiting Module Symbol", "BOUND TREE");
-  assert(false && "Module Symbol not implemented");
-  return "Unknown Symbol Kind";
+  nlohmann::json module_symbol_json;
+  module_symbol_json["kind"] =
+      analysis::Symbol::toString(module_symbol->getKind());
+  module_symbol_json["name"] = module_symbol->getName();
+  module_symbol_json["type_id"] = getTypeId(module_symbol->getType().get());
+  const auto &symbol_id = getShortId(module_symbol);
+  m_symbols_json[symbol_id] = module_symbol_json;
+  return symbol_id;
 }
 
 std::string

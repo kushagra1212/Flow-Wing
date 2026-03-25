@@ -1,0 +1,1 @@
+2{ a: 0, b: [ { s: "" }, { s: "" } ] }[ { a: 0, b: [ { s: "" }, { s: "" } ] }, { a: 0, b: [ { s: "" }, { s: "" } ] } ]Printing af { a: 0, b: [ { s: "Hello" }, { s: "" } ] }Printing k { a: 0, b: [ { s: "" }, { s: "" } ] }Print local x88print p { a: 2, b: [ { s: "" }, { s: "" } ] }{ a: 0, b: [ { s: "" }, { s: "" } ] }

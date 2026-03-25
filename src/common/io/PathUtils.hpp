@@ -80,7 +80,21 @@ public:
       return exePath.parent_path().parent_path() / "Resources";
     }
 #endif
-    // In our SDK, this will resolve to 'build/sdk/bin/../lib/Darwin-arm64'
+    // Dev tree: compiler at e.g. build/FlowWing with SDK at build/sdk/lib/...
+    const std::filesystem::path dev_sdk_lib =
+        exePath.parent_path() / "sdk" / FLOWWING_PLATFORM_LIB_DIR;
+    if (std::filesystem::exists(dev_sdk_lib)) {
+      return dev_sdk_lib;
+    }
+    // Preset build dir (e.g. build/aot-release/FlowWing): libraries are staged
+    // under sibling build/sdk/lib/... after `cmake --install`, not under
+    // build/aot-release/sdk/...
+    const std::filesystem::path sibling_sdk =
+        exePath.parent_path().parent_path() / "sdk" / FLOWWING_PLATFORM_LIB_DIR;
+    if (std::filesystem::exists(sibling_sdk)) {
+      return sibling_sdk;
+    }
+    // Installed layout: <prefix>/bin/flowwing -> <prefix>/lib/<platform>
     return exePath.parent_path().parent_path() / FLOWWING_PLATFORM_LIB_DIR;
   }
 

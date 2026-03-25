@@ -31,8 +31,11 @@ class BreakStatementSyntax;
 class ContinueStatementSyntax;
 // -- Return Statement --
 class ReturnStatementSyntax;
-// -- Bring Statement --
+// -- Switch Statement --
 class SwitchStatementSyntax;
+// -- Bring / Module --
+class BringStatementSyntax;
+class ModuleStatementSyntax;
 // -- Class Statement --
 class ClassStatementSyntax;
 // -- Expression Statement --
@@ -93,9 +96,15 @@ private:
   std::unique_ptr<BoundStatement>
   bindReturnStatement(syntax::ReturnStatementSyntax *statement);
 
-  // -- Bring Statement --
+  // -- Switch Statement --
   std::unique_ptr<BoundStatement>
   bindSwitchStatement(syntax::SwitchStatementSyntax *statement);
+
+  std::unique_ptr<BoundStatement>
+  bindBringStatement(syntax::BringStatementSyntax *statement);
+
+  std::unique_ptr<BoundStatement>
+  bindModuleStatement(syntax::ModuleStatementSyntax *statement);
 
   // -- Class Statement --
   std::unique_ptr<BoundStatement>

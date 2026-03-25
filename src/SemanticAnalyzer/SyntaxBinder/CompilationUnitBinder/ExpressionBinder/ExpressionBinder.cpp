@@ -19,6 +19,7 @@
 
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -207,6 +208,51 @@ ExpressionBinder::bindExpressionList(syntax::ExpressionSyntax *expression) {
   // First item in the list
   expressions.insert(expressions.begin(), bind(expression));
   return expressions;
+}
+
+std::vector<syntax::ExpressionSyntax *>
+ExpressionBinder::flattenCommaExpressionList(
+    syntax::ExpressionSyntax *expression) {
+  assert(expression != nullptr &&
+         "ExpressionBinder::flattenCommaExpressionList: expression is null");
+  std::vector<syntax::ExpressionSyntax *> parts;
+  while (expression->getKind() == syntax::NodeKind::kBinaryExpression) {
+    auto *binary_expr =
+        static_cast<syntax::BinaryExpressionSyntax *>(expression);
+    if (binary_expr->getOperatorToken()->getTokenKind() ==
+        lexer::TokenKind::kCommaToken) {
+      parts.insert(parts.begin(), binary_expr->getRight().get());
+      expression = binary_expr->getLeft().get();
+    } else {
+      break;
+    }
+  }
+  parts.insert(parts.begin(), expression);
+  return parts;
+}
+
+std::vector<std::unique_ptr<BoundExpression>>
+ExpressionBinder::bindCallArgumentList(
+    syntax::ExpressionSyntax *argument_expression,
+    const std::vector<std::shared_ptr<types::ParameterType>> &param_types) {
+  assert(argument_expression != nullptr &&
+         "ExpressionBinder::bindCallArgumentList: argument_expression is null");
+  std::vector<std::unique_ptr<BoundExpression>> out;
+  auto flat = flattenCommaExpressionList(argument_expression);
+  out.reserve(flat.size());
+  for (size_t i = 0; i < flat.size(); ++i) {
+    auto *syn = flat[i];
+    if (i < param_types.size() && param_types[i] &&
+        param_types[i]->type->getKind() == types::TypeKind::kObject &&
+        syn->getKind() == syntax::NodeKind::kObjectExpression) {
+      out.push_back(bindObjectExpression(
+          static_cast<syntax::ObjectExpressionSyntax *>(syn),
+          param_types[i]->type));
+    } else {
+      out.push_back(bind(syn));
+    }
+  }
+  return out;
 }
 
 std::pair<bool, std::shared_ptr<types::Type>>

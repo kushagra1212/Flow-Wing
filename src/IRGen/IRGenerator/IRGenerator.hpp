@@ -13,6 +13,9 @@ namespace flow_wing {
 namespace types {
 class ClassType;
 }
+namespace binding {
+class BoundModuleStatement;
+}
 namespace ir_gen {
 
 class IRGenerator : public visitor::BoundTreeVisitor {
@@ -35,6 +38,7 @@ public:
   void visit(binding::BoundReturnStatement *return_statement) override;
   void visit(binding::BoundSwitchStatement *switch_statement) override;
   void visit(binding::BoundClassStatement *class_statement) override;
+  void visit(binding::BoundModuleStatement *module_statement) override;
   void
   visit(binding::BoundIdentifierExpression *identifier_expression) override;
   void visit(binding::BoundIndexExpression *index_expression) override;

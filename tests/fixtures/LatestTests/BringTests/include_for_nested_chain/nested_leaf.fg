@@ -1,0 +1,2 @@
+var nested_leaf_val: int = 7
+println(nested_leaf_val)

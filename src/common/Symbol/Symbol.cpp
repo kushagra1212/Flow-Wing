@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,8 @@ namespace analysis {
 
 Symbol::Symbol(std::string name, SymbolKind kind,
                std::shared_ptr<types::Type> type)
-    : m_name(std::move(name)), m_kind(kind), m_type(std::move(type)) {
+    : m_name(std::move(name)), m_kind(kind), m_is_exposed(false),
+      m_type(std::move(type)) {
   BINDER_DEBUG_LOG("Creating Symbol: " + getName(), "Symbol", toString(kind));
 }
 
@@ -56,12 +57,17 @@ std::string Symbol::toString(SymbolKind kind) {
 
 void Symbol::setIsExposed(bool is_exposed) const { m_is_exposed = is_exposed; }
 
+void Symbol::setImportedViaBring(bool imported) const {
+  m_imported_via_bring = imported;
+}
+
 // Getters
 
 SymbolKind Symbol::getKind() const { return m_kind; }
 const std::string &Symbol::getName() const { return m_name; }
 std::shared_ptr<types::Type> Symbol::getType() const { return m_type; }
 bool Symbol::isExposed() const { return m_is_exposed; }
+bool Symbol::isImportedViaBring() const { return m_imported_via_bring; }
 
 } // namespace analysis
 } // namespace flow_wing

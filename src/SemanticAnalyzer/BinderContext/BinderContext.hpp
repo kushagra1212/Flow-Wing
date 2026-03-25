@@ -46,6 +46,7 @@ public:
   switchSymbolTable(std::shared_ptr<analysis::ScopedSymbolTable> symbol_table);
 
   // Getters
+  CompilationContext &getCompilationContext();
   const CompilationContext &getCompilationContext() const;
   const std::shared_ptr<analysis::ScopedSymbolTable> &getSymbolTable() const;
   const std::unique_ptr<analysis::TypeResolver> &getTypeResolver() const;
@@ -64,6 +65,13 @@ public:
   void recordDuplicateClassDeclaration(const std::string &class_name);
   bool isDuplicateClassDeclaration(const std::string &class_name) const;
 
+  /// While analyzing `module [name] { ... }`, functions get a distinct LLVM
+  /// symbol (e.g. `local_fw_main`) so they cannot collide with the program
+  /// entry `@main` when linking AOT TUs.
+  void pushModuleScope(const std::string &module_name);
+  void popModuleScope();
+  const std::string *peekModuleName() const;
+
 private:
   CompilationContext &m_context;
   std::unique_ptr<analysis::TypeResolver> m_type_resolver;
@@ -71,6 +79,7 @@ private:
   std::shared_ptr<types::Type> m_current_class_type;
   std::vector<std::shared_ptr<types::Type>> m_expected_type_stack;
   std::unordered_set<std::string> m_duplicate_class_declarations;
+  std::vector<std::string> m_module_name_stack;
 };
 } // namespace binding
 } // namespace flow_wing

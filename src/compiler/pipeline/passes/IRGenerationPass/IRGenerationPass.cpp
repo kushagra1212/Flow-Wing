@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,58 @@
 
 #include "IRGenerationPass.hpp"
 #include "src/ASTBuilder/ASTBuilder.h"
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/GlobalDeclarationsInitializer/GlobalDeclarationsInitializer.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
+#include "src/IRGen/io/ObjectUtils.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/CompilerOptions/CompilerOptions.h"
+#include "src/compiler/pipeline/PipelineFactory.hpp"
 #include "src/utils/LogConfig.h"
+
+// clang-format off
+#include "src/compiler/diagnostics/DiagnosticPush.hpp"
+#include "src/compiler/diagnostics/DiagnosticPop.hpp"
+// clang-format on
 
 namespace flow_wing {
 
 namespace compiler {
 namespace pipeline {
+
+namespace {
+
+ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
+  const auto &parent_opts = context.getOptions();
+  for (const std::string &src_path : context.getBroughtSourcePaths()) {
+    CompilerOptions dep_opts;
+    dep_opts.input_file_path = src_path;
+    dep_opts.output_type = CompilerOptions::OutputType::kObj;
+    dep_opts.output_dir = parent_opts.output_dir;
+    dep_opts.optimization_level = parent_opts.optimization_level;
+    dep_opts.enable_server = parent_opts.enable_server;
+    dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
+    dep_opts.emit_brought_dependency_object = 1;
+
+    CompilationContext dep_ctx(dep_opts);
+    PipelineFactory factory;
+    CompilationPipeline pipeline = factory.build(dep_opts);
+    if (pipeline.run(dep_ctx) != ReturnStatus::kSuccess) {
+      return ReturnStatus::kFailure;
+    }
+    for (const auto &obj : dep_ctx.getBroughtObjectFiles()) {
+      context.addBroughtObjectFile(obj);
+    }
+    context.addBroughtObjectFile(
+        ir_gen::ObjectUtils::getObjectFilePath(
+            dep_ctx.getAbsoluteSourceFilePath(),
+            dep_ctx.getOptions().output_dir));
+  }
+  return ReturnStatus::kSuccess;
+}
+
+} // namespace
 
 std::string IRGenerationPass::getName() const { return "IR Generation"; }
 
@@ -42,7 +84,19 @@ ReturnStatus IRGenerationPass::run(CompilationContext &context) {
     return ReturnStatus::kFailure;
   }
 
+  const auto out_ty = context.getOptions().output_type;
+  if (out_ty == CompilerOptions::OutputType::kObj ||
+      out_ty == CompilerOptions::OutputType::kExe) {
+    if (compileBroughtSourcesToObjects(context) != ReturnStatus::kSuccess) {
+      return ReturnStatus::kFailure;
+    }
+  }
+
   ir_gen::IRGenContext ir_gen_context(context);
+
+  // Definitions for `bring` dependencies live in separate object files produced
+  // during semantic analysis; the linker merges them with this TU.
+
   ir_gen::GlobalDeclarationsInitializer global_declarations_initializer(
       ir_gen_context);
   global_declarations_initializer.initialize();

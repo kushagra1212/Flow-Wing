@@ -6,6 +6,7 @@
 #include "src/common/types/Type.hpp"
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace flow_wing {
@@ -13,6 +14,8 @@ namespace binding {
 class BinderContext;
 } // namespace binding
 namespace analysis {
+
+class ScopedSymbolTable;
 
 // This class is the single source of truth for all built-in language
 // constructs.
@@ -32,12 +35,17 @@ public:
   static std::shared_ptr<types::Type> m_dynamic_type_instance;
 
   static bool initialize(binding::BinderContext *context);
+  /// Copy built-in types/functions into a nested symbol table (e.g. module body).
+  static void
+  registerIntoSymbolTable(const std::shared_ptr<ScopedSymbolTable> &table);
   static void initializeInternalFunctions();
 
   // Helper to get all symbols at once for easy registration
   static const std::vector<std::shared_ptr<Symbol>> &getAll();
   static bool isBuiltInFunction(const std::string &name);
   static bool isBuiltInType(const std::string &name);
+  /// Runtime helpers registered via createInternalFunction (fg_*), not user APIs.
+  static bool isCompilerInternalFunction(const std::string &name);
 
   static std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
       m_functions_symbols_map;
@@ -64,6 +72,7 @@ private:
                                  std::shared_ptr<types::Type> return_type);
 
   static std::vector<std::shared_ptr<Symbol>> m_all_symbols;
+  static std::unordered_set<std::string> m_internal_function_names;
   static std::unordered_map<std::string, std::shared_ptr<Symbol>>
       m_types_symbols_map;
 

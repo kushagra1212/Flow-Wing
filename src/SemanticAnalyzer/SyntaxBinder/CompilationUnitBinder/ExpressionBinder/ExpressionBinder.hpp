@@ -14,6 +14,7 @@ namespace flow_wing {
 
 namespace types {
 class Type;
+struct ParameterType;
 } // namespace types
 
 namespace syntax {
@@ -89,6 +90,16 @@ public:
   // --- Helpers
   std::vector<std::unique_ptr<BoundExpression>>
   bindExpressionList(syntax::ExpressionSyntax *expression);
+
+  /// Object literal arguments use the corresponding parameter type as the
+  /// struct hint (defaults for missing fields, correct callee layout).
+  std::vector<std::unique_ptr<BoundExpression>>
+  bindCallArgumentList(
+      syntax::ExpressionSyntax *argument_expression,
+      const std::vector<std::shared_ptr<types::ParameterType>> &param_types);
+
+  static std::vector<syntax::ExpressionSyntax *>
+  flattenCommaExpressionList(syntax::ExpressionSyntax *expression);
 
 private:
   BinderContext *m_context;

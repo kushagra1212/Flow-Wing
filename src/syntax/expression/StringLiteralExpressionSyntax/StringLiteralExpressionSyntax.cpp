@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,10 @@ namespace syntax {
 StringLiteralExpressionSyntax::StringLiteralExpressionSyntax(
     const SyntaxToken *token)
     : m_token(token), m_value(std::any_cast<std::string>(token->getValue())) {}
+
+StringLiteralExpressionSyntax::StringLiteralExpressionSyntax(
+    const SyntaxToken *token, std::string value)
+    : m_token(token), m_value(std::move(value)) {}
 
 // Overrides
 NodeKind StringLiteralExpressionSyntax::getKind() const {

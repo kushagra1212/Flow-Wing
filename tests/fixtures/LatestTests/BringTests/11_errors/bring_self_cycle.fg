@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: CircularReference
+bring "bring_self_cycle.fg"
+
+println(0)

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,13 @@
 #include "src/common/cli/CliReporter.h"
 #include "src/common/io/FileUtils.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/CompilerOptions/CompilerOptions.h"
+#include "src/compiler/pipeline/CompilationPipeline.h"
+#include "src/compiler/pipeline/passes/IRGenerationPass/IRGenerationPass.hpp"
+#include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
+#include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
+#include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
+#include "src/compiler/pipeline/passes/SourceLoaderPass.h"
 #include <cstdlib>
 
 // clang-format off
@@ -46,9 +53,48 @@ namespace flow_wing {
 namespace compiler {
 namespace pipeline {
 
+namespace {
+
+/// After CleanupPass may have cleared the temp dir, (re)emit LLVM IR for each
+/// `bring` dependency so the JIT session can resolve globals defined in other
+/// translation units.
+ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
+  const std::string &parent_ir_dir = context.getTempDirectoryPath();
+  const auto &parent_opts = context.getOptions();
+  for (const std::string &src_path : context.getBroughtSourcePaths()) {
+    CompilerOptions dep_opts;
+    dep_opts.input_file_path = src_path;
+    dep_opts.output_dir = parent_opts.output_dir;
+    dep_opts.optimization_level = parent_opts.optimization_level;
+    dep_opts.enable_server = parent_opts.enable_server;
+    dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
+    dep_opts.emit_brought_dependency_object = 1;
+
+    CompilationContext dep_ctx(dep_opts);
+    CompilationPipeline pipeline;
+    pipeline.addPass(std::make_unique<SourceLoaderPass>());
+    pipeline.addPass(std::make_unique<LexerPass>());
+    pipeline.addPass(std::make_unique<ParsingPass>());
+    pipeline.addPass(std::make_unique<SemanticAnalysisPass>());
+    pipeline.addPass(std::make_unique<IRGenerationPass>());
+    if (pipeline.run(dep_ctx) != ReturnStatus::kSuccess) {
+      return ReturnStatus::kFailure;
+    }
+    flow_wing::ir_gen::jit_utils::saveIRToFile(dep_ctx.getLLVMIr(), parent_ir_dir,
+                                               dep_ctx.getAbsoluteSourceFilePath());
+  }
+  return ReturnStatus::kSuccess;
+}
+
+} // namespace
+
 std::string JITCompilerPass::getName() const { return "JIT Compiler"; }
 
 ReturnStatus JITCompilerPass::run(CompilationContext &context) {
+
+  if (compileBroughtSourcesToIRForJIT(context) != ReturnStatus::kSuccess) {
+    return ReturnStatus::kFailure;
+  }
 
   // Save the Source IR to a file
   const std::string &ir_directory_path = context.getTempDirectoryPath();

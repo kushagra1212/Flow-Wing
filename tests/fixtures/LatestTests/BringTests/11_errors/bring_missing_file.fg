@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: FileNotFound
+bring "file_not_exist_9f3a2c1d.fg"
+
+println(0)

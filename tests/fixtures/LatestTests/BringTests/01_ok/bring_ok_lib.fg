@@ -1,0 +1,2 @@
+var only_in_this_file: int = 42
+println(only_in_this_file)

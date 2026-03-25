@@ -100,5 +100,29 @@ ScopedSymbolTable::lookup(const std::string &name) const {
   return nullptr;
 }
 
+std::shared_ptr<Symbol>
+ScopedSymbolTable::lookupInGlobalScope(const std::string &name) const {
+  if (m_scope_stack.empty()) {
+    return nullptr;
+  }
+  auto &global_scope = *m_scope_stack.front();
+  if (auto symbol_it = global_scope.find(name); symbol_it != global_scope.end()) {
+    return symbol_it->second;
+  }
+  return nullptr;
+}
+
+void ScopedSymbolTable::forEachGlobalSymbol(
+    const std::function<void(const std::string &name,
+                             const std::shared_ptr<Symbol> &symbol)> &fn)
+    const {
+  if (m_scope_stack.empty()) {
+    return;
+  }
+  for (const auto &entry : *m_scope_stack.front()) {
+    fn(entry.first, entry.second);
+  }
+}
+
 } // namespace analysis
 } // namespace flow_wing

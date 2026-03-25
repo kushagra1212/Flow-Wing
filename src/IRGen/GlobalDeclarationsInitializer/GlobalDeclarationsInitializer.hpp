@@ -5,6 +5,12 @@
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 
 namespace flow_wing {
+namespace types {
+class ClassType;
+}
+namespace binding {
+class BoundModuleStatement;
+}
 namespace ir_gen {
 
 class GlobalDeclarationsInitializer : public visitor::BoundTreeVisitor {
@@ -26,6 +32,7 @@ public:
   void visit(binding::BoundReturnStatement *return_statement) override;
   void visit(binding::BoundSwitchStatement *switch_statement) override;
   void visit(binding::BoundClassStatement *class_statement) override;
+  void visit(binding::BoundModuleStatement *module_statement) override;
   void
   visit(binding::BoundIdentifierExpression *identifier_expression) override;
   void visit(binding::BoundIndexExpression *index_expression) override;
@@ -68,11 +75,37 @@ public:
   void visit(binding::BoundDimensionClauseExpression
                  *dimension_clause_expression) override;
 
+  /// Ensure extern vtable / method declarations exist when this TU references a
+  /// class that is defined in another object file (e.g. only used as
+  /// `module::Class` without a merged global class symbol).
+  void ensureImportedClassExterns(types::ClassType *class_type);
+
 private:
   IRGenContext &m_ir_gen_context;
 
   // Declarations
   void declareFunctions(analysis::ScopedSymbolTable *global_symbol_table);
+  void declareFunctionsRecursively(analysis::ScopedSymbolTable *symbol_table);
+  void declareGlobalVariablesFromSymbolTableRecursively(
+      analysis::ScopedSymbolTable *symbol_table,
+      bool inside_brought_module = false);
+
+  /// Globals and class metadata for symbols merged into the main unit (e.g.
+  /// `bring`) that have no corresponding BoundVariableDeclaration /
+  /// BoundClassStatement in this file.
+  void declareGlobalVariablesFromSymbolTable(
+      analysis::ScopedSymbolTable *symbol_table,
+      bool force_extern_for_variables = false);
+  void declareClassSymbolsFromGlobalScope(
+      analysis::ScopedSymbolTable *symbol_table);
+
+  void emitGlobalVariableForSymbol(
+      const analysis::VariableSymbol *variable_symbol,
+      bool force_extern_import = false);
+  void emitClassLayoutAndVtable(types::ClassType *class_type);
+  /// Extern class metadata for types only present via `bring` (defs live in
+  /// another object file).
+  void declareImportedClassExterns(types::ClassType *class_type);
 };
 } // namespace ir_gen
 } // namespace flow_wing

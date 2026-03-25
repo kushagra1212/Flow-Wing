@@ -36,6 +36,10 @@ BinderContext::BinderContext(CompilationContext &context)
 
 BinderContext::~BinderContext() = default;
 
+CompilationContext &BinderContext::getCompilationContext() {
+  return m_context;
+}
+
 const CompilationContext &BinderContext::getCompilationContext() const {
 
   return m_context;
@@ -92,8 +96,12 @@ void BinderContext::pushExpectedType(std::shared_ptr<types::Type> type) {
 }
 
 void BinderContext::popExpectedType() {
-  assert(!m_expected_type_stack.empty() &&
-         "popExpectedType without matching push");
+  // In NDEBUG builds assert is omitted; popping an empty stack is UB and has
+  // been observed as SIGBUS when push/pop paths get out of sync.
+  if (m_expected_type_stack.empty()) {
+    assert(false && "popExpectedType without matching push");
+    return;
+  }
   m_expected_type_stack.pop_back();
 }
 
@@ -112,6 +120,23 @@ bool BinderContext::isDuplicateClassDeclaration(
     const std::string &class_name) const {
   return m_duplicate_class_declarations.find(class_name) !=
          m_duplicate_class_declarations.end();
+}
+
+void BinderContext::pushModuleScope(const std::string &module_name) {
+  m_module_name_stack.push_back(module_name);
+}
+
+void BinderContext::popModuleScope() {
+  if (!m_module_name_stack.empty()) {
+    m_module_name_stack.pop_back();
+  }
+}
+
+const std::string *BinderContext::peekModuleName() const {
+  if (m_module_name_stack.empty()) {
+    return nullptr;
+  }
+  return &m_module_name_stack.back();
 }
 
 } // namespace binding

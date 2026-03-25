@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include <string>
 
 namespace flow_wing {
 namespace syntax {
@@ -29,6 +30,10 @@ class StringLiteralExpressionSyntax : public ExpressionSyntax {
 
 public:
   StringLiteralExpressionSyntax(const SyntaxToken *token);
+
+  /// Same as string literal, but value may differ from the token (e.g. `bring
+  /// foo` → synthetic path `foo-module.fg` with the identifier token for spans).
+  StringLiteralExpressionSyntax(const SyntaxToken *token, std::string value);
 
   // Overrides
   NodeKind getKind() const override;

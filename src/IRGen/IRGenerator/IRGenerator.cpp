@@ -19,12 +19,16 @@
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/GlobalDeclarationsInitializer/GlobalDeclarationsInitializer.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundStringLiteralExpression/BoundStringLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
@@ -37,15 +41,48 @@
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm-c/Analysis.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include <cstdlib>
 // clang-format on
 
 namespace flow_wing {
 namespace ir_gen {
+
+namespace {
+
+/// Register a void () function as a global constructor so it runs before
+/// `main` (needed for brought dependency .o files that emit top-level stores
+/// without defining a second `main`).
+void registerGlobalCtor(llvm::Module *module, llvm::Function *ctor_fn) {
+  llvm::LLVMContext &ctx = module->getContext();
+  llvm::Type *i32 = llvm::Type::getInt32Ty(ctx);
+  llvm::Type *fn_ptr = llvm::PointerType::getUnqual(ctx);
+  llvm::Type *i8p = llvm::Type::getInt8PtrTy(ctx);
+  llvm::StructType *elt_ty = llvm::StructType::get(ctx, {i32, fn_ptr, i8p});
+
+  llvm::Constant *ctor_entry = llvm::ConstantStruct::get(
+      elt_ty,
+      {llvm::ConstantInt::get(i32, 65535),
+       llvm::ConstantExpr::getBitCast(ctor_fn, fn_ptr),
+       llvm::ConstantPointerNull::get(llvm::cast<llvm::PointerType>(i8p))});
+
+  llvm::ArrayType *arr_ty = llvm::ArrayType::get(elt_ty, 1);
+  llvm::Constant *arr_init = llvm::ConstantArray::get(arr_ty, {ctor_entry});
+
+  if (module->getGlobalVariable("llvm.global_ctors")) {
+    return;
+  }
+  new llvm::GlobalVariable(*module, arr_ty, false,
+                           llvm::GlobalValue::AppendingLinkage, arr_init,
+                           "llvm.global_ctors");
+}
+
+} // namespace
 
 IRGenerator::IRGenerator(IRGenContext &ir_gen_context)
     : m_ir_gen_context(ir_gen_context) {}
@@ -82,20 +119,26 @@ void IRGenerator::handleReturn() {
 }
 
 void IRGenerator::verifyModule() {
-  char **output_message = nullptr;
-  LLVMVerifyModule(wrap(m_ir_gen_context.getLLVMModule()),
-                   LLVMVerifierFailureAction::LLVMAbortProcessAction,
-                   output_message);
+  char *output_message = nullptr;
+  // Do not use LLVMAbortProcessAction: in Release builds a verifier failure
+  // calls abort(); some environments surface that as SIGBUS/SIGILL confusion.
+  LLVMBool invalid = LLVMVerifyModule(
+      wrap(m_ir_gen_context.getLLVMModule()),
+      LLVMReturnStatusAction, &output_message);
 
   const flow_wing::diagnostic::SourceLocation source_location =
       m_ir_gen_context.getCompilationContext()
           .getBoundTree()
           ->getSourceLocation();
 
-  if (output_message) {
+  if (invalid) {
+    std::string msg = output_message ? output_message : std::string("invalid LLVM module");
+    if (output_message) {
+      free(output_message);
+    }
     m_ir_gen_context.reportError(
         flow_wing::diagnostic::DiagnosticCode::kInternalIRGenerationError,
-        {flow_wing::diagnostic::DiagnosticArg(*output_message)},
+        {flow_wing::diagnostic::DiagnosticArg(msg)},
         source_location);
   }
 }
@@ -105,16 +148,47 @@ void IRGenerator::visit(
 
   CODEGEN_DEBUG_LOG("Visiting Bound Compilation Unit", "IR GENERATION");
 
-  auto entry_point_function = createEntryPointFunction();
-  auto entry_block = llvm::BasicBlock::Create(
-      *m_ir_gen_context.getLLVMContext(), "entry", entry_point_function);
-  m_ir_gen_context.setInsertPoint(entry_block);
+  llvm::Function *entry_point_function = nullptr;
+  llvm::Function *brought_init_fn = nullptr;
+
+  if (!m_ir_gen_context.getCompilationContext().getOptions()
+           .emit_brought_dependency_object) {
+    entry_point_function = createEntryPointFunction();
+    auto entry_block = llvm::BasicBlock::Create(
+        *m_ir_gen_context.getLLVMContext(), "entry", entry_point_function);
+    m_ir_gen_context.setInsertPoint(entry_block);
+  } else {
+    llvm::Module *mod = m_ir_gen_context.getLLVMModule();
+    llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
+    llvm::FunctionType *init_ft =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false);
+    brought_init_fn = llvm::Function::Create(
+        init_ft, llvm::Function::InternalLinkage, "__fw_brought_module_init",
+        mod);
+    llvm::BasicBlock *init_bb =
+        llvm::BasicBlock::Create(ctx, "entry", brought_init_fn);
+    m_ir_gen_context.setInsertPoint(init_bb);
+  }
+  // Brought dependency .o: no `main`; top-level statements run in
+  // __fw_brought_module_init (registered as a global ctor).
 
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
   }
 
   m_ir_gen_context.popScope();
+
+  if (m_ir_gen_context.getCompilationContext().getOptions()
+          .emit_brought_dependency_object) {
+    auto &builder = m_ir_gen_context.getLLVMBuilder();
+    llvm::BasicBlock *cur = builder->GetInsertBlock();
+    if (cur && !cur->getTerminator()) {
+      builder->CreateRetVoid();
+    }
+    registerGlobalCtor(m_ir_gen_context.getLLVMModule(), brought_init_fn);
+    verifyModule();
+    return;
+  }
 
   handleReturn();
   CODEGEN_DEBUG_LOG("Verifying Entry Point Function", "IR GENERATION");
@@ -136,15 +210,29 @@ void IRGenerator::visit(
   m_ir_gen_context.popScope();
 }
 
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundModuleStatement *module_statement) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Module Statement", "IR GENERATION");
+  // Do not push an IR scope: module members share the entry function's symbol
+  // table depth so globals and cross-statement lookups behave like top-level.
+  for (const auto &statement : module_statement->getStatements()) {
+    statement->accept(this);
+    clearLast();
+  }
+}
+
 void IRGenerator::visit([[maybe_unused]] binding::BoundParenthesizedExpression
                             *parenthesized_expression) {
   CODEGEN_DEBUG_LOG("Visiting Bound Parenthesized Expression", "IR GENERATION");
   parenthesized_expression->getExpression()->accept(this);
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {
-  assert(false && "Expose statement not supported");
+void IRGenerator::visit(binding::BoundExposeStatement *expose_statement) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Expose Statement", "IR GENERATION");
+  // `expose` only marks symbols for importers; IR is the same as the wrapped
+  // declaration (variable, type, function, class).
+  expose_statement->getStatement()->accept(this);
+  clearLast();
 }
 
 // BoundWhileStatement is implemented in WhileStatementIrGen.cpp
@@ -173,7 +261,8 @@ void IRGenerator::visit(
 }
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundErrorExpression *statement) {
-  assert(false && "Error expression not supported");
+  // No IR for error expressions; diagnostics were reported during binding.
+  (void)statement;
 }
 
 namespace {
@@ -226,6 +315,12 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
   auto *llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(class_type);
   assert(llvm_type->isStructTy() && "Class LLVM type must be a struct");
   auto *struct_type = llvm::cast<llvm::StructType>(llvm_type);
+
+  // Classes used only via `module::Class` may not appear in the importer's
+  // merged global symbol table, so declareClassSymbolsFromGlobalScope never
+  // emitted extern `__vt_*`. Ensure layout / vtable externs before loading.
+  GlobalDeclarationsInitializer decl_helper(m_ir_gen_context);
+  decl_helper.ensureImportedClassExterns(ct);
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto *gc_malloc = m_ir_gen_context.getLLVMModule()->getFunction(
@@ -379,8 +474,9 @@ void IRGenerator::visit(
   expression_statement->getExpression()->accept(this);
 }
 void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundModuleAccessExpression *statement) {
-  assert(false && "Module access expression not supported");
+    binding::BoundModuleAccessExpression *module_access_expression) {
+  CODEGEN_DEBUG_LOG("Visiting Bound Module Access Expression", "IR GENERATION");
+  module_access_expression->getMemberAccessExpression()->accept(this);
 }
 
 llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
@@ -476,9 +572,11 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
   return value;
 }
 
-void IRGenerator::visit(
-    [[maybe_unused]] binding::BoundColonExpression *colon_expression) {
-  assert(false && "Colon expression not supported");
+void IRGenerator::visit(binding::BoundColonExpression *colon_expression) {
+  // Object literals are usually handled by BoundObjectExpression; if a colon
+  // node is visited directly, evaluate the field value like ObjectExpressionIrGen.
+  CODEGEN_DEBUG_LOG("Visiting Bound Colon Expression", "IR GENERATION");
+  colon_expression->getRightExpression()->accept(this);
 }
 
 llvm::Value *IRGenerator::ensurePointer(llvm::Value *value, types::Type *type,

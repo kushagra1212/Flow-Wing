@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundModuleAccessExpression/BoundModuleAccessExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
@@ -248,6 +249,56 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
         if (const_error != nullptr) {
           m_context->reportError(const_error.get());
           return std::move(const_error);
+        }
+        break;
+      }
+      case NodeKind::kModuleAccessExpression: {
+        // e.g. local::x = ... — inner expression is the name within the module
+        auto *mod_expr =
+            static_cast<BoundModuleAccessExpression *>(left_expression.get());
+        BoundExpression *inner = mod_expr->getMemberAccessExpression().get();
+        switch (inner->getKind()) {
+        case NodeKind::kIdentifierExpression: {
+          auto *id_expr = static_cast<BoundIdentifierExpression *>(inner);
+          analysis::Symbol *symbol = id_expr->getSymbol();
+          if (symbol->getKind() != analysis::SymbolKind::kVariable &&
+              symbol->getKind() != analysis::SymbolKind::kParameter) {
+            auto error_expression = std::make_unique<BoundErrorExpression>(
+                expression->getSourceLocation(),
+                diagnostic::DiagnosticCode::kAssignmentToNonVariable,
+                std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                    symbol->getName()});
+            m_context->reportError(error_expression.get());
+            return std::move(error_expression);
+          }
+          auto const_error = checkConstantVariableAssignment(
+              inner, expression->getSourceLocation());
+          if (const_error != nullptr) {
+            m_context->reportError(const_error.get());
+            return std::move(const_error);
+          }
+          break;
+        }
+        case NodeKind::kMemberAccessExpression: {
+          auto const_error = checkConstantVariableAssignment(
+              inner, expression->getSourceLocation());
+          if (const_error != nullptr) {
+            m_context->reportError(const_error.get());
+            return std::move(const_error);
+          }
+          break;
+        }
+        case NodeKind::kIndexExpression: {
+          break;
+        }
+        default: {
+          auto error = std::make_unique<BoundErrorExpression>(
+              expression->getSourceLocation(),
+              diagnostic::DiagnosticCode::kAssignmentToNonLValue,
+              std::vector<flow_wing::diagnostic::DiagnosticArg>{});
+          m_context->reportError(error.get());
+          return std::move(error);
+        }
         }
         break;
       }

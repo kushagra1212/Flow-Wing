@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
+#include <any>
 namespace flow_wing {
 namespace parser {
 
@@ -57,6 +58,7 @@ std::unique_ptr<syntax::StatementSyntax> BringStatementParser::parse() {
               ->parse(); // identifier_expression
 
       identifier_expressions.push_back(std::move(identifier_expression));
+      ++count;
     }
 
     close_brace_token = m_ctx->match(lexer::TokenKind::kCloseBraceToken); // }
@@ -64,16 +66,29 @@ std::unique_ptr<syntax::StatementSyntax> BringStatementParser::parse() {
     from_keyword_token = m_ctx->matchIf(lexer::TokenKind::kFromKeyword); // from
   }
 
-  auto string_literal_expression =
-      std::make_unique<syntax::StringLiteralExpressionSyntax>(
-          m_ctx->match(lexer::TokenKind::kStringLiteralToken)); // "file.fg" or
-  // "moduleName-module.fg" or
-  // "moduleName"
+  std::unique_ptr<syntax::StringLiteralExpressionSyntax> path_expression;
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kStringLiteralToken) {
+    path_expression = std::make_unique<syntax::StringLiteralExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kStringLiteralToken));
+  } else if (m_ctx->getCurrentTokenKind() ==
+             lexer::TokenKind::kIdentifierToken) {
+    const syntax::SyntaxToken *id_token =
+        m_ctx->match(lexer::TokenKind::kIdentifierToken);
+    const std::string id =
+        std::any_cast<std::string>(id_token->getValue());
+    path_expression = std::make_unique<syntax::StringLiteralExpressionSyntax>(
+        id_token, id + "-module.fg");
+  } else {
+    const syntax::SyntaxToken *wrong =
+        m_ctx->match(lexer::TokenKind::kStringLiteralToken);
+    path_expression = std::make_unique<syntax::StringLiteralExpressionSyntax>(
+        wrong, std::string());
+  }
 
   return std::make_unique<syntax::BringStatementSyntax>(
       bring_keyword_token, open_brace_token, std::move(identifier_expressions),
       close_brace_token, from_keyword_token,
-      std::move(string_literal_expression));
+      std::move(path_expression));
 }
 } // namespace parser
 } // namespace flow_wing

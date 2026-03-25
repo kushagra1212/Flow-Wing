@@ -26,6 +26,14 @@ public:
   bool defineInEnclosingScope(std::shared_ptr<Symbol> symbol);
 
   std::shared_ptr<Symbol> lookup(const std::string &name) const;
+
+  std::shared_ptr<Symbol> lookupInGlobalScope(const std::string &name) const;
+
+  void forEachGlobalSymbol(
+      const std::function<void(const std::string &name,
+                               const std::shared_ptr<Symbol> &symbol)> &fn)
+      const;
+
   void lookupSymbol(std::function<bool(const Symbol *symbol)> predicate,
                     SymbolKind kind) const;
 

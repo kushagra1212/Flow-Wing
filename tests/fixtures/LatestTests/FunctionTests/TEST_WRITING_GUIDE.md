@@ -86,6 +86,24 @@ These are the error names to use in the `/; EXPECT_ERROR:` comment:
 | `ExpectedAnIntegerForIndexing`           | Non-integer used as array index      |
 | `FunctionNameConflictsWithBuiltin`       | Function name conflicts with builtin |
 | `IncompatibleTypesForTernaryExpression`  | Ternary branches have different types |
+| `FileContainsErrors`                     | Brought file fails semantic analysis (`bring "…"`) |
+| `FileNotFound`                           | Brought path does not exist or is not a regular file |
+| `ModuleAlreadyDeclared`                  | Two `module [name]` with the same name in one scope |
+| `ModuleNotFound`                         | Reserved: module name in `name::x` not found (current binder often reports `VariableNotFound` for the module identifier first) |
+
+---
+
+## AST and semantic (bound) JSON dumps
+
+To emit JSON for tooling, tests, or debugging (from the repo root after building `FlowWing`):
+
+```sh
+mkdir -p /tmp/fw-dump
+./build/FlowWing path/to/file.fg -E ast -D -OD /tmp/fw-dump   # writes ast.json
+./build/FlowWing path/to/file.fg -E sem -D -OD /tmp/fw-dump   # writes semantic_tree.json
+```
+
+`-D` / `--dump` enables dump passes; `-OD` / `--output-dir` sets the directory. Paths are per compilation (the main file’s directory is used for resolving relative `bring "…"` paths).
 
 ---
 
@@ -348,3 +366,50 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 **Class compile-time errors:** Use `/; EXPECT_ERROR: ErrorName` on line 1 (same as other LatestTests). Class-specific names that appear in compiler output include `ParentClassNotFound`, `ParentClassIsNotAClass`, `SuperCallOutsideConstructor`, `MemberAccessOnNonObjectVariable`, `ClassAlreadyDeclared`, **`NewExpressionConstructorArgumentCountMismatch`**, **`NewExpressionConstructorArgumentTypeMismatch`** (for `new Class(...)` / constructor `init` issues — clearer than `FunctionArgument*`), plus `FunctionAlreadyDeclared`, `FunctionArgumentTypeMismatch`, `IndexingNonArrayTypeVariable`. For **runtime** failures (e.g. array OOB on a member array), use `/; EXPECT_ERROR: Runtime` — the runner matches the substring `Runtime` in stdout/stderr (same pattern as `ArrayTests/runtime_errors/`).
 
 **Comments:** Prefer no leading `//` as the first line of a `.fg` file if the compiler pipeline rejects it; keep programs starting with `class`, `type`, `fun`, or `var` as in other LatestTests. For error tests, the first line may be `/; EXPECT_ERROR: ...`.
+
+---
+
+## Module tests (`ModuleTests`)
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| Basic | `01_basic/` | `module [m]`, module-level `var`, `println(m::x)` |
+| Functions | `02_functions/` | `fun` in module, `m::func()` |
+| Errors | `11_errors/` | Unknown module in `name::x` (often `VariableNotFound` today) |
+
+**Syntax:** A file that starts with `module [name]` treats the rest of the file (until EOF) as module members. Use `name::symbol` for qualified access (including from inside the same module).
+
+---
+
+## Bring tests (`BringTests`)
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| OK | `01_ok/` | `bring "sibling.fg"` resolves **relative to the main file’s directory**; sub-file must compile cleanly; use **direct** `bring` of each file you need (symbols from a nested `bring` in another file are **not** visible) |
+| Errors | `11_errors/` | Missing file (`FileNotFound`), broken lib (`FileContainsErrors` / lexer errors), **duplicate** `bring` of the same file (`VariableAlreadyDeclared` / other “already declared”), **circular** `bring` (`CircularReference`), **transitive** use of a name only imported deeper in the chain (`VariableNotFound` / `IdentifierNotFoundInFileOrModule`) |
+| Support libs | `support_*` siblings (e.g. `support_dup_lib/`, `support_circular_bring/`, `include_for_nested_chain/`) | `.fg` files used only as `bring` targets; keep them **outside** `01_ok/` and `11_errors/` so `tests/runner.py` (which uses `rglob("*.fg")`) does not treat them as standalone tests |
+
+**Semantics:** `bring` type-checks the referenced file (nested semantic analysis). On success, only globals **defined** in that file are merged (not symbols that file obtained via its own nested `bring`). `bring {a,b} from "f.fg"` lists names among those **direct** exports; `bring "f.fg"` bulk-imports them. Built-ins and compiler-internal `fg_*` helpers from the nested compile are skipped. Choosy imports must list every name the main file uses, including **type** aliases (e.g. `T`, `TB`).
+
+**Circular dependency:** A cycle (e.g. A→B→A or `bring "self.fg"`) is a **compile error** (`CircularReference`), not supported.
+
+### Legacy Z mirrors (full corpus)
+
+The **entire** trees from `tests/fixtures/Z_BringTest/BringTest` and `tests/fixtures/Z_ModuleTest/ModuleTest` are mirrored under LatestTests:
+
+| Mirror | Path |
+| ------ | ---- |
+| Z Bring | `BringTests/legacy_Z_BringTest/` |
+| Z Module | `ModuleTests/legacy_Z_ModuleTest/` |
+
+These are **skipped by default** when running `tests/runner.py` on a broad `--dir` (e.g. all of `LatestTests`) so CI stays green. To run them:
+
+```sh
+FLOWWING_RUN_LEGACY_Z=1 python3 tests/runner.py --bin build/FlowWing --dir tests/fixtures/LatestTests --mode jit
+# or point --dir at a legacy mirror folder only
+python3 tests/runner.py --bin build/FlowWing --dir tests/fixtures/LatestTests/BringTests/legacy_Z_BringTest --mode jit
+```
+
+See each mirror’s `README.md` for details.
+
+---

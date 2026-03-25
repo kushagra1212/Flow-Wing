@@ -21,6 +21,7 @@
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
@@ -121,10 +122,29 @@ TypeResolver::resolveModuleAccessType(
   assert(syntax->getModuleIdentifier() != nullptr &&
          "TypeResolver::resolveModuleAccessType: module identifier is null");
 
-  auto qualifier_name = syntax->getModuleIdentifier()->getValue();
+  const std::string &qualifier_name = syntax->getModuleIdentifier()->getValue();
+
+  auto module_symbol_sh = m_ctx->getSymbolTable()->lookup(qualifier_name);
+  if (!module_symbol_sh ||
+      module_symbol_sh->getKind() != analysis::SymbolKind::kModule) {
+    return {nullptr,
+            std::make_unique<binding::BoundErrorExpression>(
+                syntax->getModuleIdentifier()->getSourceLocation(),
+                flow_wing::diagnostic::DiagnosticCode::kModuleNotFound,
+                diagnostic::DiagnosticArgs{qualifier_name})};
+  }
+
+  auto *module_symbol =
+      static_cast<analysis::ModuleSymbol *>(module_symbol_sh.get());
+  auto module_table = module_symbol->getModuleSymbolTable();
+
+  auto saved = m_ctx->getSymbolTable();
+  m_ctx->switchSymbolTable(module_table);
 
   auto [base_type, error_expression] =
       resolveType(syntax->getTypeExpression().get());
+
+  m_ctx->switchSymbolTable(saved);
 
   if (base_type == nullptr) {
     return {nullptr, std::move(error_expression)};

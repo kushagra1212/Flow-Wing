@@ -59,6 +59,9 @@ enum class NodeKind : int {
   // ---- Bound Class Statements ----
   kClassStatement,
 
+  // ---- Bound Module Statements ----
+  kModuleStatement,
+
   // ---- Bound Expression Statements ----
   kExpressionStatement,
 

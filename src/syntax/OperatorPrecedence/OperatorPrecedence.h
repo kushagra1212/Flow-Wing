@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@ struct OperatorPrecedence {
   static int getPrefixPrecedence(lexer::TokenKind kind);
   static int getInfixPrecedence(lexer::TokenKind kind);
   static int getPostfixPrecedence(lexer::TokenKind kind);
+
+  /// RHS of `module::name` must not bind tighter than postfix `(`/`[`/`.` (14).
+  /// So `m::T()` is a call on `m::T`, not `m::(T())`.
+  static constexpr int kModuleAccessRhsPrecedenceFloor = 15;
 };
 
 } // namespace syntax

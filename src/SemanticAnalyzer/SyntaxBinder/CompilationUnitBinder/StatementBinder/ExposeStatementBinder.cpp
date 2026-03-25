@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundDeclarationStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
@@ -43,8 +44,25 @@ StatementBinder::bindExposeStatement(syntax::ExposeStatementSyntax *statement) {
   auto statement_kind = expose_statement->getStatement()->getKind();
 
   switch (statement_kind) {
+  case syntax::NodeKind::kClassStatement: {
+    // BoundClassStatement extends BoundStatement, not BoundDeclarationStatement
+    // (it exposes a single class symbol via getClassSymbol()).
+    auto bound_statement = bind(expose_statement->getStatement().get());
+
+    if (bound_statement->getKind() == NodeKind::kErrorStatement) {
+      return bound_statement;
+    }
+
+    auto *class_statement =
+        static_cast<BoundClassStatement *>(bound_statement.get());
+    assert(class_statement->getClassSymbol() != nullptr &&
+           "ExposeStatementBinder::bind: class symbol is null");
+    class_statement->getClassSymbol()->setIsExposed(true);
+
+    return std::make_unique<BoundExposeStatement>(
+        std::move(bound_statement), expose_statement->getSourceLocation());
+  }
   case syntax::NodeKind::kFunctionStatement:
-  case syntax::NodeKind::kClassStatement:
   case syntax::NodeKind::kVariableDeclaration:
   case syntax::NodeKind::kCustomTypeStatement: {
     auto bound_statement = bind(expose_statement->getStatement().get());

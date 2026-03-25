@@ -50,6 +50,7 @@ private:
   void visit(binding::BoundReturnStatement *node) override;
   void visit(binding::BoundSwitchStatement *node) override;
   void visit(binding::BoundClassStatement *node) override;
+  void visit(binding::BoundModuleStatement *node) override;
   void visit(binding::BoundIdentifierExpression *node) override;
   void visit(binding::BoundIndexExpression *node) override;
   void visit(binding::BoundIntegerLiteralExpression *node) override;

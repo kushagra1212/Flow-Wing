@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "src/common/io/PathUtils.hpp"
 #include "src/common/utils/PathUtils/PathUtils.h"
 #include "src/utils/LogConfig.h"
+#include <filesystem>
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm-c/Core.h"
@@ -35,21 +36,36 @@
 namespace flow_wing {
 namespace ir_gen {
 
-std::string ObjectUtils::getObjectFilePath(const std::string &file_path) {
-  return std::string(constants::paths::kObject_files_dir) + file_path +
-         std::string(constants::paths::kObject_file_extension);
+std::string ObjectUtils::getObjectFilePath(const std::string &file_path,
+                                           const std::string &output_dir) {
+  // Canonicalize so the same file always maps to one object path (e.g. avoid
+  // /Users/... vs /private/var/... mismatches between emit and link).
+  std::string key = utils::PathUtils::getAbsoluteFilePath(file_path);
+  if (!key.empty() && key[0] == '/') {
+    key.erase(0, 1);
+  }
+  const std::string base =
+      output_dir.empty() ? std::string("./build") : output_dir;
+  std::filesystem::path rel =
+      std::filesystem::absolute(base) / "objects" /
+      std::filesystem::path(key +
+                              std::string(constants::paths::kObject_file_extension));
+  return rel.string();
 }
 
-void ObjectUtils::createObjectFile(const llvm::Module *llvm_module,
-                                   const std::string &file_path) {
+bool ObjectUtils::createObjectFile(const llvm::Module *llvm_module,
+                                   const std::string &file_path,
+                                   const std::string &output_dir) {
 
   LLVMModuleRef module = wrap(llvm_module);
 
-  char *errors = 0;
+  char *errors = nullptr;
   LLVMTargetRef target;
   LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
 
-  LLVMDisposeMessage(errors);
+  if (errors) {
+    LLVMDisposeMessage(errors);
+  }
 
   LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
 
@@ -57,10 +73,8 @@ void ObjectUtils::createObjectFile(const llvm::Module *llvm_module,
     cli::Reporter::error("Failed to get target from triple: " +
                          std::string(errors));
     LLVMDisposeMessage(errors);
-    return;
+    return false;
   }
-
-  LLVMDisposeMessage(errors);
 
   CODEGEN_DEBUG_LOG("Target Name: ", LLVMGetTargetName(target));
   CODEGEN_DEBUG_LOG("Target Description: ", LLVMGetTargetDescription(target));
@@ -84,7 +98,7 @@ void ObjectUtils::createObjectFile(const llvm::Module *llvm_module,
   LLVMSetDataLayout(module, datalayout_str);
   LLVMDisposeMessage(datalayout_str);
 
-  const std::string object_file_path = getObjectFilePath(file_path);
+  const std::string object_file_path = getObjectFilePath(file_path, output_dir);
   std::filesystem::path output_directory =
       std::filesystem::path(object_file_path).parent_path();
 
@@ -92,10 +106,29 @@ void ObjectUtils::createObjectFile(const llvm::Module *llvm_module,
 
   CODEGEN_DEBUG_LOG("Creating object ", object_file_path.c_str());
 
-  LLVMTargetMachineEmitToFile(machine, module, (char *)object_file_path.c_str(),
-                              LLVMObjectFile, &errors);
-
-  LLVMDisposeMessage(errors);
+  errors = nullptr;
+  const LLVMBool emit_failed = LLVMTargetMachineEmitToFile(
+      machine, module, (char *)object_file_path.c_str(), LLVMObjectFile,
+      &errors);
+  if (emit_failed) {
+    const std::string msg =
+        errors ? std::string(errors) : std::string("unknown object emission error");
+    if (errors) {
+      LLVMDisposeMessage(errors);
+    }
+    cli::Reporter::error("Failed to emit object file '" + object_file_path +
+                         "': " + msg);
+    return false;
+  }
+  if (errors) {
+    LLVMDisposeMessage(errors);
+  }
+  if (!std::filesystem::exists(object_file_path)) {
+    cli::Reporter::error("Object file was not created at '" + object_file_path +
+                         "'");
+    return false;
+  }
+  return true;
 }
 
 } // namespace ir_gen

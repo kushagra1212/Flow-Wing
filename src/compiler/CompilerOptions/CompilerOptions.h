@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,8 @@ struct CompilerOptions {
 #endif
 
   std::string output_dir = "./build";
+
+  int8_t emit_brought_dependency_object = 0;
   // Compilation settings
   OptimizationLevel optimization_level = OptimizationLevel::O0;
   std::string entry_point = "main"; // Default entry point
@@ -107,7 +109,7 @@ struct CompilerOptions {
 
     ss << "Input file path: " << input_file_path << separator;
 
-    if (!code_content->empty()) {
+    if (code_content.has_value() && !code_content->empty()) {
       ss << "Code content: " << code_content.value() << separator;
     }
 

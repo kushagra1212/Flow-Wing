@@ -1,0 +1,23 @@
+
+bring "file1.fg"
+
+
+print(x)
+
+print(k)
+
+print(j)
+
+
+
+callS(88)
+
+var p:T  
+
+p = {a:2 }
+print("print p ",p )
+
+var g:A = new A({a:100})
+
+g.printY()
+  

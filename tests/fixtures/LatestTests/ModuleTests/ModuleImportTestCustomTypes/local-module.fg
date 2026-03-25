@@ -1,0 +1,15 @@
+
+module [local]
+
+
+type T = {
+    a:int
+  }
+
+  var x:local::T
+
+fun main() -> nthg {
+  print(local::x)
+  }
+
+  

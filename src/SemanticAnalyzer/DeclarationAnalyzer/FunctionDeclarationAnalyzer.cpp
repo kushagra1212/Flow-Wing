@@ -127,6 +127,10 @@ void analysis::DeclarationAnalyzer::visit(
   auto function_symbol =
       std::make_shared<analysis::FunctionSymbol>(function_name, function_type);
 
+  if (const std::string *mod = m_binder_context.peekModuleName()) {
+    function_symbol->setMangledName(*mod + std::string("_fw_") + function_name);
+  }
+
   if (!symbol_table->define(function_symbol)) {
     m_binder_context.reportError(
         diagnostic::DiagnosticCode::kFunctionAlreadyDeclared, {function_name},

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,6 +126,8 @@ public:
       return CompilerOptions::OutputType::kLLVM_IR;
     } else if (value == "obj") {
       return CompilerOptions::OutputType::kObj;
+    } else if (value == "exe") {
+      return CompilerOptions::OutputType::kExe;
     } else if (value == "jit") {
       return CompilerOptions::OutputType::kJIT;
     } else {

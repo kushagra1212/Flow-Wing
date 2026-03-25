@@ -40,6 +40,7 @@ const std::string &toString(NodeKind kind) {
 
       // ---- Bound Class Statements ----
       {NodeKind::kClassStatement, "ClassStatement"},
+      {NodeKind::kModuleStatement, "ModuleStatement"},
       {NodeKind::kExpressionStatement, "ExpressionStatement"},
 
       // ---- Bound Declaration Statements ----

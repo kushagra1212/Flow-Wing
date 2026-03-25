@@ -18,6 +18,7 @@
  */
 
 #include "PathUtils.h"
+#include <filesystem>
 #include <string>
 
 namespace FlowWing {
@@ -81,10 +82,12 @@ std::filesystem::path getLibrariesPath() {
     return exePath.parent_path().parent_path() / "Resources";
   }
 #endif
-  // In our SDK, this will resolve to 'build/sdk/bin/../lib/Darwin-arm64'
-  return exePath.parent_path().parent_path() /
-         FLOWWING_PLATFORM_LIB_DIR; // Use the variable from
-                                    // sdk-layout.cmake
+  const std::filesystem::path dev_sdk_lib =
+      exePath.parent_path() / "sdk" / FLOWWING_PLATFORM_LIB_DIR;
+  if (std::filesystem::exists(dev_sdk_lib)) {
+    return dev_sdk_lib;
+  }
+  return exePath.parent_path().parent_path() / FLOWWING_PLATFORM_LIB_DIR;
 }
 
 std::string getAOTLinkerPath() { return AOT_LINKER_PATH; }

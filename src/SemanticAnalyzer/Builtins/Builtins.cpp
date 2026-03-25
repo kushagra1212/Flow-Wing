@@ -44,6 +44,7 @@ std::shared_ptr<types::Type> Builtins::m_nthg_type_instance;
 std::shared_ptr<types::Type> Builtins::m_dynamic_type_instance;
 
 std::vector<std::shared_ptr<Symbol>> Builtins::m_all_symbols;
+std::unordered_set<std::string> Builtins::m_internal_function_names;
 std::unordered_map<std::string, std::vector<std::shared_ptr<Symbol>>>
     Builtins::m_functions_symbols_map;
 std::unordered_map<std::string, std::shared_ptr<Symbol>>
@@ -54,6 +55,10 @@ std::unordered_map<std::string, std::shared_ptr<types::Type>>
 
 } // namespace analysis
 } // namespace flow_wing
+
+namespace {
+bool g_builtins_registry_created = false;
+}
 
 namespace flow_wing {
 namespace analysis {
@@ -110,6 +115,7 @@ void Builtins::createInternalFunction(
 
   auto function_symbol = std::make_shared<FunctionSymbol>(name, function_type);
 
+  m_internal_function_names.insert(name);
   m_all_symbols.push_back(function_symbol);
 }
 
@@ -129,6 +135,7 @@ void Builtins::createBuiltinFunctionOverloads(
 }
 
 bool Builtins::initialize(binding::BinderContext *context) {
+  if (!g_builtins_registry_created) {
 
   m_int8_type_instance = createBuiltinType("int8");
   m_char_type_instance = createBuiltinType("char");
@@ -221,11 +228,21 @@ bool Builtins::initialize(binding::BinderContext *context) {
   // Internal Functions
   initializeInternalFunctions();
 
+    g_builtins_registry_created = true;
+  }
+
   for (const auto &symbol : m_all_symbols) {
     context->getSymbolTable()->define(symbol);
   }
 
   return true;
+}
+
+void Builtins::registerIntoSymbolTable(
+    const std::shared_ptr<analysis::ScopedSymbolTable> &table) {
+  for (const auto &symbol : m_all_symbols) {
+    table->define(symbol);
+  }
 }
 
 void Builtins::initializeUnboxingTypesMap() {
@@ -423,6 +440,10 @@ bool Builtins::isBuiltInFunction(const std::string &name) {
 
 bool Builtins::isBuiltInType(const std::string &name) {
   return m_types_symbols_map.find(name) != m_types_symbols_map.end();
+}
+
+bool Builtins::isCompilerInternalFunction(const std::string &name) {
+  return m_internal_function_names.find(name) != m_internal_function_names.end();
 }
 
 const std::vector<std::shared_ptr<Symbol>> &Builtins::getAll() {

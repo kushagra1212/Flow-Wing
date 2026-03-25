@@ -18,8 +18,15 @@
  */
 
 #include "StatementBinder.hpp"
+#include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
+#include "src/common/Symbol/ModuleSymbol.hpp"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "src/syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
@@ -29,12 +36,12 @@
 #include "src/syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "src/utils/LogConfig.h"
-#include <cassert>
 
 namespace flow_wing {
 namespace binding {
@@ -84,11 +91,53 @@ StatementBinder::bind(syntax::StatementSyntax *statement) {
   case syntax::NodeKind::kClassStatement:
     return bindClassStatement(
         static_cast<syntax::ClassStatementSyntax *>(statement));
+  case syntax::NodeKind::kBringStatement:
+    return bindBringStatement(
+        static_cast<syntax::BringStatementSyntax *>(statement));
+  case syntax::NodeKind::kModuleStatement:
+    return bindModuleStatement(
+        static_cast<syntax::ModuleStatementSyntax *>(statement));
 
   default:
     return bindExpressionStatement(
         static_cast<syntax::ExpressionStatementSyntax *>(statement));
   }
+}
+
+std::unique_ptr<BoundStatement>
+StatementBinder::bindBringStatement(syntax::BringStatementSyntax *statement) {
+  (void)statement;
+  // DeclarationAnalyzer already validates the brought file; no IR for bring.
+  return std::make_unique<BoundBlockStatement>(
+      std::vector<std::unique_ptr<BoundStatement>>{},
+      statement->getStringLiteralExpression()->getSourceLocation());
+}
+
+std::unique_ptr<BoundStatement>
+StatementBinder::bindModuleStatement(syntax::ModuleStatementSyntax *statement) {
+  auto *name_expr = static_cast<syntax::IdentifierExpressionSyntax *>(
+      statement->getModuleNameExpression().get());
+  std::shared_ptr<analysis::Symbol> sym =
+      m_context->getSymbolTable()->lookup(name_expr->getValue());
+  if (!sym || sym->getKind() != analysis::SymbolKind::kModule) {
+    return std::make_unique<BoundModuleStatement>(
+        std::vector<std::unique_ptr<BoundStatement>>{},
+        name_expr->getSourceLocation());
+  }
+
+  auto *module_symbol = static_cast<analysis::ModuleSymbol *>(sym.get());
+  auto module_table = module_symbol->getModuleSymbolTable();
+  auto saved = m_context->getSymbolTable();
+  m_context->switchSymbolTable(module_table);
+
+  std::vector<std::unique_ptr<BoundStatement>> inner;
+  for (const auto &st : statement->getModuleMemberStatements()) {
+    inner.push_back(bind(st.get()));
+  }
+  m_context->switchSymbolTable(saved);
+
+  return std::make_unique<BoundModuleStatement>(
+      std::move(inner), name_expr->getSourceLocation());
 }
 } // namespace binding
 } // namespace flow_wing

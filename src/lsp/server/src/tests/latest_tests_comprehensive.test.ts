@@ -86,6 +86,8 @@ describe("LatestTests Comprehensive LSP", () => {
       "ScopeTests",
       "PrimitiveTests",
       "IfStatementTests",
+      "BringTests",
+      "ModuleTests",
     ];
 
     for (const category of categories) {

@@ -5,14 +5,15 @@
 
 #include "src/compiler/Linker/LinkerCommandBuilder.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/io/ObjectUtils.hpp"
 #include "src/IRGen/io/Utils.hpp"
 #include "src/common/LibUtils/LibUtils.h"
-#include "src/common/io/FileUtils.h"
 #include "src/common/io/PathUtils.hpp"
 #include "src/common/utils/PathUtils/PathUtils.h"
 #include "src/utils/LogConfig.h"
-#include "src/utils/PathUtils.h"
 #include <sstream>
+#include <string>
+#include <unordered_set>
 
 namespace flow_wing {
 namespace linker {
@@ -58,12 +59,25 @@ std::string LinkerCommandBuilder::generateLinkCommand() {
 // ========================================================
 
 void LinkerCommandBuilder::addLinkerBinary(std::vector<std::string> &args) {
-  args.push_back(AOT_LINKER_PATH);
+  std::string linker = AOT_LINKER_PATH;
+  if (linker.empty()) {
+    linker = "clang++";
+  }
+  args.push_back(std::move(linker));
 }
 
 void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
 #if defined(__APPLE__)
-  args.push_back(MACOS_SDK_SYSROOT_FLAG);
+  {
+    std::string sysroot_flag = MACOS_SDK_SYSROOT_FLAG;
+    const size_t sp = sysroot_flag.find(' ');
+    if (sp != std::string::npos) {
+      args.push_back(sysroot_flag.substr(0, sp));
+      args.push_back(sysroot_flag.substr(sp + 1));
+    } else if (!sysroot_flag.empty()) {
+      args.push_back(std::move(sysroot_flag));
+    }
+  }
   // Suppress warnings
   if (!m_context.getOptions().enable_linker_warnings) {
     args.push_back("-Wl,-w");
@@ -86,11 +100,24 @@ void LinkerCommandBuilder::addOutputConfig(std::vector<std::string> &args) {
 }
 
 void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
-  m_object_files = io::getFiles(
-      std::string(flow_wing::ir_gen::constants::paths::kObject_files_dir),
-      std::string(flow_wing::ir_gen::constants::paths::kObject_file_extension));
+  // Link only this TU's object plus brought dependency objects — not every .o
+  // under build/objects (that would duplicate brought TUs and pull unrelated
+  // objects from other compilations).
+  std::unordered_set<std::string> seen;
+  const std::string primary = ir_gen::ObjectUtils::getObjectFilePath(
+      m_context.getAbsoluteSourceFilePath(),
+      m_context.getOptions().output_dir);
+  m_object_files.clear();
+  m_object_files.push_back(primary);
+  seen.insert(primary);
+  args.push_back(primary);
 
-  args.insert(args.end(), m_object_files.begin(), m_object_files.end());
+  for (const auto &extra : m_context.getBroughtObjectFiles()) {
+    if (seen.insert(extra).second) {
+      m_object_files.push_back(extra);
+      args.push_back(extra);
+    }
+  }
 }
 
 void LinkerCommandBuilder::addUserArguments(std::vector<std::string> &args) {

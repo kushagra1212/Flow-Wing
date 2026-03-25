@@ -1,0 +1,30 @@
+
+expose var x:int = 2
+
+expose type TB = {
+    s:str 
+  }
+
+expose type T  ={
+    a:int,
+    b:TB[2]
+}
+
+expose var k:T = {}
+
+expose var j:T[2] 
+
+expose class  A {
+  var x:int 
+  var y:T  
+  
+  init(y:T ) -> nthg {
+    self.y = y 
+  }
+
+  printY() -> nthg {
+      print(self.y)
+  }
+
+}
+

@@ -1002,8 +1002,12 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "DuplicateMemberInClass";
 
     // Bring Statement Errors
+  case DiagnosticCode::kFileNotFound:
+    return "FileNotFound";
   case DiagnosticCode::kFileContainsErrors:
     return "FileContainsErrors";
+  case DiagnosticCode::kCircularReference:
+    return "CircularReference";
 
     // Internal Errors
   case DiagnosticCode::kInternalIRGenerationError:

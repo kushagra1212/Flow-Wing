@@ -21,9 +21,13 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundColonExpression/BoundColonExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundModuleAccessExpression/BoundModuleAccessExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundNewExpression/BoundNewExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/utils/LogConfig.h"
@@ -77,10 +81,29 @@ void BoundTreeJson::visit(binding::BoundBlockStatement *block_statement) {
   m_last_node_json = std::move(block_statement_json);
 }
 
+void BoundTreeJson::visit(binding::BoundModuleStatement *module_statement) {
+  PARSER_DEBUG_LOG("Visiting Bound Module Statement", "BOUND TREE");
+
+  nlohmann::json module_statement_json;
+  module_statement_json["kind"] = toString(module_statement->getKind());
+  serializeArray(module_statement->getStatements(), module_statement_json,
+                 "statements");
+  module_statement_json["range"] =
+      toJsonRange(module_statement->getSourceLocation());
+
+  m_last_node_json = std::move(module_statement_json);
+}
+
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundExposeStatement *expose_statement) {
+    binding::BoundExposeStatement *expose_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Expose Statement", "BOUND TREE");
-  assert(false && "Expose statement not supported");
+  nlohmann::json expose_statement_json;
+  expose_statement_json["kind"] = toString(expose_statement->getKind());
+  serializeChild(expose_statement->getStatement(), expose_statement_json,
+                 "statement");
+  expose_statement_json["range"] =
+      toJsonRange(expose_statement->getSourceLocation());
+  m_last_node_json = std::move(expose_statement_json);
 }
 
 void BoundTreeJson::visit(
@@ -250,23 +273,45 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(expression_statement_json);
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundErrorStatement *error_statement) {
+void BoundTreeJson::visit(binding::BoundErrorStatement *error_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Error Statement", "BOUND TREE");
+  nlohmann::json error_statement_json;
+  error_statement_json["kind"] = toString(error_statement->getKind());
+  error_statement_json["diagnostic_code"] =
+      static_cast<int>(error_statement->getCode());
+  error_statement_json["range"] =
+      toJsonRange(error_statement->getSourceLocation());
+  m_last_node_json = std::move(error_statement_json);
+}
 
-  assert(false && "Error statement not supported");
+void BoundTreeJson::visit(binding::BoundErrorExpression *error_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Error Expression", "BOUND TREE");
+  nlohmann::json error_expression_json;
+  error_expression_json["kind"] = toString(error_expression->getKind());
+  error_expression_json["diagnostic_code"] =
+      static_cast<int>(error_expression->getCode());
+  error_expression_json["range"] =
+      toJsonRange(error_expression->getSourceLocation());
+  m_last_node_json = std::move(error_expression_json);
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundErrorExpression *error_expression) {
-  PARSER_DEBUG_LOG("Visiting Bound Error Expression", "BOUND TREE");
-  assert(false && "Error expression not supported");
-}
-
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundModuleAccessExpression
-                              *module_access_expression) {
+    binding::BoundModuleAccessExpression *module_access_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Module Access Expression", "BOUND TREE");
-  assert(false && "Module access expression not supported");
+  nlohmann::json module_access_expression_json;
+  module_access_expression_json["kind"] =
+      toString(module_access_expression->getKind());
+  if (module_access_expression->getSymbol() != nullptr) {
+    module_access_expression_json["symbol_id"] =
+        getSymbolId(module_access_expression->getSymbol());
+  }
+  serializeChild(module_access_expression->getMemberAccessExpression(),
+                 module_access_expression_json, "member_access_expression");
+  module_access_expression_json["type_id"] =
+      getTypeId(module_access_expression->getType().get());
+  module_access_expression_json["range"] =
+      toJsonRange(module_access_expression->getSourceLocation());
+  m_last_node_json = std::move(module_access_expression_json);
 }
 
 void BoundTreeJson::visit([[maybe_unused]] binding::BoundParenthesizedExpression
@@ -301,10 +346,19 @@ void BoundTreeJson::visit(binding::BoundTernaryExpression *ternary_expression) {
   m_last_node_json = std::move(ternary_expression_json);
 }
 
-void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundNewExpression *new_expression) {
+void BoundTreeJson::visit(binding::BoundNewExpression *new_expression) {
   PARSER_DEBUG_LOG("Visiting Bound New Expression", "BOUND TREE");
-  assert(false && "New expression not supported");
+  nlohmann::json new_expression_json;
+  new_expression_json["kind"] = toString(new_expression->getKind());
+  serializeChild(new_expression->getExpression(), new_expression_json,
+                 "expression");
+  serializeArray(new_expression->getArguments(), new_expression_json,
+                 "arguments");
+  new_expression_json["result_type_id"] =
+      getTypeId(new_expression->getType().get());
+  new_expression_json["range"] =
+      toJsonRange(new_expression->getSourceLocation());
+  m_last_node_json = std::move(new_expression_json);
 }
 
 void BoundTreeJson::visit(

@@ -27,6 +27,7 @@
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
 #include "src/compiler/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/CompilationUnitSyntax.h"
+#include <algorithm>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -101,6 +102,23 @@ public:
     m_llvm_backend_context = std::move(llvm_backend_context);
   }
 
+  /// Absolute source paths for `bring` dependencies; compiled to .o at the
+  /// start of IR generation (after semantic analysis, avoids re-entrant
+  /// codegen).
+  void addBroughtSourceFile(std::string absolute_path);
+  const std::vector<std::string> &getBroughtSourcePaths() const {
+    return m_brought_source_paths;
+  }
+
+  /// Object files produced for `bring` dependencies (filled when compiling
+  /// brought sources to .o). The linker merges these with the primary object.
+  void addBroughtObjectFile(std::string object_path) {
+    m_brought_object_files.push_back(std::move(object_path));
+  }
+  const std::vector<std::string> &getBroughtObjectFiles() const {
+    return m_brought_object_files;
+  }
+
 private:
   const CompilerOptions m_options;
   std::unique_ptr<diagnostic::DiagnosticHandler> m_diagnostics;
@@ -112,5 +130,17 @@ private:
   std::string m_llvm_ir;
   std::string m_tmp_dir;
   std::unique_ptr<ir_gen::LLVMBackendContext> m_llvm_backend_context = nullptr;
+  std::vector<std::string> m_brought_source_paths;
+  std::vector<std::string> m_brought_object_files;
 };
+
+inline void
+CompilationContext::addBroughtSourceFile(std::string absolute_path) {
+  absolute_path = utils::PathUtils::getAbsoluteFilePath(absolute_path);
+  if (std::find(m_brought_source_paths.begin(), m_brought_source_paths.end(),
+                absolute_path) != m_brought_source_paths.end()) {
+    return;
+  }
+  m_brought_source_paths.push_back(std::move(absolute_path));
+}
 } // namespace flow_wing

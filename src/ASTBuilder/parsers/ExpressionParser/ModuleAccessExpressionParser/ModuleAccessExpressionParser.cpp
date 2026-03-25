@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "ModuleAccessExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include <cassert>
 
@@ -38,7 +39,7 @@ ModuleAccessExpressionParser::parsePostfix(
       m_ctx->match(lexer::TokenKind::kColonColonToken); // ::
 
   auto member_access_expression = PrecedenceAwareExpressionParser::parse(
-      m_ctx); // object or call or index or identifier
+      m_ctx, syntax::OperatorPrecedence::kModuleAccessRhsPrecedenceFloor);
 
   return std::make_unique<syntax::ModuleAccessExpressionSyntax>(
       std::move(module_identifier_expression), colon_colon_token,

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,8 +34,13 @@ std::string ObjectEmissionPass::getName() const { return "Object Emission"; }
 ReturnStatus ObjectEmissionPass::run(CompilationContext &context) {
 
   const auto llvm_module = context.getBackendContext()->getLLVMModule();
-  const std::string file_path = context.getOptions().input_file_path;
-  ir_gen::ObjectUtils::createObjectFile(llvm_module, file_path);
+  // Must match paths used when registering brought-in objects (CompilationContext
+  // canonical path, not necessarily the raw CLI path).
+  const std::string file_path = context.getAbsoluteSourceFilePath();
+  if (!ir_gen::ObjectUtils::createObjectFile(
+          llvm_module, file_path, context.getOptions().output_dir)) {
+    return ReturnStatus::kFailure;
+  }
 
   return ReturnStatus::kSuccess;
 }

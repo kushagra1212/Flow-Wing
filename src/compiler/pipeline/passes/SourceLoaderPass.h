@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public:
   ReturnStatus run(CompilationContext &context) override {
     const auto &opts = context.getOptions();
 
-    if (!opts.code_content->empty()) {
+    if (opts.code_content.has_value() && !opts.code_content->empty()) {
       // Handle --code flag: read content directly from options.
       context.setSourceLines(flow_wing::io::FileUtils::readLinesFromString(
           opts.code_content.value()));

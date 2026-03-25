@@ -34,6 +34,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.hpp"
@@ -69,6 +70,7 @@ public:
   virtual void visit(binding::BoundReturnStatement *return_statement) = 0;
   virtual void visit(binding::BoundSwitchStatement *switch_statement) = 0;
   virtual void visit(binding::BoundClassStatement *class_statement) = 0;
+  virtual void visit(binding::BoundModuleStatement *module_statement) = 0;
   virtual void
   visit(binding::BoundIdentifierExpression *identifier_expression) = 0;
   virtual void visit(binding::BoundIndexExpression *index_expression) = 0;

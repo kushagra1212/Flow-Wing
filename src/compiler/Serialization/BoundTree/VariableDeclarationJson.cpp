@@ -34,14 +34,15 @@ void BoundTreeJson::visit(
         static_cast<const analysis::VariableSymbol *>(symbol.get());
     const auto &symbol_id = getSymbolId(variable_symbol);
 
+    nlohmann::json initializer_slot = nlohmann::json::object();
     if (variable_symbol->getInitializerExpression()) {
-
       variable_symbol->getInitializerExpression()->accept(this);
+      initializer_slot = std::move(m_last_node_json);
     }
 
-    m_last_node_json["symbol_id"] = symbol_id;
+    initializer_slot["symbol_id"] = symbol_id;
     variable_declaration_json["initializer_expressions"].push_back(
-        std::move(m_last_node_json));
+        std::move(initializer_slot));
   }
 
   variable_declaration_json["range"] =

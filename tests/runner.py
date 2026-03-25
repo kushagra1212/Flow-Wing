@@ -325,7 +325,22 @@ def main():
     print(f"{Colors.OKGREEN}Compiler found at: {compiler_path}{Colors.ENDC}")
 
     all_tests = sorted(list(test_dir.rglob("*.fg")))
-    
+
+    # Verbatim mirrors of tests/fixtures/Z_BringTest and Z_ModuleTest (see
+    # LatestTests/*/legacy_Z_*). They often rely on old bring/module behavior
+    # and are skipped when scanning a broad --dir unless:
+    #   - FLOWWING_RUN_LEGACY_Z=1, or
+    #   - --dir points inside a legacy_Z_* folder (run that tree only).
+    def _filter_legacy_z_mirrors(paths):
+        if os.environ.get("FLOWWING_RUN_LEGACY_Z") == "1":
+            return paths
+        legacy_marker = "legacy_Z_"
+        if legacy_marker in str(test_dir.resolve()):
+            return paths
+        return [p for p in paths if legacy_marker not in str(p)]
+
+    all_tests = _filter_legacy_z_mirrors(all_tests)
+
     if args.filter:
         try:
             pattern = re.compile(args.filter)

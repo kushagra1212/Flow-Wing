@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: VariableAlreadyDeclared
+bring "../support_dup_lib/dup_one_var_lib.fg"
+bring "../support_dup_lib/dup_one_var_lib.fg"
+
+println(0)

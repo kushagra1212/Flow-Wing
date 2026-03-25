@@ -85,27 +85,14 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
     auto *call_syntax =
         static_cast<syntax::CallExpressionSyntax *>(inner_syntax);
     auto *id_syntax = call_syntax->getIdentifier().get();
-    if (id_syntax->getKind() != syntax::NodeKind::kIdentifierExpression) {
+    if (id_syntax->getKind() != syntax::NodeKind::kIdentifierExpression &&
+        id_syntax->getKind() != syntax::NodeKind::kModuleAccessExpression) {
       auto err = std::make_unique<BoundErrorExpression>(
           id_syntax->getSourceLocation(),
           diagnostic::DiagnosticCode::kUnexpectedExpression,
           std::vector<diagnostic::DiagnosticArg>{
               syntax::toString(id_syntax->getKind()),
-              syntax::toString(syntax::NodeKind::kIdentifierExpression)});
-      m_context->reportError(err.get());
-      return std::move(err);
-    }
-    auto class_name =
-        static_cast<syntax::IdentifierExpressionSyntax *>(id_syntax)
-            ->getValue();
-    auto symbol = m_context->getSymbolTable()->lookup(class_name);
-    if (!symbol ||
-        symbol->getKind() != analysis::SymbolKind::kClass) {
-      auto err = std::make_unique<BoundErrorExpression>(
-          id_syntax->getSourceLocation(),
-          diagnostic::DiagnosticCode::kTypeIsNotAFunction,
-          std::vector<diagnostic::DiagnosticArg>{
-              symbol ? symbol->getType()->getName() : class_name});
+              "class name (e.g. new MyClass(), new MyClass, or new module::MyClass())"});
       m_context->reportError(err.get());
       return std::move(err);
     }
@@ -113,8 +100,17 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
     if (bound_id->getKind() == NodeKind::kErrorExpression) {
       return bound_id;
     }
+    if (bound_id->getType()->getKind() != types::TypeKind::kClass) {
+      auto err = std::make_unique<BoundErrorExpression>(
+          id_syntax->getSourceLocation(),
+          diagnostic::DiagnosticCode::kTypeIsNotAFunction,
+          std::vector<diagnostic::DiagnosticArg>{
+              bound_id->getType()->getName()});
+      m_context->reportError(err.get());
+      return std::move(err);
+    }
     auto class_type_ptr =
-        std::dynamic_pointer_cast<types::ClassType>(symbol->getType());
+        std::dynamic_pointer_cast<types::ClassType>(bound_id->getType());
     std::vector<std::unique_ptr<BoundExpression>> args;
     if (call_syntax->getArgumentExpression()) {
       auto *arg_root = call_syntax->getArgumentExpression().get();
@@ -187,7 +183,8 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
         std::move(bound_id), std::move(args), location);
   }
 
-  if (inner_syntax->getKind() == syntax::NodeKind::kIdentifierExpression) {
+  if (inner_syntax->getKind() == syntax::NodeKind::kIdentifierExpression ||
+      inner_syntax->getKind() == syntax::NodeKind::kModuleAccessExpression) {
     auto expression = bind(inner_syntax);
     if (expression->getKind() == NodeKind::kErrorExpression) {
       return expression;
@@ -209,7 +206,7 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
       location, diagnostic::DiagnosticCode::kUnexpectedExpression,
       std::vector<diagnostic::DiagnosticArg>{
           syntax::toString(inner_syntax->getKind()),
-          "class name (e.g. new MyClass() or new MyClass)"});
+          "class name (e.g. new MyClass() or new module::MyClass())"});
   m_context->reportError(err.get());
   return std::move(err);
 }
