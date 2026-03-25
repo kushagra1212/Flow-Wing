@@ -31,6 +31,8 @@
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SourceLoaderPass.h"
 #include <cstdlib>
+#include <filesystem>
+#include <unordered_set>
 
 // clang-format off
 #include "src/common/diagnostics/diagnostic_push.h"
@@ -86,6 +88,63 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
   return ReturnStatus::kSuccess;
 }
 
+/// IR paths to load in dependency-first order (brought TUs, then primary), then
+/// any other .ll/.bc under the temp dir. Matches AOT link order so
+/// `llvm.global_ctors` priorities line up; primary uses the same logical path
+/// as `saveIRToFile` for the main TU.
+/// Deduplicates by canonical path — brought paths and directory scans can refer
+/// to the same file with different spellings; loading twice causes duplicate
+/// symbol errors from ORC.
+std::vector<std::string>
+collectOrderedIRFiles(const CompilationContext &context,
+                      const std::string &ir_directory_path,
+                      const std::string &ir_ext) {
+  namespace fs = std::filesystem;
+  std::vector<std::string> ordered;
+  std::unordered_set<std::string> seen;
+
+  auto canonical_key = [](const std::string &path) -> std::string {
+    std::error_code ec;
+    fs::path c = fs::canonical(path, ec);
+    return ec ? path : c.string();
+  };
+
+  auto try_add = [&](const std::string &logical_path) {
+    if (logical_path.empty()) {
+      return;
+    }
+    std::string p = flow_wing::ir_gen::jit_utils::getIRFilePath(
+        ir_directory_path, logical_path);
+    if (!fs::exists(p)) {
+      return;
+    }
+    const std::string key = canonical_key(p);
+    if (seen.insert(key).second) {
+      ordered.push_back(std::move(p));
+    }
+  };
+
+  for (const auto &src : context.getBroughtSourcePaths()) {
+    try_add(src);
+  }
+  try_add(context.getOptions().input_file_path);
+  if (!fs::exists(flow_wing::ir_gen::jit_utils::getIRFilePath(
+          ir_directory_path, context.getOptions().input_file_path))) {
+    try_add(context.getAbsoluteSourceFilePath());
+  }
+
+  for (const auto &path : flow_wing::io::getFiles(ir_directory_path, ir_ext)) {
+    if (!fs::exists(path)) {
+      continue;
+    }
+    const std::string key = canonical_key(path);
+    if (seen.insert(key).second) {
+      ordered.push_back(path);
+    }
+  }
+  return ordered;
+}
+
 } // namespace
 
 std::string JITCompilerPass::getName() const { return "JIT Compiler"; }
@@ -117,9 +176,10 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   auto TSCtx = std::make_unique<llvm::orc::ThreadSafeContext>(
       std::make_unique<llvm::LLVMContext>());
 
-  std::vector<std::string> ir_files = flow_wing::io::getFiles(
-      ir_directory_path,
-      std::string(flow_wing::ir_gen::constants::paths::kIR_files_extension));
+  const std::string ir_ext =
+      std::string(flow_wing::ir_gen::constants::paths::kIR_files_extension);
+  std::vector<std::string> ir_files =
+      collectOrderedIRFiles(context, ir_directory_path, ir_ext);
 
   llvm::SMDiagnostic err;
   for (const std::string &path : ir_files) {
@@ -146,6 +206,18 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
       flow_wing::cli::Reporter::error("JIT Error adding module: " + errMsg);
       return ReturnStatus::kFailure;
     }
+  }
+
+  // Run llvm.global_ctors (e.g. __fw_brought_module_init for brought TUs)
+  // before main — native AOT does this via the linker/runtime; ORC does not
+  // unless we call LLJIT::initialize.
+  if (llvm::Error init_err = JIT->initialize(JIT->getMainJITDylib())) {
+    std::string err_msg;
+    llvm::raw_string_ostream os(err_msg);
+    llvm::logAllUnhandledErrors(std::move(init_err), os, "JIT: ");
+    flow_wing::cli::Reporter::error("JIT static initialization failed: " +
+                                    err_msg);
+    return ReturnStatus::kFailure;
   }
 
   auto SymExpected = JIT->lookup(

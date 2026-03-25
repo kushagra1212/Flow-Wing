@@ -24,6 +24,7 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
+#include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
@@ -191,6 +192,30 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindContainerExpression(
         get_underlying_type(elements[i]->getExpression()->getType());
 
     if (*current_type.get() != *final_element_type.get()) {
+      // Padded slots often use createDefaultValueExpression (named T) while
+      // explicit elements infer anonymous object types; both may be structurally
+      // compatible with the expected array element type (e.g. T[2] field in a
+      // hinted object literal). Promoting to dynamic breaks `new C({...})`
+      // constructor resolution against a concrete init parameter type.
+      if (auto expected = m_context->peekExpectedType()) {
+        if (expected->getKind() == types::TypeKind::kArray) {
+          auto *expected_arr = static_cast<types::ArrayType *>(expected.get());
+          auto u = expected_arr->getUnderlyingType();
+          if (u && u->getKind() == types::TypeKind::kObject &&
+              final_element_type->getKind() == types::TypeKind::kObject &&
+              current_type->getKind() == types::TypeKind::kObject) {
+            auto *u_obj = static_cast<types::CustomObjectType *>(u.get());
+            auto *ca = static_cast<const types::CustomObjectType *>(
+                current_type.get());
+            auto *fa = static_cast<const types::CustomObjectType *>(
+                final_element_type.get());
+            if (*ca <= *u_obj && *fa <= *u_obj) {
+              final_element_type = u;
+              continue;
+            }
+          }
+        }
+      }
       final_element_type = analysis::Builtins::m_dynamic_type_instance;
     }
   }
