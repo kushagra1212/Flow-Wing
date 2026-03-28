@@ -172,14 +172,33 @@ def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, em
     return "".join(sections)
 
 
+def _canonical_key_for_artifacts(file_path: Path) -> str:
+    """Match flow_wing::utils::PathUtils canonical path input (absolute + lexical norm)."""
+    try:
+        norm = os.path.normpath(os.path.abspath(str(file_path)))
+    except OSError:
+        return str(file_path)
+    return Path(norm).as_posix()
+
+
+def _compiler_short_hex_stem(file_path: Path) -> str:
+    """16 hex chars; must match PathUtils::shortHashedHex16ForPath (FNV-1a 64)."""
+    key = _canonical_key_for_artifacts(file_path)
+    h = 14695981039346656037
+    prime = 1099511628211
+    for b in key.encode("utf-8"):
+        h ^= b
+        h = (h * prime) & 0xFFFFFFFFFFFFFFFF
+    return f"{h:016x}"
+
+
 def _aot_output_subdir(file_path: Path) -> str:
     """
     Short, unique directory name under build/bin/test_artifacts for AOT --output-dir.
 
-    Using the full source stem produced paths like
-    test_artifacts/<95-char stem>/bin/<95-char stem>.exe which, with the repo
-    prefix on Windows CI, exceeds MAX_PATH (~260) and triggers MSVC link
-    LNK1104 (cannot open output file).
+    Long fixture stems used to make the whole path exceed MAX_PATH on Windows CI
+    (LNK1104). The compiler now emits a short hashed .exe name; this subdir stays
+    short as well.
 
     Hash from a repo-relative path when possible so the same fixture maps to the
     same folder regardless of drive prefix (Linux vs Windows clones).
@@ -223,7 +242,12 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     # compile to a temp dir, then run the binary to see runtime errors.
                     aot_build_dir = Path(private_temp_dir) / "aot_build"
                     aot_build_dir.mkdir(parents=True, exist_ok=True)
-                    compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={aot_build_dir}']
+                    compile_cmd = [
+                        str(compiler_bin),
+                        str(file_path),
+                        f'--output-dir={aot_build_dir}',
+                        '--emit=exe',
+                    ]
                     compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
                     duration = (time.time() - start_time) * 1000
                     if compile_result.returncode != 0:
@@ -234,10 +258,10 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         if not keep_going:
                             with dir_lock: failed_dirs.add(parent_dir)
                         return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Compiler Output:\n{output} ({duration:.1f}ms)"
-                    binary_name = file_path.stem
-                    binary_path = aot_build_dir / "bin" / binary_name
-                    if not binary_path.exists() and (aot_build_dir / "bin" / f"{binary_name}.exe").exists():
-                        binary_path = aot_build_dir / "bin" / f"{binary_name}.exe"
+                    binary_stem = _compiler_short_hex_stem(file_path)
+                    binary_path = aot_build_dir / "bin" / binary_stem
+                    if not binary_path.exists() and (aot_build_dir / "bin" / f"{binary_stem}.exe").exists():
+                        binary_path = aot_build_dir / "bin" / f"{binary_stem}.exe"
                     if not binary_path.exists():
                         if not keep_going:
                             with dir_lock: failed_dirs.add(parent_dir)
@@ -268,7 +292,12 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
             if mode == "aot":
                 test_temp_dir = temp_root / _aot_output_subdir(file_path)
                 test_temp_dir.mkdir(parents=True, exist_ok=True)
-                compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={test_temp_dir}']
+                compile_cmd = [
+                    str(compiler_bin),
+                    str(file_path),
+                    f'--output-dir={test_temp_dir}',
+                    '--emit=exe',
+                ]
                 
                 # Use env=run_env here
                 compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
@@ -334,13 +363,13 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         )
                     )
                 
-                binary_name = file_path.stem
-                binary_path = test_temp_dir / "bin" / binary_name
+                binary_stem = _compiler_short_hex_stem(file_path)
+                binary_path = test_temp_dir / "bin" / binary_stem
                 # On Windows the compiler is likely to emit an .exe, while on Unix
                 # it will be a bare binary with no extension. Check both so that
                 # Windows AOT tests don't fail with a spurious "missing binary".
                 if not binary_path.exists():
-                    exe_candidate = binary_path.with_suffix(binary_path.suffix + ".exe")
+                    exe_candidate = binary_path.with_suffix(".exe")
                     if exe_candidate.exists():
                         binary_path = exe_candidate
                     else:

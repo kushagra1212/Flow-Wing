@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,10 @@ struct PathUtils {
   // Extracts the extension from a file path, including the dot.
   // Example: "/path/to/file.txt" -> ".txt"
   static std::string getExtension(const std::string &file_path);
+
+  /// 16 lowercase hex chars (FNV-1a 64 over the canonical path). Used for
+  /// .obj/.exe basenames so Windows stays under MAX_PATH for long source paths.
+  static std::string shortHashedHex16ForPath(const std::string &file_path);
 };
 
 } // namespace utils

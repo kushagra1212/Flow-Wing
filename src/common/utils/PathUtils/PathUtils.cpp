@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,37 @@
  */
 
 #include "PathUtils.h"
+#include <cstdint>
 #include <filesystem>
+#include <iomanip>
+#include <sstream>
+#include <string_view>
 
 namespace flow_wing {
 namespace utils {
+
+namespace {
+
+std::string canonicalPathKeyForArtifacts(const std::string &file_path) {
+  std::error_code ec;
+  std::filesystem::path abs = std::filesystem::absolute(file_path, ec);
+  if (ec) {
+    return file_path;
+  }
+  return abs.lexically_normal().generic_string();
+}
+
+uint64_t fnv1a64(std::string_view s) {
+  uint64_t h = 14695981039346656037ULL;
+  constexpr uint64_t kPrime = 1099511628211ULL;
+  for (char c : s) {
+    h ^= static_cast<unsigned char>(c);
+    h *= kPrime;
+  }
+  return h;
+}
+
+} // namespace
 
 std::string
 PathUtils::getAbsoluteFilePath(const std::string &relative_file_path) {
@@ -38,6 +65,14 @@ std::string PathUtils::removeExtension(const std::string &file_path) {
 
 std::string PathUtils::getExtension(const std::string &file_path) {
   return std::filesystem::path(file_path).extension().string();
+}
+
+std::string PathUtils::shortHashedHex16ForPath(const std::string &file_path) {
+  const std::string key = canonicalPathKeyForArtifacts(file_path);
+  const uint64_t h = fnv1a64(key);
+  std::ostringstream oss;
+  oss << std::hex << std::setfill('0') << std::setw(16) << h;
+  return oss.str();
 }
 
 } // namespace utils

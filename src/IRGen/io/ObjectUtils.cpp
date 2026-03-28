@@ -22,11 +22,9 @@
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/io/Utils.hpp"
 #include "src/common/cli/CliReporter.h"
+#include "src/common/utils/PathUtils/PathUtils.h"
 #include "src/utils/LogConfig.h"
 #include <filesystem>
-#include <iomanip>
-#include <sstream>
-#include <string_view>
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm-c/Core.h"
@@ -37,45 +35,13 @@
 namespace flow_wing {
 namespace ir_gen {
 
-namespace {
-
-/// Stable, cross-platform key for naming (hash input).
-std::string canonicalPathKey(const std::string &file_path) {
-  std::error_code ec;
-  std::filesystem::path abs = std::filesystem::absolute(file_path, ec);
-  if (ec) {
-    return file_path;
-  }
-  return abs.lexically_normal().generic_string();
-}
-
-/// FNV-1a 64-bit — object basename must stay short; embedding the full absolute
-/// path under objects/ exceeds Windows MAX_PATH for long fixture names.
-uint64_t fnv1a64(std::string_view s) {
-  uint64_t h = 14695981039346656037ULL;
-  constexpr uint64_t kPrime = 1099511628211ULL;
-  for (char c : s) {
-    h ^= static_cast<unsigned char>(c);
-    h *= kPrime;
-  }
-  return h;
-}
-
-std::string hashedObjectFileName(const std::string &canonical_key) {
-  const uint64_t h = fnv1a64(canonical_key);
-  std::ostringstream oss;
-  oss << std::hex << std::setfill('0') << std::setw(16) << h;
-  return oss.str() + std::string(constants::paths::kObject_file_extension);
-}
-
-} // namespace
-
 std::string ObjectUtils::getObjectFilePath(const std::string &file_path,
                                            const std::string &output_dir) {
-  const std::string key = canonicalPathKey(file_path);
   const std::string base =
       output_dir.empty() ? std::string("./build") : output_dir;
-  const std::string obj_name = hashedObjectFileName(key);
+  const std::string obj_name =
+      utils::PathUtils::shortHashedHex16ForPath(file_path) +
+      std::string(constants::paths::kObject_file_extension);
   std::filesystem::path rel =
       std::filesystem::absolute(base) / "objects" / obj_name;
   return rel.string();

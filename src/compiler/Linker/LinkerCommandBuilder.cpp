@@ -209,23 +209,22 @@ LinkerCommandBuilder::getEntryPointFlag(const std::string &entry) const {
 }
 
 std::string LinkerCommandBuilder::getBinaryFilePath() const {
+  const std::string short_base = utils::PathUtils::shortHashedHex16ForPath(
+      m_context.getAbsoluteSourceFilePath());
   std::string binary_file_path = "";
   // handle windows and ma
 #if defined(_WIN32)
   binary_file_path =
-      m_context.getOptions().output_dir + "\\bin\\" +
-      utils::PathUtils::removeExtension(m_context.getOptions().input_file_path);
+      m_context.getOptions().output_dir + "\\bin\\" + short_base;
 #else
   binary_file_path =
-      m_context.getOptions().output_dir + "/bin/" +
-      utils::PathUtils::removeExtension(m_context.getOptions().input_file_path);
+      m_context.getOptions().output_dir + "/bin/" + short_base;
 #endif
 
   if (binary_file_path.empty()) {
     binary_file_path =
         std::string(flow_wing::ir_gen::constants::paths::kBin_files_dir) +
-        utils::PathUtils::removeExtension(
-            m_context.getOptions().input_file_path);
+        short_base;
   }
 
   LINKING_DEBUG_LOG("binary_file_path", binary_file_path);
