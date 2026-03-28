@@ -44,6 +44,8 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/TargetParser/Host.h"
 
 #include <string>
 #include <vector>
@@ -51,12 +53,10 @@
 namespace flow_wing {
 namespace ir_gen {
 
-namespace {
-
 /// Matches `LLVMTypeBuilder::convertFunction`: hidden `i8*` only when the
 /// function returns a non-`nthg` value using the FlowWing convention (void +
 /// return buffer).
-bool needsHiddenReturnPointer(const types::FunctionType *function_type) {
+static bool needsHiddenReturnPointer(const types::FunctionType *function_type) {
   const auto &rets = function_type->getReturnTypes();
   if (rets.empty())
     return false;
@@ -64,6 +64,16 @@ bool needsHiddenReturnPointer(const types::FunctionType *function_type) {
   return r0->type_convention == types::TypeConvention::kFlowWing &&
          !r0->type->isNthg();
 }
+
+static bool targetTripleNeedsX86Sret(IRGenContext &ir_ctx) {
+  std::string target_triple = ir_ctx.getLLVMModule()->getTargetTriple();
+  if (target_triple.empty())
+    target_triple = llvm::sys::getDefaultTargetTriple();
+  return target_triple.find("x86_64") != std::string::npos ||
+         target_triple.find("amd64") != std::string::npos;
+}
+
+namespace {
 
 /// SysV x86-64 (typical Linux CI) requires `sret` on the hidden return pointer;
 /// without it LLVM may not follow the ABI and callers read uninitialized
@@ -73,9 +83,7 @@ void addHiddenStructReturnAttr(IRGenContext &ir_ctx, llvm::Function *llvm_functi
                                const types::FunctionType *function_type) {
   if (!needsHiddenReturnPointer(function_type))
     return;
-  const std::string target_triple = ir_ctx.getLLVMModule()->getTargetTriple();
-  if (target_triple.find("x86_64") == std::string::npos &&
-      target_triple.find("amd64") == std::string::npos)
+  if (!targetTripleNeedsX86Sret(ir_ctx))
     return;
   std::vector<types::Type *> rts;
   rts.reserve(function_type->getReturnTypes().size());
@@ -89,6 +97,19 @@ void addHiddenStructReturnAttr(IRGenContext &ir_ctx, llvm::Function *llvm_functi
 }
 
 } // namespace
+
+void applyHiddenStructReturnAttrToCall(
+    IRGenContext &ir_ctx, llvm::CallInst *call,
+    const types::FunctionType *function_type,
+    llvm::StructType *return_struct_type) {
+  if (!call || !needsHiddenReturnPointer(function_type) || !return_struct_type)
+    return;
+  if (!targetTripleNeedsX86Sret(ir_ctx))
+    return;
+  call->addParamAttr(
+      0, llvm::Attribute::getWithStructRetType(
+             ir_ctx.getLLVMModule()->getContext(), return_struct_type));
+}
 
 GlobalDeclarationsInitializer::GlobalDeclarationsInitializer(
     IRGenContext &ir_gen_context)

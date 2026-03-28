@@ -60,9 +60,6 @@ describe("LatestTests Comprehensive LSP", () => {
   });
 
   describe("SEM/AST generation per category", function () {
-    beforeEach(function () {
-      this.timeout(20000); // 5 compiler invocations per category; can be slow under load
-    });
     const categories = [
       "01_basics",
       "01_bool",
@@ -92,6 +89,9 @@ describe("LatestTests Comprehensive LSP", () => {
 
     for (const category of categories) {
       it(`should generate SEM for valid files in ${category}`, async function () {
+        // Before first await: Mocha async tests need an explicit timeout here; npm test uses
+        // --timeout 15000 and BringTests alone can take ~45s (SEM repair + nested imports).
+        this.timeout(120000);
         const dir = path.join(FIXTURES_DIR, category);
         const files = getFilesRecursive(dir).filter(
           (f) =>

@@ -4,9 +4,15 @@
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 
+namespace llvm {
+class CallInst;
+class StructType;
+} // namespace llvm
+
 namespace flow_wing {
 namespace types {
 class ClassType;
+class FunctionType;
 }
 namespace binding {
 class BoundModuleStatement;
@@ -107,5 +113,14 @@ private:
   /// another object file).
   void declareImportedClassExterns(types::ClassType *class_type);
 };
+
+/// SysV x86-64: match `sret` on the hidden return-buffer argument at call sites.
+/// Required for indirect calls (e.g. vtable dispatch) where attributes are not
+/// inherited from the callee Function.
+void applyHiddenStructReturnAttrToCall(
+    IRGenContext &ir_ctx, llvm::CallInst *call,
+    const types::FunctionType *function_type,
+    llvm::StructType *return_struct_type);
+
 } // namespace ir_gen
 } // namespace flow_wing

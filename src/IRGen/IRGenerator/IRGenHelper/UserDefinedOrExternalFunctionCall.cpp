@@ -248,6 +248,11 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     call_result = builder->CreateCall(llvm_function, llvm_args);
   }
 
+  if (is_ret_via_arg && return_struct_type) {
+    applyHiddenStructReturnAttrToCall(m_ir_gen_context, call_result,
+                                      function_type, return_struct_type);
+  }
+
   if (is_ret_via_arg) {
     if (return_types.size() == 1) {
       auto *ret_type = return_types[0];
