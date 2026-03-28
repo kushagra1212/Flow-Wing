@@ -56,32 +56,8 @@ namespace ir_gen {
 
 namespace {
 
-/// Register a void () function as a global constructor so it runs before
-/// `main` (needed for brought dependency .o files that emit top-level stores
-/// without defining a second `main`).
-void registerGlobalCtor(llvm::Module *module, llvm::Function *ctor_fn,
-                        unsigned priority = 65535) {
-  llvm::LLVMContext &ctx = module->getContext();
-  llvm::Type *i32 = llvm::Type::getInt32Ty(ctx);
-  llvm::Type *fn_ptr = llvm::PointerType::getUnqual(ctx);
-  llvm::Type *i8p = llvm::Type::getInt8PtrTy(ctx);
-  llvm::StructType *elt_ty = llvm::StructType::get(ctx, {i32, fn_ptr, i8p});
-
-  llvm::Constant *ctor_entry = llvm::ConstantStruct::get(
-      elt_ty,
-      {llvm::ConstantInt::get(i32, priority),
-       llvm::ConstantExpr::getBitCast(ctor_fn, fn_ptr),
-       llvm::ConstantPointerNull::get(llvm::cast<llvm::PointerType>(i8p))});
-
-  llvm::ArrayType *arr_ty = llvm::ArrayType::get(elt_ty, 1);
-  llvm::Constant *arr_init = llvm::ConstantArray::get(arr_ty, {ctor_entry});
-
-  if (module->getGlobalVariable("llvm.global_ctors")) {
-    return;
-  }
-  new llvm::GlobalVariable(*module, arr_ty, false,
-                           llvm::GlobalValue::AppendingLinkage, arr_init,
-                           "llvm.global_ctors");
+std::string broughtInitFunctionName(int index) {
+  return "__fw_brought_init_" + std::to_string(index);
 }
 
 } // namespace
@@ -159,20 +135,44 @@ void IRGenerator::visit(
     auto entry_block = llvm::BasicBlock::Create(
         *m_ir_gen_context.getLLVMContext(), "entry", entry_point_function);
     m_ir_gen_context.setInsertPoint(entry_block);
+
+    // Run each brought TU's top-level in order. We rely on explicit calls from
+    // `main` (not only llvm.global_ctors): Linux AOT + lld was not reliably
+    // executing those ctors before user code, so e.g. println in a brought file
+    // never ran while the primary TU still linked.
+    llvm::Module *mod = m_ir_gen_context.getLLVMModule();
+    llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
+    auto &builder = *m_ir_gen_context.getLLVMBuilder();
+    llvm::FunctionType *void_void =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false);
+    const auto &brought_paths =
+        m_ir_gen_context.getCompilationContext().getBroughtSourcePaths();
+    for (size_t i = 0; i < brought_paths.size(); ++i) {
+      const std::string name = broughtInitFunctionName(static_cast<int>(i));
+      llvm::Function *f = mod->getFunction(name);
+      if (!f) {
+        f = llvm::Function::Create(void_void, llvm::Function::ExternalLinkage,
+                                   name, mod);
+      }
+      builder.CreateCall(f, {});
+    }
   } else {
     llvm::Module *mod = m_ir_gen_context.getLLVMModule();
     llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
     llvm::FunctionType *init_ft =
         llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false);
+    int pri_idx =
+        m_ir_gen_context.getCompilationContext().getBroughtCtorPriority();
+    const int idx = pri_idx >= 0 ? pri_idx : 0;
     brought_init_fn = llvm::Function::Create(
-        init_ft, llvm::Function::InternalLinkage, "__fw_brought_module_init",
-        mod);
+        init_ft, llvm::Function::ExternalLinkage,
+        broughtInitFunctionName(idx), mod);
     llvm::BasicBlock *init_bb =
         llvm::BasicBlock::Create(ctx, "entry", brought_init_fn);
     m_ir_gen_context.setInsertPoint(init_bb);
   }
-  // Brought dependency .o: no `main`; top-level statements run in
-  // __fw_brought_module_init (registered as a global ctor).
+  // Brought dependency .o: no `main`; top-level statements live in
+  // __fw_brought_init_<i> (called from the primary TU's `main`).
 
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
@@ -187,11 +187,6 @@ void IRGenerator::visit(
     if (cur && !cur->getTerminator()) {
       builder->CreateRetVoid();
     }
-    int pri_idx = m_ir_gen_context.getCompilationContext().getBroughtCtorPriority();
-    const unsigned ctor_pri =
-        pri_idx >= 0 ? static_cast<unsigned>(pri_idx) : 65535u;
-    registerGlobalCtor(m_ir_gen_context.getLLVMModule(), brought_init_fn,
-                       ctor_pri);
     verifyModule();
     return;
   }

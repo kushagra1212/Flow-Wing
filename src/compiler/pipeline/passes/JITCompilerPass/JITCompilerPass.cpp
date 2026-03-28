@@ -273,7 +273,8 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
     return ReturnStatus::kFailure;
   }
 
-  // Run llvm.global_ctors (e.g. __fw_brought_module_init for brought TUs)
+  // Run llvm.global_ctors; brought TU side effects also run via calls from main
+  // to __fw_brought_init_<i> after modules are linked.
   // before main — native AOT does this via the linker/runtime; ORC does not
   // unless we call LLJIT::initialize.
   if (llvm::Error init_err = JIT->initialize(JIT->getMainJITDylib())) {

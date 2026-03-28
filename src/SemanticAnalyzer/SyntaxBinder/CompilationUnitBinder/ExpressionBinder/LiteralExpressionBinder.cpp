@@ -18,6 +18,7 @@
  */
 
 #include "ExpressionBinder.hpp"
+#include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
@@ -44,6 +45,32 @@
 namespace flow_wing {
 namespace binding {
 
+namespace {
+
+std::shared_ptr<types::Type>
+integerLiteralTypeFromExpected(int64_t value,
+                             const std::shared_ptr<types::Type> &expected) {
+  if (!expected || !expected->isInteger()) {
+    return nullptr;
+  }
+  if (*expected == *analysis::Builtins::m_int8_type_instance &&
+      value >= std::numeric_limits<int8_t>::min() &&
+      value <= std::numeric_limits<int8_t>::max()) {
+    return analysis::Builtins::m_int8_type_instance;
+  }
+  if (*expected == *analysis::Builtins::m_int32_type_instance &&
+      value >= std::numeric_limits<int32_t>::min() &&
+      value <= std::numeric_limits<int32_t>::max()) {
+    return analysis::Builtins::m_int32_type_instance;
+  }
+  if (*expected == *analysis::Builtins::m_int64_type_instance) {
+    return analysis::Builtins::m_int64_type_instance;
+  }
+  return nullptr;
+}
+
+} // namespace
+
 std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
     syntax::IntegerLiteralExpressionSyntax *expression) {
   assert(expression != nullptr &&
@@ -53,13 +80,17 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
   auto value = expression->getValue();
 
   std::shared_ptr<types::Type> type =
-      (value >= std::numeric_limits<int8_t>::min() &&
-       value <= std::numeric_limits<int8_t>::max())
-          ? analysis::Builtins::m_int8_type_instance
-      : (value >= std::numeric_limits<int32_t>::min() &&
-         value <= std::numeric_limits<int32_t>::max())
-          ? analysis::Builtins::m_int32_type_instance
-          : analysis::Builtins::m_int64_type_instance;
+      integerLiteralTypeFromExpected(value, m_context->peekExpectedType());
+
+  if (!type) {
+    type = (value >= std::numeric_limits<int8_t>::min() &&
+            value <= std::numeric_limits<int8_t>::max())
+               ? analysis::Builtins::m_int8_type_instance
+           : (value >= std::numeric_limits<int32_t>::min() &&
+              value <= std::numeric_limits<int32_t>::max())
+               ? analysis::Builtins::m_int32_type_instance
+               : analysis::Builtins::m_int64_type_instance;
+  }
 
   return std::make_unique<BoundIntegerLiteralExpression>(
       value, type, expression->getSourceLocation());
