@@ -44,7 +44,6 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/Instructions.h"
 #include "llvm/TargetParser/Host.h"
 
 #include <string>
@@ -97,19 +96,6 @@ void addHiddenStructReturnAttr(IRGenContext &ir_ctx, llvm::Function *llvm_functi
 }
 
 } // namespace
-
-void applyHiddenStructReturnAttrToCall(
-    IRGenContext &ir_ctx, llvm::CallInst *call,
-    const types::FunctionType *function_type,
-    llvm::StructType *return_struct_type) {
-  if (!call || !needsHiddenReturnPointer(function_type) || !return_struct_type)
-    return;
-  if (!targetTripleNeedsX86Sret(ir_ctx))
-    return;
-  call->addParamAttr(
-      0, llvm::Attribute::getWithStructRetType(
-             ir_ctx.getLLVMModule()->getContext(), return_struct_type));
-}
 
 GlobalDeclarationsInitializer::GlobalDeclarationsInitializer(
     IRGenContext &ir_gen_context)

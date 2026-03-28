@@ -44,6 +44,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Verifier.h"
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
@@ -457,7 +458,8 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
     // self argument (last parameter) — alloca is already ptr* holding heap_ptr
     llvm_args.push_back(alloca);
 
-    builder->CreateCall(llvm_init_fn, llvm_args);
+    llvm::CallInst *init_call = builder->CreateCall(llvm_init_fn, llvm_args);
+    init_call->setAttributes(llvm_init_fn->getAttributes());
   }
 
   m_last_value = alloca;

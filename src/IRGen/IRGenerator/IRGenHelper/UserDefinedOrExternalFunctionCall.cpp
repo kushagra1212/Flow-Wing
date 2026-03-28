@@ -248,10 +248,11 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     call_result = builder->CreateCall(llvm_function, llvm_args);
   }
 
-  if (is_ret_via_arg && return_struct_type) {
-    applyHiddenStructReturnAttrToCall(m_ir_gen_context, call_result,
-                                      function_type, return_struct_type);
-  }
+  // Indirect calls (vtable dispatch) do not inherit the callee Function's
+  // parameter attributes. Copy the full AttributeList so SysV x86-64 `sret`
+  // on the hidden return slot matches the declaration (direct calls get the
+  // same treatment for consistency).
+  call_result->setAttributes(llvm_function->getAttributes());
 
   if (is_ret_via_arg) {
     if (return_types.size() == 1) {
