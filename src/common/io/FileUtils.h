@@ -37,6 +37,30 @@
 namespace flow_wing {
 namespace io {
 
+#if defined(_WIN32)
+/// Prefix with \\?\ (or \\?\UNC\...) so std::ifstream can open paths > MAX_PATH (260).
+static inline std::filesystem::path win32ExtendedPathForOpen(
+    const std::string &file_path) {
+  namespace fs = std::filesystem;
+  fs::path abs_p;
+  try {
+    abs_p = fs::absolute(fs::path(file_path));
+  } catch (...) {
+    abs_p = fs::path(file_path);
+  }
+  std::wstring w = abs_p.wstring();
+  if (w.size() >= 4 && w[0] == L'\\' && w[1] == L'\\' && w[2] == L'?' &&
+      w[3] == L'\\') {
+    return abs_p;
+  }
+  // UNC: \\server\share\...
+  if (w.size() >= 2 && w[0] == L'\\' && w[1] == L'\\') {
+    return fs::path(std::wstring(L"\\\\?\\UNC\\") + w.substr(2));
+  }
+  return fs::path(std::wstring(L"\\\\?\\") + w);
+}
+#endif
+
 struct FileUtils {
 private:
   static inline std::vector<std::string>
@@ -57,7 +81,11 @@ private:
 public:
   static inline std::optional<std::vector<std::string>>
   readLines(const std::string &file_path) {
+#if defined(_WIN32)
+    std::ifstream file(win32ExtendedPathForOpen(file_path));
+#else
     std::ifstream file(file_path);
+#endif
     if (!file.is_open()) {
       return std::nullopt; // Signal that the file could not be opened.
     }
