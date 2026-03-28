@@ -136,8 +136,12 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindObjectExpression(
           colon_syntax->getSourceLocation()));
       auto *bce =
           static_cast<BoundColonExpression *>(colon_expressions.back().get());
+      // Use the declared field type from the struct hint when present. Otherwise
+      // literals like `22` bind as int8 and would shrink the aggregate layout
+      // (e.g. { i8 }) while the named type T uses int (i32), breaking IR/codegen.
       field_types_map.insert(
-          {field_name, bce->getRightExpression()->getType()});
+          {field_name,
+           field_hint ? field_hint : bce->getRightExpression()->getType()});
     }
 
     for (const auto &[fname, ftype] : co_hint->getFieldTypesMap()) {
