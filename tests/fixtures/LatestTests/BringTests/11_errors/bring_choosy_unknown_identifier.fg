@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: IdentifierNotFoundInFileOrModule
+bring {does_not_exist} from "../01_ok/bring_ok_lib.fg"
+
+println(0)

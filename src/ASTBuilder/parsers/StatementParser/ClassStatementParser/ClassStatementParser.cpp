@@ -62,7 +62,6 @@ std::unique_ptr<syntax::StatementSyntax> ClassStatementParser::parse() {
   while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
          m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    // Legacy syntax: `init(...) -> nthg { }` / `foo(...) -> T { }` without `fun`
     if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kFunctionKeyword) {
       class_member_statements.push_back(
           std::make_unique<FunctionStatementParser>(m_ctx)->parse());

@@ -170,8 +170,15 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
           static_cast<syntax::FunctionReturnTypeExpressionSyntax *>(
               func_syntax->getReturnType().get()));
     } else {
-      return_types.push_back(std::make_shared<types::ReturnType>(
-          analysis::Builtins::m_nthg_type_instance));
+      auto inferred = m_context->getTypeResolver()->inferImplicitReturnTypeFromBody(
+          static_cast<syntax::BlockStatementSyntax *>(
+              func_syntax->getBody().get()));
+      if (inferred && !inferred->isNthg()) {
+        return_types.push_back(std::make_shared<types::ReturnType>(inferred));
+      } else {
+        return_types.push_back(std::make_shared<types::ReturnType>(
+            analysis::Builtins::m_nthg_type_instance));
+      }
     }
 
     auto function_type = std::make_shared<types::FunctionType>(

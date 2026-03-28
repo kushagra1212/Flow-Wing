@@ -30,6 +30,7 @@
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/syntax/NodeKind/NodeKind.h"
+#include "src/syntax/SyntaxNode.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
@@ -38,6 +39,7 @@
 #include "src/syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/ModuleAccessTypeExpressionSyntax/ModuleAccessTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <any>
@@ -317,6 +319,31 @@ std::vector<std::shared_ptr<types::ReturnType>> TypeResolver::resolveReturnType(
   }
 
   return return_types;
+}
+
+namespace {
+
+bool hasReturnStatement(const syntax::SyntaxNode *node) {
+  if (!node)
+    return false;
+  if (node->getKind() == syntax::NodeKind::kReturnStatement)
+    return true;
+  for (const auto *child : node->getChildren()) {
+    if (hasReturnStatement(child))
+      return true;
+  }
+  return false;
+}
+
+} // namespace
+
+std::shared_ptr<types::Type> TypeResolver::inferImplicitReturnTypeFromBody(
+    syntax::BlockStatementSyntax *body) {
+
+  if (!body || !hasReturnStatement(body)) {
+    return Builtins::m_nthg_type_instance;
+  }
+  return resolveType(nullptr).first;
 }
 
 std::pair<std::shared_ptr<types::Type>,

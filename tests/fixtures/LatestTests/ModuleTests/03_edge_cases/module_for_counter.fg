@@ -1,0 +1,7 @@
+module [acc]
+
+var total: int = 0
+
+fun add(n: int) -> nthg {
+  acc::total = acc::total + n
+}

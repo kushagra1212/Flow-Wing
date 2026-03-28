@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+module [m]
+
+var x: int = 0
+
+fun main() -> nthg {
+  m::x = "bad"
+}

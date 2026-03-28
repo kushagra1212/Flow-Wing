@@ -30,6 +30,7 @@
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SourceLoaderPass.h"
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <unordered_set>
@@ -46,6 +47,7 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Error.h"
 #include <llvm/Support/SourceMgr.h>
+#include "llvm/Linker/Linker.h"
 #include "llvm/Target/TargetMachine.h"
 #include "src/common/diagnostics/diagnostic_pop.h"
 // clang-format on
@@ -63,7 +65,9 @@ namespace {
 ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
   const std::string &parent_ir_dir = context.getTempDirectoryPath();
   const auto &parent_opts = context.getOptions();
-  for (const std::string &src_path : context.getBroughtSourcePaths()) {
+  const auto &brought = context.getBroughtSourcePaths();
+  for (size_t i = 0; i < brought.size(); ++i) {
+    const std::string &src_path = brought[i];
     CompilerOptions dep_opts;
     dep_opts.input_file_path = src_path;
     dep_opts.output_dir = parent_opts.output_dir;
@@ -73,6 +77,7 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
     dep_opts.emit_brought_dependency_object = 1;
 
     CompilationContext dep_ctx(dep_opts);
+    dep_ctx.setBroughtCtorPriority(static_cast<int>(i));
     CompilationPipeline pipeline;
     pipeline.addPass(std::make_unique<SourceLoaderPass>());
     pipeline.addPass(std::make_unique<LexerPass>());
@@ -133,7 +138,10 @@ collectOrderedIRFiles(const CompilationContext &context,
     try_add(context.getAbsoluteSourceFilePath());
   }
 
-  for (const auto &path : flow_wing::io::getFiles(ir_directory_path, ir_ext)) {
+  std::vector<std::string> scan_files =
+      flow_wing::io::getFiles(ir_directory_path, ir_ext);
+  std::sort(scan_files.begin(), scan_files.end());
+  for (const auto &path : scan_files) {
     if (!fs::exists(path)) {
       continue;
     }
@@ -142,6 +150,49 @@ collectOrderedIRFiles(const CompilationContext &context,
       ordered.push_back(path);
     }
   }
+
+  // `directory_iterator` / scan order is unspecified; that made JIT module add
+  // order (and thus llvm.global_ctors / top-level statement order) flaky.
+  // Reorder to match semantic compile order: brought TUs in
+  // `getBroughtSourcePaths()` order, then the primary TU.
+  auto rank_of = [&](const std::string &ir_path) -> int {
+    const std::string ik = canonical_key(ir_path);
+    int idx = 0;
+    for (const auto &src : context.getBroughtSourcePaths()) {
+      std::string p = flow_wing::ir_gen::jit_utils::getIRFilePath(
+          ir_directory_path, src);
+      std::error_code ec;
+      if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
+        return idx;
+      }
+      ++idx;
+    }
+    const int primary_rank = idx;
+    for (const std::string *ms :
+         {&context.getOptions().input_file_path,
+          &context.getAbsoluteSourceFilePath()}) {
+      if (ms->empty()) {
+        continue;
+      }
+      std::string p = flow_wing::ir_gen::jit_utils::getIRFilePath(
+          ir_directory_path, *ms);
+      std::error_code ec;
+      if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
+        return primary_rank;
+      }
+    }
+    return 1000000;
+  };
+  std::stable_sort(ordered.begin(), ordered.end(),
+                   [&](const std::string &a, const std::string &b) {
+                     const int ra = rank_of(a);
+                     const int rb = rank_of(b);
+                     if (ra != rb) {
+                       return ra < rb;
+                     }
+                     return canonical_key(a) < canonical_key(b);
+                   });
+
   return ordered;
 }
 
@@ -182,30 +233,44 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
       collectOrderedIRFiles(context, ir_directory_path, ir_ext);
 
   llvm::SMDiagnostic err;
+  std::vector<std::unique_ptr<llvm::Module>> parsed;
+  parsed.reserve(ir_files.size());
   for (const std::string &path : ir_files) {
     LINKING_DEBUG_LOG(" [INFO]: Loading Module for JIT: ", path);
-
-    // Parse IR into the Context
     auto module = llvm::parseIRFile(path, err, *TSCtx->getContext());
-
     if (!module) {
       flow_wing::cli::Reporter::error("Failed to parse IR file: " + path);
       return ReturnStatus::kFailure;
     }
+    parsed.push_back(std::move(module));
+  }
 
-    // Add the module to the JIT.
-    // The JIT linker will automatically resolve symbols (like function calls)
-    // between this module and previously added ones.
-    llvm::Error addErr = JIT->addIRModule(
-        llvm::orc::ThreadSafeModule(std::move(module), *TSCtx));
+  if (parsed.empty()) {
+    flow_wing::cli::Reporter::error("JIT: no IR modules to load");
+    return ReturnStatus::kFailure;
+  }
 
-    if (addErr) {
-      std::string errMsg;
-      llvm::raw_string_ostream errStream(errMsg);
-      errStream << addErr;
-      flow_wing::cli::Reporter::error("JIT Error adding module: " + errMsg);
+  // Link into one module so `llvm.global_ctors` (and FlowWing brought TU
+  // inits) merge like the system linker: ctor priority order is respected.
+  // Multiple `addIRModule` calls left ctor execution order flaky across
+  // platforms / ORC versions.
+  std::unique_ptr<llvm::Module> combined = std::move(parsed[0]);
+  for (size_t i = 1; i < parsed.size(); ++i) {
+    if (llvm::Linker::linkModules(*combined, std::move(parsed[i]))) {
+      flow_wing::cli::Reporter::error(
+          "JIT: failed to link IR module " + std::to_string(i));
       return ReturnStatus::kFailure;
     }
+  }
+
+  llvm::Error addErr = JIT->addIRModule(
+      llvm::orc::ThreadSafeModule(std::move(combined), *TSCtx));
+  if (addErr) {
+    std::string errMsg;
+    llvm::raw_string_ostream errStream(errMsg);
+    errStream << addErr;
+    flow_wing::cli::Reporter::error("JIT Error adding module: " + errMsg);
+    return ReturnStatus::kFailure;
   }
 
   // Run llvm.global_ctors (e.g. __fw_brought_module_init for brought TUs)

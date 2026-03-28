@@ -119,6 +119,13 @@ public:
     return m_brought_object_files;
   }
 
+  /// For `emit_brought_dependency_object` TUs only: index in
+  /// `getBroughtSourcePaths()` order, used as `llvm.global_ctors` priority
+  /// (lower runs first). JIT/AOT rely on this so top-level init order matches
+  /// bring order when multiple modules share priority 65535 otherwise.
+  void setBroughtCtorPriority(int priority) { m_brought_ctor_priority = priority; }
+  int getBroughtCtorPriority() const { return m_brought_ctor_priority; }
+
 private:
   const CompilerOptions m_options;
   std::unique_ptr<diagnostic::DiagnosticHandler> m_diagnostics;
@@ -132,6 +139,7 @@ private:
   std::unique_ptr<ir_gen::LLVMBackendContext> m_llvm_backend_context = nullptr;
   std::vector<std::string> m_brought_source_paths;
   std::vector<std::string> m_brought_object_files;
+  int m_brought_ctor_priority = -1;
 };
 
 inline void

@@ -23,29 +23,12 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
-#include "src/syntax/NodeKind/NodeKind.h"
-#include "src/syntax/SyntaxNode.h"
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
-#include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include <cassert>
-
-namespace {
-bool hasReturnStatement(const flow_wing::syntax::SyntaxNode *node) {
-  if (!node)
-    return false;
-  if (node->getKind() == flow_wing::syntax::NodeKind::kReturnStatement)
-    return true;
-  for (const auto *child : node->getChildren()) {
-    if (hasReturnStatement(child))
-      return true;
-  }
-  return false;
-}
-} // namespace
 
 namespace flow_wing {
 
@@ -142,12 +125,7 @@ void analysis::DeclarationAnalyzer::visit(
 std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(
     syntax::BlockStatementSyntax *body) {
 
-  if (!hasReturnStatement(body)) {
-    return analysis::Builtins::m_nthg_type_instance;
-  }
-
-  auto result = m_binder_context.getTypeResolver()->resolveType(nullptr);
-  return result.first;
+  return m_binder_context.getTypeResolver()->inferImplicitReturnTypeFromBody(body);
 }
 
 } // namespace flow_wing

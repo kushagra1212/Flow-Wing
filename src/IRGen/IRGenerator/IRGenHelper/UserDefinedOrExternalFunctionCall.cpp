@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/GlobalDeclarationsInitializer/GlobalDeclarationsInitializer.hpp"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -33,6 +34,17 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
   const std::string &fn_name = function_symbol->getMangledName();
 
   CODEGEN_DEBUG_LOG("Visiting User-Defined Function: ", fn_name);
+
+  if (call_expression->getUseVirtualDispatch()) {
+    const auto &args = call_expression->getArguments();
+    assert(!args.empty() && call_expression->getImplicitReceiverLast());
+    types::Type *recv_ty = args.back()->getType().get();
+    assert(recv_ty->getKind() == types::TypeKind::kClass &&
+           "virtual dispatch receiver must be a class");
+    GlobalDeclarationsInitializer decl_helper(m_ir_gen_context);
+    decl_helper.ensureImportedClassExterns(
+        static_cast<types::ClassType *>(recv_ty));
+  }
 
   auto llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(fn_name);
   assert(llvm_function &&
@@ -140,6 +152,14 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
 
         if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
             llvm::isa<llvm::GlobalVariable>(m_last_value)) {
+          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
+                                        ->getLLVMType(param_raw_type)
+                                        ->getPointerTo(),
+                                    m_last_value, "heap_ptr");
+        } else if (llvm::isa<llvm::GetElementPtrInst>(m_last_value) ||
+                   llvm::isa<llvm::GEPOperator>(m_last_value)) {
+          // Member field holding a class reference: m_last_value is the field
+          // address (e.g. GEP to `c` in `self.c.bump()`), not the heap pointer.
           val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
                                         ->getLLVMType(param_raw_type)
                                         ->getPointerTo(),

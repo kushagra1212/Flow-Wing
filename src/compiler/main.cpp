@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/common/cli/CommandLineParser/CommandLineParser.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
@@ -26,23 +25,9 @@
 #include "src/compiler/pipeline/CompilationPipeline.h"
 #include "src/compiler/pipeline/ICompilationPass.h"
 #include "src/compiler/pipeline/PipelineFactory.hpp"
-#include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
-#include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
-#include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
-#include "src/compiler/pipeline/passes/SourceLoaderPass.h"
 
 #include <cstdlib>
 #include <iostream>
-
-// Factory function to create the correct backend based on options.
-// std::unique_ptr<ICompilerBackend>
-// createBackend(const flow_wing::CompilerOptions &options) {
-// #if defined(AOT_MODE)
-//   return std::make_unique<AOTCompiler>(options);
-// #else
-//   return std::make_unique<JITCompiler>(options);
-// #endif
-// }
 
 int main(int argc, char *argv[]) {
   flow_wing::cli::CommandLineParser parser;
@@ -71,17 +56,6 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    // 5. Create and run the appropriate backend (AOT or JIT).
-    // std::unique_ptr<ICompilerBackend> backend = createBackend(options);
-    // int8_t backend_status = backend->execute(context);
-
-    // if (backend_status != EXIT_SUCCESS) {
-    //   context.getDiagnostics().logAll(std::cerr);
-    //   std::cerr << "Compilation failed during backend execution." <<
-    //   std::endl; return EXIT_FAILURE;
-    // }
-
-    // std::cout << "Compilation successful." << std::endl;
     return EXIT_SUCCESS;
   }
 

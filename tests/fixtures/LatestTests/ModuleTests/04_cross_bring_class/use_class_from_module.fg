@@ -1,0 +1,5 @@
+bring "class_counter_module.fg"
+
+var c: cnt::Counter = new cnt::Counter(0)
+println(c.bump())
+println(c.bump())

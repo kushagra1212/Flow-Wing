@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: FunctionNotFound
+class A {
+  fun init() -> nthg {}
+}
+
+var a: A = new A()
+println(a.missing())

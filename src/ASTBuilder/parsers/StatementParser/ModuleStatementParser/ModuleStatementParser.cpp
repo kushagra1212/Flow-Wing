@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,14 +34,14 @@ std::unique_ptr<syntax::StatementSyntax> ModuleStatementParser::parse() {
       m_ctx->match(lexer::TokenKind::kModuleKeyword); // module
 
   auto open_bracket_token =
-      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // {
+      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // [
 
   auto module_name_identifier_expression =
       std::make_unique<IdentifierExpressionParser>(m_ctx)
           ->parse(); // module_name
 
   auto close_bracket_token =
-      m_ctx->match(lexer::TokenKind::kCloseBracketToken); // }
+      m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
 
   auto module_statements =
       std::vector<std::unique_ptr<syntax::StatementSyntax>>();

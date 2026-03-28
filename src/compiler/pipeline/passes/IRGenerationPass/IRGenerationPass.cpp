@@ -43,7 +43,9 @@ namespace {
 
 ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
   const auto &parent_opts = context.getOptions();
-  for (const std::string &src_path : context.getBroughtSourcePaths()) {
+  const auto &brought = context.getBroughtSourcePaths();
+  for (size_t i = 0; i < brought.size(); ++i) {
+    const std::string &src_path = brought[i];
     CompilerOptions dep_opts;
     dep_opts.input_file_path = src_path;
     dep_opts.output_type = CompilerOptions::OutputType::kObj;
@@ -54,6 +56,7 @@ ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
     dep_opts.emit_brought_dependency_object = 1;
 
     CompilationContext dep_ctx(dep_opts);
+    dep_ctx.setBroughtCtorPriority(static_cast<int>(i));
     PipelineFactory factory;
     CompilationPipeline pipeline = factory.build(dep_opts);
     if (pipeline.run(dep_ctx) != ReturnStatus::kSuccess) {

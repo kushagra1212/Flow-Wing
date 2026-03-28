@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: NewExpressionConstructorArgumentCountMismatch
+class A {
+  var x: int
+
+  incrementX() -> nthg {
+    x = x + 1
+  }
+}
+
+var a: A = new A(2)

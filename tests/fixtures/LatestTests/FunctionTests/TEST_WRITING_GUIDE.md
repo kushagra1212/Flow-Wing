@@ -88,8 +88,9 @@ These are the error names to use in the `/; EXPECT_ERROR:` comment:
 | `IncompatibleTypesForTernaryExpression`  | Ternary branches have different types |
 | `FileContainsErrors`                     | Brought file fails semantic analysis (`bring "…"`) |
 | `FileNotFound`                           | Brought path does not exist or is not a regular file |
+| `IdentifierNotFoundInFileOrModule`      | `bring { name } from "f.fg"` but `name` is not defined in `f.fg` (or was only imported into `f.fg` via nested `bring`) |
 | `ModuleAlreadyDeclared`                  | Two `module [name]` with the same name in one scope |
-| `ModuleNotFound`                         | Reserved: module name in `name::x` not found (current binder often reports `VariableNotFound` for the module identifier first) |
+| `ModuleNotFound`                         | Module part of `name::x` not found (diagnostic name; the module identifier may surface as `VariableNotFound` in some positions) |
 
 ---
 
@@ -340,8 +341,10 @@ make test-jit ARGS="--filter=LatestTests/FunctionTests --keep-going --parallel"
 | Category | Subdirectory | Coverage |
 | -------- | ------------ | -------- |
 | Inference + mutation | `14_inference_and_external_mutate/` | Inferred `var x`, `init(s)` / `init(s: str)`, external `fun` mutating `a.x` |
-| Errors | `15_errors/` | `ClassAlreadyDeclared`, `ParentClassNotFound`, `ParentClassIsNotAClass`, `SuperCallOutsideConstructor`, `FunctionAlreadyDeclared`, **`InvalidInitFunctionCall`** (explicit `init()` / `self.init()` / `obj.init()`), **`NewExpressionConstructorArgumentCountMismatch`** / **`NewExpressionConstructorArgumentTypeMismatch`** for bad `new Class(...)` (preferred over generic function mismatch), `MemberAccessOnNonObjectVariable`, `IndexingNonArrayTypeVariable`, runtime OOB (`EXPECT_ERROR: Runtime`) |
+| Errors | `15_errors/` | `ClassAlreadyDeclared`, `ParentClassNotFound`, `ParentClassIsNotAClass`, `SuperCallOutsideConstructor`, `FunctionAlreadyDeclared`, **`InvalidInitFunctionCall`** (explicit `init()` / `self.init()` / `obj.init()`), **`NewExpressionConstructorArgumentCountMismatch`** / **`NewExpressionConstructorArgumentTypeMismatch`** for bad `new Class(...)` (preferred over generic function mismatch), `MemberAccessOnNonObjectVariable`, `IndexingNonArrayTypeVariable`, **`InitializerExpressionTypeMismatch`** (e.g. `var x = o.voidMethod()`), runtime OOB (`EXPECT_ERROR: Runtime`) |
 | Cross-feature | `16_cross_feature/` | `while`/`for`/`switch`/`or if`, `type` + object field, multi-return, default params |
+| Edge cases | `17_edge_cases/` | Implicit member return type chained with other methods / global `fun` in one expression |
+| Bring + module types | `18_mingled_module_bring/` | `bring` of a `module […]` file that exports a class, then top-level / `while` / `mod::Type` as a **field** (`Holder.c`), **global `fun` param** (`use(c: cnt::Counter)`), and `h.c.bump()` (support `support_cnt_module.fg` has no stdout when compiled alone) |
 
 ## Class tests (`ClassTests`)
 
@@ -375,7 +378,9 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 | -------- | ------------ | -------- |
 | Basic | `01_basic/` | `module [m]`, module-level `var`, `println(m::x)` |
 | Functions | `02_functions/` | `fun` in module, `m::func()` |
-| Errors | `11_errors/` | Unknown module in `name::x` (often `VariableNotFound` today) |
+| Edge cases | `03_edge_cases/` | Repeated `m::` reads, module `var` in expressions, two functions one calling the other, `for` loop updating module `var` via `bring` |
+| Cross bring + class | `04_cross_bring_class/` | `bring` of module file defining `class` + `new mod::Class(...)` from main file |
+| Errors | `11_errors/` | Unknown module / unknown member (`VariableNotFound`), missing `m::` member, missing `m::fun` (`FunctionNotFound`), bad assign to `m::var` (`AssignmentExpressionTypeMismatch`) |
 
 **Syntax:** A file that starts with `module [name]` treats the rest of the file (until EOF) as module members. Use `name::symbol` for qualified access (including from inside the same module).
 
@@ -385,9 +390,9 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 
 | Category | Subdirectory | Coverage |
 | -------- | ------------ | -------- |
-| OK | `01_ok/` | `bring "sibling.fg"` resolves **relative to the main file’s directory**; sub-file must compile cleanly; use **direct** `bring` of each file you need (symbols from a nested `bring` in another file are **not** visible) |
+| OK | `01_ok/` | `bring "sibling.fg"` resolves **relative to the main file’s directory**; sub-file must compile cleanly; use **direct** `bring` of each file you need (symbols from a nested `bring` in another file are **not** visible); `bring { x } from "lib.fg"` choosy import |
 | Errors | `11_errors/` | Missing file (`FileNotFound`), broken lib (`FileContainsErrors` / lexer errors), **duplicate** `bring` of the same file (`VariableAlreadyDeclared` / other “already declared”), **circular** `bring` (`CircularReference`), **transitive** use of a name only imported deeper in the chain (`VariableNotFound` / `IdentifierNotFoundInFileOrModule`) |
-| Support libs | `support_*` siblings (e.g. `support_dup_lib/`, `support_circular_bring/`, `include_for_nested_chain/`) | `.fg` files used only as `bring` targets; keep them **outside** `01_ok/` and `11_errors/` so `tests/runner.py` (which uses `rglob("*.fg")`) does not treat them as standalone tests |
+| Support libs | `support_*` siblings (e.g. `support_dup_lib/`, `support_circular_bring/`, `support_choosy_lib/`, `include_for_nested_chain/`) | `.fg` files used only as `bring` targets; keep them **outside** `01_ok/` and `11_errors/` so `tests/runner.py` (which uses `rglob("*.fg")`) does not treat them as standalone tests |
 
 **Semantics:** `bring` type-checks the referenced file (nested semantic analysis). On success, only globals **defined** in that file are merged (not symbols that file obtained via its own nested `bring`). `bring {a,b} from "f.fg"` lists names among those **direct** exports; `bring "f.fg"` bulk-imports them. Built-ins and compiler-internal `fg_*` helpers from the nested compile are skipped. Choosy imports must list every name the main file uses, including **type** aliases (e.g. `T`, `TB`).
 

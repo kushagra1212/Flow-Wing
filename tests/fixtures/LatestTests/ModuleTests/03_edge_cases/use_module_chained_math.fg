@@ -1,0 +1,3 @@
+bring "module_two_functions.fg"
+
+println(maths::addThenTriple(1, 2))

@@ -1,16 +1,122 @@
-type P ={
-    a:int 
+class A {
+
+  var x:int
+
+
+  incrementX() -> nthg {
+    x = x + 1
   }
 
-type T = {
-    a:int,
-    b:str,
-    c:deci,
-    d:deci32,
-    e:bool,
-    f:P
+
+
+}
+
+
+fun mutable(inout a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+fun immutableDefault(a:A = new A()) -> nthg {
+  a.x = a.x + 1
+
+  println("Immutable Default a.x: ", a.x)
+}
+
+fun immutable(a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+fun immutableWithNew(a:A) -> nthg {
+  a = new A()
+}
+
+fun mutableWithNew(inout a:A) -> nthg {
+  a = new A()
+}
+
+var a: A = new A()
+a.incrementX()
+println("a.x: ", a.x)
+
+mutable(a)
+println("a.x: ", a.x)
+
+immutableDefault()
+println("a.x: ", a.x)
+
+immutable(a)
+println("a.x: ", a.x)
+
+immutableWithNew(a)
+println("a.x: ", a.x)
+
+mutableWithNew(a)
+println("a.x: ", a.x)
+
+
+/# 
+class A {
+
+  var x:int
+
+
+  incrementX() -> nthg {
+    x = x + 1
   }
 
-  var x: T 
 
-  println(x)
+
+}
+
+
+fun mutable(inout a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+fun immutableDefault(a:A = new A()) -> nthg {
+  a.x = a.x + 1
+
+  println("Immutable Default a.x: ", a.x)
+}
+
+fun immutable(a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+
+var a: A = new A()
+a.incrementX()
+println("a.x: ", a.x)
+
+mutable(a)
+println("a.x: ", a.x)
+
+immutableDefault()
+println("a.x: ", a.x)
+
+immutable(a)
+println("a.x: ", a.x)
+
+
+
+
+Why this is not throw compile time error?
+
+class A {
+
+  var x:int
+
+
+  incrementX() -> nthg {
+    x = x + 1
+  }
+
+
+
+}
+
+
+
+var a: A = new A(2)
+
+#/

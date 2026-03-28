@@ -19,6 +19,7 @@ class DimensionClauseExpressionSyntax;
 class ModuleAccessTypeExpressionSyntax;
 class FunctionReturnTypeExpressionSyntax;
 class FunctionTypeExpressionSyntax;
+class BlockStatementSyntax;
 } // namespace syntax
 namespace analysis {
 
@@ -43,6 +44,11 @@ public:
 
   std::vector<std::shared_ptr<types::ReturnType>>
   resolveReturnType(const syntax::FunctionReturnTypeExpressionSyntax *syntax);
+
+  /// When a function/method omits `-> Type`, infer return type: `nthg` if there
+  /// is no return statement, otherwise `dynamic` (same as resolveType(nullptr)).
+  std::shared_ptr<types::Type>
+  inferImplicitReturnTypeFromBody(syntax::BlockStatementSyntax *body);
 
   std::pair<std::shared_ptr<types::Type>,
             std::unique_ptr<binding::BoundErrorExpression>>

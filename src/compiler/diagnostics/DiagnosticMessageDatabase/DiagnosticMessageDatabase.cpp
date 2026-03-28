@@ -1008,6 +1008,14 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "FileContainsErrors";
   case DiagnosticCode::kCircularReference:
     return "CircularReference";
+  case DiagnosticCode::kIdentifierNotFoundInFileOrModule:
+    return "IdentifierNotFoundInFileOrModule";
+
+    // Module Errors
+  case DiagnosticCode::kModuleNotFound:
+    return "ModuleNotFound";
+  case DiagnosticCode::kModuleAlreadyDeclared:
+    return "ModuleAlreadyDeclared";
 
     // Internal Errors
   case DiagnosticCode::kInternalIRGenerationError:

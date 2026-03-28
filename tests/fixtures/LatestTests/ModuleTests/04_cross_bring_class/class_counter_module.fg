@@ -1,0 +1,12 @@
+module [cnt]
+
+class Counter {
+  var n: int
+  fun init(start: int) -> nthg {
+    self.n = start
+  }
+  fun bump() -> int {
+    self.n = self.n + 1
+    return self.n
+  }
+}

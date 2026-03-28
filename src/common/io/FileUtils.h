@@ -43,8 +43,7 @@ private:
   readLinesFromStream(std::istream &stream) {
     std::vector<std::string> lines;
     std::string line;
-    // std::getline defaults to using '\n' as the delimiter, which is the
-    // correct behavior for both reading from a file and a string stream.
+
     while (std::getline(stream, line)) {
       // Check for and remove carriage return ('\r') for Windows compatibility
       if (!line.empty() && line.back() == '\r') {

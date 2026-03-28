@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+module [m]
+
+var x: int = 1
+
+println(m::y)

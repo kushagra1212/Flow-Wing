@@ -18,8 +18,8 @@
  */
 
 #include "DeclarationAnalyzer.hpp"
-#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
@@ -48,23 +48,6 @@ void DeclarationAnalyzer::analyze() {
 void analysis::DeclarationAnalyzer::visit(syntax::CompilationUnitSyntax *node) {
   for (const auto &statement : node->getStatements()) {
     statement->accept(this);
-  }
-}
-
-void analysis::DeclarationAnalyzer::visit(syntax::ExposeStatementSyntax *node) {
-  // Keep in sync with ExposeStatementBinder: analyze wrapped declarations so
-  // symbol tables / class metadata match what binding expects (expose class was
-  // previously skipped, which could leave inconsistent state and crash IR/sem).
-  auto *inner = node->getStatement().get();
-  switch (inner->getKind()) {
-  case syntax::NodeKind::kFunctionStatement:
-  case syntax::NodeKind::kClassStatement:
-  case syntax::NodeKind::kVariableDeclaration:
-  case syntax::NodeKind::kCustomTypeStatement:
-    inner->accept(this);
-    break;
-  default:
-    break;
   }
 }
 
@@ -216,35 +199,6 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::CaseStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
-    [[maybe_unused]] syntax::ClassStatementSyntax *node) {
-  auto *name_expr = static_cast<syntax::IdentifierExpressionSyntax *>(
-      node->getClassNameIdentifierExpr().get());
-  const auto &class_name = name_expr->getValue();
-
-  std::shared_ptr<types::ClassType> parent_class_type = nullptr;
-  if (node->getParentClassIdentifierExpr()) {
-    auto &parent_name =
-        static_cast<syntax::IdentifierExpressionSyntax *>(
-            node->getParentClassIdentifierExpr().get())
-            ->getValue();
-    auto parent_sym =
-        m_binder_context.getSymbolTable()->lookup(parent_name);
-    if (parent_sym && parent_sym->getKind() == analysis::SymbolKind::kClass) {
-      parent_class_type =
-          std::dynamic_pointer_cast<types::ClassType>(parent_sym->getType());
-    }
-  }
-
-  auto class_type =
-      std::make_shared<types::ClassType>(class_name, parent_class_type);
-  auto class_symbol = std::make_shared<analysis::Symbol>(
-      class_name, analysis::SymbolKind::kClass, class_type);
-  if (!m_binder_context.getSymbolTable()->define(class_symbol)) {
-    m_binder_context.recordDuplicateClassDeclaration(class_name);
-  }
-}
-
-void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ContinueStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
@@ -258,43 +212,6 @@ void analysis::DeclarationAnalyzer::visit(
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::IfStatementSyntax *node) {}
-
-void analysis::DeclarationAnalyzer::visit(syntax::ModuleStatementSyntax *node) {
-  auto *name_expr = static_cast<syntax::IdentifierExpressionSyntax *>(
-      node->getModuleNameExpression().get());
-  const std::string &module_name = name_expr->getValue();
-
-  auto module_table = std::make_shared<analysis::ScopedSymbolTable>();
-  analysis::Builtins::registerIntoSymbolTable(module_table);
-
-  auto module_symbol =
-      std::make_shared<analysis::ModuleSymbol>(module_name, module_table);
-
-  if (!m_binder_context.getSymbolTable()->define(module_symbol)) {
-    m_binder_context.reportError(
-        flow_wing::diagnostic::DiagnosticCode::kModuleAlreadyDeclared,
-        {module_name}, name_expr->getSourceLocation());
-    return;
-  }
-
-  // Allow qualified access `m::name` from inside this module (module name
-  // resolves in the module's symbol table).
-  if (!module_table->define(module_symbol)) {
-    m_binder_context.reportError(
-        flow_wing::diagnostic::DiagnosticCode::kModuleAlreadyDeclared,
-        {module_name}, name_expr->getSourceLocation());
-    return;
-  }
-
-  auto saved = m_binder_context.getSymbolTable();
-  m_binder_context.switchSymbolTable(module_table);
-  m_binder_context.pushModuleScope(module_name);
-  for (const auto &stmt : node->getModuleMemberStatements()) {
-    stmt->accept(this);
-  }
-  m_binder_context.popModuleScope();
-  m_binder_context.switchSymbolTable(saved);
-}
 
 void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::OrIfStatementSyntax *node) {}

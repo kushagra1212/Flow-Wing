@@ -1,0 +1,6 @@
+bring "module_for_counter.fg"
+
+for (var i: int = 1 to 4) {
+  acc::add(i)
+}
+println(acc::total)

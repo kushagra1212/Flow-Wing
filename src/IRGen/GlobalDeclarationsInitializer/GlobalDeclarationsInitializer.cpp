@@ -38,14 +38,57 @@
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 
+#include <string>
+#include <vector>
+
 namespace flow_wing {
 namespace ir_gen {
+
+namespace {
+
+/// Matches `LLVMTypeBuilder::convertFunction`: hidden `i8*` only when the
+/// function returns a non-`nthg` value using the FlowWing convention (void +
+/// return buffer).
+bool needsHiddenReturnPointer(const types::FunctionType *function_type) {
+  const auto &rets = function_type->getReturnTypes();
+  if (rets.empty())
+    return false;
+  const auto *r0 = rets[0].get();
+  return r0->type_convention == types::TypeConvention::kFlowWing &&
+         !r0->type->isNthg();
+}
+
+/// SysV x86-64 (typical Linux CI) requires `sret` on the hidden return pointer;
+/// without it LLVM may not follow the ABI and callers read uninitialized
+/// memory. Do **not** apply on AArch64 / Apple Silicon: the ABI differs and
+/// adding `sret` miscompiles (e.g. runtime null receiver).
+void addHiddenStructReturnAttr(IRGenContext &ir_ctx, llvm::Function *llvm_function,
+                               const types::FunctionType *function_type) {
+  if (!needsHiddenReturnPointer(function_type))
+    return;
+  const std::string target_triple = ir_ctx.getLLVMModule()->getTargetTriple();
+  if (target_triple.find("x86_64") == std::string::npos &&
+      target_triple.find("amd64") == std::string::npos)
+    return;
+  std::vector<types::Type *> rts;
+  rts.reserve(function_type->getReturnTypes().size());
+  for (const auto &r : function_type->getReturnTypes())
+    rts.push_back(r->type.get());
+  llvm::StructType *sret_struct =
+      ir_ctx.getTypeBuilder()->createOrGetStructType(rts);
+  llvm_function->addParamAttr(
+      0, llvm::Attribute::getWithStructRetType(
+             ir_ctx.getLLVMModule()->getContext(), sret_struct));
+}
+
+} // namespace
 
 GlobalDeclarationsInitializer::GlobalDeclarationsInitializer(
     IRGenContext &ir_gen_context)
@@ -128,6 +171,9 @@ void GlobalDeclarationsInitializer::declareFunctions(
         auto llvm_function = llvm::Function::Create(
             llvm_function_type, llvm::Function::ExternalLinkage,
             function_symbol->getMangledName(), llvm_module);
+
+        addHiddenStructReturnAttr(m_ir_gen_context, llvm_function,
+                                  function_type);
 
         if (!is_return_by_reference) {
           size_t arg_idx = 0;
@@ -327,10 +373,10 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
         auto *llvm_function_type =
             m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
 
-        llvm::Function::Create(llvm_function_type,
-                               llvm::Function::ExternalLinkage,
-                               function_symbol->getMangledName(),
-                               llvm_module);
+        llvm::Function *llvm_fn = llvm::Function::Create(
+            llvm_function_type, llvm::Function::ExternalLinkage,
+            function_symbol->getMangledName(), llvm_module);
+        addHiddenStructReturnAttr(m_ir_gen_context, llvm_fn, function_type);
       });
 
   llvm::Module *module = m_ir_gen_context.getLLVMModule();
@@ -389,10 +435,10 @@ void GlobalDeclarationsInitializer::declareImportedClassExterns(
         auto *llvm_function_type =
             m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
 
-        llvm::Function::Create(llvm_function_type,
-                               llvm::Function::ExternalLinkage,
-                               function_symbol->getMangledName(),
-                               llvm_module);
+        llvm::Function *llvm_fn = llvm::Function::Create(
+            llvm_function_type, llvm::Function::ExternalLinkage,
+            function_symbol->getMangledName(), llvm_module);
+        addHiddenStructReturnAttr(m_ir_gen_context, llvm_fn, function_type);
       });
 
   llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();

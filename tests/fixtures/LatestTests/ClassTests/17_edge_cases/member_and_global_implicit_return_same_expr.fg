@@ -1,0 +1,13 @@
+class A {
+  fun init() -> nthg {}
+  fun dbl(x: int) {
+    return x * 2
+  }
+}
+
+fun dblG(x: int) {
+  return x * 2
+}
+
+var a: A = new A()
+println(a.dbl(3) + dblG(4))

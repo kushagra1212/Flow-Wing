@@ -139,7 +139,9 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
     auto resolved_init =
         class_type_ptr->resolveMethodForCall("init", ctor_arg_types);
     const auto &init_overloads = class_type_ptr->getMethodOverloads("init");
-    if (!init_overloads.empty() && !resolved_init) {
+    // Also reject when the class has no `init` but `new C(...)` has arguments.
+    if (!resolved_init &&
+        (!init_overloads.empty() || !ctor_arg_types.empty())) {
       auto with_arity =
           findInitOverloadWithVisibleArity(class_type_ptr.get(),
                                            ctor_arg_types.size());

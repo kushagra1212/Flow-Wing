@@ -1,0 +1,6 @@
+module [m]
+
+var n: int = 5
+
+println(m::n + 1)
+println(m::n)

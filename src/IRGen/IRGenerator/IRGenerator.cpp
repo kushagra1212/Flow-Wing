@@ -58,7 +58,8 @@ namespace {
 /// Register a void () function as a global constructor so it runs before
 /// `main` (needed for brought dependency .o files that emit top-level stores
 /// without defining a second `main`).
-void registerGlobalCtor(llvm::Module *module, llvm::Function *ctor_fn) {
+void registerGlobalCtor(llvm::Module *module, llvm::Function *ctor_fn,
+                        unsigned priority = 65535) {
   llvm::LLVMContext &ctx = module->getContext();
   llvm::Type *i32 = llvm::Type::getInt32Ty(ctx);
   llvm::Type *fn_ptr = llvm::PointerType::getUnqual(ctx);
@@ -67,7 +68,7 @@ void registerGlobalCtor(llvm::Module *module, llvm::Function *ctor_fn) {
 
   llvm::Constant *ctor_entry = llvm::ConstantStruct::get(
       elt_ty,
-      {llvm::ConstantInt::get(i32, 65535),
+      {llvm::ConstantInt::get(i32, priority),
        llvm::ConstantExpr::getBitCast(ctor_fn, fn_ptr),
        llvm::ConstantPointerNull::get(llvm::cast<llvm::PointerType>(i8p))});
 
@@ -185,7 +186,11 @@ void IRGenerator::visit(
     if (cur && !cur->getTerminator()) {
       builder->CreateRetVoid();
     }
-    registerGlobalCtor(m_ir_gen_context.getLLVMModule(), brought_init_fn);
+    int pri_idx = m_ir_gen_context.getCompilationContext().getBroughtCtorPriority();
+    const unsigned ctor_pri =
+        pri_idx >= 0 ? static_cast<unsigned>(pri_idx) : 65535u;
+    registerGlobalCtor(m_ir_gen_context.getLLVMModule(), brought_init_fn,
+                       ctor_pri);
     verifyModule();
     return;
   }

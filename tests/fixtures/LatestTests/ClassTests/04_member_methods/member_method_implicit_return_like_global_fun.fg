@@ -1,0 +1,15 @@
+class A {
+  fun addOne(x: int) {
+    return x + 1
+  }
+}
+
+fun addOneGlobal(x: int) {
+  return x + 1
+}
+
+var a: A = new A()
+var fromMember = a.addOne(10)
+var fromGlobal = addOneGlobal(10)
+println(fromMember)
+println(fromGlobal)

@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+class A {
+  fun init() -> nthg {}
+  fun sideEffect() -> nthg {
+    print("ok")
+  }
+}
+
+var a: A = new A()
+var x = a.sideEffect()
