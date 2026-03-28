@@ -74,6 +74,25 @@ findInitOverloadWithVisibleArity(types::ClassType *ct, size_t n) {
   return nullptr;
 }
 
+/// If exactly one `init` has `n` visible parameters (plus implicit self), return it.
+/// Used so `new C(..., { ... })` can bind object literals with declared field types.
+static std::shared_ptr<analysis::FunctionSymbol>
+findUniqueInitOverloadForVisibleArity(types::ClassType *ct, size_t n) {
+  std::shared_ptr<analysis::FunctionSymbol> found;
+  int matches = 0;
+  for (const auto &sym : ct->getMethodOverloads("init")) {
+    auto *ft = static_cast<const types::FunctionType *>(sym->getType().get());
+    const auto &pts = ft->getParameterTypes();
+    if (pts.size() == n + 1) {
+      found = std::static_pointer_cast<analysis::FunctionSymbol>(sym);
+      matches++;
+    }
+  }
+  if (matches == 1)
+    return found;
+  return nullptr;
+}
+
 } // namespace
 
 std::unique_ptr<BoundExpression>
@@ -114,8 +133,21 @@ ExpressionBinder::bindNewExpression(syntax::NewExpressionSyntax *node) {
     std::vector<std::unique_ptr<BoundExpression>> args;
     if (call_syntax->getArgumentExpression()) {
       auto *arg_root = call_syntax->getArgumentExpression().get();
-      if (arg_root->getKind() == syntax::NodeKind::kObjectExpression &&
-          class_type_ptr) {
+      auto flat = flattenCommaExpressionList(arg_root);
+      const size_t visible_arg_count = flat.size();
+
+      if (auto unique_init = findUniqueInitOverloadForVisibleArity(
+              class_type_ptr.get(), visible_arg_count)) {
+        auto *ft = static_cast<const types::FunctionType *>(
+            unique_init->getType().get());
+        const auto &pts = ft->getParameterTypes();
+        std::vector<std::shared_ptr<types::ParameterType>> visible_params;
+        visible_params.reserve(visible_arg_count);
+        for (size_t i = 0; i < visible_arg_count; ++i)
+          visible_params.push_back(pts[i]);
+        args = bindCallArgumentList(arg_root, visible_params);
+      } else if (arg_root->getKind() == syntax::NodeKind::kObjectExpression &&
+                 class_type_ptr) {
         if (auto hint =
                 tryGetSingleInitFirstParamObjectType(class_type_ptr.get())) {
           args.push_back(bindObjectExpression(
