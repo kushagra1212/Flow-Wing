@@ -172,6 +172,27 @@ def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, em
     return "".join(sections)
 
 
+def _aot_output_subdir(file_path: Path) -> str:
+    """
+    Short, unique directory name under build/bin/test_artifacts for AOT --output-dir.
+
+    Using the full source stem produced paths like
+    test_artifacts/<95-char stem>/bin/<95-char stem>.exe which, with the repo
+    prefix on Windows CI, exceeds MAX_PATH (~260) and triggers MSVC link
+    LNK1104 (cannot open output file).
+
+    Hash from a repo-relative path when possible so the same fixture maps to the
+    same folder regardless of drive prefix (Linux vs Windows clones).
+    """
+    fp = file_path.resolve()
+    try:
+        cwd = Path.cwd().resolve()
+        key = fp.relative_to(cwd).as_posix()
+    except ValueError:
+        key = str(fp)
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()[:20]
+
+
 def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going, emit_ir_on_failure=False):
     parent_dir = file_path.parent
 
@@ -245,7 +266,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
 
             # --- PATH B: EXECUTION TEST ---
             if mode == "aot":
-                test_temp_dir = temp_root / file_path.stem
+                test_temp_dir = temp_root / _aot_output_subdir(file_path)
                 test_temp_dir.mkdir(parents=True, exist_ok=True)
                 compile_cmd = [str(compiler_bin), str(file_path), f'--output-dir={test_temp_dir}']
                 
