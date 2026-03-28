@@ -209,6 +209,19 @@ LinkerCommandBuilder::getEntryPointFlag(const std::string &entry) const {
 }
 
 std::string LinkerCommandBuilder::getBinaryFilePath() const {
+  const std::string &explicit_out =
+      m_context.getOptions().output_executable_path;
+  // Development: Makefile passes `-o build/bin/<stem>` so the run target can execute a stable path.
+  if (!explicit_out.empty()) {
+    std::string binary_file_path = explicit_out;
+#if defined(_WIN32)
+    if (binary_file_path.find(".exe") == std::string::npos)
+      binary_file_path += ".exe";
+#endif
+    return binary_file_path;
+  }
+
+  // Default (incl. test-aot): unique hashed basename under bin/ — runner never passes `-o`.
   const std::string short_base = utils::PathUtils::shortHashedHex16ForPath(
       m_context.getAbsoluteSourceFilePath());
   std::string binary_file_path = "";

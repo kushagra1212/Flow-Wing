@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
@@ -189,6 +190,9 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
     function_symbol->setMangledName(
         class_name + "." + function_name + "." +
         mangleVisibleParamTypes(visible_for_mangle));
+    function_symbol->setDeclarationSite(
+        m_context->getCompilationContext().getAbsoluteSourceFilePath(),
+        function_identifier->getSourceLocation());
     if (!class_type->defineMember(function_symbol)) {
       auto error_statement = std::make_unique<BoundErrorStatement>(
           func_syntax->getSourceLocation(),
@@ -315,6 +319,11 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
   } else {
     class_symbol = std::make_shared<analysis::Symbol>(
         class_name, analysis::SymbolKind::kClass, class_type);
+    class_symbol->setDeclarationSite(
+        m_context->getCompilationContext().getAbsoluteSourceFilePath(),
+        static_cast<syntax::IdentifierExpressionSyntax *>(
+            class_statement->getClassNameIdentifierExpr().get())
+            ->getSourceLocation());
     if (!m_context->getSymbolTable()->defineInEnclosingScope(class_symbol)) {
       auto error_statement = std::make_unique<BoundErrorStatement>(
           class_statement->getSourceLocation(),

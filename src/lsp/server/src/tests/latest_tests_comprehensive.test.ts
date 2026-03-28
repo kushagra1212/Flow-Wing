@@ -97,6 +97,7 @@ describe("LatestTests Comprehensive LSP", () => {
           (f) =>
             !f.includes("/errors/") &&
             !f.includes("/runtime_errors/") &&
+            !f.includes(".flowwing-lsp-") &&
             !fs.readFileSync(f, "utf-8").includes("EXPECT_ERROR")
         );
         if (files.length === 0) return;
@@ -387,6 +388,36 @@ println(x)`;
       const loc = getDeclarationForSymbol(sem, result!.symbolId, doc.uri);
       assert.isNotNull(loc, "Definition for x");
     });
+
+    it("definition: nested call resolves inner callee getC not outer Decimal", async () => {
+      const content = `fun getD(s: str) -> str { return "200" }
+fun getC(d: deci32) -> str { return getD("ignore") }
+print(Decimal(getC(9.99f)))`;
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const semPath = await getSemPathForDocument(doc);
+      assert.isNotNull(semPath);
+      const sem = JSON.parse(await fileUtils.readFile(semPath!));
+      const onGetC = getSymbolAtPosition(sem, { line: 2, character: 14 }, "getC");
+      assert.isNotNull(onGetC, "Symbol at getC inside Decimal(...)");
+      assert.equal(onGetC!.symbol.name, "getC");
+      const locGetC = getDeclarationForSymbol(sem, onGetC!.symbolId, doc.uri);
+      assert.isNotNull(locGetC, "Definition for getC");
+    });
+
+    it("definition: nested call getD inside getC body resolves to getD", async () => {
+      const content = `fun getD(s: str) -> str { return "200" }
+fun getC(d: deci32) -> str { return getD("ignore") }
+print(Decimal(getC(9.99f)))`;
+      const doc = TextDocument.create("file:///test.fg", "flowwing", 0, content);
+      const semPath = await getSemPathForDocument(doc);
+      assert.isNotNull(semPath);
+      const sem = JSON.parse(await fileUtils.readFile(semPath!));
+      const onGetD = getSymbolAtPosition(sem, { line: 1, character: 36 }, "getD");
+      assert.isNotNull(onGetD, "Symbol at getD in getC body");
+      assert.equal(onGetD!.symbol.name, "getD");
+      const locGetD = getDeclarationForSymbol(sem, onGetD!.symbolId, doc.uri);
+      assert.isNotNull(locGetD, "Definition for getD");
+    });
   });
 
   describe("Signature help permutations", () => {
@@ -653,11 +684,13 @@ println(add(1, 2))`;
 
   describe("Diagnostics for error files", () => {
     it("should detect error in EXPECT_ERROR file", async function () {
-      const errorFiles = getFilesRecursive(FIXTURES_DIR).filter(
-        (f) =>
+      const errorFiles = getFilesRecursive(FIXTURES_DIR).filter((f) => {
+        if (!fs.existsSync(f) || f.includes(".flowwing-lsp-")) return false;
+        return (
           f.includes("/errors/") ||
           fs.readFileSync(f, "utf-8").includes("EXPECT_ERROR")
-      );
+        );
+      });
       if (errorFiles.length === 0) return this.skip();
       const sample = errorFiles[0];
       const result = await validateFile("file:///test.fg", sample);

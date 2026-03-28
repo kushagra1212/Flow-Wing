@@ -61,6 +61,13 @@ void Symbol::setImportedViaBring(bool imported) const {
   m_imported_via_bring = imported;
 }
 
+void Symbol::setDeclarationSite(
+    const std::string &absolute_path,
+    const flow_wing::diagnostic::SourceLocation &location) {
+  m_declaration_source_path = absolute_path;
+  m_declaration_location = location;
+}
+
 // Getters
 
 SymbolKind Symbol::getKind() const { return m_kind; }
@@ -68,6 +75,19 @@ const std::string &Symbol::getName() const { return m_name; }
 std::shared_ptr<types::Type> Symbol::getType() const { return m_type; }
 bool Symbol::isExposed() const { return m_is_exposed; }
 bool Symbol::isImportedViaBring() const { return m_imported_via_bring; }
+
+bool Symbol::hasDeclarationSite() const {
+  return m_declaration_source_path.has_value();
+}
+
+const std::optional<std::string> &Symbol::getDeclarationSourcePath() const {
+  return m_declaration_source_path;
+}
+
+const std::optional<flow_wing::diagnostic::SourceLocation> &
+Symbol::getDeclarationLocation() const {
+  return m_declaration_location;
+}
 
 } // namespace analysis
 } // namespace flow_wing

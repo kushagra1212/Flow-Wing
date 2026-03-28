@@ -44,7 +44,13 @@ export const onHover = async (
         if (isSemFormat(parsed)) {
           const fullPath = getFullPathAtPosition(document.getText(), pos);
           logger.debug("hover", "fullPath", fullPath);
-          const hover = getHoverFromSem(parsed, pos, partialId || undefined, fullPath || undefined);
+          const hover = getHoverFromSem(
+            parsed,
+            pos,
+            partialId || undefined,
+            fullPath || undefined,
+            document.getText()
+          );
           if (hover) {
             logger.debug("hover", "resolved from sem");
             return { contents: hover };

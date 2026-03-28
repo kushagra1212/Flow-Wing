@@ -3,6 +3,9 @@
  * Provides hover, definitions, completions, and signature help from sem JSON.
  */
 
+import * as fs from "fs";
+import path = require("path");
+import { fileURLToPath, pathToFileURL } from "url";
 import { logger } from "./loggerService";
 import {
   CompletionItem,
@@ -18,6 +21,11 @@ import {
 import { keywordsCompletionItems } from "../store";
 import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
 
+export interface SemRange {
+  start: [number, number];
+  end: [number, number];
+}
+
 /** Sem JSON structure from compiler --emit=sem */
 export interface SemSymbol {
   kind: string;
@@ -28,6 +36,9 @@ export interface SemSymbol {
   isConst?: boolean;
   /** Omit this many trailing parameters from LSP signatures (class member `self`). */
   hide_trailing_params_for_display?: number;
+  /** Absolute filesystem path where the symbol is declared (cross-file bring / modules). */
+  declaration_source?: string;
+  declaration_range?: SemRange;
 }
 
 export interface SemType {
@@ -42,11 +53,6 @@ export interface SemType {
   /** Class instance: flattened methods (name → function type id); derived overrides base. */
   methods?: { name: string; type_id: string }[];
   base_class_type_id?: string;
-}
-
-export interface SemRange {
-  start: [number, number];
-  end: [number, number];
 }
 
 export interface SemJson {
@@ -71,6 +77,30 @@ function positionInRange(pos: Position, range: SemRange): boolean {
   if (pos.line === range.start[0] && pos.character < range.start[1]) return false;
   if (pos.line === range.end[0] && pos.character > range.end[1]) return false;
   return true;
+}
+
+/** Inclusive span heuristic for picking the tightest (innermost) source range. */
+function semRangeSpan(r: SemRange): number {
+  const [ls, lc] = r.start;
+  const [le, lec] = r.end;
+  return (le - ls) * 1_000_000 + Math.max(0, lec - lc);
+}
+
+function pickBetterNodeAtPosition(
+  a: { node: unknown; range: SemRange } | null,
+  b: { node: unknown; range: SemRange } | null
+): { node: unknown; range: SemRange } | null {
+  if (!a) return b;
+  if (!b) return a;
+  const sa = semRangeSpan(a.range);
+  const sb = semRangeSpan(b.range);
+  if (sb < sa) return b;
+  if (sa < sb) return a;
+  const ka = (a.node as { kind?: string }).kind;
+  const kb = (b.node as { kind?: string }).kind;
+  if (ka === "IdentifierExpression" && kb !== "IdentifierExpression") return a;
+  if (kb === "IdentifierExpression" && ka !== "IdentifierExpression") return b;
+  return b;
 }
 
 function resolveTypeName(
@@ -122,6 +152,13 @@ function getParamName(
   return s?.name ?? "param";
 }
 
+/** `maths::addThenTriple` → `addThenTriple` — sem symbol names are unqualified. */
+export function unqualifiedFunctionNameForSemLookup(name: string): string {
+  if (!name.includes("::")) return name;
+  const parts = name.split("::");
+  return parts[parts.length - 1] ?? name;
+}
+
 function getFunctionSignature(
   sym: SemSymbol,
   types: Record<string, SemType>,
@@ -148,31 +185,79 @@ function getFunctionSignature(
   return `${sym.name}(${parts.join(", ")}) -> ${ret}`;
 }
 
-/** Find the innermost node at position in the sem tree */
+/** Find the innermost AST node at position (smallest containing range wins over DFS order). */
 function findNodeAtPosition(
   obj: unknown,
   pos: Position
 ): { node: unknown; range: SemRange } | null {
   if (!obj || typeof obj !== "object") return null;
 
-  const range = (obj as { range?: SemRange }).range;
-  if (range && !positionInRange(pos, range)) return null;
+  const o = obj as Record<string, unknown>;
+  const range = o.range as SemRange | undefined;
+  const kind = o.kind;
+  const inSelf = !range || positionInRange(pos, range);
 
-  let best: { node: unknown; range: SemRange } | null = range
-    ? { node: obj, range }
-    : null;
+  // Only treat serialized AST nodes as candidates (have `kind`), not raw range boxes.
+  let selfCandidate: { node: unknown; range: SemRange } | null =
+    inSelf && range && typeof kind === "string"
+      ? { node: obj, range }
+      : null;
 
-  for (const v of Object.values(obj as Record<string, unknown>)) {
+  let bestChild: { node: unknown; range: SemRange } | null = null;
+
+  // ModuleStatement / similar: header range may not cover the body — still recurse children.
+  // Skip descending into `range` so we do not treat location metadata as nested nodes.
+  for (const [key, v] of Object.entries(o)) {
+    if (key === "range") continue;
     if (Array.isArray(v)) {
       for (const item of v) {
         const found = findNodeAtPosition(item, pos);
-        if (found) best = found;
+        bestChild = pickBetterNodeAtPosition(bestChild, found);
       }
     } else if (v && typeof v === "object") {
       const found = findNodeAtPosition(v, pos);
-      if (found) best = found;
+      bestChild = pickBetterNodeAtPosition(bestChild, found);
     }
   }
+
+  return pickBetterNodeAtPosition(selfCandidate, bestChild);
+}
+
+/**
+ * Innermost CallExpression containing pos (smallest range). Used so nested
+ * `println(maths::addThenTriple(1, 100))` resolves to addThenTriple when the cursor is on an
+ * argument, even if the tokenizer attributes the `(` to println once closing parens exist.
+ */
+function findInnermostCallExpressionAtPosition(
+  tree: unknown,
+  pos: Position
+): { node: Record<string, unknown>; range: SemRange } | null {
+  if (!tree) return null;
+  let best: { node: Record<string, unknown>; range: SemRange } | null = null;
+  function walk(obj: unknown) {
+    if (!obj || typeof obj !== "object") return;
+    const o = obj as Record<string, unknown>;
+    const kind = o.kind;
+    const range = o.range as SemRange | undefined;
+    if (
+      kind === "CallExpression" &&
+      range &&
+      positionInRange(pos, range)
+    ) {
+      if (!best || semRangeSpan(range) < semRangeSpan(best.range)) {
+        best = { node: o, range };
+      }
+    }
+    for (const [key, v] of Object.entries(o)) {
+      if (key === "range") continue;
+      if (Array.isArray(v)) {
+        for (const item of v) walk(item);
+      } else if (v && typeof v === "object") {
+        walk(v);
+      }
+    }
+  }
+  walk(tree);
   return best;
 }
 
@@ -188,24 +273,73 @@ export function getSymbolAtPosition(
   const found = findNodeAtPosition(sem.tree, position);
   if (!found) return null;
 
-  const node = found.node as Record<string, unknown>;
-  const symbolId =
+  let node = found.node as Record<string, unknown>;
+  let rangeForResult = found.range;
+
+  // ModuleAccessExpression: compiler sets outer symbol_id to the Module; the member is on the inner
+  // IdentifierExpression. Prefer inner for go-to-def/hover for acc::total -> total (not module acc).
+  // When the cursor is on acc or ::, inner findNodeAtPosition misses — still unwrap to the member.
+  let resolvedModuleQualifiedMember = false;
+  if (node.kind === "ModuleAccessExpression" && node.member_access_expression) {
+    const mem = node.member_access_expression as Record<string, unknown>;
+    const inner = findNodeAtPosition(node.member_access_expression, position);
+    if (inner) {
+      node = inner.node as Record<string, unknown>;
+      rangeForResult = inner.range;
+      resolvedModuleQualifiedMember = true;
+    } else if (
+      typeof mem.symbol_id === "string" ||
+      typeof mem.function_symbol_id === "string" ||
+      typeof mem.parameter_symbol_id === "string"
+    ) {
+      node = mem;
+      rangeForResult = (mem.range as SemRange) ?? rangeForResult;
+      resolvedModuleQualifiedMember = true;
+    }
+  }
+
+  let symbolId =
     node.symbol_id ?? node.function_symbol_id ?? node.parameter_symbol_id;
+
+  // Class field access (new A()).x — MemberAccessExpression has field_type_id + member_name, no symbol_id on leaf.
+  if (
+    (!symbolId || typeof symbolId !== "string") &&
+    node.kind === "MemberAccessExpression" &&
+    typeof node.member_name === "string" &&
+    node.field_type_id
+  ) {
+    const mn = node.member_name as string;
+    const ft = String(node.field_type_id);
+    const match = Object.entries(sem.symbols).find(
+      ([, s]) =>
+        s.name === mn && s.kind === "Variable" && s.type_id === ft
+    );
+    if (match) {
+      symbolId = match[0];
+    }
+  }
+
   if (!symbolId || typeof symbolId !== "string") return null;
 
   const symbol = sem.symbols[symbolId];
   if (!symbol) return null;
 
-  // Fallback: if names don't match, try to find symbol by name in the map
-  if (partialName && symbol.name !== partialName) {
-    const betterSymEntry = Object.entries(sem.symbols).find(
+  // Fallback: if names don't match, resolve by name only when unambiguous (avoid arbitrary .find).
+  // Skip when we already resolved acc::x to x: partialName may be "acc" while symbol is "x".
+  if (
+    !resolvedModuleQualifiedMember &&
+    partialName &&
+    symbol.name !== partialName
+  ) {
+    const matches = Object.entries(sem.symbols).filter(
       ([, s]) => s.name === partialName
     );
-    if (betterSymEntry) {
+    if (matches.length === 1) {
+      const [id, sym] = matches[0];
       return {
-        symbol: betterSymEntry[1],
-        symbolId: betterSymEntry[0],
-        range: semRangeToLspRange(found.range),
+        symbol: sym,
+        symbolId: id,
+        range: semRangeToLspRange(rangeForResult),
       };
     }
   }
@@ -213,8 +347,164 @@ export function getSymbolAtPosition(
   return {
     symbol,
     symbolId,
-    range: semRangeToLspRange(found.range),
+    range: semRangeToLspRange(rangeForResult),
   };
+}
+
+/**
+ * The compiler is often run on a sidecar `.flowwing-lsp-*.fg` next to the real file; sem JSON
+ * records that path as declaration_source. That file is deleted after emit, so go-to-definition
+ * must map it to the editor's URI (same directory, same buffer contents → same ranges).
+ */
+function declarationLocationUri(declarationSource: string, editorUri: string): string {
+  try {
+    if (!editorUri.startsWith("file:")) {
+      return pathToFileURL(declarationSource).href;
+    }
+    const editorPath = fileURLToPath(editorUri);
+    const declDir = path.dirname(declarationSource);
+    const declBase = path.basename(declarationSource);
+    const editorDir = path.dirname(editorPath);
+    if (
+      path.normalize(declDir) === path.normalize(editorDir) &&
+      declBase.startsWith(".flowwing-lsp-") &&
+      declBase.endsWith(".fg")
+    ) {
+      return editorUri;
+    }
+  } catch {
+    /* use declaration_source below */
+  }
+  return pathToFileURL(declarationSource).href;
+}
+
+/** Prefer globals (class, fun, var) over nested parameters when names collide (e.g. bring `x` vs `callS(x)`). */
+function rankForBroughtSymbol(s: SemSymbol): number {
+  switch (s.kind) {
+    case "Class":
+      return 50;
+    case "Function":
+      return 40;
+    case "Variable":
+      return 30;
+    case "Type":
+      return 30;
+    case "Module":
+      return 20;
+    case "Parameter":
+      return 10;
+    default:
+      return 15;
+  }
+}
+
+function findSymbolForBroughtName(
+  symbols: Record<string, SemSymbol>,
+  name: string
+): [string, SemSymbol] | null {
+  const matches = Object.entries(symbols).filter(([, s]) => s.name === name);
+  if (matches.length === 0) return null;
+  if (matches.length === 1) return matches[0];
+  matches.sort((a, b) => rankForBroughtSymbol(b[1]) - rankForBroughtSymbol(a[1]));
+  return matches[0];
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * If the cursor is on an identifier inside `bring { a, b } from "path.fg"`, return that name and import path.
+ * The bound tree does not emit per-identifier nodes for choosy bring, so the normal tree walk misses these sites.
+ */
+export function parseBringChoosyIdentifierAtPosition(
+  line: string,
+  character: number
+): { name: string; importPath: string } | null {
+  const m = line.match(/^\s*bring\s*\{([^}]*)\}\s*from\s*"([^"]+)"\s*$/);
+  if (!m) return null;
+  const importPath = m[2];
+  const openIdx = line.indexOf("{");
+  const closeIdx = line.indexOf("}");
+  if (openIdx === -1 || closeIdx === -1) return null;
+  if (character <= openIdx || character >= closeIdx) return null;
+  const innerStart = openIdx + 1;
+  const segment = line.slice(innerStart, closeIdx);
+  const id = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
+  let match: RegExpExecArray | null;
+  while ((match = id.exec(segment)) !== null) {
+    const absStart = innerStart + match.index;
+    const absEnd = absStart + match[0].length;
+    if (character >= absStart && character < absEnd) {
+      return { name: match[0], importPath };
+    }
+  }
+  return null;
+}
+
+function getExposeTypeDeclarationRangeInFile(
+  absolutePath: string,
+  typeName: string
+): Range | null {
+  let content: string;
+  try {
+    content = fs.readFileSync(absolutePath, "utf8");
+  } catch {
+    return null;
+  }
+  const lines = content.split(/\r?\n/);
+  const re = new RegExp("^\\s*expose\\s+type\\s+" + escapeRegExp(typeName) + "\\b");
+  for (let i = 0; i < lines.length; i++) {
+    if (!re.test(lines[i])) continue;
+    const col = lines[i].indexOf(typeName);
+    if (col >= 0) {
+      return Range.create(i, col, i, col + typeName.length);
+    }
+  }
+  return null;
+}
+
+/**
+ * Go-to-definition for identifiers in `bring { … } from "…"`: resolves brought symbols to their
+ * declaration in the imported file, including `expose type` aliases that have no symbol table entry in sem.
+ */
+export function getBringListDeclarationLocation(
+  semJson: SemJson,
+  editorUri: string,
+  position: Position,
+  sourceText: string
+): Location | null {
+  const sem = semJson.sem;
+  if (!sem?.symbols) return null;
+  const lines = sourceText.split(/\r?\n/);
+  const line = lines[position.line];
+  if (!line) return null;
+  const parsed = parseBringChoosyIdentifierAtPosition(line, position.character);
+  if (!parsed) return null;
+
+  if (!editorUri.startsWith("file:")) return null;
+  let mainPath: string;
+  try {
+    mainPath = fileURLToPath(editorUri);
+  } catch {
+    return null;
+  }
+  const importedAbs = path.resolve(path.dirname(mainPath), parsed.importPath);
+  if (!fs.existsSync(importedAbs)) return null;
+  const importedUri = pathToFileURL(importedAbs).href;
+
+  const sym = findSymbolForBroughtName(sem.symbols, parsed.name);
+  if (sym) {
+    const loc = getDeclarationForSymbol(semJson, sym[0], editorUri);
+    if (loc) return loc;
+  }
+
+  const typeRange = getExposeTypeDeclarationRangeInFile(importedAbs, parsed.name);
+  if (typeRange) {
+    return Location.create(importedUri, typeRange);
+  }
+
+  return null;
 }
 
 /** Get declaration location for a symbol (where it's defined) */
@@ -228,6 +518,11 @@ export function getDeclarationForSymbol(
 
   const symbol = sem.symbols[symbolId];
   if (!symbol) return null;
+
+  if (symbol.declaration_source && symbol.declaration_range) {
+    const defUri = declarationLocationUri(symbol.declaration_source, uri);
+    return Location.create(defUri, semRangeToLspRange(symbol.declaration_range));
+  }
 
   // Find declaration: FunctionStatement (symbol_id), VariableDeclaration (symbol in initializer), Parameter
   function findDeclaration(
@@ -247,6 +542,9 @@ export function getDeclarationForSymbol(
           return (o.range as SemRange) ?? null;
         }
       }
+    }
+    if (o.kind === "ClassStatement" && o.class_symbol_id === sid) {
+      return (o.range as SemRange) ?? null;
     }
     for (const v of Object.values(o)) {
       if (Array.isArray(v)) {
@@ -645,8 +943,9 @@ export function getExpectedParamTypeFromSem(
 ): string | undefined {
   const sem = semJson.sem;
   if (!sem?.symbols || !sem?.types) return undefined;
+  const lookupName = unqualifiedFunctionNameForSemLookup(functionName);
   const funcEntry = Object.entries(sem.symbols).find(
-    ([, s]) => s.name === functionName && s.kind === "Function"
+    ([, s]) => s.name === lookupName && s.kind === "Function"
   );
   if (!funcEntry) return undefined;
   const [, funcSym] = funcEntry;
@@ -669,7 +968,10 @@ export function getCompletionItemsForFunctionArgument(
   if (!sem?.symbols || !sem?.types) return [];
 
   const { symbols, types } = sem;
-  const funcEntry = Object.entries(symbols).find(([, s]) => s.name === functionName && s.kind === "Function");
+  const lookupName = unqualifiedFunctionNameForSemLookup(functionName);
+  const funcEntry = Object.entries(symbols).find(
+    ([, s]) => s.name === lookupName && s.kind === "Function"
+  );
   if (!funcEntry) return [];
 
   const [, funcSym] = funcEntry;
@@ -910,7 +1212,21 @@ export function getCompletionItemsFromSem(
     let currentTypeId: string | undefined;
     let currentTypeName: string | undefined;
 
-    const baseSym = Object.values(symbols).find((s) => s.name === baseSymName);
+    const newExprMatch = word.trim().match(/^\(\s*new\s+(\w+)\s*\)$/);
+    if (newExprMatch) {
+      const className = newExprMatch[1];
+      const classSym = Object.values(symbols).find(
+        (s) => s.name === className && s.kind === "Class"
+      );
+      if (classSym?.type_id && types[classSym.type_id]?.kind === "Class") {
+        currentTypeId = classSym.type_id;
+      }
+    }
+
+    const baseSym =
+      currentTypeId === undefined
+        ? Object.values(symbols).find((s) => s.name === baseSymName)
+        : undefined;
     logger.debug("semCompletion", "baseSymFound", !!baseSym);
 
     if (baseSym) {
@@ -1127,12 +1443,77 @@ function symbolToCompletionItem(
   };
 }
 
-/** Build hover content for symbol at position. Pass fullPath (e.g. "c.b" or "c.b.b") to resolve member expression types. */
+/** Markdown body for a resolved symbol (shared by tree hover and choosy-bring hover). */
+function formatHoverMarkdownForSymbol(
+  symbol: SemSymbol,
+  semJson: SemJson
+): string {
+  const types = semJson.sem?.types ?? {};
+  const semSymbols = semJson.sem?.symbols ?? {};
+  const typeName = resolveTypeName(symbol.type_id, types);
+
+  let value = `**${symbol.name}**`;
+  if (symbol.kind === "Function") {
+    const sig = getFunctionSignature(symbol, types, semSymbols);
+    value += `\n\n\`\`\`flowwing\n${sig}\n\`\`\``;
+  } else if (symbol.kind === "Class" && typeName) {
+    value += `\n\n\`\`\`flowwing\nclass ${typeName}\n\`\`\``;
+  } else if (symbol.kind === "Module") {
+    value += `\n\nModule namespace`;
+  } else if (typeName) {
+    value += `\n\nType: \`${typeName}\``;
+  }
+  return value;
+}
+
+/**
+ * Hover on `bring { a, b } from "…"`: the sem tree has no identifier nodes there; resolve by name
+ * like go-to-definition. Exposed type aliases (e.g. `T`) may only exist in `types`, not `symbols`.
+ */
+function tryHoverForBringChoosyList(
+  semJson: SemJson,
+  position: Position,
+  sourceText: string
+): MarkupContent | null {
+  const sem = semJson.sem;
+  if (!sem?.symbols || !sem.types) return null;
+  const lines = sourceText.split(/\r?\n/);
+  const line = lines[position.line];
+  if (!line) return null;
+  const parsed = parseBringChoosyIdentifierAtPosition(line, position.character);
+  if (!parsed) return null;
+
+  const sym = findSymbolForBroughtName(sem.symbols, parsed.name);
+  if (sym) {
+    const value = formatHoverMarkdownForSymbol(sym[1], semJson);
+    return { kind: "markdown", value };
+  }
+
+  const typeHit = Object.entries(sem.types).find(
+    ([, t]) =>
+      t.name === parsed.name &&
+      (t.kind === "Object" || t.kind === "Class" || t.kind === "Primitive")
+  );
+  if (typeHit) {
+    const [tid] = typeHit;
+    const tn = resolveTypeName(tid, sem.types);
+    const value = `**${parsed.name}**\n\nType: \`${tn}\``;
+    return { kind: "markdown", value };
+  }
+
+  return null;
+}
+
+/**
+ * Build hover content for symbol at position. Pass fullPath (e.g. "c.b" or "c.b.b") to resolve member expression types.
+ * Pass sourceText so hovers work on choosy `bring { … } from "…"` import lists (no tree nodes there).
+ */
 export function getHoverFromSem(
   semJson: SemJson,
   position: Position,
   partialName?: string,
-  fullPath?: string
+  fullPath?: string,
+  sourceText?: string
 ): MarkupContent | null {
   const sem = semJson.sem;
   const symbols = sem?.symbols ?? {};
@@ -1148,23 +1529,112 @@ export function getHoverFromSem(
     }
   }
 
-  const result = getSymbolAtPosition(semJson, position, partialName);
-  if (!result) return null;
-
-  const { symbol } = result;
-  const typeName = resolveTypeName(symbol.type_id, types);
-
-  let value = `**${symbol.name}**`;
-  if (symbol.kind === "Function") {
-    const sig = getFunctionSignature(symbol, types, sem?.symbols);
-    value += `\n\n\`\`\`flowwing\n${sig}\n\`\`\``;
-  } else if (symbol.kind === "Class" && typeName) {
-    value += `\n\n\`\`\`flowwing\nclass ${typeName}\n\`\`\``;
-  } else if (typeName) {
-    value += `\n\nType: \`${typeName}\``;
+  let result = getSymbolAtPosition(semJson, position, partialName);
+  const innerCall = findInnermostCallExpressionAtPosition(sem.tree, position);
+  if (innerCall?.node.symbol_id && result?.symbol.kind === "Function") {
+    const sid = String(innerCall.node.symbol_id);
+    const sym = symbols[sid];
+    if (sym?.kind === "Function" && sym.name !== result.symbol.name) {
+      result = {
+        symbol: sym,
+        symbolId: sid,
+        range: semRangeToLspRange(innerCall.range),
+      };
+    }
+  }
+  if (!result) {
+    if (sourceText) {
+      const bring = tryHoverForBringChoosyList(semJson, position, sourceText);
+      if (bring) return bring;
+    }
+    return null;
   }
 
+  const value = formatHoverMarkdownForSymbol(result.symbol, semJson);
   return { kind: "markdown", value };
+}
+
+function collectNodesByKind(obj: unknown, kind: string): unknown[] {
+  const out: unknown[] = [];
+  function walk(o: unknown) {
+    if (!o || typeof o !== "object") return;
+    if (Array.isArray(o)) {
+      for (const x of o) walk(x);
+      return;
+    }
+    const rec = o as Record<string, unknown>;
+    if (rec.kind === kind) out.push(o);
+    for (const v of Object.values(rec)) walk(v);
+  }
+  walk(obj);
+  return out;
+}
+
+/**
+ * Names exported inside `module [name] { ... }` for `name::` completion.
+ * Pairs `module […]` declarations in source order with ModuleStatement nodes in the sem tree.
+ */
+export function getModuleMemberNamesFromSem(
+  semJson: SemJson,
+  moduleName: string,
+  sourceText: string
+): string[] {
+  const symbols = semJson.sem?.symbols ?? {};
+  const moduleDecls = [
+    ...sourceText.matchAll(/module\s*\[\s*(\w+)\s*\]/g),
+  ].map((m) => m[1]);
+  const modNodes = collectNodesByKind(semJson.sem?.tree, "ModuleStatement");
+  const idx = moduleDecls.indexOf(moduleName);
+  const mod =
+    idx >= 0 && idx < modNodes.length ? modNodes[idx] : modNodes[0];
+  if (!mod || typeof mod !== "object") return [];
+  const stmts = (mod as Record<string, unknown>).statements as
+    | unknown[]
+    | undefined;
+  if (!Array.isArray(stmts)) return [];
+  const names: string[] = [];
+  for (const st of stmts) {
+    if (!st || typeof st !== "object") continue;
+    const o = st as Record<string, unknown>;
+    const k = o.kind;
+    if (k === "FunctionStatement" && typeof o.symbol_id === "string") {
+      const s = symbols[o.symbol_id];
+      if (s?.name) names.push(s.name);
+    }
+    if (k === "VariableDeclaration" && Array.isArray(o.initializer_expressions)) {
+      for (const init of o.initializer_expressions as Record<string, unknown>[]) {
+        if (init?.symbol_id && typeof init.symbol_id === "string") {
+          const s = symbols[init.symbol_id as string];
+          if (s?.name) names.push(s.name);
+        }
+      }
+    }
+    if (k === "ClassStatement" && typeof o.class_symbol_id === "string") {
+      const s = symbols[o.class_symbol_id];
+      if (s?.name) names.push(s.name);
+    }
+  }
+  return [...new Set(names)];
+}
+
+export function getModuleQualifiedCompletionItems(
+  semJson: SemJson,
+  moduleName: string,
+  sourceText: string,
+  prefixFilter: string
+): CompletionItem[] {
+  const names = getModuleMemberNamesFromSem(semJson, moduleName, sourceText);
+  const p = prefixFilter.toLowerCase();
+  const items: CompletionItem[] = [];
+  for (const name of names) {
+    if (p && !name.toLowerCase().startsWith(p)) continue;
+    items.push({
+      label: name,
+      kind: CompletionItemKind.Field,
+      detail: `${moduleName}::${name}`,
+    });
+  }
+  return items;
 }
 
 /** Build signature help from sem for function call at position */
@@ -1174,18 +1644,43 @@ export function getSignatureHelpFromSem(
   activeParam: number,
   functionName?: string
 ): SignatureHelp | null {
-  let result = getSymbolAtPosition(semJson, position, functionName);
-  
-  // For signature help, if we are inside a call but getSymbolAtPosition failed 
-  // (e.g. no symbol_id on CallExpression), try to find the function symbol by name
-  if ((!result || result.symbol.kind !== "Function") && functionName) {
-    const sem = semJson.sem;
-    const entry = Object.entries(sem?.symbols ?? {}).find(([, s]) => s.name === functionName && s.kind === "Function");
-    if (entry) {
+  const sem = semJson.sem;
+  let result: {
+    symbol: SemSymbol;
+    symbolId: string;
+    range: Range;
+  } | null = null;
+
+  const innerCall = findInnermostCallExpressionAtPosition(sem?.tree, position);
+  if (innerCall?.node.symbol_id) {
+    const sid = String(innerCall.node.symbol_id);
+    const sym = sem?.symbols[sid];
+    if (sym?.kind === "Function") {
+      result = {
+        symbol: sym,
+        symbolId: sid,
+        range: semRangeToLspRange(innerCall.range),
+      };
+    }
+  }
+
+  if (!result) {
+    result = getSymbolAtPosition(semJson, position, functionName);
+  }
+
+  const lookupName = functionName
+    ? unqualifiedFunctionNameForSemLookup(functionName)
+    : undefined;
+
+  if (lookupName) {
+    const entry = Object.entries(sem?.symbols ?? {}).find(
+      ([, s]) => s.name === lookupName && s.kind === "Function"
+    );
+    if (entry && (!result || result.symbol.kind !== "Function")) {
       result = {
         symbol: entry[1],
         symbolId: entry[0],
-        range: Range.create(position, position), // dummy range
+        range: Range.create(position, position),
       };
     }
   }
@@ -1197,7 +1692,6 @@ export function getSignatureHelpFromSem(
 
   const types = semJson.sem?.types ?? {};
   const typeName = resolveTypeName(symbol.type_id, types);
-  const sem = semJson.sem;
   const hide = symbol.hide_trailing_params_for_display ?? 0;
   const paramIds = symbol.parameters ?? [];
   const type = types[symbol.type_id ?? ""];

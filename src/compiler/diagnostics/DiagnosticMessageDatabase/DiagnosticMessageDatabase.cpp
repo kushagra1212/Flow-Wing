@@ -648,17 +648,10 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "for loop."}},
 
     {(DiagnosticCode::kBreakStatementNotAllowedOutsideOfLoop),
-     {"'break' statement not allowed in global scope.",
-      "Please use the 'break' statement in a valid scope.",
-      "The 'break' statement is only valid in non-global scopes. Using it in "
-      "a global scope will result in a compilation error."}},
+     {"'break' statement is not allowed outside of a loops.", "", ""}},
 
     {(DiagnosticCode::kContinueStatementNotAllowedOutsideOfLoop),
-     {"'continue' statement not allowed in global scope.",
-      "Please use the 'continue' statement in a valid scope.",
-      "The 'continue' statement is only valid in non-global scopes. Using it "
-      "in "
-      "a global scope will result in a compilation error."}},
+     {"'continue' statement is not allowed outside of a loops.", "", ""}},
 
     {(DiagnosticCode::kReturnStatementNotInFunction),
      {"'return' statement cannot appear outside of a function body.",

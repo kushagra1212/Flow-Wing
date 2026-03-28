@@ -104,6 +104,13 @@ describe("getFullPathAtPosition", () => {
     const content = "println(getPoints()[0].)";
     assert.equal(getFullPathAtPosition(content, { line: 0, character: 22 }), "getPoints()[0]");
   });
+  it("extracts (new Class) path when cursor after dot: (new A()).", () => {
+    const content = "println((new A()).";
+    assert.equal(
+      getFullPathAtPosition(content, { line: 0, character: content.length }),
+      "(new A)"
+    );
+  });
 });
 
 describe("makeCodeCompleteForLsp", () => {

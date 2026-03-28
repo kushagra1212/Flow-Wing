@@ -88,10 +88,16 @@ public:
       "Output directory for the generated files (default: ./build)",
       "-OD, --output-dir=<path>"};
 
+  const CliOption kOptOutputExe = {
+      {"-o", "--output"},
+      "AOT executable path (default: <output-dir>/bin/<hash>; omit for test runner)",
+      "-o, --output=<path>"};
+
   const std::vector<CliOption> cli_options = {
       kOptHelp,        kOptVersion,   kOptFile,     kOptCode,    kOptFormat,
       kOptFormatPrint, kOptOptLevels, kOptEntry,    kOptLibPath, kOptLinkLib,
-      kOptFramework,   kOptServer,    kOptLinkWarn, kOptEmit,    kOutDir};
+      kOptFramework,   kOptServer,    kOptLinkWarn, kOptEmit,    kOutDir,
+      kOptOutputExe};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
@@ -198,6 +204,7 @@ public:
     // Handle output directory
 
     opts.output_dir = parseParam(cmdl, kOutDir, "./build");
+    opts.output_executable_path = parseParam(cmdl, kOptOutputExe, "");
 
     if (cmdl[{kDump.names[0], kDump.names[1]}]) {
       opts.dump = 1;

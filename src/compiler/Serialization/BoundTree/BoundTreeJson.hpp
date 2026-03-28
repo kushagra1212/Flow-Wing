@@ -84,6 +84,8 @@ private:
   std::string getSymbolId(const analysis::ModuleSymbol *module_symbol);
   std::string getSymbolId(const analysis::Symbol *symbol);
 
+  void attachDeclarationSite(nlohmann::json &j, const analysis::Symbol *symbol);
+
   // types
   std::string getTypeId(const types::FunctionType *type);
   std::string getTypeId(const types::ParameterType *type);

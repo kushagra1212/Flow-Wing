@@ -10,7 +10,6 @@ import {
   filterCompletionItemsByPrefix,
   formatVarExpr,
   getArrayType,
-  getFileFullPath,
   getImportedFileUri,
   getUnique,
   SuggestHandler,

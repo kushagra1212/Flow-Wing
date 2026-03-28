@@ -14,6 +14,7 @@ import { onDidClose } from "./handlers/onDidClose";
 import { InitializationHandler } from "./handlers/InitializationHandler";
 import { onDefinition } from "./handlers/onDefinition";
 import { onDocumentFormatting } from "./handlers/onDocumentFormatting";
+import { validateTextDocument } from "./services/documentService";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -32,7 +33,15 @@ export const documents: TextDocuments<TextDocument> = new TextDocuments(
 
 // Cache the settings of all open documents
 
-const initializationHandler = new InitializationHandler(connection);
+const initializationHandler = new InitializationHandler(connection, () => {
+  // Workspace compiler path is applied asynchronously after `initialized`. Earlier
+  // `didOpen` validations may have used the default `"FlowWing"` and published no diagnostics.
+  setImmediate(() => {
+    for (const doc of documents.all()) {
+      void validateTextDocument(doc, connection);
+    }
+  });
+});
 initializationHandler.initialize();
 
 onDidChangeConfiguration(connection, initializationHandler, documents);

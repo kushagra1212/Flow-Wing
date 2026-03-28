@@ -19,9 +19,51 @@ import { randomBytes } from "crypto";
 import { promises as fs } from "fs";
 import * as path from "path";
 import * as os from "os";
+import { fileURLToPath } from "url";
 
 const semCache = new Map<string, string>();
 const astCache = new Map<string, string>();
+
+/**
+ * Writes source for the compiler. When the document URI refers to a real file,
+ * uses a sidecar `.flowwing-lsp-*.fg` next to that file so `bring "…"` resolves
+ * relative to the project directory (same as the CLI). Otherwise uses os.tmpdir().
+ */
+async function writeCompilerInputFile(
+  uriOrBasename: string,
+  data: string,
+  fallbackBasename: string
+): Promise<{ path: string; cleanup: () => Promise<void> }> {
+  if (uriOrBasename.startsWith("file:")) {
+    try {
+      const abs = fileURLToPath(uriOrBasename);
+      const st = await fs.stat(abs).catch(() => null);
+      if (st?.isFile()) {
+        const sidecar = path.join(
+          path.dirname(abs),
+          `.flowwing-lsp-${randomBytes(8).toString("hex")}.fg`
+        );
+        await fs.writeFile(sidecar, data, "utf8");
+        return {
+          path: sidecar,
+          cleanup: async () => {
+            await fs.unlink(sidecar).catch(() => {});
+          },
+        };
+      }
+    } catch {
+      /* fall through to temp */
+    }
+  }
+  const p = await fileUtils.createTempFile({
+    fileName: fallbackBasename + ".fg",
+    data,
+  });
+  return {
+    path: p,
+    cleanup: async () => {},
+  };
+}
 
 /** Clears all internal caches (used for testing and cache invalidation). */
 export const clearDocumentCache = () => {
@@ -37,12 +79,18 @@ export const validateTextDocument = async (
 
   try {
     const text = textDocument.getText();
-    const tempPath = await fileUtils.createTempFile({
-      fileName: getTempFileBasename(textDocument.uri) + ".fg",
-      data: text,
-    });
-
-    const result = await validateFile(textDocument.uri, tempPath);
+    const fb = getTempFileBasename(textDocument.uri);
+    const { path: tempPath, cleanup } = await writeCompilerInputFile(
+      textDocument.uri,
+      text,
+      fb
+    );
+    let result: Partial<ErrorResult>;
+    try {
+      result = await validateFile(textDocument.uri, tempPath);
+    } finally {
+      await cleanup();
+    }
 
     const diagnostics =
       result.errorObject?.error && result.errorObject
@@ -219,11 +267,12 @@ export const getSemPathForFileNoRepair = async (
   const candidates = getRepairCandidates(content, options);
 
   for (const data of candidates) {
+    const { path: tempPath, cleanup } = await writeCompilerInputFile(
+      uriOrBasename,
+      data,
+      basename
+    );
     try {
-      const tempPath = await fileUtils.createTempFile({
-        fileName: basename + ".fg",
-        data,
-      });
       const result = await runCompilerWithEmit(tempPath, "sem", outputDir);
       if (result) {
         semCache.set(contentCacheKey, result);
@@ -232,6 +281,8 @@ export const getSemPathForFileNoRepair = async (
       }
     } catch {
       continue;
+    } finally {
+      await cleanup();
     }
   }
 
@@ -264,11 +315,12 @@ export const getSemPathForFile = async (
 
   // 2. Try compiling candidates
   for (const data of candidates) {
+    const { path: tempPath, cleanup } = await writeCompilerInputFile(
+      uriOrBasename,
+      data,
+      basename
+    );
     try {
-      const tempPath = await fileUtils.createTempFile({
-        fileName: basename + ".fg",
-        data,
-      });
       const result = await runCompilerWithEmit(tempPath, "sem", outputDir);
       if (result) {
         semCache.set(contentCacheKey, result);
@@ -279,6 +331,8 @@ export const getSemPathForFile = async (
     } catch (e) {
       logger.trace("document", "getSemPath", "candidate failed", String(e));
       continue;
+    } finally {
+      await cleanup();
     }
   }
 
@@ -335,11 +389,12 @@ export const getAstPathForFileNoRepair = async (
   const candidates = getRepairCandidates(content, options);
 
   for (const data of candidates) {
+    const { path: tempPath, cleanup } = await writeCompilerInputFile(
+      uriOrBasename,
+      data,
+      basename
+    );
     try {
-      const tempPath = await fileUtils.createTempFile({
-        fileName: basename + ".fg",
-        data,
-      });
       const result = await runCompilerWithEmit(tempPath, "ast", outputDir);
       if (result) {
         astCache.set(contentCacheKey, result);
@@ -348,6 +403,8 @@ export const getAstPathForFileNoRepair = async (
       }
     } catch {
       continue;
+    } finally {
+      await cleanup();
     }
   }
   
@@ -383,11 +440,12 @@ export const getAstPathForFile = async (
   const candidates = getRepairCandidates(content, options);
 
   for (const data of candidates) {
+    const { path: tempPath, cleanup } = await writeCompilerInputFile(
+      uriOrBasename,
+      data,
+      basename
+    );
     try {
-      const tempPath = await fileUtils.createTempFile({
-        fileName: basename + ".fg",
-        data,
-      });
       const result = await runCompilerWithEmit(tempPath, "ast", outputDir);
       if (result) {
         astCache.set(contentCacheKey, result);
@@ -398,6 +456,8 @@ export const getAstPathForFile = async (
     } catch (e) {
       logger.trace("document", "getAstPath", "candidate failed", String(e));
       continue;
+    } finally {
+      await cleanup();
     }
   }
 

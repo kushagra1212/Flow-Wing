@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
@@ -79,6 +80,10 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
       m_context->reportError(error_statement.get());
       return std::move(error_statement);
     }
+
+    variable_symbol->setDeclarationSite(
+        m_context->getCompilationContext().getAbsoluteSourceFilePath(),
+        identifier_expression->getSourceLocation());
 
     variable_symbols.push_back(variable_symbol);
   }

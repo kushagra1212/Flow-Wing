@@ -18,6 +18,7 @@
  */
 
 #include "DeclarationAnalyzer.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
@@ -120,6 +121,10 @@ void analysis::DeclarationAnalyzer::visit(
         function_identifier->getSourceLocation());
     return;
   }
+
+  function_symbol->setDeclarationSite(
+      m_binder_context.getCompilationContext().getAbsoluteSourceFilePath(),
+      function_identifier->getSourceLocation());
 }
 
 std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(

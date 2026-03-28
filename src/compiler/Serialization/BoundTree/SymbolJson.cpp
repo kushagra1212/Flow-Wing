@@ -25,6 +25,18 @@
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 
 namespace flow_wing::compiler::serializer {
+
+void BoundTreeJson::attachDeclarationSite(nlohmann::json &j,
+                                          const analysis::Symbol *symbol) {
+  if (!symbol || !symbol->hasDeclarationSite())
+    return;
+  if (const auto &p = symbol->getDeclarationSourcePath())
+    j["declaration_source"] = *p;
+  const auto &locOpt = symbol->getDeclarationLocation();
+  if (locOpt.has_value())
+    j["declaration_range"] = toJsonRange(*locOpt);
+}
+
 std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
 
   switch (symbol->getKind()) {
@@ -41,6 +53,7 @@ std::string BoundTreeJson::getSymbolId(const analysis::Symbol *symbol) {
     object_symbol_json["kind"] = analysis::Symbol::toString(symbol->getKind());
     object_symbol_json["name"] = symbol->getName();
     object_symbol_json["type_id"] = getTypeId(symbol->getType().get());
+    attachDeclarationSite(object_symbol_json, symbol);
     const auto &object_symbol_id = getShortId(symbol);
     m_symbols_json[object_symbol_id] = object_symbol_json;
     return object_symbol_id;
@@ -58,6 +71,7 @@ std::string BoundTreeJson::getSymbolId(
   module_symbol_json["name"] = module_symbol->getName();
   module_symbol_json["type_id"] = getTypeId(module_symbol->getType().get());
   const auto &symbol_id = getShortId(module_symbol);
+  attachDeclarationSite(module_symbol_json, module_symbol);
   m_symbols_json[symbol_id] = module_symbol_json;
   return symbol_id;
 }
@@ -82,7 +96,7 @@ BoundTreeJson::getSymbolId(const analysis::FunctionSymbol *function_symbol) {
     function_symbol_json["parameters"].push_back(getSymbolId(parameter.get()));
   }
 
-  // TODO(kushagra): Add Ranges for Symbols
+  attachDeclarationSite(function_symbol_json, function_symbol);
 
   m_symbols_json[symbol_id] = function_symbol_json;
 
@@ -103,6 +117,7 @@ BoundTreeJson::getSymbolId(const analysis::ParameterSymbol *parameter_symbol) {
       parameter_symbol->getDefaultValueExpression() != nullptr;
 
   const auto &parameter_symbol_id = getShortId(parameter_symbol);
+  attachDeclarationSite(parameter_symbol_json, parameter_symbol);
 
   m_symbols_json[parameter_symbol_id] = parameter_symbol_json;
 
@@ -121,6 +136,8 @@ BoundTreeJson::getSymbolId(const analysis::VariableSymbol *variable_symbol) {
   variable_symbol_json["isConst"] = variable_symbol->isConst();
 
   const auto &variable_symbol_id = getShortId(variable_symbol);
+  attachDeclarationSite(variable_symbol_json, variable_symbol);
+
   m_symbols_json[variable_symbol_id] = variable_symbol_json;
 
   return variable_symbol_id;

@@ -12,6 +12,7 @@ import { fileUtils } from "./fileUtils";
 import { createHash, randomBytes } from "crypto";
 import { Stack } from "../ds/stack";
 import path = require("path");
+import { fileURLToPath, pathToFileURL } from "url";
 import { keywordsCompletionItems } from "../store";
 import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
 import { logger } from "../services/loggerService";
@@ -52,6 +53,24 @@ export const getIdentifierAtPosition = (
   const before = line.slice(0, position.character);
   const match = before.match(/\w+$/);
   return match ? match[0] : "";
+};
+
+/**
+ * Full identifier at position (expands left and right). Prefer over getIdentifierAtPosition
+ * for go-to-definition so a cursor on any character of `getC` resolves to `getC`, not `get`.
+ */
+export const getWordAtPosition = (
+  content: string,
+  position: { line: number; character: number }
+): string => {
+  const lines = content.split("\n");
+  const line = lines[position.line];
+  if (!line) return "";
+  let start = position.character;
+  while (start > 0 && /\w/.test(line[start - 1]!)) start--;
+  let end = position.character;
+  while (end < line.length && /\w/.test(line[end]!)) end++;
+  return line.slice(start, end);
 };
 
 /**
@@ -129,6 +148,18 @@ export const getFullPathAtPosition = (
   const line = lines[position.line];
   if (!line) return "";
   const before = line.slice(0, position.character);
+  // `(new ClassName).` or `println((new ClassName)).` — member completion after `new`
+  // FlowWing instance: `(new ClassName()).member` — note `()` after the class name
+  const newIdx = before.lastIndexOf("(new");
+  if (newIdx >= 0) {
+    const afterNew = before.slice(newIdx);
+    const newMatch = afterNew.match(
+      /^\(\s*new\s+(\w+)\s*\(\s*\)\s*\)\s*\.\s*$/
+    );
+    if (newMatch) {
+      return `(new ${newMatch[1]})`;
+    }
+  }
   // Match path: id or id() or id()[0], optionally followed by .field chains.
   // (?:\(\))? and (?:\[\d+\])? are optional so we match both obj.field and getPoints()[0].x
   const match = before.match(
@@ -1245,6 +1276,19 @@ export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
 export const MAX_TEMP_BASENAME_LENGTH = 80;
 
 /**
+ * Real filesystem path for a `file:` URI. Use this for `path.resolve`, `fs`, etc.
+ * **Do not** use {@link getFileFullPath} for this — that returns a mangled string for temp-file basenames only.
+ */
+export const getFilesystemPathFromUri = (uri: string): string | null => {
+  if (!uri || !uri.startsWith("file:")) return null;
+  try {
+    return fileURLToPath(uri);
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Extracts the file path from a file URI for use as a temp file basename.
  * Handles file://, file:///, and file:/ schemes.
  *
@@ -1309,21 +1353,19 @@ export const createRange = (token: Token | null) => {
 };
 
 export const getImportedFileUri = async (
-  _filePath: string,
+  relativeImport: string,
   currentFileUri: string
 ): Promise<string> => {
   try {
-    const filePath = path.resolve(
-      path.dirname(getFileFullPath(currentFileUri)),
-      _filePath
-    );
-    const doesFileExits = await fileUtils.doesFileExist(filePath);
-    if (doesFileExits) {
-      return "file://" + filePath;
+    const basePath = getFilesystemPathFromUri(currentFileUri);
+    if (basePath) {
+      const resolved = path.resolve(path.dirname(basePath), relativeImport);
+      if (await fileUtils.doesFileExist(resolved)) {
+        return pathToFileURL(resolved).href;
+      }
     }
-    return "file://" + path.resolve(currentFileUri.replace("file://", ""), _filePath);
   } catch (err) {
-    console.log(`Error in getImportedFileUri: ${err}`);
+    logger.debug("utils", "getImportedFileUri", String(err));
   }
   return currentFileUri;
 };

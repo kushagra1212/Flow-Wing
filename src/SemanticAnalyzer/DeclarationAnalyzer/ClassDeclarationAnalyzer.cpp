@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/DeclarationAnalyzer/DeclarationAnalyzer.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
@@ -48,6 +49,9 @@ void analysis::DeclarationAnalyzer::visit(syntax::ClassStatementSyntax *node) {
       std::make_shared<types::ClassType>(class_name, parent_class_type);
   auto class_symbol = std::make_shared<analysis::Symbol>(
       class_name, analysis::SymbolKind::kClass, class_type);
+  class_symbol->setDeclarationSite(
+      m_binder_context.getCompilationContext().getAbsoluteSourceFilePath(),
+      name_expr->getSourceLocation());
   if (!m_binder_context.getSymbolTable()->define(class_symbol)) {
     m_binder_context.recordDuplicateClassDeclaration(class_name);
   }

@@ -1,3 +1,5 @@
 fun getD(s: str) -> str { return "200" }
     fun getC(d: deci32) -> str { return getD("ignore") }
-    print(Decimal(getC(9.99d)))
+
+    
+print(Decimal(getC(9.99f)))

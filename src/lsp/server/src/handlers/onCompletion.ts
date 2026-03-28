@@ -12,6 +12,7 @@ import {
   getFullPathAtPosition,
   getArgumentPrefixFromDocument,
   getVariableInitializerObjectContext,
+  getFilesystemPathFromUri,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import {
@@ -23,6 +24,7 @@ import {
   getExpectedParamTypeFromSem,
   getNestedObjectLiteralContext,
   isSemFormat,
+  getModuleQualifiedCompletionItems,
 } from "../services/semService";
 import {
   getSemPathForDocument,
@@ -37,6 +39,9 @@ import {
   getCompletionContextFromSem,
 } from "../services/completionContextService";
 import { getObjectMemberCompletionItems } from "../services/semService";
+import path = require("path");
+import { existsSync } from "fs";
+import { pathToFileURL } from "url";
 
 /** Parse member names from object literal prefix (e.g. "{b:" -> ["b"], "{a:1, b:" -> ["a","b"]). */
 function parseObjectLiteralMembers(prefix: string): string[] {
@@ -70,6 +75,13 @@ export const getObjectSuggestion = async (
   if (!document) return [];
 
   const pos = _textDocsParams.position;
+  const posObj = { line: pos.line, character: pos.character };
+  const contentProbe = document.getText();
+  const lineProbe = contentProbe.split("\n")[pos.line] ?? "";
+  const beforeProbe = lineProbe.slice(0, pos.character);
+  // `print(test::|` is still "inside" a call for signature help, but module `::` wins.
+  const isModuleQualifiedCursor = /(\w+)::\s*(\w*)$/.test(beforeProbe);
+
   // TOKENIZE ONCE
   const tokens = await getTokensForContext(document, pos);
 
@@ -83,7 +95,8 @@ export const getObjectSuggestion = async (
   if (
     funcSuggestion.hasFunctionSignature &&
     funcSuggestion.word &&
-    !isControlKeyword(funcSuggestion.word)
+    !isControlKeyword(funcSuggestion.word) &&
+    !isModuleQualifiedCursor
   ) {
     const funcName = funcSuggestion.word;
     const argNum = funcSuggestion.data?.argumentNumber ?? 1;
@@ -158,8 +171,7 @@ export const getObjectSuggestion = async (
   }
 
   // 2. Tree-based context: get AST without repair for incomplete code
-  const content = document.getText();
-  const posObj = { line: pos.line, character: pos.character };
+  const content = contentProbe;
 
   // Early exit for member completion: cursor after dot (getPoints()[0].|) or after member name (getPoints()[0].x|)
   // Do this before AST block so we reliably get member completions when AST position may not align
@@ -183,6 +195,72 @@ export const getObjectSuggestion = async (
         if (memberItems?.length) return memberItems;
       }
     }
+  }
+
+  // Module-qualified access: lib::| or lib::get|
+  const lineForMod = content.split("\n")[pos.line] ?? "";
+  const beforeCursorMod = lineForMod.slice(0, pos.character);
+  const modMatch = beforeCursorMod.match(/(\w+)::\s*(\w*)$/);
+  if (modMatch) {
+    const moduleName = modMatch[1];
+    const partial = modMatch[2] ?? "";
+    let modItems: CompletionItem[] = [];
+
+    const semPathMod = await getSemPathForFileNoRepair(document.uri, content, {
+      position: posObj,
+    });
+    if (semPathMod) {
+      try {
+        const semParsed = JSON.parse(await fileUtils.readFile(semPathMod));
+        if (isSemFormat(semParsed)) {
+          modItems = getModuleQualifiedCompletionItems(
+            semParsed,
+            moduleName,
+            content,
+            partial
+          );
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+
+    // `bring name` loads `name-module.fg`; members are not inlined in the main TU's sem tree.
+    // Also run when main-file sem failed to load (incomplete `print(test::` at EOF).
+    if (modItems.length === 0) {
+      const fsPath = getFilesystemPathFromUri(_textDocsParams.textDocument.uri);
+      if (fsPath) {
+        const candidate = path.join(
+          path.dirname(fsPath),
+          `${moduleName}-module.fg`
+        );
+        if (existsSync(candidate)) {
+          try {
+            const modText = await fileUtils.readFile(candidate);
+            const modSemPath = await getSemPathForFileNoRepair(
+              pathToFileURL(candidate).href,
+              modText,
+              { position: posObj }
+            );
+            if (modSemPath) {
+              const modParsed = JSON.parse(await fileUtils.readFile(modSemPath));
+              if (isSemFormat(modParsed)) {
+                modItems = getModuleQualifiedCompletionItems(
+                  modParsed,
+                  moduleName,
+                  modText,
+                  partial
+                );
+              }
+            }
+          } catch {
+            /* fall through */
+          }
+        }
+      }
+    }
+
+    if (modItems.length) return modItems;
   }
 
   // Variable initializer object literal (e.g. "var p: Point = { x: {} }" -> suggest x, y of A inside inner {})

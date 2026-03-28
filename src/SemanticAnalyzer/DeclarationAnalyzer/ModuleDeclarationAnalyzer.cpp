@@ -21,6 +21,7 @@
 
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/DeclarationAnalyzer/DeclarationAnalyzer.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
@@ -36,6 +37,10 @@ void analysis::DeclarationAnalyzer::visit(syntax::ModuleStatementSyntax *node) {
 
   auto module_symbol =
       std::make_shared<analysis::ModuleSymbol>(module_name, module_table);
+
+  module_symbol->setDeclarationSite(
+      m_binder_context.getCompilationContext().getAbsoluteSourceFilePath(),
+      name_expr->getSourceLocation());
 
   if (!m_binder_context.getSymbolTable()->define(module_symbol)) {
     m_binder_context.reportError(

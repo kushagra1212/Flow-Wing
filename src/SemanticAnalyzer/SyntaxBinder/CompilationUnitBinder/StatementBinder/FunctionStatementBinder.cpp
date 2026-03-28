@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
@@ -182,6 +183,10 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
     auto param_symbol = std::make_shared<analysis::ParameterSymbol>(
         param_identifier_name, param_type->type,
         std::move(bound_default_value_expression));
+
+    param_symbol->setDeclarationSite(
+        m_context->getCompilationContext().getAbsoluteSourceFilePath(),
+        param_identifier_expression->getSourceLocation());
 
     if (!symbol_table->define(param_symbol)) {
 

@@ -15,6 +15,7 @@ import {
 import {
   getSignatureHelpFromSem,
   isSemFormat,
+  unqualifiedFunctionNameForSemLookup,
 } from "../services/semService";
 import { fileUtils } from "../utils/fileUtils";
 
@@ -58,15 +59,18 @@ export async function onSignatureHelp(
             );
 
             if (sigHelp) {
-              // Safety: only show if the function name exactly matches or we are in a known active call
+              // Completion labels are usually unqualified (addThenTriple); tokens may be maths::addThenTriple.
               const result = await getCompletionItems(
                 treePath,
                 suggestion,
                 params.textDocument.uri
               );
-              const res = result.find((item) => item.label === suggestion.word);
-              if (!res) return;
-
+              const w = suggestion.word ?? "";
+              const shortName = unqualifiedFunctionNameForSemLookup(w);
+              const res =
+                result.find((item) => item.label === w) ??
+                result.find((item) => item.label === shortName);
+              if (!res && !w.includes("::")) return undefined;
               return sigHelp;
             }
           }

@@ -8,8 +8,9 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { getSuggestionHandlerObject } from "../services/suggestionService";
 import {
   checkForHover,
-  getFileFullPath,
+  getFilesystemPathFromUri,
   getImportedFileUri,
+  getWordAtPosition,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import { fileUtils } from "../utils/fileUtils";
@@ -22,6 +23,7 @@ import {
 import {
   getSymbolAtPosition,
   getDeclarationForSymbol,
+  getBringListDeclarationLocation,
   isSemFormat,
 } from "../services/semService";
 
@@ -43,7 +45,20 @@ export const onDefinition = async (
         const content = await fileUtils.readFile(treePath);
         const parsed = JSON.parse(content);
         if (isSemFormat(parsed)) {
-          const atPos = getSymbolAtPosition(parsed, params.position);
+          const text = document.getText();
+          const word = getWordAtPosition(text, params.position);
+          const bringLoc = getBringListDeclarationLocation(
+            parsed,
+            params.textDocument.uri,
+            params.position,
+            text
+          );
+          if (bringLoc) return bringLoc;
+          const atPos = getSymbolAtPosition(
+            parsed,
+            params.position,
+            word || undefined
+          );
           if (atPos) {
             const loc = getDeclarationForSymbol(
               parsed,
@@ -78,10 +93,13 @@ export const onDefinition = async (
       );
       if (found) uri = "file://" + found;
       else {
-        const local = await fileUtils.findFileBreadthFirst(
-          path.dirname(getFileFullPath(params.textDocument.uri)),
-          moduleName + "-module.fg"
-        );
+        const localDir = getFilesystemPathFromUri(params.textDocument.uri);
+        const local = localDir
+          ? await fileUtils.findFileBreadthFirst(
+              path.dirname(localDir),
+              moduleName + "-module.fg"
+            )
+          : null;
         if (local) uri = "file://" + local;
       }
     }

@@ -65,6 +65,9 @@ struct CompilerOptions {
 #endif
 
   std::string output_dir = "./build";
+  /// AOT final exe: if set (`-o`), link writes exactly here (make run-aot-*). If empty,
+  /// link uses `output_dir/bin/<hash>` so parallel tests (`tests/runner.py`, no `-o`) stay collision-free.
+  std::string output_executable_path;
 
   int8_t emit_brought_dependency_object = 0;
   // Compilation settings

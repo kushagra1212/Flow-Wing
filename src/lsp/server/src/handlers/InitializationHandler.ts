@@ -17,7 +17,15 @@ export class InitializationHandler {
   private hasWorkspaceFolderCapability: boolean = false;
   private hasDiagnosticRelatedInformationCapability: boolean = false;
 
-  constructor(private connection: _Connection) {}
+  /**
+   * Called after workspace `FlowWing` config is applied and `flowWingConfig.flowWingPath` is set.
+   * Used to re-run validation so diagnostics appear on open (early validates may have used the
+   * default `"FlowWing"` path before async config resolved).
+   */
+  constructor(
+    private connection: _Connection,
+    private readonly onWorkspaceCompilerPathReady?: () => void
+  ) {}
 
   public initialize() {
     this.connection.onInitialize((params: InitializeParams) => {
@@ -118,6 +126,7 @@ export class InitializationHandler {
           this.connection.console.info(
             `FlowWing compiler path: ${flowWingConfig.flowWingPath}`
           );
+          this.onWorkspaceCompilerPathReady?.();
           doesFlowWingCompilerExist().then((exists) => {
             flowWingConfig.doesFlowWingExist = exists;
             if (!flowWingConfig.doesFlowWingExist) {
@@ -129,6 +138,8 @@ export class InitializationHandler {
         })
         .catch((err) => {
           console.error(err);
+          // Still refresh diagnostics using compiler path from initialize() / defaults.
+          this.onWorkspaceCompilerPathReady?.();
         });
 
       if (this.hasConfigurationCapability) {
