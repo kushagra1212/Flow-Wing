@@ -123,11 +123,25 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindObjectExpression(
       auto it = co_hint->getFieldTypesMap().find(field_name);
       if (it != co_hint->getFieldTypesMap().end())
         field_hint = it->second;
-      if (field_hint)
-        m_context->pushExpectedType(field_hint);
-      auto right_bound = bind(colon_syntax->getRightExpression().get());
-      if (field_hint)
-        m_context->popExpectedType();
+      std::unique_ptr<BoundExpression> right_bound;
+      if (field_hint &&
+          field_hint->getKind() == types::TypeKind::kObject &&
+          colon_syntax->getRightExpression()->getKind() ==
+              syntax::NodeKind::kObjectExpression) {
+        // Nested `{ a: { ... } }` must use the declared object field type as
+        // the struct hint, not `bind()` which would call bindObjectExpression
+        // without a hint and infer int8 / wrong aggregate layouts.
+        right_bound = bindObjectExpression(
+            static_cast<syntax::ObjectExpressionSyntax *>(
+                colon_syntax->getRightExpression().get()),
+            field_hint);
+      } else {
+        if (field_hint)
+          m_context->pushExpectedType(field_hint);
+        right_bound = bind(colon_syntax->getRightExpression().get());
+        if (field_hint)
+          m_context->popExpectedType();
+      }
       if (right_bound->getKind() == NodeKind::kErrorExpression) {
         return right_bound;
       }
