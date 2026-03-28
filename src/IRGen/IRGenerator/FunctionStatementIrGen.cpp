@@ -36,11 +36,17 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
 
   assert(function_symbol && "Function symbol is null");
 
+  auto function_body = function_symbol->getBody().get();
+
+  if (function_body == nullptr) {
+    return;
+  }
+
   auto function_type = static_cast<const types::FunctionType *>(
       function_symbol->getType().get());
 
-  auto llvm_function =
-      m_ir_gen_context.getLLVMModule()->getFunction(function_symbol->getMangledName());
+  auto llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(
+      function_symbol->getMangledName());
 
   assert(llvm_function && "Function not found [BoundFunctionStatement::visit]");
 
