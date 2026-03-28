@@ -10,6 +10,7 @@ import shutil
 import threading
 import tempfile  # <--- NEW IMPORT
 import platform
+import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -86,6 +87,8 @@ def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, em
     """
     Re-run the compiler with --emit=ir so failing tests print LLVM IR for debugging
     (Linux x86_64 ABI issues, AOT link/order bugs, etc.).
+    Also writes a copy under build/bin/test_artifacts/ir_on_failure/ so CI log
+    truncation does not lose the IR.
     """
     if not emit_ir_on_failure:
         return ""
@@ -115,36 +118,58 @@ def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, em
         return f"\n[emit-ir-on-failure] subprocess timed out after {_IR_EMIT_CMD_TIMEOUT_SEC}s\n"
 
     ir_file = ir_dir / "llvm_ir.ll"
-    parts = ["\n", "--- FlowWing --emit=ir (test runner) ---\n"]
+    head = ["\n", "--- FlowWing --emit=ir (test runner) ---\n"]
     if r.returncode != 0:
-        parts.append(f"(compiler exit {r.returncode})\n")
+        head.append(f"(compiler exit {r.returncode})\n")
     combo = (r.stderr or "") + (r.stdout or "")
     if combo.strip():
-        parts.append("--- messages from emit=ir ---\n")
+        head.append("--- messages from emit=ir ---\n")
         cap = 8000
-        parts.append(combo[:cap])
+        head.append(combo[:cap])
         if len(combo) > cap:
-            parts.append("\n... [truncated]\n")
+            head.append("\n... [truncated]\n")
 
     if not ir_file.exists():
-        parts.append("(no llvm_ir.ll produced)\n")
-        return "".join(parts)
+        head.append("(no llvm_ir.ll produced)\n")
+        return "".join(head)
 
     try:
         body = ir_file.read_text(encoding="utf-8", errors="replace")
     except OSError as e:
-        parts.append(f"(could not read llvm_ir.ll: {e})\n")
-        return "".join(parts)
+        head.append(f"(could not read llvm_ir.ll: {e})\n")
+        return "".join(head)
 
-    parts.append(f"--- llvm_ir.ll ({ir_file}) ---\n")
+    artifact_path = None
+    artifact_err = None
+    try:
+        artifact_dir = Path("build/bin/test_artifacts/ir_on_failure")
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        h = hashlib.sha256(str(file_path.resolve()).encode("utf-8")).hexdigest()[:12]
+        artifact_path = artifact_dir / f"{file_path.stem}__{h}.ll"
+        artifact_path.write_text(body, encoding="utf-8", errors="replace")
+    except OSError as e:
+        artifact_err = str(e)
+
+    # Put grep-friendly lines first in this suffix (right after unified diff).
+    sections = []
+    if artifact_path is not None:
+        sections.append(
+            f"\nFLOWWING_IR_ARTIFACT={artifact_path.resolve()}\nFLOWWING_IR_BYTES={len(body)}\n"
+        )
+    elif artifact_err:
+        sections.append(f"\nFLOWWING_IR_ARTIFACT_WRITE_ERROR={artifact_err}\n")
+
+    sections.extend(head)
+    sections.append("--- llvm_ir.ll (log excerpt; full IR is FLOWWING_IR_ARTIFACT file) ---\n")
     if len(body) > _IR_EMIT_MAX_CHARS:
-        parts.append(body[:_IR_EMIT_MAX_CHARS])
-        parts.append(
-            f"\n... [IR truncated: {len(body)} chars total; cap {_IR_EMIT_MAX_CHARS}]\n"
+        sections.append(body[:_IR_EMIT_MAX_CHARS])
+        sections.append(
+            f"\n... [log excerpt truncated: {len(body)} chars total]\n"
         )
     else:
-        parts.append(body)
-    return "".join(parts)
+        sections.append(body)
+
+    return "".join(sections)
 
 
 def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going, emit_ir_on_failure=False):
@@ -422,9 +447,11 @@ def _safe_print(text):
     """Print text, avoiding UnicodeEncodeError on Windows cp1252 (e.g. when msg contains ▶ from compiler)."""
     try:
         print(text)
+        sys.stdout.flush()
     except UnicodeEncodeError:
         enc = getattr(sys.stdout, 'encoding', None) or 'ascii'
         sys.stdout.buffer.write((text + '\n').encode(enc, errors='replace'))
+        sys.stdout.buffer.flush()
 
 def main():
     _ensure_stdout_unicode_safe()
@@ -439,15 +466,21 @@ def main():
     parser.add_argument(
         "--emit-ir-on-failure",
         action="store_true",
-        help="On failure, re-run compiler with --emit=ir and append llvm_ir.ll (truncated) to the failure message. "
-        "Same as env FLOWWING_EMIT_IR_ON_FAILURE=1 (useful for Linux x86_64 CI debugging).",
+        help="(legacy) IR on failure is ON by default; this flag does nothing.",
+    )
+    parser.add_argument(
+        "--no-emit-ir-on-failure",
+        action="store_true",
+        help="Disable IR dump on failure (faster local runs).",
     )
     args = parser.parse_args()
 
-    emit_ir_on_failure = args.emit_ir_on_failure or (
-        os.environ.get("FLOWWING_EMIT_IR_ON_FAILURE", "").strip().lower()
-        in ("1", "true", "yes")
-    )
+    _fe = os.environ.get("FLOWWING_EMIT_IR_ON_FAILURE", "").strip().lower()
+    if args.no_emit_ir_on_failure or _fe in ("0", "false", "no", "off"):
+        emit_ir_on_failure = False
+    else:
+        # Default ON: many CI systems do not set CI=true in the job step; opt-out via env or flag.
+        emit_ir_on_failure = True
 
     compiler_path = Path(args.bin)
     test_dir = Path(args.dir)
@@ -491,7 +524,8 @@ def main():
     print(f"{Colors.HEADER}Running {len(all_tests)} tests ({args.mode.upper()})...{Colors.ENDC}")
     if emit_ir_on_failure:
         print(
-            f"{Colors.HEADER}emit-ir-on-failure enabled (extra compiler invocations on failures){Colors.ENDC}"
+            f"{Colors.HEADER}IR on failure: ON — full .ll under build/bin/test_artifacts/ir_on_failure/ "
+            f"(FLOWWING_IR_ARTIFACT=... in log). Disable: --no-emit-ir-on-failure or FLOWWING_EMIT_IR_ON_FAILURE=0{Colors.ENDC}"
         )
     print("-" * 60) 
     
