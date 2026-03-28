@@ -262,6 +262,10 @@ run-jit-release: build-jit-release
 # 	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
 
 
+# ARGS can pass runner flags, e.g. Linux CI debugging:
+#   make test-jit ARGS='--filter=LatestTests --emit-ir-on-failure'
+# or:  FLOWWING_EMIT_IR_ON_FAILURE=1 make test-jit ARGS='--filter=SomeTest.fg'
+# Appends llvm_ir.ll (truncated) to each failure message (JIT and AOT).
 .PHONY: test-jit
 test-jit: build-jit-release
 	$(ECHO_MSG) "--> Running JIT Integration Tests..."
@@ -330,7 +334,7 @@ run-aot-release: build-aot-release
 # 	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
 # 	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
 
-#? Configured AOT Tests
+#? Configured AOT Tests (see test-jit for ARGS / FLOWWING_EMIT_IR_ON_FAILURE)
 .PHONY: test-aot
 test-aot: build-aot-release
 	$(ECHO_MSG) "--> Running AOT Integration Tests..."

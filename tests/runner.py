@@ -77,7 +77,77 @@ def get_expected_error_code(file_path):
         pass
     return None
 
-def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going):
+# Max characters of llvm_ir.ll appended to failure messages (keep CI logs bounded).
+_IR_EMIT_MAX_CHARS = 100_000
+_IR_EMIT_CMD_TIMEOUT_SEC = 120
+
+
+def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, emit_ir_on_failure):
+    """
+    Re-run the compiler with --emit=ir so failing tests print LLVM IR for debugging
+    (Linux x86_64 ABI issues, AOT link/order bugs, etc.).
+    """
+    if not emit_ir_on_failure:
+        return ""
+    ir_dir = Path(private_temp_dir) / "runner_emit_ir"
+    try:
+        ir_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        return f"\n[emit-ir-on-failure] could not mkdir {ir_dir}: {e}\n"
+
+    cmd = [
+        str(compiler_bin),
+        str(file_path),
+        "--emit=ir",
+        f"--output-dir={ir_dir}",
+    ]
+    try:
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=_IR_EMIT_CMD_TIMEOUT_SEC,
+            env=run_env,
+            encoding=SUBPROCESS_ENCODING,
+            errors=SUBPROCESS_ERRORS,
+        )
+    except subprocess.TimeoutExpired:
+        return f"\n[emit-ir-on-failure] subprocess timed out after {_IR_EMIT_CMD_TIMEOUT_SEC}s\n"
+
+    ir_file = ir_dir / "llvm_ir.ll"
+    parts = ["\n", "--- FlowWing --emit=ir (test runner) ---\n"]
+    if r.returncode != 0:
+        parts.append(f"(compiler exit {r.returncode})\n")
+    combo = (r.stderr or "") + (r.stdout or "")
+    if combo.strip():
+        parts.append("--- messages from emit=ir ---\n")
+        cap = 8000
+        parts.append(combo[:cap])
+        if len(combo) > cap:
+            parts.append("\n... [truncated]\n")
+
+    if not ir_file.exists():
+        parts.append("(no llvm_ir.ll produced)\n")
+        return "".join(parts)
+
+    try:
+        body = ir_file.read_text(encoding="utf-8", errors="replace")
+    except OSError as e:
+        parts.append(f"(could not read llvm_ir.ll: {e})\n")
+        return "".join(parts)
+
+    parts.append(f"--- llvm_ir.ll ({ir_file}) ---\n")
+    if len(body) > _IR_EMIT_MAX_CHARS:
+        parts.append(body[:_IR_EMIT_MAX_CHARS])
+        parts.append(
+            f"\n... [IR truncated: {len(body)} chars total; cap {_IR_EMIT_MAX_CHARS}]\n"
+        )
+    else:
+        parts.append(body)
+    return "".join(parts)
+
+
+def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going, emit_ir_on_failure=False):
     parent_dir = file_path.parent
 
     if not keep_going:
@@ -194,11 +264,29 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                             diff_text = "".join(diff) or f"Exp: {repr(expected_compile_out)}\nAct: {repr(actual_compile_out)}\n"
                             if not keep_going:
                                 with dir_lock: failed_dirs.add(parent_dir)
-                            return False, f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+                            return False, (
+                                f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+                                + _maybe_emit_ir_suffix(
+                                    compiler_bin,
+                                    file_path,
+                                    run_env,
+                                    private_temp_dir,
+                                    emit_ir_on_failure,
+                                )
+                            )
                     # No expect file — genuine compile failure
                     if not keep_going:
                         with dir_lock: failed_dirs.add(parent_dir)
-                    return False, f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr or ''}\n{compile_result.stdout or ''}"
+                    return False, (
+                        f"{Colors.FAIL}[COMPILE FAIL]{Colors.ENDC} {file_path.name}\n{compile_result.stderr or ''}\n{compile_result.stdout or ''}"
+                        + _maybe_emit_ir_suffix(
+                            compiler_bin,
+                            file_path,
+                            run_env,
+                            private_temp_dir,
+                            emit_ir_on_failure,
+                        )
+                    )
                 
                 binary_name = file_path.stem
                 binary_path = test_temp_dir / "bin" / binary_name
@@ -213,7 +301,16 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         if not keep_going:
                             with dir_lock:
                                 failed_dirs.add(parent_dir)
-                        return False, f"{Colors.FAIL}[MISSING BINARY]{Colors.ENDC} Expected at: {binary_path}"
+                        return False, (
+                            f"{Colors.FAIL}[MISSING BINARY]{Colors.ENDC} Expected at: {binary_path}"
+                            + _maybe_emit_ir_suffix(
+                                compiler_bin,
+                                file_path,
+                                run_env,
+                                private_temp_dir,
+                                emit_ir_on_failure,
+                            )
+                        )
                 run_cmd = [str(binary_path)]
             else:
                 run_cmd = [str(compiler_bin), str(file_path)]
@@ -271,16 +368,43 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 
                 if not keep_going:
                     with dir_lock: failed_dirs.add(parent_dir)
-                return False, f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+                return False, (
+                    f"{Colors.FAIL}[FAIL (COMPILED)]{Colors.ENDC} {file_path.name}\n{diff_text}"
+                    + _maybe_emit_ir_suffix(
+                        compiler_bin,
+                        file_path,
+                        run_env,
+                        private_temp_dir,
+                        emit_ir_on_failure,
+                    )
+                )
 
         except subprocess.TimeoutExpired:
             if not keep_going:
                 with dir_lock: failed_dirs.add(parent_dir)
-            return False, f"{Colors.FAIL}[TIMEOUT]{Colors.ENDC} {file_path.name}"
+            return False, (
+                f"{Colors.FAIL}[TIMEOUT]{Colors.ENDC} {file_path.name}"
+                + _maybe_emit_ir_suffix(
+                    compiler_bin,
+                    file_path,
+                    run_env,
+                    private_temp_dir,
+                    emit_ir_on_failure,
+                )
+            )
         except Exception as e:
             if not keep_going:
                 with dir_lock: failed_dirs.add(parent_dir)
-            return False, f"{Colors.FAIL}[ERROR]{Colors.ENDC} {file_path.name}: {str(e)}"
+            return False, (
+                f"{Colors.FAIL}[ERROR]{Colors.ENDC} {file_path.name}: {str(e)}"
+                + _maybe_emit_ir_suffix(
+                    compiler_bin,
+                    file_path,
+                    run_env,
+                    private_temp_dir,
+                    emit_ir_on_failure,
+                )
+            )
 
 def _ensure_stdout_unicode_safe():
     """On Windows, reconfigure stdout to UTF-8 so compiler output (e.g. ▶) prints without UnicodeEncodeError."""
@@ -312,7 +436,18 @@ def main():
     parser.add_argument("--mode", choices=["jit", "aot"], default="jit", help="Execution mode")
     parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
     parser.add_argument("--keep-going", action="store_true", help="Run all tests in a directory even if one fails")
+    parser.add_argument(
+        "--emit-ir-on-failure",
+        action="store_true",
+        help="On failure, re-run compiler with --emit=ir and append llvm_ir.ll (truncated) to the failure message. "
+        "Same as env FLOWWING_EMIT_IR_ON_FAILURE=1 (useful for Linux x86_64 CI debugging).",
+    )
     args = parser.parse_args()
+
+    emit_ir_on_failure = args.emit_ir_on_failure or (
+        os.environ.get("FLOWWING_EMIT_IR_ON_FAILURE", "").strip().lower()
+        in ("1", "true", "yes")
+    )
 
     compiler_path = Path(args.bin)
     test_dir = Path(args.dir)
@@ -354,6 +489,10 @@ def main():
         sys.exit(0)
 
     print(f"{Colors.HEADER}Running {len(all_tests)} tests ({args.mode.upper()})...{Colors.ENDC}")
+    if emit_ir_on_failure:
+        print(
+            f"{Colors.HEADER}emit-ir-on-failure enabled (extra compiler invocations on failures){Colors.ENDC}"
+        )
     print("-" * 60) 
     
     stats = {
@@ -400,7 +539,18 @@ def main():
     if use_parallel:
         with ThreadPoolExecutor() as executor:
             future_to_test = {
-                executor.submit(run_single_test, compiler_path, t, args.update, args.mode, temp_root, failed_dirs, dir_lock, args.keep_going): t 
+                executor.submit(
+                    run_single_test,
+                    compiler_path,
+                    t,
+                    args.update,
+                    args.mode,
+                    temp_root,
+                    failed_dirs,
+                    dir_lock,
+                    args.keep_going,
+                    emit_ir_on_failure,
+                ): t
                 for t in all_tests
             }
             for future in as_completed(future_to_test):
@@ -409,7 +559,17 @@ def main():
                 handle_result(success, msg, test_path)
     else:
         for t in all_tests:
-            success, msg = run_single_test(compiler_path, t, args.update, args.mode, temp_root, failed_dirs, dir_lock, args.keep_going)
+            success, msg = run_single_test(
+                compiler_path,
+                t,
+                args.update,
+                args.mode,
+                temp_root,
+                failed_dirs,
+                dir_lock,
+                args.keep_going,
+                emit_ir_on_failure,
+            )
             handle_result(success, msg, t)
 
     print()
