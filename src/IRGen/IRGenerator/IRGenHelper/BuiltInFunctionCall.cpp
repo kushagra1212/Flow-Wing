@@ -115,8 +115,13 @@ llvm::Function *IRGenerator::getOrCreateArrayPrinter(types::ArrayType *type) {
   llvm::FunctionType *fn_type = llvm::FunctionType::get(
       builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
 
+  // Per-TU private printers: LinkOnceODR merges duplicate globals across .obj
+  // files on ELF, but MSVC (LNK1227) rejects conflicting COMDAT "weak default"
+  // selections when the same `fg_print_*` is emitted from multiple TUs (e.g.
+  // brought `file1.fg` + main `task2.fg`). Internal linkage is correct because
+  // each object file only calls its own copy.
   llvm::Function *printer_fn = llvm::Function::Create(
-      fn_type, llvm::Function::LinkOnceODRLinkage, func_name, mod);
+      fn_type, llvm::Function::InternalLinkage, func_name, mod);
 
   auto prev_block = builder->GetInsertBlock();
   auto prev_insert_point = builder->GetInsertPoint();
@@ -247,7 +252,7 @@ IRGenerator::getOrCreateObjectPrinter(types::CustomObjectType *type) {
       builder->getVoidTy(), {builder->getInt8PtrTy()}, false);
 
   llvm::Function *printer_fn = llvm::Function::Create(
-      fn_type, llvm::Function::LinkOnceODRLinkage, func_name, mod);
+      fn_type, llvm::Function::InternalLinkage, func_name, mod);
 
   auto prev_block = builder->GetInsertBlock();
   auto prev_insert_point = builder->GetInsertPoint();
