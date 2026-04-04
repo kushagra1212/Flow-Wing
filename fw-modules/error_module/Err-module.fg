@@ -1,10 +1,10 @@
 module [Err]
 
 type ErrorCode = {
-  OK: int,
-  NOT_FOUND: int,
-  FAILED: int,
-  INVALID_ARGUMENT: int
+  OK: int8,
+  NOT_FOUND: int8,
+  FAILED: int8,
+  INVALID_ARGUMENT: int8
 }
 
 const CODE: Err::ErrorCode = {
@@ -16,7 +16,7 @@ const CODE: Err::ErrorCode = {
 
 class Result {
   var message: str
-  var code: int
+  var code: int8
   var details: str
 
   init(message: str = "") -> nthg {
@@ -25,13 +25,13 @@ class Result {
     self.details = ""
   }
 
-  init(message: str = "", code: int = 0) -> nthg {
+  init(message: str = "", code: int8 = 0) -> nthg {
     self.message = message
     self.code = code
     self.details = ""
   }
 
-  init(message: str = "", code: int = 0, details: str = "") -> nthg {
+  init(message: str = "", code: int8 = 0, details: str = "") -> nthg {
     self.message = message
     self.code = code
     self.details = details
@@ -41,7 +41,7 @@ class Result {
     return "Error: \n" + self.message
   }
 
-  fun getCode() -> int {
+  fun getCode() -> int8 {
     return self.code
   }
 
@@ -65,7 +65,7 @@ class Result {
     return new Err::Result(self.message + " -> " + extraMessage, self.code, self.details)
   }
 
-  fun withCode(code: int) -> Err::Result {
+  fun withCode(code: int8) -> Err::Result {
     return new Err::Result(self.message, code, self.details)
   }
 
@@ -94,7 +94,7 @@ fun ok(message: str = "OK") -> Err::Result {
   return new Err::Result(message, Err::CODE.OK)
 }
 
-fun error(message: str, code: int = Err::CODE.FAILED, details: str = "") -> Err::Result {
+fun error(message: str, code: int8 = Err::CODE.FAILED, details: str = "") -> Err::Result {
   return new Err::Result(message, code, details)
 }
 
