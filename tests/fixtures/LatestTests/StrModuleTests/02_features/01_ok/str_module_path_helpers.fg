@@ -1,0 +1,16 @@
+bring "Str-module.fg"
+
+var padded: fg::Str = new fg::Str("  hi  ")
+println(padded.trim().get())
+println(padded.getLength())
+println(padded.concat("!").get())
+println(padded.length())
+println(padded.charAt(2))
+
+var empty: fg::Str = new fg::Str("")
+println(empty.isEmpty())
+println(empty.getLength())
+
+println(fg::concat(fg::trim("  a  "), "b"))
+println(fg::length("abc"))
+println(fg::equalsIgnoreCase("FlowWing", "flowwing"))

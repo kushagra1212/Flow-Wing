@@ -1,13 +1,93 @@
+bring Str
+
 var a:str = "s"
 
 switch a {
     case "s":{
-    print("Print s")
+        print("Print s")
     }
     case "d":{
-    print("Print d")
-    }default: { 
-    print("default")
-
+        print("Print d")
+    }default: {
+        print("default")
     }
 }
+
+var mode: str = "upper"
+var sample: str = "jSsHs"
+
+switch mode {
+    case "upper":{
+        print("\nUpper=" + fg::toUpper(sample))
+    }
+    case "lower":{
+        print("\nLower=" + fg::toLower(sample))
+    }default: {
+        print("\nmode-default")
+    }
+}
+
+mode = "length"
+switch mode {
+    case "length":{
+        print("\nLength=" + fg::getLength(sample))
+    }
+    case "trim":{
+        print("\nTrim=" + fg::trim("  hill "))
+    }default: {
+        print("\nmode-default")
+    }
+}
+
+mode = "lower"
+switch mode {
+    case "lower":{
+        print("\nLower=" + fg::toLower(sample))
+    }
+    default: {
+        print("\nmode-default")
+    }
+}
+
+mode = "trim"
+switch mode {
+    case "trim":{
+        print("\nTrim=" + fg::trim("  hill "))
+    }
+    default: {
+        print("\nmode-default")
+    }
+}
+
+mode = "replace"
+switch mode {
+    case "replace":{
+        print("\nReplace=" + fg::replace("hello", "l", "x"))
+    }
+    default: {
+        print("\nmode-default")
+    }
+}
+
+mode = "reverse"
+switch mode {
+    case "reverse":{
+        print("\nReverse=" + fg::reverse("CBA"))
+    }
+    default: {
+        print("\nmode-default")
+    }
+}
+
+var indexed: str = "hello"
+indexed[2] = 's'
+print("\nIndexWrite=" + indexed)
+print("\nIndexRead=" + indexed[2])
+
+var objectSample: fg::Str = new fg::Str("  hill ")
+print("\nObjLength=" + objectSample.getLength())
+print("\nObjAt=" + objectSample.at(3))
+var trimObject: fg::Str = new fg::Str("  hill ")
+print("\nObjTrim=" + trimObject.trim().get())
+var chainObject: fg::Str = new fg::Str("abc")
+print("\nObjChain=" + chainObject.toUpper().reverse().get())

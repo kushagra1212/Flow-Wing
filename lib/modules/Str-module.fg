@@ -1,207 +1,140 @@
 
-fun strCopy(dest: as str, src: as str) -> as nthg decl/;in use
+fun strLength(str1: as str) -> as int decl
+fun strToUpper(str1: as str) -> as str decl
+fun strToLower(str1: as str) -> as str decl
+fun strReverse(str1: as str) -> as str decl
+fun strTrim(str1: as str) -> as str decl
+fun strReplace(str1: as str, target: as str, replacement: as str) -> as str decl
+
+module [fg]
 
 
 
-fun strCompare(str1: as str, str2: as str) -> as int decl/;in use
-
-
-
-fun strLength(str1: as str) -> as int decl/;in use
-
-
-
-fun strToUpper(str1: as str) -> as str decl/;in use
-
-
-
-fun strToLower(str1: as str) -> as str decl/;in use
-
-
-
-fun int8ToStr(num: as int8, ch: as str) -> as str decl/;in use
-
-
-
-fun strReverse(str1: as str) -> as str decl/;in use
-
-
-
-fun strTrim(str1: as str) -> as str decl/;in use
-
-
-
-fun strFind(haystack: as str, needle: as str) -> as str decl/;in use
-
-
-
-fun strReplace(str1: as str, oldSub: as str, newSub: as str) -> as str decl/;in use
-
-
-
-fun strFindChar(str1: as str, ch: as int) -> as str decl/; TODO
-
-
-
-fun strCharAt(inout str1: as str, inout index: as int) -> as str decl/;in use
-
-
-module [Str]
-fun makeCopy(inout dest: str, inout src: str) -> nthg {
-  if (dest == "") {
-    dest = "" 
-  }
-  strCopy(dest, src)
-}/;in use
-
-
-
-fun concat(inout fist: str, inout second: str) -> str {
-  return fist + second
-}/; in use
-
-
-
-fun toUpper(inout str1: str) -> str {
-  return strToUpper(str1)
-}/;in use
-
-
-
-fun toLower(inout str1: str) -> str {
-  return strToLower(str1)
-}/;in use
-
-
-
-type ComparisonResult = {
-  LESS_THAN: int,
-  EQUAL: int,
-  GREATER_THAN: int
+fun getLength( str1: str) -> int {
+    return strLength(str1)
 }
-var comparisonResult: Str::ComparisonResult
-fun compare(inout str1: str, inout str2: str, inout caseInsensitive: bool = false) -> int {
-  Str::comparisonResult = {
-    LESS_THAN: -1,
-    EQUAL: 0,
-    GREATER_THAN: 1
+
+fun toUpper( str1: str) -> str {
+    return strToUpper(str1)
+}
+
+fun toLower( str1: str) -> str {
+    return strToLower(str1)
+}
+
+fun reverse( str1: str) -> str {
+    return strReverse(str1)
+}
+
+fun trim( str1: str) -> str {
+    return strTrim(str1)
+}
+
+fun replace( str1: str, target: str, replacement: str) -> str {
+    return strReplace(str1, target, replacement)
+}
+
+fun concat( first: str, second: str) -> str {
+    return first + second
+}
+
+fun charAt( str1: str, index: int) -> char {
+    return str1[index]
+}
+
+fun length( str1: str) -> int {
+    return getLength(str1)
+}
+
+fun isEmpty( str1: str) -> bool {
+    return getLength(str1) == 0
+}
+
+fun equalsIgnoreCase( str1: str, str2: str) -> bool {
+    return toLower(str1) == toLower(str2)
+}
+
+
+class Str {
+  var _buffer: str
+  var _len: int
+
+  init(source: str) -> nthg {
+    self._buffer = source
+    self._len = getLength(source)
+  }
+
+  fun refreshLength() -> nthg {
+    self._len = getLength(self._buffer)
+  }
+
+  fun getLength() -> int {
+    return self._len
+  }
+
+  fun length() -> int {
+    return self.getLength()
+  }
+
+  fun toUpper() -> fg::Str {
+    self._buffer = toUpper(self._buffer)
+    self.refreshLength()
+    return self
+  }
+
+  fun toLower() -> fg::Str {
+    self._buffer = toLower(self._buffer)
+    self.refreshLength()
+    return self
+  }
+
+  fun reverse() -> fg::Str {
+    self._buffer = reverse(self._buffer)
+    self.refreshLength()
+    return self
   } 
-  var res: int = 0
-  if (caseInsensitive) {
-    var s1: str = Str::toUpper(str1)
-    var s2: str = Str::toUpper(str2)
-    res = strCompare((s1), (s2)) 
-  }  else {
-    res = strCompare(str1, str2) 
+
+  fun at(index: int) -> char {
+    return charAt(self._buffer, index)
   }
-  if res < 0 {
-    return Str::comparisonResult.LESS_THAN
-  }  or if res == 0 {
-    return Str::comparisonResult.EQUAL
+
+  fun charAt(index: int) -> char {
+    return self.at(index)
   }
-  return Str::comparisonResult.GREATER_THAN
-}/; in use
 
-
-
-fun length(inout str1: str) -> int {
-  return strLength(str1)
-}/;in use
-
-
-
-fun reverse(inout str1: str) -> str {
-  var cp: str = ""
-  Str::makeCopy(cp, str1)
-  return strReverse(cp)
-}/;in use
-
-
-
-fun reverseInPlace(inout str1: str) -> nthg {
-  strReverse(str1)
-}/;in use
-
-
-
-fun at(inout str1: str, inout index: int) -> char {
-  return str1[index]
-}/;in use
-
-
-
-fun subStrIndex(inout haystack: str, inout needle: str) -> int {
-  if (needle == "") {
-    return -1
+  fun trim() -> fg::Str {
+    self._buffer = trim(self._buffer)
+    self.refreshLength()
+    return self
   }
-  var res: str = strFind(haystack, needle)
-  if (res == Nir) {
-    return -1
+
+  fun replace(target: str, replacement: str) -> fg::Str {
+    self._buffer = replace(self._buffer, target, replacement)
+    self.refreshLength()
+    return self
   }
-  return Str::length(haystack) - Str::length(res)
-}/;in use
 
-
-
-fun subStr(inout haystack: str, inout needle: str) -> str {
-  if (needle == "") {
-    return ""
+  fun concat(suffix: str) -> fg::Str {
+    self._buffer = concat(self._buffer, suffix)
+    self.refreshLength()
+    return self
   }
-  var res: str = strFind(haystack, needle)
-  if (res == Nir) {
-    return ""
+
+  fun clear() -> fg::Str {
+    self._buffer = ""
+    self._len = 0
+    return self
   }
-  return res
-}/;in use
 
-
-
-fun replaceInPlace(inout str1: str, inout oldSub: str, inout newSub: str) -> str {
-  var res: str = strReplace(str1, oldSub, newSub)
-  if (res == Nir) {
-    return ""
+  fun isEmpty() -> bool {
+    return self._len == 0
   }
-  return res
-}/;in use
 
-
-
-fun trimInPlace(inout str1: str) -> str {
-  var res: str = strTrim(str1)
-  if (res == Nir) {
-    return ""
+  fun equalsIgnoreCase(other: str) -> bool {
+    return equalsIgnoreCase(self._buffer, other)
   }
-  return res
-}/;in use
 
-
-
-fun indexOfChar(inout str1: str, inout ch: int8) -> int {
-  var i: int = 0
-  while (str1[i] != '\\0') {
-    if (str1[i] == ch) {
-      return i
-    }
-    i = i + 1 
+  fun get() -> str {
+    return self._buffer
   }
-  return -1
-}/;in use
-
-
-
-fun charAt(inout str1: str, inout index: int) -> str {
-  var res: str = strCharAt(str1, index)
-  if (res == Nir) {
-    return ""
-  }
-  return res
-}/;in use
-
-
-
-fun int8ToString(inout num: int8) -> str {
-  return int8ToStr(num, "")
-}/;in use
-
-
-
+}

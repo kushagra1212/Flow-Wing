@@ -401,7 +401,8 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 
 | Category | Subdirectory | Coverage |
 | -------- | ------------ | -------- |
-| Basic | `01_ok/` | `bring Str` and `bring "Str-module.fg"` both resolve the standard string module; runtime should link `flowwing_string` only for compiles that touch that module; `fg::Str` instance methods (`getLength`, `toUpper`, `reverse`, `trim`, `replace`, `at`) and free helpers should stay chainable |
+| Basic | `01_ok/` | `bring Str` and `bring "Str-module.fg"` both resolve the standard string module; runtime should link `flowwing_string` only for compiles that touch that module; `fg::Str` instance methods (`getLength`, `length`, `toUpper`, `toLower`, `reverse`, `trim`, `replace`, `concat`, `at`/`charAt`, `clear`, `isEmpty`, `equalsIgnoreCase`) and free helpers (`getLength`, `length`, `toUpper`, `toLower`, `reverse`, `trim`, `replace`, `concat`, `charAt`, `isEmpty`, `equalsIgnoreCase`) should stay chainable and keep cached length in sync after mutation |
+| Features | `02_features/` | mutation-heavy cases that combine `trim`, `concat`, `charAt`, `clear`, and the free helper wrappers so we cover both the `bring Str` and `bring "Str-module.fg"` entry paths with realistic usage |
 
 **Linking rule:** the compiler should add `flowwing_string` to the final link only when the compile closure includes the string module file itself or a dependency that brings it in. Plain programs without `bring Str` / `bring "Str-module.fg"` should not pay that link cost.
 

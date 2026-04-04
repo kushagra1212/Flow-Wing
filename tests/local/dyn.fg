@@ -1,11 +1,4 @@
-bring Str
+bring Str 
 
-var s: fg::Str = new fg::Str("  hill ")
-println(fg::trim("  hill "))
-println(s.trim().get())
-println(s.at(3))
-
-var x:str = "hello"
-
-x[2] = 's'
-println(x)
+var x:str = "  hill "
+print(fg::trim(x))

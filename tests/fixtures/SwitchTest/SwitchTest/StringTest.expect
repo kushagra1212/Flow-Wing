@@ -1,1 +1,13 @@
 Print s
+Upper=JSSHS
+Length=5
+Lower=jsshs
+Trim=hill
+Replace=hexxo
+Reverse=ABC
+IndexWrite=heslo
+IndexRead=s
+ObjLength=7
+ObjAt=i
+ObjTrim=hill
+ObjChain=CBA
