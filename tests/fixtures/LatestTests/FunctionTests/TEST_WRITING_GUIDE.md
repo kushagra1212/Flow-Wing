@@ -372,6 +372,17 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 
 ---
 
+## Index tests (`IndexTests`)
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| Basic | `01_ok/` | array and string indexing reads/writes, including `str` and dynamic `string` mutation via `x[index] = 'c'` |
+| Errors | `11_errors/` | out-of-bounds writes, non-string dynamic indexing writes, and existing non-integer index checks |
+
+**String writes:** For `str`, prefer a mutable value in the fixture body such as `var x: str = "hello"` and then update a single byte with a char literal. The runtime should report the same bounds errors for reads and writes.
+
+---
+
 ## Module tests (`ModuleTests`)
 
 | Category | Subdirectory | Coverage |
@@ -383,6 +394,16 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 | Errors | `11_errors/` | Unknown module / unknown member (`VariableNotFound`), missing `m::` member, missing `m::fun` (`FunctionNotFound`), bad assign to `m::var` (`AssignmentExpressionTypeMismatch`) |
 
 **Syntax:** A file that starts with `module [name]` treats the rest of the file (until EOF) as module members. Use `name::symbol` for qualified access (including from inside the same module).
+
+---
+
+## String module tests (`StrModuleTests`)
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| Basic | `01_ok/` | `bring Str` and `bring "Str-module.fg"` both resolve the standard string module; runtime should link `flowwing_string` only for compiles that touch that module; `fg::Str` instance methods (`getLength`, `toUpper`, `reverse`, `trim`, `replace`, `at`) and free helpers should stay chainable |
+
+**Linking rule:** the compiler should add `flowwing_string` to the final link only when the compile closure includes the string module file itself or a dependency that brings it in. Plain programs without `bring Str` / `bring "Str-module.fg"` should not pay that link cost.
 
 ---
 

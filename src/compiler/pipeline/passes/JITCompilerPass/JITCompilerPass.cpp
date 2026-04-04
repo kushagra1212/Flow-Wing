@@ -41,6 +41,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/Support/raw_ostream.h>
 #include <string>
 #include "llvm/ExecutionEngine/Orc/LLJIT.h"
@@ -87,8 +88,9 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
     if (pipeline.run(dep_ctx) != ReturnStatus::kSuccess) {
       return ReturnStatus::kFailure;
     }
-    flow_wing::ir_gen::jit_utils::saveIRToFile(dep_ctx.getLLVMIr(), parent_ir_dir,
-                                               dep_ctx.getAbsoluteSourceFilePath());
+    flow_wing::ir_gen::jit_utils::saveIRToFile(
+        dep_ctx.getLLVMIr(), parent_ir_dir,
+        dep_ctx.getAbsoluteSourceFilePath());
   }
   return ReturnStatus::kSuccess;
 }
@@ -159,8 +161,8 @@ collectOrderedIRFiles(const CompilationContext &context,
     const std::string ik = canonical_key(ir_path);
     int idx = 0;
     for (const auto &src : context.getBroughtSourcePaths()) {
-      std::string p = flow_wing::ir_gen::jit_utils::getIRFilePath(
-          ir_directory_path, src);
+      std::string p =
+          flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, src);
       std::error_code ec;
       if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
         return idx;
@@ -168,14 +170,13 @@ collectOrderedIRFiles(const CompilationContext &context,
       ++idx;
     }
     const int primary_rank = idx;
-    for (const std::string *ms :
-         {&context.getOptions().input_file_path,
-          &context.getAbsoluteSourceFilePath()}) {
+    for (const std::string *ms : {&context.getOptions().input_file_path,
+                                  &context.getAbsoluteSourceFilePath()}) {
       if (ms->empty()) {
         continue;
       }
-      std::string p = flow_wing::ir_gen::jit_utils::getIRFilePath(
-          ir_directory_path, *ms);
+      std::string p =
+          flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, *ms);
       std::error_code ec;
       if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
         return primary_rank;
@@ -257,8 +258,8 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   std::unique_ptr<llvm::Module> combined = std::move(parsed[0]);
   for (size_t i = 1; i < parsed.size(); ++i) {
     if (llvm::Linker::linkModules(*combined, std::move(parsed[i]))) {
-      flow_wing::cli::Reporter::error(
-          "JIT: failed to link IR module " + std::to_string(i));
+      flow_wing::cli::Reporter::error("JIT: failed to link IR module " +
+                                      std::to_string(i));
       return ReturnStatus::kFailure;
     }
   }

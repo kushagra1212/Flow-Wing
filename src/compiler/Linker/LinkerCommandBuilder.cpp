@@ -150,7 +150,30 @@ void LinkerCommandBuilder::addRuntimeLibraries(std::vector<std::string> &args) {
 
   args.push_back(getLibPathFlag(runtimePath));
 
+  std::vector<std::string> runtime_libraries;
+  std::unordered_set<std::string> seen_libraries;
+  auto add_library = [&](const std::string &lib) {
+    if (!lib.empty() && seen_libraries.insert(lib).second) {
+      runtime_libraries.push_back(lib);
+    }
+  };
+
   for (const auto &lib : STATIC_LINKING_LIBRARIES) {
+    add_library(lib);
+  }
+
+  auto add_source_libraries = [&](const std::string &source_path) {
+    for (const auto &lib : getRuntimeLibrariesForSourceFile(source_path)) {
+      add_library(lib);
+    }
+  };
+
+  add_source_libraries(m_context.getAbsoluteSourceFilePath());
+  for (const auto &brought_source : m_context.getBroughtSourcePaths()) {
+    add_source_libraries(brought_source);
+  }
+
+  for (const auto &lib : runtime_libraries) {
     args.push_back(getLibLinkFlag(lib));
   }
 }

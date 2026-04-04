@@ -1,0 +1,15 @@
+fun token() -> str {
+  return "flow"
+}
+
+var d = token()
+var a:int[3] = [10, 20, 30]
+var i:int = 2
+
+println(d[i])
+d[i] = 'x'
+println(d)
+
+println(a[i])
+a[i] = 99
+println(a)

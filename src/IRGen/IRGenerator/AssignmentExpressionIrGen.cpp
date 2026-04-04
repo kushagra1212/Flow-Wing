@@ -20,6 +20,7 @@
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
@@ -37,6 +38,7 @@ void IRGenerator::visit(
 
   size_t var_idx = 0;
   size_t expr_idx = 0;
+  auto *module = m_ir_gen_context.getLLVMModule();
 
   while (var_idx < left_expressions.size()) {
     if (expr_idx < right_expressions.size() &&
@@ -79,6 +81,116 @@ void IRGenerator::visit(
     } else {
       auto *left_expression = left_expressions[var_idx].get();
       auto *right_expression = right_expressions[expr_idx].get();
+
+      if (left_expression->getKind() == binding::NodeKind::kIndexExpression) {
+        auto *index_expression =
+            static_cast<binding::BoundIndexExpression *>(left_expression);
+        auto *base_expression = index_expression->getLeftExpression().get();
+
+        base_expression->accept(this);
+        llvm::Value *base_value = m_last_value;
+        types::Type *base_type = m_last_type;
+        assert(base_value && "string index base value is null");
+        assert(base_type && "string index base type is null");
+        clearLast();
+
+        if (base_type == analysis::Builtins::m_str_type_instance.get() ||
+            base_type->isDynamic()) {
+          const auto &dimension_expressions =
+              index_expression->getDimensionClauseExpressions();
+          assert(dimension_expressions.size() == 1 &&
+                 "string indexing must have exactly 1 index");
+          dimension_expressions[0]->accept(this);
+
+          llvm::Value *index_value = nullptr;
+          if (m_last_type->isDynamic()) {
+            llvm::Type *index_dynamic_type =
+                m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+            auto [index_storage, _tag] =
+                DynamicValueHandler::extractDynamicValue(
+                    m_last_value, index_dynamic_type, builder.get());
+            index_value = index_storage;
+          } else {
+            index_value = resolveValue(m_last_value, m_last_type);
+          }
+          clearLast();
+
+          index_value =
+              builder->CreateIntCast(index_value, builder->getInt64Ty(), true,
+                                     "str_idx_i64");
+
+          right_expression->accept(this);
+          llvm::Value *source_value = m_last_value;
+          auto *source_type = m_last_type;
+          assert(source_value && "string index source value is null");
+          assert(source_type && "string index source type is null");
+          clearLast();
+
+          llvm::Value *source_char = nullptr;
+          if (source_type->isDynamic()) {
+            auto *unbox_char_fn = module->getFunction(
+                std::string(constants::functions::kUnbox_char_fn));
+            assert(unbox_char_fn && "fg_unbox_char function not found");
+            llvm::Value *source_ptr =
+                ensurePointer(source_value, source_type, "str_idx_rhs");
+            source_char = builder->CreateCall(unbox_char_fn, {source_ptr},
+                                              "str_idx_rhs_char");
+          } else {
+            llvm::Value *resolved_source =
+                resolveValue(source_value, source_type);
+            source_char =
+                convertToChar(resolved_source, resolved_source->getType());
+          }
+
+          auto emit_string_index_set = [&](llvm::Value *string_ptr,
+                                           llvm::Value *char_value) {
+            llvm::FunctionType *fn_type = llvm::FunctionType::get(
+                builder->getVoidTy(),
+                {builder->getInt8PtrTy(), builder->getInt64Ty(),
+                 builder->getInt32Ty()},
+                false);
+            auto callee = module->getOrInsertFunction(
+                std::string(constants::functions::kString_set_fn), fn_type);
+            builder->CreateCall(callee, {string_ptr, index_value, char_value});
+          };
+
+          auto emit_dynamic_string_index_set =
+              [&](llvm::Value *value_storage, llvm::Value *type_tag,
+                  llvm::Value *char_value) {
+                llvm::FunctionType *fn_type = llvm::FunctionType::get(
+                    builder->getVoidTy(),
+                    {builder->getInt64Ty(), builder->getInt64Ty(),
+                     builder->getInt64Ty(), builder->getInt32Ty()},
+                    false);
+                auto callee = module->getOrInsertFunction(
+                    std::string(constants::functions::kDynamic_string_set_fn),
+                    fn_type);
+                auto *type_tag_i64 =
+                    builder->CreateIntCast(type_tag, builder->getInt64Ty(),
+                                           false, "dyn_tag_i64");
+                builder->CreateCall(callee,
+                                    {value_storage, type_tag_i64, index_value,
+                                     char_value});
+              };
+
+          if (base_type == analysis::Builtins::m_str_type_instance.get()) {
+            llvm::Value *string_ptr = resolveValue(base_value, base_type);
+            emit_string_index_set(string_ptr, source_char);
+          } else {
+            llvm::Type *dynamic_struct_type =
+                m_ir_gen_context.getTypeBuilder()->getLLVMType(base_type);
+            auto [value_storage, type_tag] =
+                DynamicValueHandler::extractDynamicValue(
+                    base_value, dynamic_struct_type, builder.get());
+            emit_dynamic_string_index_set(value_storage, type_tag, source_char);
+          }
+
+          var_idx++;
+          expr_idx++;
+          clearLast();
+          continue;
+        }
+      }
 
       left_expression->accept(this);
       auto *target_ptr = m_last_value;

@@ -118,6 +118,12 @@ fun reverse(inout str1: str) -> str {
 
 
 
+fun at(inout str1: str, inout index: int) -> char {
+  return str1[index]
+}/;in use
+
+
+
 fun reverseInPlace(inout str1: str) -> nthg {
   strReverse(str1)
 }/;in use
@@ -196,7 +202,6 @@ fun charAt(inout str1: str, inout index: int) -> str {
 fun int8ToString(inout num: int8) -> str {
   return int8ToStr(num, "")
 }/;in use
-
 
 
 

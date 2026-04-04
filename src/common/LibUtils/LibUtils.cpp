@@ -19,8 +19,28 @@
 
 #include "LibUtils.h"
 
-const char *STATIC_LINKING_LIBRARIES[6] = {"built_in_module", "dynamic",
-                                           "flowwing_string", "gc",
+#include "src/common/utils/PathUtils/PathUtils.h"
+
+namespace {
+
+bool isStringModuleFileName(const std::string &file_name) {
+  return file_name == "Str-module.fg" ;
+}
+
+} // namespace
+
+const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "dynamic", "gc",
                                            "gccpp",           "atomic_ops"};
 
 const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vector", "flowwing_map"};
+
+std::vector<std::string>
+getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {
+  std::vector<std::string> libraries;
+  const std::string file_name =
+      flow_wing::utils::PathUtils::getFileName(source_file_path);
+  if (isStringModuleFileName(file_name)) {
+    libraries.emplace_back("flowwing_string");
+  }
+  return libraries;
+}

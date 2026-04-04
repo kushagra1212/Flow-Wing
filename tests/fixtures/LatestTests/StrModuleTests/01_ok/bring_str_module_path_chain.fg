@@ -1,11 +1,6 @@
-bring Str
+bring "Str-module.fg"
 
 var s: fg::Str = new fg::Str("  hill ")
 println(fg::trim("  hill "))
 println(s.trim().get())
 println(s.at(3))
-
-var x:str = "hello"
-
-x[2] = 's'
-println(x)

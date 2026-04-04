@@ -19,6 +19,13 @@
 
 #pragma once
 
-extern const char *STATIC_LINKING_LIBRARIES[6];
+#include <string>
+#include <vector>
+
+extern const char *STATIC_LINKING_LIBRARIES[5];
 
 extern const char *DYNAMIC_LINKING_LIBRARIES[2];
+
+
+std::vector<std::string>
+getRuntimeLibrariesForSourceFile(const std::string &source_file_path);

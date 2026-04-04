@@ -63,6 +63,10 @@ class Str {
     return self
   } 
 
+  fun at(index: int) -> char {
+    return self._buffer[index]
+  }
+
   fun trim() -> fg::Str {
     self._buffer = trim(self._buffer)
     return self

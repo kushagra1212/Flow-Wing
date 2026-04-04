@@ -35,8 +35,16 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
                                  types::Type *source_type) {
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto *module = m_ir_gen_context.getLLVMModule();
   auto *llvm_target_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type);
+
+  auto materializeMutableString = [&](llvm::Value *string_value) {
+    auto *copy_fn = module->getFunction(
+        std::string(constants::functions::kGet_malloc_ptr_of_string_constant_fn));
+    assert(copy_fn && "Mutable string copy function not found");
+    return builder->CreateCall(copy_fn, {string_value}, "mutable_str_copy");
+  };
 
   bool is_source_null =
       llvm::isa<llvm::ConstantPointerNull>(source_raw_value) ||
@@ -50,6 +58,18 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
                                            ->getPointerTo()),
         target_addr);
 
+    return;
+  }
+
+  if (target_type == analysis::Builtins::m_str_type_instance.get() &&
+      !source_type->isDynamic()) {
+    llvm::Value *source_value = resolveValue(source_raw_value, source_type);
+    if (source_type == analysis::Builtins::m_str_type_instance.get()) {
+      source_value = materializeMutableString(source_value);
+    } else {
+      source_value = convertToTargetType(source_value, target_type, source_type);
+    }
+    builder->CreateStore(source_value, target_addr);
     return;
   }
 
@@ -355,6 +375,9 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
         // For Primitives (Int, Float, Bool, String), resolveValue works
         // correctly.
         val_to_store = resolveValue(source_raw_value, source_type);
+        if (source_type == analysis::Builtins::m_str_type_instance.get()) {
+          val_to_store = materializeMutableString(val_to_store);
+        }
       }
 
       llvm::Value *boxed_struct = DynamicValueHandler::storePrimitiveToDynamic(
@@ -385,6 +408,9 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
         ensurePointer(source_raw_value, source_type, "unbox_arg");
 
     auto *unboxed_val = builder->CreateCall(func, {unbox_arg});
+    if (target_type == analysis::Builtins::m_str_type_instance.get()) {
+      unboxed_val = materializeMutableString(unboxed_val);
+    }
     builder->CreateStore(unboxed_val, target_addr);
     return;
   }

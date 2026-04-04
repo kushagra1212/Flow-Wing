@@ -1,0 +1,7 @@
+bring Str
+
+var s: fg::Str = new fg::Str("abc")
+println(s.getLength())
+println(s.at(1))
+println(s.toUpper().get())
+println(s.reverse().get())

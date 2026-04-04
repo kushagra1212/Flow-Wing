@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: Runtime Error: String Index Out of Bounds.
+var x = "hello"
+x[10] = 'z'

@@ -89,6 +89,8 @@ const std::string_view kIndex_out_of_bounds_fn = "fg_idx_oob";
 // String Indexing Functions
 const std::string_view kString_index_fn = "fg_str_idx";
 const std::string_view kDynamic_string_index_fn = "fg_dyn_str_idx";
+const std::string_view kString_set_fn = "fg_str_set";
+const std::string_view kDynamic_string_set_fn = "fg_dyn_str_set";
 
 
 // Unboxing Functions

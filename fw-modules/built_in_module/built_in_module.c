@@ -43,6 +43,8 @@
  // String Indexing
  int fg_str_idx(const char* s, long long idx);
  int fg_dyn_str_idx(long long value_storage, long long type_tag, long long idx);
+ void fg_str_set(char* s, long long idx, int value);
+ void fg_dyn_str_set(long long value_storage, long long type_tag, long long idx, int value);
  
  // ==========================================
  // Error Handling
@@ -454,4 +456,36 @@ int fg_dyn_str_idx(long long value_storage, long long type_tag, long long idx) {
     // value_storage holds the char* pointer bit-cast to i64
     const char* s = (const char*)(uintptr_t)(unsigned long long)value_storage;
     return fg_str_idx(s, idx);
+}
+
+void fg_str_set(char* s, long long idx, int value) {
+    if (s == NULL) {
+        fg_re("Runtime Error: Cannot index null string.");
+    }
+
+    long long len = (long long)strlen(s);
+    if (idx < 0 || idx >= len) {
+        char* msg = (char*)GC_MALLOC(256);
+        if (msg == NULL) {
+            fprintf(stderr, "\033[91mFatal Error: OOM during string index bounds check.\033[0m\n");
+            exit(1);
+        }
+        snprintf(msg, 256,
+            "Runtime Error: String Index Out of Bounds.\n"
+            "  \u25b6 Index: %lld\n"
+            "  \u25b6 Bounds: [0 .. %lld)",
+            idx, len);
+        fg_panic("%s", msg);
+    }
+
+    s[idx] = (char)value;
+}
+
+void fg_dyn_str_set(long long value_storage, long long type_tag, long long idx, int value) {
+    if (type_tag != FG_DYN_TAG_STRING) {
+        fg_re("Runtime Error: Cannot index a non-string dynamic value.");
+    }
+
+    char* s = (char*)(uintptr_t)(unsigned long long)value_storage;
+    fg_str_set(s, idx, value);
 }
