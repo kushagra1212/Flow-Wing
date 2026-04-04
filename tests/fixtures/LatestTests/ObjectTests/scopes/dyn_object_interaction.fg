@@ -1,7 +1,7 @@
 type T = { val:int }
 var obj:T = { val: 42 }
-var dyn = obj.val
-println(dyn)
-dyn = "changed"
-println(dyn)
+var dyn2 = obj.val
+println(dyn2)
+dyn2 = "changed"
+println(dyn2)
 println(obj.val)

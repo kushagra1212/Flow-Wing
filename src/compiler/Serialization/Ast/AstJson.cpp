@@ -61,6 +61,7 @@
 #include "src/syntax/expression/TypeExpressionSyntax/CharTypeExpressionSyntax/CharTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Deci32TypeExpressionSyntax/Deci32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/DeciTypeExpressionSyntax/DeciTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/DynTypeExpressionSyntax/DynTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int32TypeExpressionSyntax/Int32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int64TypeExpressionSyntax/Int64TypeExpressionSyntax.h"
@@ -119,7 +120,7 @@ void AstJson::serializeArray(const std::vector<std::unique_ptr<T>> &nodes,
 }
 
 nlohmann::json AstJson::toJson(
-    [[maybe_unused]] const std::unique_ptr<syntax::CompilationUnitSyntax> &ast)
+     const std::unique_ptr<syntax::CompilationUnitSyntax> &ast)
     const {
   PARSER_DEBUG_LOG("Serializing AST to JSON", "AST");
   ast->accept(const_cast<AstJson *>(this));
@@ -137,11 +138,14 @@ AstJson::toJsonRange(const flow_wing::diagnostic::SourceLocation &location) {
           {"end", toJsonSourcePoint(location.m_end)}};
 }
 
-void AstJson::visit([[maybe_unused]] syntax::SyntaxToken *node) {
+void AstJson::visit( syntax::SyntaxToken *node) {
   PARSER_DEBUG_LOG("Visiting SyntaxToken", "AST");
+  m_last_node_json = {{"kind", syntax::toString(node->getKind())},
+                      {"value", node->getText()},
+                      {"range", toJsonRange(node->getSourceLocation())}};
 }
 
-void AstJson::visit([[maybe_unused]] syntax::ErrorExpressionSyntax *node) {
+void AstJson::visit( syntax::ErrorExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ErrorExpressionSyntax", "AST");
   nlohmann::json error_expression_json;
   error_expression_json["kind"] = syntax::toString(node->getKind());
@@ -171,7 +175,7 @@ void AstJson::visit([[maybe_unused]] syntax::ErrorExpressionSyntax *node) {
   m_last_node_json = std::move(error_expression_json);
 }
 
-void AstJson::visit([[maybe_unused]] syntax::CompilationUnitSyntax *node) {
+void AstJson::visit( syntax::CompilationUnitSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CompilationUnitSyntax", "AST");
 
   nlohmann::json json;
@@ -180,14 +184,14 @@ void AstJson::visit([[maybe_unused]] syntax::CompilationUnitSyntax *node) {
   json["range"] = toJsonRange(node->getSourceLocation());
   m_ast_json = std::move(json);
 }
-void AstJson::visit([[maybe_unused]] syntax::IdentifierExpressionSyntax *node) {
+void AstJson::visit( syntax::IdentifierExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting IdentifierExpressionSyntax", "AST");
 
   m_last_node_json = {{"kind", syntax::toString(node->getKind())},
                       {"value", node->getValue()},
                       {"range", toJsonRange(node->getSourceLocation())}};
 }
-void AstJson::visit([[maybe_unused]] syntax::ParameterExpressionSyntax *node) {
+void AstJson::visit( syntax::ParameterExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ParameterExpressionSyntax", "AST");
   nlohmann::json parameter_json;
 
@@ -215,7 +219,7 @@ void AstJson::visit([[maybe_unused]] syntax::ParameterExpressionSyntax *node) {
   m_last_node_json = std::move(parameter_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::DimensionClauseExpressionSyntax *node) {
+     syntax::DimensionClauseExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting DimensionClauseExpressionSyntax", "AST");
   nlohmann::json dimension_clause_json;
 
@@ -226,7 +230,7 @@ void AstJson::visit(
   m_last_node_json = std::move(dimension_clause_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::IntegerLiteralExpressionSyntax *node) {
+     syntax::IntegerLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting IntegerLiteralExpressionSyntax", "AST");
   nlohmann::json integer_literal_json;
 
@@ -237,7 +241,7 @@ void AstJson::visit(
   m_last_node_json = std::move(integer_literal_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::Int64LiteralExpressionSyntax *node) {
+     syntax::Int64LiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting Int64LiteralExpressionSyntax", "AST");
   nlohmann::json int64_literal_json;
 
@@ -247,7 +251,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(int64_literal_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::AssignmentExpressionSyntax *node) {
+void AstJson::visit( syntax::AssignmentExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting AssignmentExpressionSyntax", "AST");
   nlohmann::json assignment_json;
 
@@ -260,7 +264,7 @@ void AstJson::visit([[maybe_unused]] syntax::AssignmentExpressionSyntax *node) {
   m_last_node_json = std::move(assignment_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::BooleanLiteralExpressionSyntax *node) {
+     syntax::BooleanLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BooleanLiteralExpressionSyntax", "AST");
   nlohmann::json boolean_literal_json;
 
@@ -270,7 +274,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(boolean_literal_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::BracketedExpressionSyntax *node) {
+void AstJson::visit( syntax::BracketedExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BracketedExpressionSyntax", "AST");
   nlohmann::json bracketed_expression_json;
 
@@ -281,7 +285,7 @@ void AstJson::visit([[maybe_unused]] syntax::BracketedExpressionSyntax *node) {
 
   m_last_node_json = std::move(bracketed_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::CallExpressionSyntax *node) {
+void AstJson::visit( syntax::CallExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CallExpressionSyntax", "AST");
   nlohmann::json call_json;
 
@@ -305,7 +309,7 @@ void AstJson::visit([[maybe_unused]] syntax::CallExpressionSyntax *node) {
   m_last_node_json = std::move(call_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::CharacterLiteralExpressionSyntax *node) {
+     syntax::CharacterLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CharacterLiteralExpressionSyntax", "AST");
   nlohmann::json character_literal_json;
 
@@ -315,7 +319,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(character_literal_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ContainerExpressionSyntax *node) {
+void AstJson::visit( syntax::ContainerExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ContainerExpressionSyntax", "AST");
 
   nlohmann::json container_expression_json;
@@ -327,7 +331,7 @@ void AstJson::visit([[maybe_unused]] syntax::ContainerExpressionSyntax *node) {
 
   m_last_node_json = std::move(container_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::DeclaratorExpressionSyntax *node) {
+void AstJson::visit( syntax::DeclaratorExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting DeclaratorExpressionSyntax", "AST");
   nlohmann::json declarator_expression_json;
 
@@ -341,7 +345,7 @@ void AstJson::visit([[maybe_unused]] syntax::DeclaratorExpressionSyntax *node) {
   m_last_node_json = std::move(declarator_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::DoubleLiteralExpressionSyntax *node) {
+     syntax::DoubleLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting DoubleLiteralExpressionSyntax", "AST");
 
   nlohmann::json double_literal_json;
@@ -352,7 +356,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(double_literal_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::FieldDeclarationSyntax *node) {
+void AstJson::visit( syntax::FieldDeclarationSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FieldDeclarationSyntax", "AST");
 
   nlohmann::json field_declaration_json;
@@ -364,7 +368,7 @@ void AstJson::visit([[maybe_unused]] syntax::FieldDeclarationSyntax *node) {
 
   m_last_node_json = std::move(field_declaration_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::FillExpressionSyntax *node) {
+void AstJson::visit( syntax::FillExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FillExpressionSyntax", "AST");
   nlohmann::json fill_expression_json;
 
@@ -377,7 +381,7 @@ void AstJson::visit([[maybe_unused]] syntax::FillExpressionSyntax *node) {
   m_last_node_json = std::move(fill_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::FloatLiteralExpressionSyntax *node) {
+     syntax::FloatLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FloatLiteralExpressionSyntax", "AST");
 
   nlohmann::json float_literal_json;
@@ -387,7 +391,7 @@ void AstJson::visit(
   m_last_node_json = std::move(float_literal_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::FunctionReturnTypeExpressionSyntax *node) {
+     syntax::FunctionReturnTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FunctionReturnTypeExpressionSyntax", "AST");
 
   nlohmann::json function_return_type_expression_json;
@@ -406,7 +410,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(function_return_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::IndexExpressionSyntax *node) {
+void AstJson::visit( syntax::IndexExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting IndexExpressionSyntax", "AST");
 
   nlohmann::json index_expression_json;
@@ -421,7 +425,7 @@ void AstJson::visit([[maybe_unused]] syntax::IndexExpressionSyntax *node) {
   m_last_node_json = std::move(index_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::MemberAccessExpressionSyntax *node) {
+     syntax::MemberAccessExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting MemberAccessExpressionSyntax", "AST");
 
   nlohmann::json member_access_expression_json;
@@ -437,7 +441,7 @@ void AstJson::visit(
   m_last_node_json = std::move(member_access_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::ModuleAccessExpressionSyntax *node) {
+     syntax::ModuleAccessExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ModuleAccessExpressionSyntax", "AST");
 
   nlohmann::json module_access_expression_json;
@@ -450,7 +454,7 @@ void AstJson::visit(
       toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(module_access_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::NewExpressionSyntax *node) {
+void AstJson::visit( syntax::NewExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting NewExpressionSyntax", "AST");
 
   nlohmann::json new_expression_json;
@@ -459,7 +463,7 @@ void AstJson::visit([[maybe_unused]] syntax::NewExpressionSyntax *node) {
   new_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(new_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::NirastExpressionSyntax *node) {
+void AstJson::visit( syntax::NirastExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting NirastExpressionSyntax", "AST");
 
   nlohmann::json nirast_expression_json;
@@ -467,7 +471,7 @@ void AstJson::visit([[maybe_unused]] syntax::NirastExpressionSyntax *node) {
   nirast_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(nirast_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::SuperExpressionSyntax *node) {
+void AstJson::visit( syntax::SuperExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting SuperExpressionSyntax", "AST");
 
   nlohmann::json super_expression_json;
@@ -475,7 +479,7 @@ void AstJson::visit([[maybe_unused]] syntax::SuperExpressionSyntax *node) {
   super_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(super_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ObjectExpressionSyntax *node) {
+void AstJson::visit( syntax::ObjectExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ObjectExpressionSyntax", "AST");
 
   nlohmann::json object_expression_json;
@@ -485,7 +489,7 @@ void AstJson::visit([[maybe_unused]] syntax::ObjectExpressionSyntax *node) {
   object_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(object_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ColonExpressionSyntax *node) {
+void AstJson::visit( syntax::ColonExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ObjectMemberSyntax", "AST");
 
   nlohmann::json object_member_json;
@@ -499,7 +503,7 @@ void AstJson::visit([[maybe_unused]] syntax::ColonExpressionSyntax *node) {
 }
 
 void AstJson::visit(
-    [[maybe_unused]] syntax::ParenthesizedExpressionSyntax *node) {
+     syntax::ParenthesizedExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ParenthesizedExpressionSyntax", "AST");
 
   nlohmann::json parenthesized_expression_json;
@@ -511,7 +515,7 @@ void AstJson::visit(
   m_last_node_json = std::move(parenthesized_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::StringLiteralExpressionSyntax *node) {
+     syntax::StringLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting StringLiteralExpressionSyntax", "AST");
   nlohmann::json string_json;
   string_json["kind"] = syntax::toString(node->getKind());
@@ -520,7 +524,7 @@ void AstJson::visit(
   m_last_node_json = std::move(string_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::TemplateStringLiteralExpressionSyntax *node) {
+     syntax::TemplateStringLiteralExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting TemplateStringLiteralExpressionSyntax", "AST");
 
   nlohmann::json template_string_literal_expression_json;
@@ -531,7 +535,7 @@ void AstJson::visit(
       toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(template_string_literal_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::TernaryExpressionSyntax *node) {
+void AstJson::visit( syntax::TernaryExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting TernaryExpressionSyntax", "AST");
 
   nlohmann::json ternary_expression_json;
@@ -545,7 +549,7 @@ void AstJson::visit([[maybe_unused]] syntax::TernaryExpressionSyntax *node) {
   ternary_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(ternary_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::BinaryExpressionSyntax *node) {
+void AstJson::visit( syntax::BinaryExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BinaryExpressionSyntax", "AST");
 
   nlohmann::json binary_expression_json;
@@ -557,7 +561,7 @@ void AstJson::visit([[maybe_unused]] syntax::BinaryExpressionSyntax *node) {
   m_last_node_json = std::move(binary_expression_json);
 }
 
-void AstJson::visit([[maybe_unused]] syntax::ArrayTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::ArrayTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ArrayTypeExpressionSyntax", "AST");
 
   nlohmann::json array_type_expression_json;
@@ -570,7 +574,7 @@ void AstJson::visit([[maybe_unused]] syntax::ArrayTypeExpressionSyntax *node) {
   m_last_node_json = std::move(array_type_expression_json);
 }
 
-void AstJson::visit([[maybe_unused]] syntax::BoolTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::BoolTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BoolTypeExpressionSyntax", "AST");
 
   nlohmann::json bool_type_expression_json;
@@ -578,7 +582,7 @@ void AstJson::visit([[maybe_unused]] syntax::BoolTypeExpressionSyntax *node) {
   bool_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(bool_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::Deci32TypeExpressionSyntax *node) {
+void AstJson::visit( syntax::Deci32TypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting Deci32TypeExpressionSyntax", "AST");
 
   nlohmann::json deci32_type_expression_json;
@@ -586,7 +590,7 @@ void AstJson::visit([[maybe_unused]] syntax::Deci32TypeExpressionSyntax *node) {
   deci32_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(deci32_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::DeciTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::DeciTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting DeciTypeExpressionSyntax", "AST");
 
   nlohmann::json deci_type_expression_json;
@@ -595,7 +599,7 @@ void AstJson::visit([[maybe_unused]] syntax::DeciTypeExpressionSyntax *node) {
   m_last_node_json = std::move(deci_type_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::FunctionTypeExpressionSyntax *node) {
+     syntax::FunctionTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FunctionTypeExpressionSyntax", "AST");
 
   nlohmann::json function_type_expression_json;
@@ -644,7 +648,7 @@ void AstJson::visit(
 
   m_last_node_json = std::move(function_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::Int8TypeExpressionSyntax *node) {
+void AstJson::visit( syntax::Int8TypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting Int8TypeExpressionSyntax", "AST");
 
   nlohmann::json int8_type_expression_json;
@@ -652,7 +656,16 @@ void AstJson::visit([[maybe_unused]] syntax::Int8TypeExpressionSyntax *node) {
   int8_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(int8_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::Int32TypeExpressionSyntax *node) {
+
+void AstJson::visit( syntax::DynTypeExpressionSyntax *node) {
+  PARSER_DEBUG_LOG("Visiting DynTypeExpressionSyntax", "AST");
+  nlohmann::json dyn_type_expression_json;
+  dyn_type_expression_json["kind"] = syntax::toString(node->getKind());
+  dyn_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
+  m_last_node_json = std::move(dyn_type_expression_json);
+}
+
+void AstJson::visit( syntax::Int32TypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting Int32TypeExpressionSyntax", "AST");
 
   nlohmann::json int32_type_expression_json;
@@ -660,7 +673,7 @@ void AstJson::visit([[maybe_unused]] syntax::Int32TypeExpressionSyntax *node) {
   int32_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(int32_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::Int64TypeExpressionSyntax *node) {
+void AstJson::visit( syntax::Int64TypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting Int64TypeExpressionSyntax", "AST");
 
   nlohmann::json int64_type_expression_json;
@@ -669,7 +682,7 @@ void AstJson::visit([[maybe_unused]] syntax::Int64TypeExpressionSyntax *node) {
   m_last_node_json = std::move(int64_type_expression_json);
 }
 void AstJson::visit(
-    [[maybe_unused]] syntax::ModuleAccessTypeExpressionSyntax *node) {
+     syntax::ModuleAccessTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ModuleAccessTypeExpressionSyntax", "AST");
 
   nlohmann::json module_access_type_expression_json;
@@ -684,7 +697,7 @@ void AstJson::visit(
       toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(module_access_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::NthgTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::NthgTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting NthgTypeExpressionSyntax", "AST");
 
   nlohmann::json nthg_type_expression_json;
@@ -692,7 +705,7 @@ void AstJson::visit([[maybe_unused]] syntax::NthgTypeExpressionSyntax *node) {
   nthg_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(nthg_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ObjectTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::ObjectTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ObjectTypeExpressionSyntax", "AST");
 
   nlohmann::json object_type_expression_json;
@@ -702,7 +715,7 @@ void AstJson::visit([[maybe_unused]] syntax::ObjectTypeExpressionSyntax *node) {
   object_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(object_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::StrTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::StrTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting StrTypeExpressionSyntax", "AST");
 
   nlohmann::json str_type_expression_json;
@@ -710,7 +723,7 @@ void AstJson::visit([[maybe_unused]] syntax::StrTypeExpressionSyntax *node) {
   str_type_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(str_type_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::UnaryExpressionSyntax *node) {
+void AstJson::visit( syntax::UnaryExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting UnaryExpressionSyntax", "AST");
 
   nlohmann::json unary_expression_json;
@@ -720,7 +733,7 @@ void AstJson::visit([[maybe_unused]] syntax::UnaryExpressionSyntax *node) {
   unary_expression_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(unary_expression_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ExposeStatementSyntax *node) {
+void AstJson::visit( syntax::ExposeStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ExposeStatementSyntax", "AST");
 
   nlohmann::json expose_statement_json;
@@ -729,7 +742,7 @@ void AstJson::visit([[maybe_unused]] syntax::ExposeStatementSyntax *node) {
   expose_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(expose_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::BlockStatementSyntax *node) {
+void AstJson::visit( syntax::BlockStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BlockStatementSyntax", "AST");
 
   nlohmann::json block_statement_json;
@@ -738,7 +751,7 @@ void AstJson::visit([[maybe_unused]] syntax::BlockStatementSyntax *node) {
   block_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(block_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::FunctionStatementSyntax *node) {
+void AstJson::visit( syntax::FunctionStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting FunctionStatementSyntax", "AST");
 
   nlohmann::json function_statement_json;
@@ -765,7 +778,7 @@ void AstJson::visit(syntax::BreakStatementSyntax *node) {
   break_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(break_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::BringStatementSyntax *node) {
+void AstJson::visit( syntax::BringStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting BringStatementSyntax", "AST");
 
   nlohmann::json bring_statement_json;
@@ -777,7 +790,7 @@ void AstJson::visit([[maybe_unused]] syntax::BringStatementSyntax *node) {
   bring_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(bring_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::CaseStatementSyntax *node) {
+void AstJson::visit( syntax::CaseStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CaseStatementSyntax", "AST");
 
   nlohmann::json case_statement_json;
@@ -788,7 +801,7 @@ void AstJson::visit([[maybe_unused]] syntax::CaseStatementSyntax *node) {
   case_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(case_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ClassStatementSyntax *node) {
+void AstJson::visit( syntax::ClassStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ClassStatementSyntax", "AST");
 
   nlohmann::json class_statement_json;
@@ -811,7 +824,7 @@ void AstJson::visit(syntax::ContinueStatementSyntax *node) {
   continue_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(continue_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::CustomTypeStatementSyntax *node) {
+void AstJson::visit( syntax::CustomTypeStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CustomTypeStatementSyntax", "AST");
 
   nlohmann::json custom_type_statement_json;
@@ -823,7 +836,7 @@ void AstJson::visit([[maybe_unused]] syntax::CustomTypeStatementSyntax *node) {
   custom_type_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(custom_type_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::DefaultCaseStatementSyntax *node) {
+void AstJson::visit( syntax::DefaultCaseStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting DefaultCaseStatementSyntax", "AST");
 
   nlohmann::json default_case_statement_json;
@@ -833,7 +846,7 @@ void AstJson::visit([[maybe_unused]] syntax::DefaultCaseStatementSyntax *node) {
   default_case_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(default_case_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ElseClauseSyntax *node) {
+void AstJson::visit( syntax::ElseClauseSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ElseClauseSyntax", "AST");
   nlohmann::json else_clause_json;
   else_clause_json["kind"] = syntax::toString(node->getKind());
@@ -841,7 +854,7 @@ void AstJson::visit([[maybe_unused]] syntax::ElseClauseSyntax *node) {
   else_clause_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(else_clause_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ForStatementSyntax *node) {
+void AstJson::visit( syntax::ForStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ForStatementSyntax", "AST");
 
   nlohmann::json for_statement_json;
@@ -856,7 +869,7 @@ void AstJson::visit([[maybe_unused]] syntax::ForStatementSyntax *node) {
   for_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(for_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::IfStatementSyntax *node) {
+void AstJson::visit( syntax::IfStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting IfStatementSyntax", "AST");
   nlohmann::json if_statement_json;
   if_statement_json["kind"] = syntax::toString(node->getKind());
@@ -869,7 +882,7 @@ void AstJson::visit([[maybe_unused]] syntax::IfStatementSyntax *node) {
   if_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(if_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ModuleStatementSyntax *node) {
+void AstJson::visit( syntax::ModuleStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ModuleStatementSyntax", "AST");
 
   nlohmann::json module_statement_json;
@@ -881,7 +894,7 @@ void AstJson::visit([[maybe_unused]] syntax::ModuleStatementSyntax *node) {
   module_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(module_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::OrIfStatementSyntax *node) {
+void AstJson::visit( syntax::OrIfStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting OrIfStatementSyntax", "AST");
 
   nlohmann::json or_if_statement_json;
@@ -892,7 +905,7 @@ void AstJson::visit([[maybe_unused]] syntax::OrIfStatementSyntax *node) {
   or_if_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(or_if_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ReturnStatementSyntax *node) {
+void AstJson::visit( syntax::ReturnStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ReturnStatementSyntax", "AST");
   nlohmann::json return_statement_json;
   return_statement_json["kind"] = syntax::toString(node->getKind());
@@ -901,7 +914,7 @@ void AstJson::visit([[maybe_unused]] syntax::ReturnStatementSyntax *node) {
   return_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(return_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::SwitchStatementSyntax *node) {
+void AstJson::visit( syntax::SwitchStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting SwitchStatementSyntax", "AST");
   nlohmann::json switch_statement_json;
   switch_statement_json["kind"] = syntax::toString(node->getKind());
@@ -912,7 +925,7 @@ void AstJson::visit([[maybe_unused]] syntax::SwitchStatementSyntax *node) {
   switch_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(switch_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::VariableDeclarationSyntax *node) {
+void AstJson::visit( syntax::VariableDeclarationSyntax *node) {
 
   PARSER_DEBUG_LOG("Visiting VariableDeclarationSyntax", "AST");
   nlohmann::json variable_declaration_json;
@@ -928,7 +941,7 @@ void AstJson::visit([[maybe_unused]] syntax::VariableDeclarationSyntax *node) {
   variable_declaration_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(variable_declaration_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::WhileStatementSyntax *node) {
+void AstJson::visit( syntax::WhileStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting WhileStatementSyntax", "AST");
   nlohmann::json while_statement_json;
   while_statement_json["kind"] = syntax::toString(node->getKind());
@@ -938,7 +951,7 @@ void AstJson::visit([[maybe_unused]] syntax::WhileStatementSyntax *node) {
   while_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(while_statement_json);
 }
-void AstJson::visit([[maybe_unused]] syntax::ExpressionStatementSyntax *node) {
+void AstJson::visit( syntax::ExpressionStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting ExpressionStatementSyntax", "AST");
   nlohmann::json expression_statement_json;
   expression_statement_json["kind"] = syntax::toString(node->getKind());
@@ -948,7 +961,7 @@ void AstJson::visit([[maybe_unused]] syntax::ExpressionStatementSyntax *node) {
   m_last_node_json = std::move(expression_statement_json);
 }
 
-void AstJson::visit([[maybe_unused]] syntax::CharTypeExpressionSyntax *node) {
+void AstJson::visit( syntax::CharTypeExpressionSyntax *node) {
   PARSER_DEBUG_LOG("Visiting CharTypeExpressionSyntax", "AST");
   nlohmann::json char_type_expression_json;
   char_type_expression_json["kind"] = syntax::toString(node->getKind());

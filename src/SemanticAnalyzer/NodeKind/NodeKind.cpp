@@ -65,7 +65,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kTemplateStringLiteralExpression,
        "TemplateStringLiteralExpression"},
       {NodeKind::kNirastLiteralExpression, "NirastLiteralExpression"},
-
+      {NodeKind::kDynLiteralExpression, "DynLiteralExpression"},
       // ---- Error ----
       {NodeKind::kErrorStatement, "ErrorStatement"},
       {NodeKind::kErrorExpression, "ErrorExpression"},

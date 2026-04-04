@@ -21,6 +21,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kFloatLiteralExpression, "FloatLiteralExpression"},
       {NodeKind::kDoubleLiteralExpression, "DoubleLiteralExpression"},
       {NodeKind::kStringLiteralExpression, "StringLiteralExpression"},
+      {NodeKind::kDynLiteralExpression, "DynLiteralExpression"},
       {NodeKind::kTemplateStringLiteralExpression,
        "TemplateStringLiteralExpression"},
       {NodeKind::kBooleanLiteralExpression, "BooleanLiteralExpression"},

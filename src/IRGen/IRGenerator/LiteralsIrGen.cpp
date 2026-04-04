@@ -92,6 +92,13 @@ void IRGenerator::visit(
       llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext()));
 }
 
+void IRGenerator::visit(
+    [[maybe_unused]] binding::BoundDynLiteralExpression *dyn_literal_expression) {
+  m_last_type = dyn_literal_expression->getType().get();
+  m_last_value = llvm::ConstantPointerNull::get(
+      llvm::Type::getInt8PtrTy(*m_ir_gen_context.getLLVMContext()));
+}
+
 std::string IRGenerator::unescapeString(const std::string &value) {
   std::string string_value = "";
   size_t pos = 0, len = value.size();

@@ -32,6 +32,7 @@ class TemplateStringLiteralExpressionSyntax;
 class BooleanLiteralExpressionSyntax;
 class IntegerLiteralExpressionSyntax;
 class Int64LiteralExpressionSyntax;
+class DynTypeExpressionSyntax;
 // -- Nirast Expressions --
 class NirastExpressionSyntax;
 
@@ -150,6 +151,9 @@ private:
 
   std::unique_ptr<BoundExpression>
   bindLiteralExpression(syntax::NirastExpressionSyntax *expression);
+
+  std::unique_ptr<BoundExpression>
+  bindLiteralExpression(syntax::DynTypeExpressionSyntax *expression);
 
   // -- Index Expression --
   std::unique_ptr<BoundExpression>

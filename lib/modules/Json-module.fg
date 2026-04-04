@@ -2,10 +2,10 @@ bring Map
 bring Str
 bring Vec
 module [Json]
-fun parseObject(inout json_str: str) -> Map::String {
+fun parseObject(inout json_str: str) -> Map::StringMap {
   var i = 0
   var len: int = Str::length(json_str)
-  var mp: Map::String = new Map::String()
+  var mp: Map::StringMap = new Map::StringMap()
   while (i < len) {
     while i < len && (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
       i = i + 1 
@@ -211,4 +211,3 @@ const json_str = `{
   "specialChars": "Symbols like @, #, $, %, ^, & are included!"
 }
 `
-

@@ -95,6 +95,8 @@ TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
     return {Builtins::m_bool_type_instance, nullptr};
   case syntax::NodeKind::kNthgTypeExpression:
     return {Builtins::m_nthg_type_instance, nullptr};
+  case syntax::NodeKind::kDynLiteralExpression:
+    return {Builtins::m_dynamic_type_instance, nullptr};
   case syntax::NodeKind::kObjectTypeExpression:
     return resolveObjectType(
         static_cast<const syntax::ObjectTypeExpressionSyntax *>(syntax));
@@ -107,7 +109,8 @@ TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
   case syntax::NodeKind::kModuleAccessTypeExpression:
     return resolveModuleAccessType(
         static_cast<const syntax::ModuleAccessTypeExpressionSyntax *>(syntax));
-  default:
+
+        default:
     assert(false && "TypeResolver::resolveType: unknown type kind");
     return {nullptr, nullptr};
   }

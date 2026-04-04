@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "src/syntax/expression/TypeExpressionSyntax/CharTypeExpressionSyntax/CharTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Deci32TypeExpressionSyntax/Deci32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/DeciTypeExpressionSyntax/DeciTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/DynTypeExpressionSyntax/DynTypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int32TypeExpressionSyntax/Int32TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int64TypeExpressionSyntax/Int64TypeExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/Int8TypeExpressionSyntax/Int8TypeExpressionSyntax.h"
@@ -67,6 +68,9 @@ PrimitiveTypeExpressionParser::parse() {
   case lexer::TokenKind::kNthgKeyword:
     return std::make_unique<syntax::NthgTypeExpressionSyntax>(
         m_ctx->match(lexer::TokenKind::kNthgKeyword)); // nthg
+        case lexer::TokenKind::kDynKeyword:
+    return std::make_unique<syntax::DynTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kDynKeyword)); // dyn
   default:
     return nullptr;
   }

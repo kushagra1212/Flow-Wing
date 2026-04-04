@@ -1,0 +1,12 @@
+--- Test 1: Basic Sequential Chaining ---
+3
+2
+3
+--- Test 2: Chaining with Clear ---
+2
+true
+"fire"
+--- Test 3: Multi-line Chaining ---
+5
+"Gamma"
+"Epsilon"

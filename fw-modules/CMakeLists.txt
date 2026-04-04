@@ -8,4 +8,5 @@
 
 add_subdirectory(built_in_module)
 add_subdirectory(dynamic)
+add_subdirectory(map_module)
 add_subdirectory(string_module)

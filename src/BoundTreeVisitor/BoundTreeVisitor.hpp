@@ -12,6 +12,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDynLiteralExpression/BoundDynLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundNirastLiteralExpression/BoundNirastLiteralExpression.hpp"
@@ -88,6 +89,7 @@ public:
   visit(binding::BoundBooleanLiteralExpression *boolean_literal_expression) = 0;
   virtual void visit(binding::BoundTemplateStringLiteralExpression
                          *template_string_literal_expression) = 0;
+  virtual void visit(binding::BoundDynLiteralExpression *dyn_literal_expression) = 0;
   virtual void
   visit(binding::BoundNirastLiteralExpression *nirast_literal_expression) = 0;
   virtual void visit(binding::BoundErrorStatement *error_statement) = 0;

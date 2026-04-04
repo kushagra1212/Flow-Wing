@@ -59,6 +59,7 @@ private:
   void visit(binding::BoundCharacterLiteralExpression *node) override;
   void visit(binding::BoundStringLiteralExpression *node) override;
   void visit(binding::BoundBooleanLiteralExpression *node) override;
+  void visit(binding::BoundDynLiteralExpression *node) override;
   void visit(binding::BoundTemplateStringLiteralExpression *node) override;
   void visit(binding::BoundNirastLiteralExpression *node) override;
   void visit(binding::BoundErrorStatement *node) override;

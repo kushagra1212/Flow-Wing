@@ -23,8 +23,16 @@
 
 namespace {
 
-bool isStringModuleFileName(const std::string &file_name) {
-  return file_name == "Str-module.fg" ;
+std::string getRuntimeLibraryForModule(const std::string &file_name) {
+  if (file_name == "Str-module.fg") {
+    return "flowwing_string";
+  }
+
+  if (file_name == "Map-module.fg") {
+    return "flowwing_map";
+  }
+
+  return "";
 }
 
 } // namespace
@@ -39,8 +47,9 @@ getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {
   std::vector<std::string> libraries;
   const std::string file_name =
       flow_wing::utils::PathUtils::getFileName(source_file_path);
-  if (isStringModuleFileName(file_name)) {
-    libraries.emplace_back("flowwing_string");
+  const std::string runtime_library = getRuntimeLibraryForModule(file_name);
+  if (!runtime_library.empty()) {
+    libraries.emplace_back(runtime_library);
   }
   return libraries;
 }

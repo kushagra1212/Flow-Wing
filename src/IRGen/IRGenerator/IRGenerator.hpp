@@ -75,6 +75,7 @@ public:
       binding::BoundMemberAccessExpression *member_access_expression) override;
   void visit(binding::BoundNirastLiteralExpression *nirast_literal_expression)
       override;
+  void visit(binding::BoundDynLiteralExpression *dyn_literal_expression) override;
   void visit(binding::BoundColonExpression *colon_expression) override;
   void visit(binding::BoundContainerExpression *container_expression) override;
   void visit(binding::BoundDimensionClauseExpression

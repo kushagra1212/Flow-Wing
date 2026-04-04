@@ -92,6 +92,7 @@ enum class TokenKind : int {
   kNirastKeyword,
   kBringKeyword,
   kSuperKeyword,
+  kDynKeyword,
 
   // --- Type Keywords ---
   kInt32Keyword,

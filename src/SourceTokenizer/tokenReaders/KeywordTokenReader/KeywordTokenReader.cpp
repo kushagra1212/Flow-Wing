@@ -65,6 +65,7 @@ static const std::unordered_map<std::string, lexer::TokenKind> kKeywords = {
     {"switch", lexer::TokenKind::kSwitchKeyword},
     {"case", lexer::TokenKind::kCaseKeyword},
     {"default", lexer::TokenKind::kDefaultKeyword},
+    {"dyn", lexer::TokenKind::kDynKeyword},
     // Reserved Keywords
     {"unknown", lexer::TokenKind::kReservedUnknownKeyword},
 };

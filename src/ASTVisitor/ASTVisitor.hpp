@@ -9,6 +9,7 @@ class IdentifierExpressionSyntax;
 class ParameterExpressionSyntax;
 class ArrayTypeExpressionSyntax;
 class DimensionClauseExpressionSyntax;
+class DynTypeExpressionSyntax;
 class IntegerLiteralExpressionSyntax;
 class Int64LiteralExpressionSyntax;
 class FunctionTypeExpressionSyntax;
@@ -122,6 +123,7 @@ public:
   virtual void visit(syntax::DeciTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::FunctionTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int8TypeExpressionSyntax *node) = 0;
+  virtual void visit(syntax::DynTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::CharTypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int32TypeExpressionSyntax *node) = 0;
   virtual void visit(syntax::Int64TypeExpressionSyntax *node) = 0;

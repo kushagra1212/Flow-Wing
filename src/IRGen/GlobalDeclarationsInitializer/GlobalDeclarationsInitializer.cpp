@@ -523,6 +523,10 @@ void GlobalDeclarationsInitializer::visit(
         *boolean_literal_expression) {}
 
 void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundDynLiteralExpression
+        *dyn_literal_expression) {}
+
+void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundFloatLiteralExpression
         *float_literal_expression) {}
 

@@ -48,6 +48,7 @@ public:
       override;
   void visit(binding::BoundBooleanLiteralExpression *boolean_literal_expression)
       override;
+  void visit(binding::BoundDynLiteralExpression *dyn_literal_expression) override;
   void visit(binding::BoundTemplateStringLiteralExpression
                  *template_string_literal_expression) override;
   void visit(binding::BoundErrorStatement *error_statement) override;

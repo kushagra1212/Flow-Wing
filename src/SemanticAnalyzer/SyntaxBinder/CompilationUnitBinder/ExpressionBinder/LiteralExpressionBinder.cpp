@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDynLiteralExpression/BoundDynLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundNirastLiteralExpression/BoundNirastLiteralExpression.hpp"
@@ -38,6 +39,7 @@
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/expression/TemplateStringLiteralExpressionSyntax/TemplateStringLiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/DynTypeExpressionSyntax/DynTypeExpressionSyntax.h"
 #include <cassert>
 #include <cstdint>
 #include <limits>
@@ -170,6 +172,16 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
 
   return std::make_unique<BoundBooleanLiteralExpression>(
       expression->getValue(), analysis::Builtins::m_bool_type_instance,
+      expression->getSourceLocation());
+}
+
+std::unique_ptr<BoundExpression> ExpressionBinder::bindLiteralExpression(
+    syntax::DynTypeExpressionSyntax *expression) {
+  assert(expression != nullptr &&
+         "LiteralExpressionBinder::bind: expression is null");
+
+  return std::make_unique<BoundDynLiteralExpression>(
+   analysis::Builtins::m_dynamic_type_instance,
       expression->getSourceLocation());
 }
 

@@ -1,0 +1,51 @@
+bring Map
+
+var map: Dict::Map = new Dict::Map()
+
+println("--- Test 1: Basic Insert & Mixed Types ---")
+map.set("title", "FlowWing")
+map.set("version", 1.0)
+map.set("isFast", true)
+map.set("magicNumber", 42)
+map.set("charVal", 'X')
+
+println(map.get("title"))
+println(map.get("version"))
+println(map.get("isFast"))
+println(map.get("magicNumber"))
+println(map.get("charVal"))
+
+println("--- Test 2: Reassignment (Overwriting keys) ---")
+map.set("version", 2.5) 
+map.set("magicNumber", "Forty Two") 
+println(map.get("version"))
+println(map.get("magicNumber"))
+
+println("--- Test 3: Fallbacks (getOr) ---")
+println(map.getOr("missingString", "default"))
+println(map.getOr("missingBool", false))
+println(map.getOr("missingInt", -99))
+
+println("--- Test 4: Size & Existence (has/contains) ---")
+println(map.size())
+println(map.has("title"))
+println(map.contains("fakeKey"))
+
+println("--- Test 5: Removal ---")
+var wasRemoved = map.remove("isFast")
+var wasFakeRemoved = map.remove("fakeKey")
+
+println(wasRemoved)
+println(wasFakeRemoved)
+println(map.has("isFast"))
+println(map.size())
+
+println("--- Test 6: Clear & isEmpty ---")
+println(map.isEmpty())
+map.clear()
+println(map.isEmpty())
+println(map.size())
+
+println("--- Test 7: Method Chaining ---")
+map.set("a", 1).set("b", 2).set("c", 3)
+println(map.size())

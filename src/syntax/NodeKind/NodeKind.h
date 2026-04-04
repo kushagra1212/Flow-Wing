@@ -38,7 +38,8 @@ enum class NodeKind : int {
   kTemplateStringLiteralExpression,
   kCharacterLiteralExpression,
   kBooleanLiteralExpression,
-
+  kDynLiteralExpression,
+  
   kUnaryExpression,
   kBinaryExpression,
   kParenthesizedExpression,

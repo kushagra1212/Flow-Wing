@@ -83,7 +83,7 @@ enum class NodeKind : int {
   kBooleanLiteralExpression,
   kTemplateStringLiteralExpression,
   kNirastLiteralExpression,
-
+  kDynLiteralExpression,
   // ---- Error ----
   kErrorStatement,
   kErrorExpression,

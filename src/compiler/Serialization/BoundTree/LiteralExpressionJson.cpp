@@ -20,6 +20,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundBooleanLiteralExpression/BoundBooleanLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDoubleLiteralExpression/BoundDoubleLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundDynLiteralExpression/BoundDynLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundNirastLiteralExpression/BoundNirastLiteralExpression.hpp"
@@ -29,7 +30,7 @@
 
 namespace flow_wing::compiler::serializer {
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundIntegerLiteralExpression
+     binding::BoundIntegerLiteralExpression
         *integer_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Integer Literal Expression", "BOUND TREE");
 
@@ -46,7 +47,7 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(integer_literal_expression_json);
 }
 
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
+void BoundTreeJson::visit( binding::BoundDoubleLiteralExpression
                               *double_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Double Literal Expression", "BOUND TREE");
   nlohmann::json double_literal_expression_json;
@@ -62,7 +63,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundDoubleLiteralExpression
   m_last_node_json = std::move(double_literal_expression_json);
 }
 
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
+void BoundTreeJson::visit( binding::BoundFloatLiteralExpression
                               *float_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Float Literal Expression", "BOUND TREE");
 
@@ -79,7 +80,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundFloatLiteralExpression
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundCharacterLiteralExpression
+     binding::BoundCharacterLiteralExpression
         *character_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Character Literal Expression", "BOUND TREE");
 
@@ -96,7 +97,7 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(character_literal_expression_json);
 }
 
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundStringLiteralExpression
+void BoundTreeJson::visit( binding::BoundStringLiteralExpression
                               *string_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound String Literal Expression", "BOUND TREE");
 
@@ -114,7 +115,7 @@ void BoundTreeJson::visit([[maybe_unused]] binding::BoundStringLiteralExpression
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundBooleanLiteralExpression
+     binding::BoundBooleanLiteralExpression
         *boolean_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Boolean Literal Expression", "BOUND TREE");
 
@@ -132,7 +133,22 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
-    [[maybe_unused]] binding::BoundTemplateStringLiteralExpression
+  binding::BoundDynLiteralExpression
+        *dyn_literal_expression) {
+  PARSER_DEBUG_LOG("Visiting Bound Dyn Literal Expression", "BOUND TREE");
+  nlohmann::json dyn_literal_expression_json;
+  dyn_literal_expression_json["kind"] =
+      toString(dyn_literal_expression->getKind());
+  dyn_literal_expression_json["range"] =
+      toJsonRange(dyn_literal_expression->getSourceLocation());
+  dyn_literal_expression_json["type_id"] =
+      getTypeId(dyn_literal_expression->getType().get());
+
+  m_last_node_json = std::move(dyn_literal_expression_json);
+}
+
+void BoundTreeJson::visit(
+     binding::BoundTemplateStringLiteralExpression
         *template_string_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Template String Literal Expression",
                    "BOUND TREE");
@@ -150,7 +166,7 @@ void BoundTreeJson::visit(
   m_last_node_json = std::move(template_string_literal_expression_json);
 }
 
-void BoundTreeJson::visit([[maybe_unused]] binding::BoundNirastLiteralExpression
+void BoundTreeJson::visit( binding::BoundNirastLiteralExpression
                               *nirast_literal_expression) {
   PARSER_DEBUG_LOG("Visiting Bound Nirast Literal Expression", "BOUND TREE");
 
