@@ -119,7 +119,7 @@ fun write(filePath: as str, data: as str, mode: as str) -> Err::Result {
 
 fun createFile(filePath: as str) -> Err::Result {
   var file: str = fopen(filePath, "w")
-  if (file == Nir) {
+  if (file == null) {
     return new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
   }
   fclose(file)

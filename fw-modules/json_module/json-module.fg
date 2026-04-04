@@ -43,7 +43,6 @@ class JsonNode {
         self.firstChild = val
         self.lastChild = val
 
-      println("Setting key: " + self.firstChild.key )
       } 
       else {
         var curr: json::JsonNode = self.firstChild
