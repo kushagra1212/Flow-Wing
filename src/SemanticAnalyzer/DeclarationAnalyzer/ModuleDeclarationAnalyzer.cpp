@@ -17,12 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/DeclarationAnalyzer/DeclarationAnalyzer.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/common/Symbol/ModuleSymbol.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 
@@ -32,7 +30,8 @@ void analysis::DeclarationAnalyzer::visit(syntax::ModuleStatementSyntax *node) {
       node->getModuleNameExpression().get());
   const std::string &module_name = name_expr->getValue();
 
-  auto module_table = std::make_shared<analysis::ScopedSymbolTable>();
+  auto module_table =
+      std::make_shared<analysis::ScopedSymbolTable>(m_binder_context.getSymbolTable());
   analysis::Builtins::registerIntoSymbolTable(module_table);
 
   auto module_symbol =

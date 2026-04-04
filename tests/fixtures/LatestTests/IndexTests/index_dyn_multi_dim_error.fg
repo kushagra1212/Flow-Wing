@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: IndexingMoreDimensionsThanArrayTypeHas
+var d = "flow"
+println(d[0][1])

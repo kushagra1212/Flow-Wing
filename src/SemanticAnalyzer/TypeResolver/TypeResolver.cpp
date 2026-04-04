@@ -129,11 +129,10 @@ TypeResolver::resolveModuleAccessType(
   auto module_symbol_sh = m_ctx->getSymbolTable()->lookup(qualifier_name);
   if (!module_symbol_sh ||
       module_symbol_sh->getKind() != analysis::SymbolKind::kModule) {
-    return {nullptr,
-            std::make_unique<binding::BoundErrorExpression>(
-                syntax->getModuleIdentifier()->getSourceLocation(),
-                flow_wing::diagnostic::DiagnosticCode::kModuleNotFound,
-                diagnostic::DiagnosticArgs{qualifier_name})};
+    return {nullptr, std::make_unique<binding::BoundErrorExpression>(
+                         syntax->getModuleIdentifier()->getSourceLocation(),
+                         flow_wing::diagnostic::DiagnosticCode::kModuleNotFound,
+                         diagnostic::DiagnosticArgs{qualifier_name})};
   }
 
   auto *module_symbol =
@@ -299,12 +298,17 @@ std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
       getTypeConvention(has_as_keyword), getConstness(has_const_keyword));
 }
 
-std::vector<std::shared_ptr<types::ReturnType>> TypeResolver::resolveReturnType(
+std::pair<std::vector<std::shared_ptr<types::ReturnType>>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveReturnType(
     const syntax::FunctionReturnTypeExpressionSyntax *syntax) {
 
   if (syntax == nullptr) {
-    return {std::make_shared<types::ReturnType>(
-        Builtins::m_dynamic_type_instance, types::TypeConvention::kFlowWing)};
+    return {std::vector<std::shared_ptr<types::ReturnType>>{
+                std::make_shared<types::ReturnType>(
+                    Builtins::m_dynamic_type_instance,
+                    types::TypeConvention::kFlowWing)},
+            nullptr};
   }
 
   std::vector<std::shared_ptr<types::ReturnType>> return_types;
@@ -314,11 +318,15 @@ std::vector<std::shared_ptr<types::ReturnType>> TypeResolver::resolveReturnType(
   for (const auto &type_expression : syntax->getTypeExpressions()) {
     auto [base_type, error_expression] = resolveType(type_expression.get());
 
+    if (error_expression != nullptr) {
+      return {return_types, std::move(error_expression)};
+    }
+
     return_types.push_back(std::make_shared<types::ReturnType>(
         base_type, getTypeConvention(has_as_keyword)));
   }
 
-  return return_types;
+  return {return_types, nullptr};
 }
 
 namespace {

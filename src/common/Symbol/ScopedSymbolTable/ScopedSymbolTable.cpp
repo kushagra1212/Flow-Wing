@@ -28,6 +28,12 @@ ScopedSymbolTable::ScopedSymbolTable() {
   enterScope();
 }
 
+ScopedSymbolTable::ScopedSymbolTable(std::shared_ptr<ScopedSymbolTable> parent)
+    : m_parent(std::move(parent)) {
+  // entering the global scope
+  enterScope();
+}
+
 void ScopedSymbolTable::enterScope() {
   m_scope_stack.emplace_back(std::make_unique<SymbolTable>());
 }
@@ -97,6 +103,11 @@ ScopedSymbolTable::lookup(const std::string &name) const {
       return symbol_it->second;
     }
   }
+
+  if (m_parent) {
+    return m_parent->lookup(name);
+  }
+
   return nullptr;
 }
 

@@ -1,1 +1,23 @@
-fun strReplace(str1: as str, oldSub: as str, newSub: as int) -> as deci decl
+bring Str
+
+var a: fg::Str = new fg::Str(" hello ")
+var q: str = " hello "
+print(a.getLength(), "\n")
+print(a.toUpper().get(), "\n")
+print(a.toLower().get(), "\n")
+print(a.reverse().get(), "\n")
+print(a.trim().get(), "\n")
+print(a.reverse().get(), "\n")
+print(a.replace("hello", "world").get(), "\n")
+/; Chain
+var b: fg::Str = new fg::Str(" This is a test ")
+println(b.toUpper().toLower().reverse().trim().replace("hello", "world").get())
+
+var normal:str = " hello "
+print(normal, "\n")
+println(fg::getLength(normal))
+print(fg::strToUpper(normal), "\n")
+print(fg::strToLower(normal), "\n")
+print(fg::strReverse(normal), "\n")
+print(fg::trim(normal), "\n")
+print(fg::replace(normal, "hello", "world"), "\n")

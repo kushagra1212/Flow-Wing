@@ -136,7 +136,7 @@
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
-  "workbench.colorTheme": "Deepdark Material Theme | Default Version",
+  "workbench.colorTheme": "Gruvbox Dark Hard",
   "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",

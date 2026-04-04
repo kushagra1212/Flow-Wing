@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: ExpectedAnIntegerForIndexing
+var s: str = "hello"
+println(s[3.14])

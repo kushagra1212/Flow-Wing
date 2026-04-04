@@ -21,31 +21,141 @@
 #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
+
+// clang-format off
+#include "src/compiler/diagnostics/DiagnosticPush.hpp"
+#include "llvm/IR/IRBuilder.h"
+#include "src/compiler/diagnostics/DiagnosticPop.hpp"
+// clang-format on
+
 namespace flow_wing {
 namespace ir_gen {
+
+namespace {
+
+llvm::Function *getOrDeclareStrIdx(llvm::Module *mod, llvm::LLVMContext &ctx) {
+  const std::string name(ir_gen::constants::functions::kString_index_fn);
+  if (auto *fn = mod->getFunction(name))
+    return fn;
+  auto *fn_ty = llvm::FunctionType::get(
+      llvm::Type::getInt32Ty(ctx),
+      {llvm::Type::getInt8PtrTy(ctx), llvm::Type::getInt64Ty(ctx)}, false);
+  return llvm::Function::Create(fn_ty, llvm::Function::ExternalLinkage, name,
+                                mod);
+}
+
+llvm::Function *getOrDeclareDynStrIdx(llvm::Module *mod,
+                                      llvm::LLVMContext &ctx) {
+  const std::string name(
+      ir_gen::constants::functions::kDynamic_string_index_fn);
+  if (auto *fn = mod->getFunction(name))
+    return fn;
+  auto *i64 = llvm::Type::getInt64Ty(ctx);
+  auto *fn_ty = llvm::FunctionType::get(llvm::Type::getInt32Ty(ctx),
+                                        {i64, i64, i64}, false);
+  return llvm::Function::Create(fn_ty, llvm::Function::ExternalLinkage, name,
+                                mod);
+}
+
+} // namespace
 
 void IRGenerator::visit(
     [[maybe_unused]] binding::BoundIndexExpression *statement) {
   CODEGEN_DEBUG_LOG("Visiting Bound Index Expression", "IR GENERATION");
   statement->getLeftExpression()->accept(this);
 
-  auto *array_type = static_cast<types::ArrayType *>(m_last_type);
+  llvm::Value *left_value = m_last_value;
+  types::Type *left_type = m_last_type;
+  clearLast();
+
+  auto *builder = m_ir_gen_context.getLLVMBuilder().get();
+  auto *mod = m_ir_gen_context.getLLVMModule();
+  auto &ctx = *m_ir_gen_context.getLLVMContext();
+
+  const bool is_str =
+      (left_type == analysis::Builtins::m_str_type_instance.get());
+
+  if (is_str) {
+    llvm::Value *str_ptr = resolveValue(left_value, left_type);
+
+    const auto &dim_exprs = statement->getDimensionClauseExpressions();
+    assert(dim_exprs.size() == 1 && "str indexing must have exactly 1 index");
+    dim_exprs[0]->accept(this);
+    llvm::Value *idx_val = resolveValue(m_last_value, m_last_type);
+    clearLast();
+
+    idx_val = builder->CreateIntCast(idx_val, builder->getInt64Ty(), true,
+                                     "str_idx_i64");
+
+    llvm::Function *str_idx_fn = getOrDeclareStrIdx(mod, ctx);
+    llvm::Value *result =
+        builder->CreateCall(str_idx_fn, {str_ptr, idx_val}, "str_idx_result");
+
+    m_last_value = result;
+    m_last_type = analysis::Builtins::m_char_type_instance.get();
+    return;
+  }
+
+  const bool is_dynamic = left_type->isDynamic();
+
+  if (is_dynamic) {
+    llvm::Type *dynamic_struct_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(left_type);
+
+    auto [value_storage, type_tag] = DynamicValueHandler::extractDynamicValue(
+        left_value, dynamic_struct_type, builder);
+
+    llvm::Value *type_tag_i64 = builder->CreateIntCast(
+        type_tag, builder->getInt64Ty(), false, "dyn_tag_i64");
+
+    const auto &dim_exprs = statement->getDimensionClauseExpressions();
+    assert(dim_exprs.size() == 1 &&
+           "dynamic indexing must have exactly 1 index");
+    dim_exprs[0]->accept(this);
+
+    llvm::Value *idx_val = nullptr;
+    if (m_last_type->isDynamic()) {
+      llvm::Type *idx_dyn_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+      auto [idx_storage, _tag] = DynamicValueHandler::extractDynamicValue(
+          m_last_value, idx_dyn_type, builder);
+      idx_val = idx_storage;
+    } else {
+      idx_val = resolveValue(m_last_value, m_last_type);
+    }
+    clearLast();
+
+    idx_val = builder->CreateIntCast(idx_val, builder->getInt64Ty(), true,
+                                     "dyn_idx_i64");
+
+    llvm::Function *dyn_str_idx_fn = getOrDeclareDynStrIdx(mod, ctx);
+    llvm::Value *result = builder->CreateCall(
+        dyn_str_idx_fn, {value_storage, type_tag_i64, idx_val},
+        "dyn_str_idx_result");
+
+    m_last_value = result;
+    m_last_type = analysis::Builtins::m_char_type_instance.get();
+    return;
+  }
+
+  auto *array_type = static_cast<types::ArrayType *>(left_type);
   auto *left_llvm_type =
-      m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(left_type);
 
   llvm::Value *left_ptr = nullptr;
-  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(m_last_value)) {
+  if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(left_value)) {
     if (gep->getSourceElementType()->isStructTy() ||
         gep->getSourceElementType()->isArrayTy()) {
-      left_ptr = m_last_value;
+      left_ptr = left_value;
     }
   }
 
   if (!left_ptr) {
-    if (auto *load = llvm::dyn_cast<llvm::LoadInst>(m_last_value)) {
+    if (auto *load = llvm::dyn_cast<llvm::LoadInst>(left_value)) {
       if (load->getType()->isArrayTy()) {
         auto *spill =
             m_ir_gen_context.createAlloca(load->getType(), "arr_spill");
@@ -56,10 +166,8 @@ void IRGenerator::visit(
   }
 
   if (!left_ptr) {
-    left_ptr = resolvePtr(m_last_value, m_last_type);
+    left_ptr = resolvePtr(left_value, left_type);
   }
-
-  clearLast();
 
   std::vector<llvm::Value *> indices = {
       m_ir_gen_context.getLLVMBuilder()->getInt64(0)};
@@ -94,8 +202,6 @@ void IRGenerator::visit(
     clearLast();
 
     {
-
-      auto builder = m_ir_gen_context.getLLVMBuilder().get();
 
       index_val = builder->CreateIntCast(index_val, builder->getInt64Ty(), true,
                                          "idx_promoted");

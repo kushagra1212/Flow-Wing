@@ -20,14 +20,12 @@
 #include "ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
-#include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ArrayType/ArrayType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
-#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <cassert>
@@ -63,6 +61,46 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIndexExpression(
   auto type = bound_left_expression->getType();
 
   std::vector<std::unique_ptr<BoundExpression>> bound_index_expressions;
+
+  const bool is_str =
+      (type.get() == analysis::Builtins::m_str_type_instance.get());
+  const bool is_dynamic = type->isDynamic();
+
+  if (is_str || is_dynamic) {
+    const auto &dim_exprs = expression->getDimensionClauseExpressions();
+
+    if (dim_exprs.size() != 1) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kIndexingMoreDimensionsThanArrayTypeHas,
+          diagnostic::DiagnosticArgs{type->getName(), "1",
+                                     std::to_string(dim_exprs.size())});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+
+    auto bound_index = bind(dim_exprs[0].get());
+    if (bound_index->getKind() == NodeKind::kErrorExpression) {
+      return bound_index;
+    }
+
+    auto idx_type = bound_index->getType();
+    if (!idx_type->isInteger() && !idx_type->isDynamic()) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          dim_exprs[0]->getSourceLocation(),
+          diagnostic::DiagnosticCode::kExpectedAnIntegerForIndexing,
+          diagnostic::DiagnosticArgs{idx_type->getName()});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+
+    bound_index_expressions.push_back(std::move(bound_index));
+
+    return std::make_unique<BoundIndexExpression>(
+        std::move(bound_left_expression),
+        analysis::Builtins::m_char_type_instance,
+        std::move(bound_index_expressions), expression->getSourceLocation());
+  }
 
   if (type->getKind() != types::TypeKind::kArray) {
 

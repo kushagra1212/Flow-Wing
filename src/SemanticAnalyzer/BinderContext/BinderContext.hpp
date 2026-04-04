@@ -74,9 +74,9 @@ public:
 
 private:
   CompilationContext &m_context;
-  std::unique_ptr<analysis::TypeResolver> m_type_resolver;
-  std::shared_ptr<analysis::ScopedSymbolTable> m_symbol_table;
-  std::shared_ptr<types::Type> m_current_class_type;
+  std::unique_ptr<analysis::TypeResolver> m_type_resolver = nullptr;
+  std::shared_ptr<analysis::ScopedSymbolTable> m_symbol_table = nullptr;
+  std::shared_ptr<types::Type> m_current_class_type = nullptr;
   std::vector<std::shared_ptr<types::Type>> m_expected_type_stack;
   std::unordered_set<std::string> m_duplicate_class_declarations;
   std::vector<std::string> m_module_name_stack;

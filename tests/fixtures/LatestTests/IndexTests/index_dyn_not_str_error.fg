@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: Runtime Error: Cannot index a non-string dynamic value.
+var d = 42
+println(d[0])

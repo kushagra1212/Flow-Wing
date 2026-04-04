@@ -18,12 +18,12 @@
  */
 
 #include "DeclarationAnalyzer.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
@@ -50,8 +50,8 @@ void analysis::DeclarationAnalyzer::visit(
     return;
   }
 
-  std::vector<std::shared_ptr<types::ParameterType>> params;
-  std::vector<std::shared_ptr<types::ReturnType>> return_types;
+  std::vector<std::shared_ptr<types::ParameterType>> params = {};
+  std::vector<std::shared_ptr<types::ReturnType>> return_types = {};
 
   size_t default_value_start_index = static_cast<size_t>(-1), count = 0;
 
@@ -90,9 +90,16 @@ void analysis::DeclarationAnalyzer::visit(
   auto has_return_type = node->hasReturnType();
 
   if (has_return_type) {
-    return_types = m_binder_context.getTypeResolver()->resolveReturnType(
+    auto result = m_binder_context.getTypeResolver()->resolveReturnType(
         static_cast<syntax::FunctionReturnTypeExpressionSyntax *>(
             node->getReturnType().get()));
+
+    if (result.second != nullptr) {
+      m_binder_context.reportError(result.second.get());
+      return;
+    }
+
+    return_types = result.first;
   } else {
     auto inferred = inferReturnType(
         static_cast<syntax::BlockStatementSyntax *>(node->getBody().get()));
@@ -130,7 +137,8 @@ void analysis::DeclarationAnalyzer::visit(
 std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(
     syntax::BlockStatementSyntax *body) {
 
-  return m_binder_context.getTypeResolver()->inferImplicitReturnTypeFromBody(body);
+  return m_binder_context.getTypeResolver()->inferImplicitReturnTypeFromBody(
+      body);
 }
 
 } // namespace flow_wing

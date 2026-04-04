@@ -19,7 +19,6 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
@@ -35,6 +34,7 @@
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/FunctionReturnTypeExpressionSyntax/FunctionReturnTypeExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
@@ -167,13 +167,19 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
 
     std::vector<std::shared_ptr<types::ReturnType>> return_types;
     if (func_syntax->hasReturnType()) {
-      return_types = m_context->getTypeResolver()->resolveReturnType(
+      auto result = m_context->getTypeResolver()->resolveReturnType(
           static_cast<syntax::FunctionReturnTypeExpressionSyntax *>(
               func_syntax->getReturnType().get()));
+      if (result.second != nullptr) {
+        m_context->reportError(result.second.get());
+        return std::make_unique<BoundErrorStatement>(std::move(result.second));
+      }
+      return_types = result.first;
     } else {
-      auto inferred = m_context->getTypeResolver()->inferImplicitReturnTypeFromBody(
-          static_cast<syntax::BlockStatementSyntax *>(
-              func_syntax->getBody().get()));
+      auto inferred =
+          m_context->getTypeResolver()->inferImplicitReturnTypeFromBody(
+              static_cast<syntax::BlockStatementSyntax *>(
+                  func_syntax->getBody().get()));
       if (inferred && !inferred->isNthg()) {
         return_types.push_back(std::make_shared<types::ReturnType>(inferred));
       } else {

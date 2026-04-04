@@ -36,9 +36,7 @@ BinderContext::BinderContext(CompilationContext &context)
 
 BinderContext::~BinderContext() = default;
 
-CompilationContext &BinderContext::getCompilationContext() {
-  return m_context;
-}
+CompilationContext &BinderContext::getCompilationContext() { return m_context; }
 
 const CompilationContext &BinderContext::getCompilationContext() const {
 

@@ -23,17 +23,17 @@
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
+#include "src/compiler/diagnostics/Diagnostic.h"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/compiler/pipeline/CompilationPipeline.h"
 #include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SourceLoaderPass.h"
-#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/NodeKind/NodeKind.h"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
-#include "src/compiler/diagnostics/Diagnostic.h"
 #include <algorithm>
 #include <filesystem>
 #include <optional>
@@ -49,9 +49,9 @@ namespace {
 /// `base_dir` for a regular file whose name equals `relative_path`'s filename
 /// (e.g. `bring "local-module.fg"` or `bring local` → `local-module.fg` in a
 /// subdirectory).
-std::optional<std::string> tryResolveBringPath(
-    const std::filesystem::path &base_dir,
-    const std::filesystem::path &relative_path) {
+std::optional<std::string>
+tryResolveBringPath(const std::filesystem::path &base_dir,
+                    const std::filesystem::path &relative_path) {
   std::error_code ec;
   const auto direct = std::filesystem::absolute(base_dir / relative_path, ec);
   if (!ec && std::filesystem::is_regular_file(direct)) {
@@ -90,6 +90,61 @@ std::optional<std::string> tryResolveBringPath(
       }
     }
   }
+
+  std::filesystem::path cur = base_dir;
+  while (true) {
+    std::error_code ec_candidate;
+    const auto candidate = cur / "fw-modules";
+    if (!std::filesystem::exists(candidate, ec_candidate) || ec_candidate) {
+      // not present here; move up
+    } else if (std::filesystem::is_directory(candidate)) {
+      // Try direct path first
+      std::error_code ec_direct2;
+      const auto direct2 =
+          std::filesystem::absolute(candidate / relative_path, ec_direct2);
+      if (!ec_direct2 && std::filesystem::is_regular_file(direct2)) {
+        return direct2.string();
+      }
+
+      // BFS under the candidate directory
+      std::queue<std::filesystem::path> q2;
+      q2.push(candidate);
+      const std::string leaf2 = relative_path.filename().string();
+      while (!q2.empty()) {
+        const auto cur2 = q2.front();
+        q2.pop();
+        std::error_code ec_dir2;
+        if (!std::filesystem::exists(cur2, ec_dir2) || ec_dir2) {
+          continue;
+        }
+        std::filesystem::directory_iterator it2(cur2, ec_dir2);
+        if (ec_dir2) {
+          continue;
+        }
+        for (const auto &entry2 : it2) {
+          std::error_code ec_ent2;
+          if (entry2.is_directory(ec_ent2)) {
+            if (!ec_ent2) {
+              q2.push(entry2.path());
+            }
+          } else if (entry2.is_regular_file(ec_ent2) && !ec_ent2 &&
+                     entry2.path().filename() == leaf2) {
+            std::error_code ec_abs2;
+            auto abs2 = std::filesystem::absolute(entry2.path(), ec_abs2);
+            if (!ec_abs2) {
+              return abs2.string();
+            }
+          }
+        }
+      }
+    }
+
+    if (cur == cur.root_path()) {
+      break;
+    }
+    cur = cur.parent_path();
+  }
+
   return std::nullopt;
 }
 
@@ -118,14 +173,14 @@ void reportDuplicateImportedName(
 
   switch (symbol->getKind()) {
   case SymbolKind::kVariable:
-    binder_context.reportError(
-        DiagnosticCode::kVariableAlreadyDeclared,
-        diagnostic::DiagnosticArgs{symbol->getName()}, location);
+    binder_context.reportError(DiagnosticCode::kVariableAlreadyDeclared,
+                               diagnostic::DiagnosticArgs{symbol->getName()},
+                               location);
     break;
   case SymbolKind::kFunction:
-    binder_context.reportError(
-        DiagnosticCode::kFunctionAlreadyDeclared,
-        diagnostic::DiagnosticArgs{symbol->getName()}, location);
+    binder_context.reportError(DiagnosticCode::kFunctionAlreadyDeclared,
+                               diagnostic::DiagnosticArgs{symbol->getName()},
+                               location);
     break;
   case SymbolKind::kType:
     binder_context.reportError(DiagnosticCode::kTypeAlreadyDeclared,
@@ -138,16 +193,17 @@ void reportDuplicateImportedName(
                                location);
     break;
   default:
-    binder_context.reportError(
-        DiagnosticCode::kVariableAlreadyDeclared,
-        diagnostic::DiagnosticArgs{symbol->getName()}, location);
+    binder_context.reportError(DiagnosticCode::kVariableAlreadyDeclared,
+                               diagnostic::DiagnosticArgs{symbol->getName()},
+                               location);
     break;
   }
 }
 
-bool defineImportedSymbol(binding::BinderContext &binder_context,
-                          const std::shared_ptr<analysis::Symbol> &symbol,
-                          const flow_wing::diagnostic::SourceLocation &location) {
+bool defineImportedSymbol(
+    binding::BinderContext &binder_context,
+    const std::shared_ptr<analysis::Symbol> &symbol,
+    const flow_wing::diagnostic::SourceLocation &location) {
   if (binder_context.getSymbolTable()->define(symbol)) {
     symbol->setImportedViaBring(true);
     return true;
@@ -160,8 +216,7 @@ bool defineImportedSymbol(binding::BinderContext &binder_context,
 
 void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
 
-  const std::string raw_path =
-      node->getStringLiteralExpression()->getValue();
+  const std::string raw_path = node->getStringLiteralExpression()->getValue();
   std::filesystem::path path_obj(raw_path);
   std::string absolute_file_path;
   if (path_obj.is_absolute()) {
@@ -174,8 +229,7 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
     if (auto resolved = tryResolveBringPath(base, path_obj)) {
       absolute_file_path = *resolved;
     } else {
-      absolute_file_path =
-          std::filesystem::absolute(base / path_obj).string();
+      absolute_file_path = std::filesystem::absolute(base / path_obj).string();
     }
   }
 
@@ -228,8 +282,9 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
 
   if (pipeline_status ==
       flow_wing::compiler::pipeline::ReturnStatus::kFailure) {
-    // Nested compile already recorded CircularReference on its binder; re-report
-    // on the parent so the user-visible error is not masked by FileContainsErrors.
+    // Nested compile already recorded CircularReference on its binder;
+    // re-report on the parent so the user-visible error is not masked by
+    // FileContainsErrors.
     if (nestedDiagnosticsHasCircularReference(nested_ctx)) {
       m_binder_context.reportError(
           diagnostic::DiagnosticCode::kCircularReference, {absolute_file_path},
@@ -288,12 +343,13 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
             id_expr->getSourceLocation());
         continue;
       }
-      defineImportedSymbol(m_binder_context, symbol, id_expr->getSourceLocation());
+      defineImportedSymbol(m_binder_context, symbol,
+                           id_expr->getSourceLocation());
     }
   } else {
-    // bring "file.fg" — merge globals **defined** in that file only (not symbols
-    // it obtained via its own nested `bring`). Use `bring { name } from "f.fg"`
-    // for a subset.
+    // bring "file.fg" — merge globals **defined** in that file only (not
+    // symbols it obtained via its own nested `bring`). Use `bring { name } from
+    // "f.fg"` for a subset.
     imported_table->forEachGlobalSymbol(
         [&](const std::string &name,
             const std::shared_ptr<analysis::Symbol> &symbol) {

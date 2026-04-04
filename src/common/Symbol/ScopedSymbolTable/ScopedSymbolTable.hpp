@@ -17,6 +17,7 @@ using SymbolTable = std::unordered_map<std::string, std::shared_ptr<Symbol>>;
 class ScopedSymbolTable {
 public:
   ScopedSymbolTable();
+  ScopedSymbolTable(std::shared_ptr<ScopedSymbolTable> parent);
 
   void enterScope();
   void leaveScope();
@@ -48,6 +49,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<SymbolTable>> m_scope_stack;
+  std::shared_ptr<ScopedSymbolTable> m_parent = nullptr;
   const FunctionSymbol *m_current_function_symbol = nullptr;
   int64_t m_break_scope_depth = 0;
 };

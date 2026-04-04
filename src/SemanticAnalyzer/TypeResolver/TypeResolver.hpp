@@ -42,11 +42,13 @@ public:
   std::shared_ptr<types::ParameterType>
   resolveParameterExpression(const syntax::ParameterExpressionSyntax *syntax);
 
-  std::vector<std::shared_ptr<types::ReturnType>>
+  std::pair<std::vector<std::shared_ptr<types::ReturnType>>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveReturnType(const syntax::FunctionReturnTypeExpressionSyntax *syntax);
 
   /// When a function/method omits `-> Type`, infer return type: `nthg` if there
-  /// is no return statement, otherwise `dynamic` (same as resolveType(nullptr)).
+  /// is no return statement, otherwise `dynamic` (same as
+  /// resolveType(nullptr)).
   std::shared_ptr<types::Type>
   inferImplicitReturnTypeFromBody(syntax::BlockStatementSyntax *body);
 
