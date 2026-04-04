@@ -408,6 +408,17 @@ Class fixtures live under `tests/fixtures/LatestTests/ClassTests/` with the same
 
 ---
 
+## Error module tests (`ErrModuleTests`)
+
+| Category | Subdirectory | Coverage |
+| -------- | ------------ | -------- |
+| Basic | `01_ok/` | `bring Err` and `bring "Err-module.fg"` resolve the standard error/result module; `Err::Result` should support `getMessage`, `getCode`, `getDetails`, `isOk`, `isErr`, `hasDetails`, `withMessage`, `withCode`, `withDetails`, `clearDetails`, `clone`, and `toString`; multi-return functions should be able to return `str, Err::Result`; dynamic-inferred locals should accept the result object without an explicit annotation |
+| Features | `02_features/` | null-guarded multi-return flows (`return ..., null`), `if err != null` checks, and the same helper methods through the path-based import form |
+
+**Semantics:** `Err::Result` is the shared result/error wrapper used by file, HTTP, and module helpers. Prefer `toString()` for user-facing output, and use the helper constructors `Err::ok(...)` / `Err::error(...)` for concise call sites.
+
+---
+
 ## Bring tests (`BringTests`)
 
 | Category | Subdirectory | Coverage |

@@ -1,0 +1,21 @@
+bring Err
+
+fun parseStatus(flag: bool) -> str, Err::Result {
+  if flag {
+    return "ready", Err::ok("everything is fine")
+  }
+  return "", Err::error("failed", Err::CODE.INVALID_ARGUMENT, "flag was false")
+}
+
+var status: str, err: Err::Result = parseStatus(true)
+println(status)
+println(err.isOk())
+println(err.toString())
+
+var inferred = "plain dynamic primitive"
+println(inferred)
+
+var err2: Err::Result = Err::error("boom")
+println(err2.isErr())
+println(err2.hasDetails())
+println(err2.withDetails("more").toString())

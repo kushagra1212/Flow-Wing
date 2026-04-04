@@ -1,0 +1,22 @@
+bring "Err-module.fg"
+
+fun attempt(flag: bool) -> int, Err::Result {
+  if flag {
+    return 7, null
+  }
+  return 0, Err::error("count missing", Err::CODE.NOT_FOUND)
+}
+
+var count: int, err: Err::Result = attempt(true)
+println(count)
+if err != null {
+  println(err.toString())
+} else {
+  println("no error")
+}
+
+var count2: int, err2: Err::Result = attempt(false)
+println(count2)
+if err2 != null {
+  println(err2.toString())
+}
