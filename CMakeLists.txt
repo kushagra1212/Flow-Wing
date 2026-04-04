@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ include(cmake/compiler-warnings.cmake)
 include(cmake/dependencies.cmake)
 
 # Add the module sources to the build. This will define the library
-# targets like 'flowwing_string' and 'flowwing_map'.
+# targets like 'flowwing_text' and 'flowwing_map'.
 add_subdirectory(fw-modules)
 
 include(cmake/targets.cmake)

@@ -6,7 +6,7 @@ fun strReverse(str1: as str) -> as str decl
 fun strTrim(str1: as str) -> as str decl
 fun strReplace(str1: as str, target: as str, replacement: as str) -> as str decl
 
-module [fg]
+module [text]
 
 
 
@@ -55,7 +55,7 @@ fun equalsIgnoreCase( str1: str, str2: str) -> bool {
 }
 
 
-class Str {
+class Text {
   var _buffer: str
   var _len: int
 
@@ -76,19 +76,19 @@ class Str {
     return self.getLength()
   }
 
-  fun toUpper() -> fg::Str {
+  fun toUpper() -> text::Text {
     self._buffer = toUpper(self._buffer)
     self.refreshLength()
     return self
   }
 
-  fun toLower() -> fg::Str {
+  fun toLower() -> text::Text {
     self._buffer = toLower(self._buffer)
     self.refreshLength()
     return self
   }
 
-  fun reverse() -> fg::Str {
+  fun reverse() -> text::Text {
     self._buffer = reverse(self._buffer)
     self.refreshLength()
     return self
@@ -102,25 +102,25 @@ class Str {
     return self.at(index)
   }
 
-  fun trim() -> fg::Str {
+  fun trim() -> text::Text {
     self._buffer = trim(self._buffer)
     self.refreshLength()
     return self
   }
 
-  fun replace(target: str, replacement: str) -> fg::Str {
+  fun replace(target: str, replacement: str) -> text::Text {
     self._buffer = replace(self._buffer, target, replacement)
     self.refreshLength()
     return self
   }
 
-  fun concat(suffix: str) -> fg::Str {
+  fun concat(suffix: str) -> text::Text {
     self._buffer = concat(self._buffer, suffix)
     self.refreshLength()
     return self
   }
 
-  fun clear() -> fg::Str {
+  fun clear() -> text::Text {
     self._buffer = ""
     self._len = 0
     return self

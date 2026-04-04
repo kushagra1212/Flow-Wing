@@ -1,6 +1,6 @@
-bring Str
+bring text
 
-var s: fg::Str = new fg::Str("abc")
+var s: text::Text = new text::Text("abc")
 println(s.getLength())
 println(s.at(1))
 println(s.toUpper().get())

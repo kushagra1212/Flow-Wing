@@ -1,6 +1,6 @@
-bring "Str-module.fg"
+bring "text-module.fg"
 
-var s: fg::Str = new fg::Str("  hill ")
-println(fg::trim("  hill "))
+var s: text::Text = new text::Text("  hill ")
+println(text::trim("  hill "))
 println(s.trim().get())
 println(s.at(3))

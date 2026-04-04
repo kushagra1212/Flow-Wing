@@ -24,12 +24,16 @@
 namespace {
 
 std::string getRuntimeLibraryForModule(const std::string &file_name) {
-  if (file_name == "Str-module.fg") {
-    return "flowwing_string";
+  if (file_name == "text-module.fg") {
+    return "flowwing_text";
   }
 
-  if (file_name == "Map-module.fg") {
+  if (file_name == "map-module.fg") {
     return "flowwing_map";
+  }
+
+  if (file_name == "vec-module.fg") {
+    return "flowwing_vec";
   }
 
   return "";
@@ -40,7 +44,8 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
 const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "dynamic", "gc",
                                            "gccpp",           "atomic_ops"};
 
-const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vector", "flowwing_map"};
+
+const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vec", "flowwing_map"};
 
 std::vector<std::string>
 getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {

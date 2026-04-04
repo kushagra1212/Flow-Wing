@@ -32,6 +32,9 @@
 set(SDK_LIBRARY_TARGETS
     built_in_module
     dynamic
+    flowwing_map
+    flowwing_vec
+    flowwing_text
 
     # Add other custom library target names here as you create them
     CACHE INTERNAL "List of custom library targets to include in the SDK."

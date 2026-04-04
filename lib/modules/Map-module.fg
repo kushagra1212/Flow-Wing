@@ -9,7 +9,7 @@ fun dyn_map_contains(map_handle: as int64, key: as str) -> as bool decl
 fun dyn_map_size(map_handle: as int64) -> as int decl
 fun dyn_map_clear(map_handle: as int64) -> as nthg decl
 
-module [Dict]
+module [map]
 
 class Map {
   var _handle: int64
@@ -19,12 +19,12 @@ class Map {
   }
 
   /; Accepts any dynamic value natively
-  fun set(key: str, value) -> Dict::Map {
+  fun set(key: str, value) -> map::Map {
     dyn_map_set(self._handle, key, value)
     return self
   }
 
-  fun insert(key: str, value) -> Dict::Map {
+  fun insert(key: str, value) -> map::Map {
     return self.set(key, value)
   }
 
@@ -58,7 +58,7 @@ class Map {
     return self.size() == 0
   }
 
-  fun clear() -> Dict::Map {
+  fun clear() -> map::Map {
     dyn_map_clear(self._handle)
     return self
   }

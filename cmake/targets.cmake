@@ -196,7 +196,8 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
             "-Wl,-force_load,$<TARGET_FILE:dynamic>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_map>"
-            "-Wl,-force_load,$<TARGET_FILE:flowwing_string>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_vec>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_text>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
@@ -208,7 +209,8 @@ if(NOT BUILD_AOT)
             built_in_module
             dynamic
             flowwing_map
-            flowwing_string
+            flowwing_text
+            flowwing_vec
             "${DEPS_LIB_DIR}/libgc.a"
             "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
@@ -225,7 +227,8 @@ if(NOT BUILD_AOT)
             built_in_module
             dynamic
             flowwing_map
-            flowwing_string
+            flowwing_text
+            flowwing_vec
             "${DEPS_LIB_DIR}/gc.lib"
             "${DEPS_LIB_DIR}/gccpp.lib"
             "${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -235,7 +238,8 @@ if(NOT BUILD_AOT)
             "/WHOLEARCHIVE:$<TARGET_FILE:built_in_module>"
             "/WHOLEARCHIVE:$<TARGET_FILE:dynamic>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_map>"
-            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_string>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_text>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vec>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"

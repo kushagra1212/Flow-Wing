@@ -1,6 +1,6 @@
-bring Str
+bring text
 
-var s: fg::Str = new fg::Str("  Flow Wing  ")
+var s: text::Text = new text::Text("  Flow Wing  ")
 println(s.getLength())
 println(s.trim().get())
 println(s.getLength())
@@ -8,12 +8,12 @@ println(s.toUpper().get())
 println(s.toLower().get())
 println(s.reverse().get())
 
-var t: fg::Str = new fg::Str("ab")
+var t: text::Text = new text::Text("ab")
 println(t.concat("cd").get())
 println(t.length())
 println(t.charAt(2))
 
-var u: fg::Str = new fg::Str("MiXeD")
+var u: text::Text = new text::Text("MiXeD")
 println(u.equalsIgnoreCase("mixed"))
 println(u.clear().getLength())
 println(u.isEmpty())

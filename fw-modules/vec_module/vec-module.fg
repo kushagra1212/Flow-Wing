@@ -1,11 +1,11 @@
 /; FFI Declarations
 fun dyn_list_new() -> as int64 decl
 fun dyn_list_push(handle: as int64, value) -> as nthg decl
-fun dyn_list_pop(handle: as int64) -> dynamic decl
-fun dyn_list_get(handle: as int64, index: as int) -> dynamic decl
+fun dyn_list_pop(handle: as int64) -> dyn decl
+fun dyn_list_get(handle: as int64, index: as int) -> dyn decl
 fun dyn_list_set(handle: as int64, index: as int, value) -> as nthg decl
 fun dyn_list_insert(handle: as int64, index: as int, value) -> as nthg decl
-fun dyn_list_remove_at(handle: as int64, index: as int) -> dynamic decl
+fun dyn_list_remove_at(handle: as int64, index: as int) -> dyn decl
 fun dyn_list_size(handle: as int64) -> as int decl
 fun dyn_list_clear(handle: as int64) -> as nthg decl
 

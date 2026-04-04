@@ -106,7 +106,7 @@
          }
          case DYN_TAG_STRING:  return (char*)(intptr_t)v->value;
          case DYN_TAG_BOOLEAN: return v->value ? "true" : "false";
-         case DYN_TAG_NIRAST:  return "nir";
+         case DYN_TAG_NIRAST:  return "null";
          case DYN_TAG_CHAR:    return fg_ctos((int)v->value);
          default: return "";
      }

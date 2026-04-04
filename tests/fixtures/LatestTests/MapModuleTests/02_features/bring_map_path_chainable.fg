@@ -1,32 +1,32 @@
-bring Map
+bring map
 
-var map: Dict::Map = new Dict::Map()
+var customMap: map::Map = new map::Map()
 
 println("--- Test 1: Basic Sequential Chaining ---")
 /; Chaining set and insert together
-map.set("first", 1).set("second", 2).insert("third", 3)
+customMap.set("first", 1).set("second", 2).insert("third", 3)
 
-println(map.size())
-println(map.get("second"))
-println(map.get("third"))
+println(customMap.size())
+println(customMap.get("second"))
+println(customMap.get("third"))
 
 println("--- Test 2: Chaining with Clear ---")
-/; Because clear() returns self, we can wipe the map and immediately rebuild it in one line
-map.clear().set("reborn", true).insert("phoenix", "fire")
+/; Because clear() returns self, we can wipe the customMap and immediately rebuild it in one line
+customMap.clear().set("reborn", true).insert("phoenix", "fire")
 
-println(map.size())
-println(map.get("reborn"))
-println(map.get("phoenix"))
+println(customMap.size())
+println(customMap.get("reborn"))
+println(customMap.get("phoenix"))
 
 println("--- Test 3: Multi-line Chaining ---")
 /; Testing how the parser handles chained calls formatted across multiple lines
-map.clear()
+customMap.clear()
    .set("a", "Alpha")
    .set("b", "Beta")
    .set("c", "Gamma")
    .set("d", "Delta")
    .set("e", "Epsilon")
 
-println(map.size())
-println(map.get("c"))
-println(map.get("e"))
+println(customMap.size())
+println(customMap.get("c"))
+println(customMap.get("e"))
