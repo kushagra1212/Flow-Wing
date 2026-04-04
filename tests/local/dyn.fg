@@ -1,2 +1,68 @@
-bring text
+var _null = null
+println(Decimal(_null))
+/#
 
+var _int = 100000222222
+println(Decimal(_int))
+var _deci = 10.5344345333333
+println(Decimal(_deci))
+var _deci32 = 10.5344345333333f
+println(Decimal32(_deci32))
+var _null = null
+println(Decimal(_null))
+var _str = "Hello"
+println(Decimal(_str))
+var _char = 'x'
+println(Decimal(_char))
+var _int64 = 1000000000000
+println(Decimal(_int64))
+var _int8 = 127
+println(Decimal(_int8))
+
+/#
+bring json
+
+println("--- Test 1: Building a JSON Object Programmatically ---")
+var myJson: json::JsonNode = json::newObject()
+myJson.put("name", json::newString("FlowWing"))
+      .put("version", json::newNumber(1.5))
+      .put("isCompiled", json::newBool(true))
+      .put("nullValue", json::newNull())
+
+var featuresArr: json::JsonNode = json::newArray()
+featuresArr.push(json::newString("Fast"))
+           .push(json::newString("Dynamic"))
+           .push(json::newString("Safe"))
+
+myJson.put("features", featuresArr)
+
+var serializedStr = json::stringify(myJson)
+println("Programmatic JSON -> String:")
+println(serializedStr)
+
+
+println("\n--- Test 2: Parsing JSON Strings ---")
+var rawJson: str = "{ \"user\": \"Kushagra\", \"id\": 42, \"active\": true, \"scores\": [95.5, 82.0, 100.0] }"
+
+var parsedAst: json::JsonNode = json::parse(rawJson)
+
+var userNode: json::JsonNode = parsedAst.get("user")
+var idNode: json::JsonNode = parsedAst.get("id")
+
+println("Parsed User: " + userNode.strVal)
+println("Parsed ID: " + String(idNode.numVal))
+
+var scoresArr: json::JsonNode = parsedAst.get("scores")
+var firstScore: json::JsonNode = scoresArr.getAt(0)
+println("Parsed First Score: " + String(firstScore.numVal))
+
+
+println("\n--- Test 3: Formatting and Re-Stringifying ---")
+var reStr = json::stringify(parsedAst)
+println("Re-Stringified output:")
+println(reStr)
+
+println("\n--- Test 4: Handling Malformed JSON ---")
+var badJson = "{ \"missing_quote: true }"
+var badAst: json::JsonNode = json::parse(badJson)
+println("Parsed Bad JSON: " + json::stringify(badAst))

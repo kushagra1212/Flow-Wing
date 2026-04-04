@@ -263,7 +263,14 @@ TypeResolver::resolveObjectType(
   auto custom_type_type = std::dynamic_pointer_cast<types::CustomObjectType>(
       custom_type_symbol->getType());
 
-  assert(custom_type_type && "Custom type type is null");
+
+  if (custom_type_type == nullptr) {
+    return {nullptr, std::make_unique<binding::BoundErrorExpression>(
+                         syntax->getObjectIdentifier()->getSourceLocation(),
+                         flow_wing::diagnostic::DiagnosticCode::kCustomTypeNotFound,
+                         diagnostic::DiagnosticArgs{
+                             syntax->getObjectIdentifier()->getValue()})};
+  }
 
   return {custom_type_type, nullptr};
 }

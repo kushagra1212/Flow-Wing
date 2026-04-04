@@ -415,7 +415,8 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
         arg_slot =
             m_ir_gen_context.createAlloca(builder->getPtrTy(), "init_obj_arg");
         if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
-            llvm::isa<llvm::GlobalVariable>(m_last_value)) {
+            llvm::isa<llvm::GlobalVariable>(m_last_value)||
+            (llvm::isa<llvm::GetElementPtrInst>(m_last_value) && param_raw_type->getKind() == types::TypeKind::kClass)) {
           val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
                                         ->getLLVMType(param_raw_type)
                                         ->getPointerTo(),
@@ -495,7 +496,8 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
   if (type->getKind() == types::TypeKind::kObject ||
       type->getKind() == types::TypeKind::kClass) {
     if (llvm::isa<llvm::AllocaInst>(value) ||
-        llvm::isa<llvm::GlobalVariable>(value)) {
+        llvm::isa<llvm::GlobalVariable>(value)||
+        (llvm::isa<llvm::GetElementPtrInst>(value) && type->getKind() == types::TypeKind::kClass)) {
       auto *ptr_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(type)->getPointerTo();
       return m_ir_gen_context.getLLVMBuilder()->CreateLoad(ptr_type, value,

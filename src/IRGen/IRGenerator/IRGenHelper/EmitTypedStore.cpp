@@ -89,7 +89,12 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
             alloca->getAllocatedType()->getPointerTo(), source_raw_value,
             "load_class_ptr");
       }
-    }
+    }else if (llvm::isa<llvm::GetElementPtrInst>(source_raw_value)) { 
+      auto *ptr_type =
+          m_ir_gen_context.getTypeBuilder()
+              ->getLLVMType(source_type)->getPointerTo();
+      source_value = builder->CreateLoad(ptr_type, source_raw_value, "load_class_ptr");
+  }
     builder->CreateStore(source_value, target_addr);
     return;
   }
@@ -387,7 +392,7 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       builder->CreateStore(boxed_struct, target_addr);
     } else {
       // TODO: Future Object/Array Support
-      assert(false && "Unsupported type assignment to Dynamic variable");
+    //  assert(false && "Unsupported type assignment to Dynamic variable");
     }
     return;
   }

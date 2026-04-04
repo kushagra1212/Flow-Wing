@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int32.
+var _str = "Hello"
+println(Int32(_str))

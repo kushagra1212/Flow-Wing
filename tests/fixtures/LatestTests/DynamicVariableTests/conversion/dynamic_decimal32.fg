@@ -1,0 +1,10 @@
+var _int = 100000222222
+println(Decimal32(_int))
+var _deci = 10.5
+println(Decimal32(_deci))
+var _char = 'x'
+println(Decimal32(_char))
+var _int64 = 1000000000000
+println(Decimal32(_int64))
+var _int8 = 127
+println(Decimal32(_int8))

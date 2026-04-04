@@ -1,0 +1,16 @@
+var _int = 100000222222
+println(Bool(_int))
+var _deci = 10.5344345333333
+println(Bool(_deci))
+var _deci32 = 10.5344345333333f
+println(Bool(_deci32))
+var _null = null
+println(Bool(_null))
+var _str = "Hello"
+println(Bool(_str))
+var _char = 'x'
+println(Bool(_char))
+var _int64 = 1000000000000
+println(Bool(_int64))
+var _int8 = 127
+println(Bool(_int8))

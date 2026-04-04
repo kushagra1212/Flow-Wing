@@ -151,13 +151,12 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
             m_ir_gen_context.createAlloca(builder->getPtrTy(), "obj_arg_slot");
 
         if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
-            llvm::isa<llvm::GlobalVariable>(m_last_value)) {
-          val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
-                                        ->getLLVMType(param_raw_type)
-                                        ->getPointerTo(),
-                                    m_last_value, "heap_ptr");
-        } else if (llvm::isa<llvm::GetElementPtrInst>(m_last_value) ||
-                   llvm::isa<llvm::GEPOperator>(m_last_value)) {
+        llvm::isa<llvm::GlobalVariable>(m_last_value)
+        ||
+        llvm::isa<llvm::GetElementPtrInst>(m_last_value) 
+        ||
+        llvm::isa<llvm::GEPOperator>(m_last_value)||
+                   (llvm::isa<llvm::GetElementPtrInst>(m_last_value ) && param_raw_type->getKind() == types::TypeKind::kClass)) {
           // Member field holding a class reference: m_last_value is the field
           // address (e.g. GEP to `c` in `self.c.bump()`), not the heap pointer.
           val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()

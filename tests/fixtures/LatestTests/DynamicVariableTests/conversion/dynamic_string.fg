@@ -1,0 +1,16 @@
+var _int = 100000222222
+println(String(_int))
+var _deci = 10.0
+println(String(_deci))
+var _bool = true
+println(String(_bool))
+var _null = null
+println(String(_null))
+var _str = "Hello"
+println(String(_str))
+var _char = 'x'
+println(String(_char))
+var _int64 = 1000000000000
+println(String(_int64))
+var _int8 = 127
+println(String(_int8))

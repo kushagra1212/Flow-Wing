@@ -1,0 +1,19 @@
+class A {
+    var a:A 
+    
+}
+var o_a:A = new A()
+
+if(o_a.a != null) {
+    println("o_a is not null")
+} else {
+    println("o_a is null")
+}
+
+var o_b:A = o_a.a
+
+if(o_b != null) {
+    println("o_b is not null")
+} else {
+    println("o_b is null")
+}

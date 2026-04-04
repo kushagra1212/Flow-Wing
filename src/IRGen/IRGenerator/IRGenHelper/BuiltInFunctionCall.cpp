@@ -24,7 +24,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/utils/LogConfig.h"
 #include <string>
-
+ #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 namespace flow_wing::ir_gen {
 
 void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
@@ -411,6 +411,38 @@ void IRGenerator::emitCast(
 
   assert(m_last_value && "m_last_value is null");
 
+  if (m_last_type->isDynamic()) {
+    auto &builder = m_ir_gen_context.getLLVMBuilder();
+    auto *module = m_ir_gen_context.getLLVMModule();
+
+    llvm::Value *dyn_ptr = ensurePointer(m_last_value, m_last_type, "dyn_cast_ptr");
+    llvm::Function *unbox_fn = nullptr;
+
+    if (target_type == analysis::Builtins::m_int8_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int8_fn));
+    } else if (target_type == analysis::Builtins::m_int32_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int32_fn));
+    } else if (target_type == analysis::Builtins::m_int64_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int64_fn));
+    } else if (target_type == analysis::Builtins::m_bool_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_bool_fn));
+    } else if (target_type == analysis::Builtins::m_deci32_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_float32_fn));
+    } else if (target_type == analysis::Builtins::m_deci_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_float64_fn));
+    } else if (target_type == analysis::Builtins::m_char_type_instance.get()) {
+      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_char_fn));
+    } else {
+      assert(false && "Unsupported dynamic unbox target type");
+    }
+
+    assert(unbox_fn && "Unbox function not found in module (ensure it is declared)");
+    
+    m_last_value = builder->CreateCall(unbox_fn, {dyn_ptr}, "unbox_result");
+    m_last_type = target_type;
+    return;
+  }
+
   auto last_value = resolveValue(m_last_value, m_last_type);
   m_last_value = converter(last_value, last_value->getType());
   m_last_type = target_type;
@@ -441,13 +473,25 @@ void IRGenerator::dispatchBuiltinFunctionCall(
     argument->accept(this);
     assert(m_last_value && "m_last_value is null");
     assert(m_last_type && "m_last_type is null");
+    if (m_last_type->isDynamic()) {
+      auto &builder = m_ir_gen_context.getLLVMBuilder();
+      auto *module = m_ir_gen_context.getLLVMModule();
+      
+      llvm::Value *dyn_ptr = ensurePointer(m_last_value, m_last_type, "dyn_str_ptr");
+      llvm::Function *unbox_string_fn = module->getFunction("fg_unbox_string");
+      assert(unbox_string_fn && "fg_unbox_string function not found in module");
+      
+      m_last_value = builder->CreateCall(unbox_string_fn, {dyn_ptr}, "unbox_str_result");
+      m_last_type = analysis::Builtins::m_str_type_instance.get();
+    }else {
 
-    auto last_value = resolveValue(m_last_value, m_last_type);
-    bool is_char =
-        (m_last_type == analysis::Builtins::m_char_type_instance.get());
-
-    m_last_value = convertToString(last_value, last_value->getType(), is_char);
-    m_last_type = analysis::Builtins::m_str_type_instance.get();
+      auto last_value = resolveValue(m_last_value, m_last_type);
+      bool is_char =
+          (m_last_type == analysis::Builtins::m_char_type_instance.get());
+  
+      m_last_value = convertToString(last_value, last_value->getType(), is_char);
+      m_last_type = analysis::Builtins::m_str_type_instance.get();
+    }
   } else if (fn_name == fns::kBool_fn) {
     emitCast(
         call_expression, analysis::Builtins::m_bool_type_instance.get(),
