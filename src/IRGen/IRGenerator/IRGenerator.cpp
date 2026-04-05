@@ -56,8 +56,8 @@ namespace ir_gen {
 
 namespace {
 
-std::string broughtInitFunctionName(int index) {
-  return "__fw_brought_init_" + std::to_string(index);
+std::string broughtInitFunctionName([[maybe_unused]] int index, std::string module_name) {
+  return "__fw_brought_" + module_name + "_init_";
 }
 
 } // namespace
@@ -76,7 +76,7 @@ llvm::Function *IRGenerator::createEntryPointFunction() {
       llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext());
   llvm::Type *charType =
       llvm::Type::getInt8Ty(*m_ir_gen_context.getLLVMContext());
-  llvm::Type *charPtrType = charType->getPointerTo(); // i8* (char*)
+  llvm::Type *charPtrType = charType->getPointerTo(); // i8* (char*) 
   llvm::Type *argvType = charPtrType->getPointerTo(); // i8** (char**)
 
   auto function_type =
@@ -149,7 +149,8 @@ void IRGenerator::visit(
     const auto &brought_paths =
         m_ir_gen_context.getCompilationContext().getBroughtSourcePaths();
     for (size_t i = 0; i < brought_paths.size(); ++i) {
-      const std::string name = broughtInitFunctionName(static_cast<int>(i));
+      auto module_name = utils::PathUtils::getFileName(brought_paths[i]);
+      const std::string name = broughtInitFunctionName(static_cast<int>(i), module_name);
       llvm::Function *f = mod->getFunction(name);
       if (!f) {
         f = llvm::Function::Create(void_void, llvm::Function::ExternalLinkage,
@@ -165,9 +166,10 @@ void IRGenerator::visit(
     int pri_idx =
         m_ir_gen_context.getCompilationContext().getBroughtCtorPriority();
     const int idx = pri_idx >= 0 ? pri_idx : 0;
+    auto module_name = utils::PathUtils::getFileName(m_ir_gen_context.getCompilationContext().getAbsoluteSourceFilePath());
     brought_init_fn = llvm::Function::Create(
         init_ft, llvm::Function::ExternalLinkage,
-        broughtInitFunctionName(idx), mod);
+        broughtInitFunctionName(idx, module_name), mod);
     llvm::BasicBlock *init_bb =
         llvm::BasicBlock::Create(ctx, "entry", brought_init_fn);
     m_ir_gen_context.setInsertPoint(init_bb);

@@ -1,0 +1,37 @@
+<h1>System Override Console</h1>
+<div class="grid">
+    <div class="panel">
+        <h3>🛰️ TELEMETRY (SSR LIVE)</h3>
+        <div class="stat"><span>FUEL</span><div class="bar-bg"><div class="bar-fill" style="width: {{fuel}}%"></div></div><span>{{fuel}}%</span></div>
+        <div class="stat"><span>OXYGEN</span><div class="bar-bg"><div class="bar-fill" style="width: {{o2}}%"></div></div><span>{{o2}}%</span></div>
+        <div class="stat"><span>HULL</span><div class="bar-bg"><div class="bar-fill" style="width: {{hull}}%; background-color: {{hull_color}}"></div></div><span>{{hull}}%</span></div>
+        <div class="stat"><span>CORE TEMP</span><span class="{{temp_alert}}">{{temp}}°C</span></div>
+        <div class="stat"><span>SHIELDS</span><span class="{{shield_alert}}">{{shields}}</span></div>
+    </div>
+    <div class="panel">
+        <h3>💻 COMMAND TERMINAL</h3>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="cmdInput" placeholder="try: shields_on, repair, warp" onkeydown="if(event.key === 'Enter') sendCommand()">
+            <button onclick="sendCommand()">EXECUTE</button>
+        </div>
+        <div id="term-log" style="height: 150px; overflow-y: auto; margin-top: 15px; color: #aaa; font-size: 0.9em;">
+            <div>> Backend Tick: {{tick}}</div>
+        </div>
+    </div>
+</div>
+<script>
+    function sendCommand() {
+        const input = document.getElementById('cmdInput');
+        const cmd = input.value;
+        if(!cmd) return;
+        
+        fetch('/api/command', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: cmd })
+        }).then(() => {
+            // Instantly force a page reload to fetch the new Server-Rendered state!
+            window.location.reload(); 
+        });
+    }
+</script>

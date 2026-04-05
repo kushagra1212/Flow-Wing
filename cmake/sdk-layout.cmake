@@ -36,7 +36,8 @@ set(SDK_LIBRARY_TARGETS
     flowwing_vec
     flowwing_text
     flowwing_file
-
+    flowwing_vortex
+    
     # Add other custom library target names here as you create them
     CACHE INTERNAL "List of custom library targets to include in the SDK."
 )

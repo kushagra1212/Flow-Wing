@@ -1,13 +1,31 @@
+/; TEST_SERVER_PORT: 9433
 bring vortex
 bring json
 bring map
 bring vec
 bring text
 bring Err
+bring file
 
+var absolutePath: str = "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests/ServerTests/mission_control_server/"
+
+var dashboardPath: str = absolutePath + "dashboard.html"
+var layoutPath: str = absolutePath + "layout.html"
+var crewCardPath: str = absolutePath + "crew_card.html"
+var cmdrCardPath: str = absolutePath + "cmdr_card.html"
 /; ==========================================
-/; 1. The FlowWing Template Engine
+/; 1. File Loader & Template Engine
 /; ==========================================
+
+/; Helper function to safely load HTML files
+fun loadTemplate(path: str) -> str {
+  var content: str, err: Err::Result = file::readText(path)
+  if Err::isErr(err) {
+    println("WARNING: Could not load template -> " + path)
+    return "<h2>Template Missing: " + path + "</h2>"
+  }
+  return content
+}
 
 class Template {
   var _engine: text::Text
@@ -16,11 +34,10 @@ class Template {
     self._engine = new text::Text(rawHtml)
   }
   
-  /; Replaces {{key}} with the provided value
   fun set(key: str, value: str) -> Template {
     var target = "{{" + key + "}}"
     self._engine.replace(target, value)
-    return self /; Allows method chaining!
+    return self 
   }
   
   fun render() -> str {
@@ -29,7 +46,7 @@ class Template {
 }
 
 /; ==========================================
-/; 2. Data Models
+/; 2. Data Models (Reading HTML from Disk!)
 /; ==========================================
 
 class Astronaut {
@@ -44,7 +61,8 @@ class Astronaut {
   }
 
   fun getProfile() -> str {
-    var tpl: Template = new Template("<div class='crew-card'><h3>{{name}}</h3><p>Role: {{role}}</p><p>Status: <span class='ok'>{{status}}</span></p></div>")
+    var tplHtml: str = loadTemplate(crewCardPath)
+    var tpl: Template = new Template(tplHtml)
     return tpl.set("name", self.name).set("role", self.role).set("status", self.status).render()
   }
 }
@@ -58,7 +76,8 @@ class Commander extends Astronaut {
   }
 
   fun getProfile() -> str {
-    var tpl: Template = new Template("<div class='crew-card cmdr'><h3>⭐ {{name}}</h3><p>Role: {{role}}</p><p>Tours: {{tours}}</p><p>Status: <span class='ok'>{{status}}</span></p></div>")
+    var tplHtml: str = loadTemplate(cmdrCardPath)
+    var tpl: Template = new Template(tplHtml)
     return tpl.set("name", self.name).set("role", self.role).set("tours", String(self.missionsCompleted)).set("status", self.status).render()
   }
 }
@@ -87,105 +106,7 @@ fun initiateWarp(inout data: int[4]) -> bool {
 }
 
 /; ==========================================
-/; 4. HTML Templates (Raw Strings)
-/; ==========================================
-
-fun getLayoutTemplate() -> str {
-  return `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="refresh" content="3">
-      <title>Orion SpaceOS - {{title}}</title>
-      <style>
-          body { background: #050505; color: #00ffcc; font-family: 'Courier New', monospace; margin: 0; display: flex; }
-          .sidebar { width: 200px; background: #111; height: 100vh; padding: 20px 0; border-right: 1px solid #00ffcc; }
-          .sidebar h2 { text-align: center; text-shadow: 0 0 10px #00ffcc; margin-bottom: 30px;}
-          .nav-link { display: block; padding: 15px 20px; color: #00ffcc; text-decoration: none; font-weight: bold; border-left: 3px solid transparent; transition: 0.2s; }
-          .nav-link:hover, .nav-link.{{active_class}} { background: rgba(0,255,204,0.1); border-left: 3px solid #00ffcc; text-shadow: 0 0 5px #00ffcc; }
-          .content { flex: 1; padding: 40px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
-          
-          /* Dashboard Styles */
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-          .panel { background: #111; border: 1px solid #00ffcc; padding: 20px; box-shadow: 0 0 15px rgba(0,255,204,0.1); border-radius: 5px; }
-          .stat { font-size: 1.2em; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-          .bar-bg { background: #333; width: 50%; height: 20px; border-radius: 10px; overflow: hidden; }
-          .bar-fill { background: #00ffcc; height: 100%; transition: width 0.5s; }
-          .alert { color: #ff3366 !important; text-shadow: 0 0 10px #ff3366 !important; }
-          .ok { color: #00ffcc; }
-          input[type="text"] { background: #000; border: 1px solid #00ffcc; color: #00ffcc; padding: 10px; width: 65%; font-family: inherit; }
-          button { background: #00ffcc; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; font-family: inherit; }
-          button:hover { background: #fff; box-shadow: 0 0 10px #fff; }
-          
-          /* Crew & Logs Styles */
-          .crew-card { background: #111; border: 1px solid #444; padding: 20px; margin-bottom: 15px; border-radius: 5px; }
-          .crew-card.cmdr { border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
-          .crew-card h3 { margin-top: 0; color: #fff; }
-          .log-entry { padding: 10px; border-bottom: 1px dashed #333; color: #aaa; }
-          .log-entry span { color: #00ffcc; }
-      </style>
-  </head>
-  <body>
-      <div class="sidebar">
-          <h2>🚀 SpaceOS</h2>
-          <a href="/" class="nav-link {{home_active}}">Dashboard</a>
-          <a href="/crew" class="nav-link {{crew_active}}">Crew Roster</a>
-          <a href="/logs" class="nav-link {{logs_active}}">Mission Logs</a>
-      </div>
-      <div class="content">
-          {{content}}
-      </div>
-  </body>
-  </html>
-  `
-}
-
-fun getDashboardTemplate() -> str {
-  return `
-    <h1>System Override Console</h1>
-    <div class="grid">
-        <div class="panel">
-            <h3>🛰️ TELEMETRY (SSR LIVE)</h3>
-            <div class="stat"><span>FUEL</span><div class="bar-bg"><div class="bar-fill" style="width: {{fuel}}%"></div></div><span>{{fuel}}%</span></div>
-            <div class="stat"><span>OXYGEN</span><div class="bar-bg"><div class="bar-fill" style="width: {{o2}}%"></div></div><span>{{o2}}%</span></div>
-            <div class="stat"><span>HULL</span><div class="bar-bg"><div class="bar-fill" style="width: {{hull}}%; background-color: {{hull_color}}"></div></div><span>{{hull}}%</span></div>
-            <div class="stat"><span>CORE TEMP</span><span class="{{temp_alert}}">{{temp}}°C</span></div>
-            <div class="stat"><span>SHIELDS</span><span class="{{shield_alert}}">{{shields}}</span></div>
-        </div>
-        <div class="panel">
-            <h3>💻 COMMAND TERMINAL</h3>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="cmdInput" placeholder="try: shields_on, repair, warp" onkeydown="if(event.key === 'Enter') sendCommand()">
-                <button onclick="sendCommand()">EXECUTE</button>
-            </div>
-            <div id="term-log" style="height: 150px; overflow-y: auto; margin-top: 15px; color: #aaa; font-size: 0.9em;">
-                <div>> Backend Tick: {{tick}}</div>
-            </div>
-        </div>
-    </div>
-    <script>
-        function sendCommand() {
-            const input = document.getElementById('cmdInput');
-            const cmd = input.value;
-            if(!cmd) return;
-            
-            fetch('/api/command', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ action: cmd })
-            }).then(() => {
-                // Instantly force a page reload to fetch the new Server-Rendered state!
-                window.location.reload(); 
-            });
-        }
-    </script>
-  `
-}
-
-
-/; ==========================================
-/; 5. Server Loop & Application Logic
+/; 4. Server Loop & HTTP Logic
 /; ==========================================
 
 fun parseRoute(req: vortex::Request) -> str, str {
@@ -194,29 +115,32 @@ fun parseRoute(req: vortex::Request) -> str, str {
 
 fun fg_main() -> nthg {
   var app: vortex::Server = new vortex::Server()
-  var err: Err::Result = app.listen(8080)
+  var err: Err::Result = app.listen(9433)
   
   if Err::isErr(err) {
     println("Fatal: " + err.getMessage())
     return:
   }
 
-  println("🌌 SpaceOS SSR Engine initialized on port 8080")
+  println("SpaceOS File-Driven SSR Engine initialized on port 9433")
 
   /; Application State
   var cmdr: Commander = new Commander("Elena Rostova", "Mission Commander", 4)
   var eng: Astronaut = new Astronaut("Kaelen", "Chief Engineer")
-  
   var globalLogs: text::Text = new text::Text("<div class='log-entry'><span>[SYS]</span> Boot sequence complete.</div>")
   
   var sysData: int[4] = [100, 100, 22, 100] /; Fuel, O2, Temp, Hull
   var shieldsActive: bool = false
   var serverTicks: int = 0
 
-  while true {
+  for var i: int = 0 to 3 {
     var req: vortex::Request, res: vortex::Response = app.accept()
     var method, path = parseRoute(req)
     
+
+    /; Add a print statement so the test runner can capture what route was hit
+    println("-> " + method + " " + path)
+
     serverTicks = serverTicks + 1
     decaySystems(sysData, serverTicks)
 
@@ -225,8 +149,9 @@ fun fg_main() -> nthg {
     /; -------------------------
     if method == "GET" && path == "/" {
       
-      /; 1. Render the inner dashboard content
-      var dashTpl: Template = new Template(getDashboardTemplate())
+      var dashHtml: str = loadTemplate(dashboardPath)
+      var dashTpl: Template = new Template(dashHtml)
+      
       dashTpl.set("fuel", String(sysData[0]))
              .set("o2", String(sysData[1]))
              .set("hull", String(sysData[3]))
@@ -237,8 +162,9 @@ fun fg_main() -> nthg {
              .set("shield_alert", (shieldsActive ? "" : "alert"))
              .set("tick", String(serverTicks))
              
-      /; 2. Inject it into the main layout
-      var layout: Template = new Template(getLayoutTemplate())
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
+      
       layout.set("title", "Dashboard")
             .set("home_active", "active")
             .set("crew_active", "")
@@ -250,7 +176,8 @@ fun fg_main() -> nthg {
     } else if method == "GET" && path == "/crew" {
       var content = "<h1>Manifest & Crew Roster</h1>" + cmdr.getProfile() + eng.getProfile()
       
-      var layout: Template = new Template(getLayoutTemplate())
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
       layout.set("title", "Crew")
             .set("home_active", "")
             .set("crew_active", "active")
@@ -262,7 +189,8 @@ fun fg_main() -> nthg {
     } else if method == "GET" && path == "/logs" {
       var content = "<h1>Main System Logs</h1><div style='background: #0a0a0a; border: 1px solid #333; padding: 20px; border-radius: 5px; height: 600px; overflow-y: auto;'>" + globalLogs.get() + "</div>"
       
-      var layout: Template = new Template(getLayoutTemplate())
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
       layout.set("title", "Logs")
             .set("home_active", "")
             .set("crew_active", "")
@@ -317,6 +245,7 @@ fun fg_main() -> nthg {
       res.status(404).send("404 - Void")
     }
   }
+    println("Server shutting down cleanly.")
 }
 
 fg_main()

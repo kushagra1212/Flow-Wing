@@ -27,6 +27,19 @@ class Colors:
     BOLD = '\033[1m'
     ENDC = '\033[0m'
 
+def get_server_test_port(file_path):
+    """Checks if the FlowWing file requires the test runner to send HTTP requests."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for _ in range(5):
+                line = f.readline()
+                match = re.search(r'/;\s*TEST_SERVER_PORT:\s*(\d+)', line)
+                if match:
+                    return int(match.group(1))
+    except Exception:
+        pass
+    return None
+
 def _stdout_supports_unicode():
     """Use ASCII progress bar when stdout encoding can't represent Unicode (e.g. Windows cp1252 in CI)."""
     if platform.system() == 'Windows':
@@ -389,6 +402,66 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 run_cmd = [str(binary_path)]
             else:
                 run_cmd = [str(compiler_bin), str(file_path)]
+
+            server_port = get_server_test_port(file_path)
+            client_thread = None
+            if server_port:
+                def fire_requests():
+                    import urllib.request
+                    import urllib.error
+                    import time
+                    import json
+                    
+                    # 1. Wait for JIT compilation to finish by polling the server
+                    server_up = False
+                    base_url = f"http://127.0.0.1:{server_port}"
+                    
+                    for _ in range(100):  # Try for up to 3 seconds
+                        try:
+                            urllib.request.urlopen(f"{base_url}/")
+                            server_up = True
+                            break # Success! Server is up and processed the first request.
+                        except urllib.error.URLError:
+                            time.sleep(0.1)
+                            
+                    if not server_up:
+                        return # Gave up waiting
+                        
+                    # 2. Fire specific requests based on the test file name
+                    filename = file_path.name
+                    
+                    if "vortex_router" in filename:
+                        # ---------------------------------------------
+                        # Requests for the vortex_router.fg test
+                        # ---------------------------------------------
+                        urls = [f"{base_url}/api/data", f"{base_url}/404-check"]
+                        for url in urls:
+                            try: urllib.request.urlopen(url)
+                            except urllib.error.URLError: pass
+                            
+                    elif "mission_control" in filename:
+                        # ---------------------------------------------
+                        # Requests for the test_mission_control.fg test
+                        # ---------------------------------------------
+                        urls = [f"{base_url}/crew", f"{base_url}/logs"]
+                        for url in urls:
+                            try: urllib.request.urlopen(url)
+                            except urllib.error.URLError: pass
+                            
+                        # Fire the POST request to test the JSON Command API
+                        try:
+                            post_data = json.dumps({"action": "shields_on"}).encode('utf-8')
+                            post_req = urllib.request.Request(
+                                f"{base_url}/api/command", 
+                                data=post_data, 
+                                headers={'Content-Type': 'application/json'}
+                            )
+                            urllib.request.urlopen(post_req)
+                        except urllib.error.URLError:
+                            pass
+                            
+                client_thread = threading.Thread(target=fire_requests)
+                client_thread.start()
 
             # Use env=run_env here
             result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)

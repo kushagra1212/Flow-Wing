@@ -3,6 +3,7 @@
 FlowWing is a modern, statically-typed programming language with powerful dynamic features, designed for clarity, safety, and efficiency. This document provides a comprehensive overview of the language's syntax, features, and unique behaviors as found in the repository's test fixtures and compiler code.
 
 ## 1. File Extension
+
 The standard file extension for FlowWing source files is `.fg`.
 
 ---
@@ -10,16 +11,18 @@ The standard file extension for FlowWing source files is `.fg`.
 ## 2. Basic Syntax and Types
 
 ### 2.1 Variables and Constants
+
 FlowWing uses `var` for mutable variables and `const` for immutable constants.
 
 ```flow
-var x: int = 10      // Typed variable
-var y = 20           // Type inferred as int
-const z: str = "Hi"  // Constant string
-const PI = 3.14      // Constant float/deci
+var x: int = 10; // Typed variable
+var y = 20; // Type inferred as int
+const z: str = "Hi"; // Constant string
+const PI = 3.14; // Constant float/deci
 ```
 
 ### 2.2 Primitive Types
+
 - **`int`**: 64-bit signed integer (default for literal `1`).
 - **`int8`, `int32`, `int64`**: Explicitly sized signed integers.
 - **`deci`**: Double-precision floating point (default for literal `1.0`).
@@ -32,6 +35,7 @@ const PI = 3.14      // Constant float/deci
 - **`null`**: Represents the absence of a value (used for classes and optional results).
 
 ### 2.3 Comments
+
 FlowWing uses `/;` for single-line comments.
 
 ```flow
@@ -54,6 +58,7 @@ var a = 5 /; This is a comment
 ## 4. Control FlowWing
 
 ### 4.1 If Statements
+
 ```flow
 if x > 10 {
   println("Greater")
@@ -65,6 +70,7 @@ if x > 10 {
 ```
 
 ### 4.2 Switch Statements
+
 Supports integers, booleans, and strings.
 
 ```flow
@@ -76,15 +82,17 @@ switch a {
 ```
 
 ### 4.3 For Loops
+
 Traditional C-style for loops are supported.
 
 ```flow
-for var i: int = 0; i < 10; i = i + 1 {
+for var i: int = 0 to 9 {
   println(i)
 }
 ```
 
 ### 4.4 While Loops
+
 ```flow
 while x < 10 {
   x = x + 1
@@ -96,6 +104,7 @@ while x < 10 {
 ## 5. Functions
 
 ### 5.1 Definition
+
 Functions use the `fun` keyword and specify return types with `->`.
 
 ```flow
@@ -105,6 +114,7 @@ fun add(a: int, b: int) -> int {
 ```
 
 ### 5.2 Multi-Return
+
 Functions can return multiple values, which can be captured into multiple variables.
 
 ```flow
@@ -116,6 +126,7 @@ var px, py = getPoint()
 ```
 
 ### 5.3 Inout Parameters
+
 Pass-by-reference is achieved using the `inout` keyword.
 
 ```flow
@@ -132,6 +143,7 @@ increment(a) /; a is now 6
 ## 6. Object-Oriented Programming
 
 ### 6.1 Classes and Initialization
+
 Classes use `class` and have an `init` method for constructors.
 
 ```flow
@@ -146,13 +158,14 @@ var p = new Person("Alice")
 ```
 
 ### 6.2 Inheritance
+
 Uses `is` for inheritance. Subclasses call parent constructors using the parent class name or `super`.
 
 ```flow
-class Student is Person {
+class Student extends Person {
   var id: int
   fun init(name: str, id: int) -> nthg {
-    Person::init(name) /; Call parent init
+    super(name) /; Call parent init
     self.id = id
   }
 }
@@ -163,6 +176,7 @@ class Student is Person {
 ## 7. Collections
 
 ### 7.1 Arrays
+
 Fixed-size arrays with `type[size]` syntax. Supports multi-dimensional arrays.
 
 ```flow
@@ -171,6 +185,7 @@ var matrix: int[2][2] = [[1, 2], [3, 4]]
 ```
 
 ### 7.2 Vectors (`vec::Vec`)
+
 Dynamic arrays from the `vec` module. Supports chaining.
 
 ```flow
@@ -180,6 +195,7 @@ v.push(10).push(20).reverse()
 ```
 
 ### 7.3 Maps (`map::Map`)
+
 Key-value pairs from the `map` module.
 
 ```flow
@@ -193,6 +209,7 @@ m.set("key", 100)
 ## 8. Modules and Imports
 
 ### 8.1 Bring Syntax
+
 Used to import modules or specific symbols from other files.
 
 ```flow
@@ -203,6 +220,7 @@ bring { symbol } from "other_file.fg"
 ---
 
 ## 9. Dynamic Typing
+
 The `dyn` type allows for runtime type flexibility.
 
 ```flow
@@ -217,20 +235,26 @@ d = "String now" /; Legal
 ## 10. Built-in Modules and Helpers
 
 ### 10.1 `text::Text` (Bring via `bring text`)
+
 Advanced string manipulation class.
+
 - Methods: `getLength()`, `trim()`, `toUpper()`, `toLower()`, `reverse()`, `concat(s)`, `charAt(i)`, `equalsIgnoreCase(s)`, `clear()`, `isEmpty()`.
 
 ### 10.2 `Err` Module (Bring via `bring "Err-module.fg"`)
+
 Standard error handling pattern using `Err::Result`.
+
 - Functions: `Err::error(msg, code)`.
 - Error Codes: `Err::CODE.NOT_FOUND`, `Err::CODE.INVALID_ARGUMENT`, etc.
 
 ### 10.3 Type Conversion Functions
+
 `String(x)`, `Int(x)`, `Deci(x)`, `Bool(x)`, `Char(x)`, `Int8(x)`, `Int32(x)`, `Int64(x)`, `Decimal(x)`, `Decimal32(x)`.
 
 ---
 
 ## 11. Unique Language Features
+
 - **Padded Arrays**: If an array literal is shorter than its declared size, it is padded with defaults (e.g., `0` for `int`, `""` for `str`).
 - **Method Chaining**: Most methods in `vec`, `map`, and `text` return `self` to allow chaining.
 - **Qualified Member Access**: Accessing static-like members or parent constructors using `::` (e.g., `Person::init`).
@@ -240,9 +264,73 @@ Standard error handling pattern using `Err::Result`.
 ---
 
 ## Documentation for LLM Code Generation
+
 When generating FlowWing code:
+
 1. Always use `bring` for necessary modules (`vec`, `map`, `text`).
 2. Use `println()` for output.
 3. Prefer explicit `var` declarations for clarity in complex logic.
 4. Use `inout` for functions that need to modify their arguments.
 5. Classes must have an `init` function if they require state initialization.
+   var a: [4] = [1, "two", 3.0, true]
+
+fun callBackPrint(inout a: [4]) {
+println(a)
+return 2
+}
+
+fun printA(inout a: [4],callback: [([4]) ]) {
+println(a)
+a = [4, "four", 4.0, false]
+var y = callback(a)
+println(y)
+}
+
+printA(a,callBackPrint)
+println(a)
+
+[ 1, "two", 3, true ]
+[ 4, "four", 4, false ]
+2
+[ 4, "four", 4, false ]
+
+var a: [4] = [1, "two", 3.0, true]
+
+fun callBackPrint( a: [4]) -> nthg {
+println(a)
+a[2] = "Hello World"
+println(a)
+}
+
+fun printA(inout a: [4],callback: [([4]) -> nthg]) -> nthg {
+println(a)
+a = [4, "four", 4.0, false]
+callback(a)
+}
+
+printA(a,callBackPrint)
+println(a)
+
+[ 1, "two", 3, true ]
+[ 4, "four", 4, false ]
+[ 4, "four", "Hello World", false ]
+[ 4, "four", 4, false ]
+
+var a: [4] = [1, "two", 3.0, true]
+
+fun callBackPrint(inout a: [4]) -> nthg {
+println(a)
+}
+
+fun printA(inout a: [4],callback: [([4]) -> nthg]) -> nthg {
+println(a)
+a = [4, "four", 4.0, false]
+callback(a)
+}
+
+printA(a,callBackPrint)
+println(a)
+
+[ 1, "two", 3, true ]
+[ 4, "four", 4, false ]
+[ 4, "four", 4, false ]

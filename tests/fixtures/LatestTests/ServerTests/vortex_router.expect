@@ -1,0 +1,6 @@
+Vortex server listening on port 9432
+Vortex Server Ready.
+-> Received GET /
+-> Received GET /api/data
+-> Received GET /404-check
+Server shutting down cleanly.

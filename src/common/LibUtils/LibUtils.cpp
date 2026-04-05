@@ -40,6 +40,10 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     return "flowwing_file";
   }
 
+  if (file_name == "vortex-module.fg") {
+    return "flowwing_vortex";
+  }
+
   return "";
 }
 

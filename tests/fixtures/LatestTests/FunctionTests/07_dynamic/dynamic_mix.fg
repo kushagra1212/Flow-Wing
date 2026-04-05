@@ -1,0 +1,16 @@
+var a: [4] = [1, "two", 3.0, true]
+
+fun callBackPrint(inout a: [4])  {
+  println(a)
+  return 2
+}
+
+fun printA(inout a: [4],callback: [([4]) ]) {
+  println(a)
+  a = [4, "four", 4.0, false]
+  var y = callback(a)
+  println(y)
+}
+
+printA(a,callBackPrint)
+println(a)    
