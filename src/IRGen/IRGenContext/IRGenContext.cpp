@@ -214,11 +214,10 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
   }
 
   if (type == analysis::Builtins::m_deci_type_instance.get()) {
-    return llvm::ConstantFP::get(*getLLVMContext(), llvm::APFloat(0.0));
+    return llvm::ConstantFP::get(getLLVMBuilder()->getDoubleTy(), 0.0);
   }
   if (type == analysis::Builtins::m_deci32_type_instance.get()) {
-    return llvm::ConstantFP::get(*getLLVMContext(),
-                                 llvm::APFloat(static_cast<float>(0.0)));
+    return llvm::ConstantFP::get(getLLVMBuilder()->getFloatTy(), 0.0);
   }
   if (type == analysis::Builtins::m_bool_type_instance.get()) {
     return getLLVMBuilder()->getInt1(false);

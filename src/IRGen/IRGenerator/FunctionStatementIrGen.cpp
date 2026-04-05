@@ -50,6 +50,8 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
 
   assert(llvm_function && "Function not found [BoundFunctionStatement::visit]");
 
+  llvm_function->setLinkage(llvm::Function::WeakODRLinkage);
+
   auto &builder = m_ir_gen_context.getLLVMBuilder();
 
   llvm::BasicBlock *saved_block = builder->GetInsertBlock();

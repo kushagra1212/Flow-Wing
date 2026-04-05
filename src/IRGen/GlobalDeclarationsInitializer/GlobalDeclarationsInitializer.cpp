@@ -173,6 +173,7 @@ void GlobalDeclarationsInitializer::declareFunctions(
         auto is_return_by_reference =
             function_type->getReturnTypes()[0]->type_convention ==
             types::TypeConvention::kFlowWing;
+
         // External linkage so definitions are exported from each .o file and
         // unresolved references from other TUs resolve at link time.
         auto llvm_function = llvm::Function::Create(
@@ -273,12 +274,18 @@ void GlobalDeclarationsInitializer::emitGlobalVariableForSymbol(
     }
   }
 
+
+
   // Imported globals are extern declarations (resolved in another .o).
   // Definitions use external linkage so the symbol is exported from its .o.
   auto *globalVar = new llvm::GlobalVariable(
       *module, llvm_type, is_llvm_constant,
-      llvm::GlobalValue::ExternalLinkage,
+      llvm::GlobalValue::ExternalLinkage ,
       imported ? nullptr : default_value, variable_symbol->getName());
+
+      if (!imported && default_value != nullptr) {
+        globalVar->setLinkage(llvm::GlobalValue::WeakODRLinkage);
+    }
 
   m_ir_gen_context.setSymbol(variable_symbol->getName(), globalVar);
 
@@ -379,6 +386,7 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
 
         auto *llvm_function_type =
             m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
+
 
         llvm::Function *llvm_fn = llvm::Function::Create(
             llvm_function_type, llvm::Function::ExternalLinkage,

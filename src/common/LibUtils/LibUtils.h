@@ -24,7 +24,6 @@
 
 extern const char *STATIC_LINKING_LIBRARIES[5];
 
-extern const char *DYNAMIC_LINKING_LIBRARIES[2];
 
 
 std::vector<std::string>

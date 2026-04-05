@@ -36,6 +36,10 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     return "flowwing_vec";
   }
 
+  if (file_name == "file-module.fg") {
+    return "flowwing_file";
+  }
+
   return "";
 }
 
@@ -45,7 +49,6 @@ const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "dynamic", "gc",
                                            "gccpp",           "atomic_ops"};
 
 
-const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vec", "flowwing_map"};
 
 std::vector<std::string>
 getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {

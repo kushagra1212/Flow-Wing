@@ -1,13 +1,13 @@
 module [Err]
 
-type ErrorCode = {
+type CodeType = {
   OK: int8,
   NOT_FOUND: int8,
   FAILED: int8,
   INVALID_ARGUMENT: int8
 }
 
-const CODE: Err::ErrorCode = {
+const CODE: Err::CodeType = {
   OK: 0,
   NOT_FOUND: 1,
   FAILED: 2,

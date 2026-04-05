@@ -416,6 +416,27 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
     if (target_type == analysis::Builtins::m_str_type_instance.get()) {
       unboxed_val = materializeMutableString(unboxed_val);
     }
+    
+    if (unboxed_val->getType()->isIntegerTy() && llvm_target_type->isIntegerTy()) {
+      unsigned src_width = unboxed_val->getType()->getIntegerBitWidth();
+      unsigned target_width = llvm_target_type->getIntegerBitWidth();
+      
+      if (src_width > target_width) {
+        auto truncated_val = builder->CreateTrunc(unboxed_val, llvm_target_type, "unbox_trunc");
+        builder->CreateStore(truncated_val, target_addr);
+        return;
+      }
+    }else if (unboxed_val->getType()->isFloatingPointTy() && llvm_target_type->isFloatingPointTy()) {
+      llvm::TypeSize src_width = (unboxed_val->getType()->getPrimitiveSizeInBits());
+      llvm::TypeSize target_width = llvm_target_type->getPrimitiveSizeInBits();
+      
+      if (src_width > target_width) {
+        auto truncated_val = builder->CreateFPTrunc(unboxed_val, llvm_target_type, "unbox_trunc");
+        builder->CreateStore(truncated_val, target_addr);
+        return;
+      }
+    }
+
     builder->CreateStore(unboxed_val, target_addr);
     return;
   }
@@ -428,6 +449,26 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
   if (*target_type != *source_type) {
 
     val_to_store = convertToTargetType(val_to_store, target_type, source_type);
+  }
+
+  if (val_to_store->getType()->isIntegerTy() && llvm_target_type->isIntegerTy()) {
+    unsigned src_width = val_to_store->getType()->getIntegerBitWidth();
+    unsigned target_width = llvm_target_type->getIntegerBitWidth();
+    
+    if (src_width > target_width) {
+      val_to_store = builder->CreateTrunc(val_to_store, llvm_target_type, "safe_trunc");
+    } else if (src_width < target_width) {
+      val_to_store = builder->CreateSExt(val_to_store, llvm_target_type, "safe_sext");
+    }
+  }else if (val_to_store->getType()->isFloatingPointTy() && llvm_target_type->isFloatingPointTy()) {
+    auto src_width = val_to_store->getType()->getPrimitiveSizeInBits();
+    auto target_width = llvm_target_type->getPrimitiveSizeInBits();
+    
+    if (src_width > target_width) {
+      val_to_store = builder->CreateFPTrunc(val_to_store, llvm_target_type, "safe_fptrunc");
+    } else if (src_width < target_width) {
+      val_to_store = builder->CreateFPExt(val_to_store, llvm_target_type, "safe_fpext");
+    }
   }
 
   builder->CreateStore(val_to_store, target_addr);
