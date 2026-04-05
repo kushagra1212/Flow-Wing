@@ -69,6 +69,7 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
   const auto &brought = context.getBroughtSourcePaths();
   for (size_t i = 0; i < brought.size(); ++i) {
     const std::string &src_path = brought[i];
+
     CompilerOptions dep_opts;
     dep_opts.input_file_path = src_path;
     dep_opts.output_dir = parent_opts.output_dir;
@@ -93,6 +94,24 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
         dep_ctx.getAbsoluteSourceFilePath());
   }
   return ReturnStatus::kSuccess;
+}
+
+
+/// Upgrades LinkOnce linkage to Weak linkage to prevent llvm::Linker 
+/// from aggressively stripping transitive dependencies during manual module merging.
+void preventLinkerStripping(llvm::Module &M) {
+  for (llvm::Function &F : M) {
+    if (F.hasLinkOnceLinkage()) {
+      F.setLinkage(F.hasLinkOnceODRLinkage() ? llvm::GlobalValue::WeakODRLinkage
+                                             : llvm::GlobalValue::WeakAnyLinkage);
+    }
+  }
+  for (llvm::GlobalVariable &GV : M.globals()) {
+    if (GV.hasLinkOnceLinkage()) {
+      GV.setLinkage(GV.hasLinkOnceODRLinkage() ? llvm::GlobalValue::WeakODRLinkage
+                                               : llvm::GlobalValue::WeakAnyLinkage);
+    }
+  }
 }
 
 /// IR paths to load in dependency-first order (brought TUs, then primary), then
@@ -159,17 +178,7 @@ collectOrderedIRFiles(const CompilationContext &context,
   // `getBroughtSourcePaths()` order, then the primary TU.
   auto rank_of = [&](const std::string &ir_path) -> int {
     const std::string ik = canonical_key(ir_path);
-    int idx = 0;
-    for (const auto &src : context.getBroughtSourcePaths()) {
-      std::string p =
-          flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, src);
-      std::error_code ec;
-      if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
-        return idx;
-      }
-      ++idx;
-    }
-    const int primary_rank = idx;
+
     for (const std::string *ms : {&context.getOptions().input_file_path,
                                   &context.getAbsoluteSourceFilePath()}) {
       if (ms->empty()) {
@@ -179,10 +188,22 @@ collectOrderedIRFiles(const CompilationContext &context,
           flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, *ms);
       std::error_code ec;
       if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
-        return primary_rank;
+        return 0; 
       }
     }
-    return 1000000;
+
+    int idx = 1;
+    for (const auto &src : context.getBroughtSourcePaths()) {
+      std::string p =
+          flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, src);
+      std::error_code ec;
+      if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
+        return idx;
+      }
+      ++idx;
+    }
+
+    return 1000000; // Anything else
   };
   std::stable_sort(ordered.begin(), ordered.end(),
                    [&](const std::string &a, const std::string &b) {
@@ -256,7 +277,10 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   // Multiple `addIRModule` calls left ctor execution order flaky across
   // platforms / ORC versions.
   std::unique_ptr<llvm::Module> combined = std::move(parsed[0]);
+  preventLinkerStripping(*combined);
   for (size_t i = 1; i < parsed.size(); ++i) {
+
+    preventLinkerStripping(*parsed[i]);
     if (llvm::Linker::linkModules(*combined, std::move(parsed[i]))) {
       flow_wing::cli::Reporter::error("JIT: failed to link IR module " +
                                       std::to_string(i));
@@ -313,7 +337,7 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
 
     DEBUG_LOG(" [INFO]: Running JIT Code...", "");
 
-    // EXECUTE
+ 
     [[maybe_unused]] int result = MainFn(argc, argv);
 
     DEBUG_LOG(" [INFO]: JIT Execution finished with code: ", result);

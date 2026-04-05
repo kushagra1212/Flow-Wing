@@ -6,7 +6,7 @@ add_library(flowwing_file STATIC
 if(WIN32)
     add_compile_definitions(
         flowwing_file
-        PRIVATE
+        PRIVATE 
         GC_NOT_DLL
     )
 endif()

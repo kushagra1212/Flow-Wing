@@ -1,0 +1,15 @@
+
+bring Err
+bring vec 
+
+var list: vec::Vec = new vec::Vec()
+list.push(1)
+list.push(2)
+list.push(3)
+
+for var i: int = 0 to list.size() - 1 {
+  println(list.get(i))
+}
+
+var err: Err::Result = Err::error("boom")
+println(err.toString())

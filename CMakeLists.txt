@@ -44,7 +44,9 @@ include(cmake/targets.cmake)
 include(cmake/installation.cmake)
 include(cmake/packaging.cmake)
 
+
 # Conditional inclusion of testing configuration.
 if(TESTS_ENABLED)
     include(cmake/testing.cmake)
 endif()
+

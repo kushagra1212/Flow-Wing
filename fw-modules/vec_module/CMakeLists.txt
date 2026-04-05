@@ -6,7 +6,7 @@ add_library(flowwing_vec STATIC
 if(WIN32)
     add_compile_definitions(
         flowwing_vec
-        PRIVATE
+        PRIVATE 
         GC_NOT_DLL
     )
 endif()

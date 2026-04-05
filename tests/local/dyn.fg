@@ -1,142 +1,118 @@
 
-bring Err
-bring file
-bring text 
+bring json
 
-println("=========================================================")
-println("          FLOWWING FILE SYSTEM COMPREHENSIVE TESTS       ")
-println("=========================================================\n")
+println("--- Test 1: Building a JSON Object Programmatically ---")
+var myJson: json::JsonNode = json::newObject()
+myJson.put("name", json::newString("FlowWing"))
+      .put("version", json::newNumber(1.5))
+      .put("isCompiled", json::newBool(true))
+      .put("nullValue", json::newNull())
 
-var testPath = "flowwing_test_output.txt"
-var emptyTestPath = "flowwing_empty_test.txt"
+var featuresArr: json::JsonNode = json::newArray()
+featuresArr.push(json::newString("Fast"))
+           .push(json::newString("Dynamic"))
+           .push(json::newString("Safe"))
 
-println("--- Test 1: Writing and Reading Static Texts ---")
-var writeOk: bool, writeErr: Err::Result = file::writeText(testPath, "Hello, FlowWing File System!\n")
-if writeErr.isErr() { println("ERROR: " + writeErr.getMessage()) } else { println("Successfully wrote to file.") }
+myJson.put("features", featuresArr)
 
-var appOk: bool, appErr: Err::Result = file::appendText(testPath, "This is an appended line.\n")
-if appErr.isErr() { println("ERROR: " + appErr.getMessage()) } else { println("Successfully appended to file.") }
-
-var content: str, readErr: Err::Result = file::readText(testPath)
-if readErr.isOk() {
-  println("File Contents:\n" + content)
-}
-
-println("--- Test 2: Checking Existence & Error Handling ---")
-println("Does test file exist? " + String(file::exists(testPath)))
-println("Does fake file exist? " + String(file::exists("missing_file_404.txt")))
-
-var badData: str, badErr: Err::Result = file::readText("missing_file_404.txt")
-if badErr.isErr() {
-  println("Expected Error Caught (Read missing): " + badErr.getMessage())
-}
-
-var delFakeOk: bool, delFakeErr: Err::Result = file::delete("missing_file_404.txt")
-if delFakeErr.isErr() {
-  println("Expected Error Caught (Delete missing): " + delFakeErr.getMessage())
-}
+var serializedStr = json::stringify(myJson)
+println("Programmatic JSON -> String:")
+println(serializedStr)
 
 
-println("\n--- Test 3: Stateful Line-by-Line Reading ---")
-var lineFile: file::File = new file::File(testPath)
-var openErr: Err::Result = lineFile.open("r")
+println("\n--- Test 2: Parsing JSON Strings ---")
+var rawJson: str = "{ \"user\": \"Kushagra\", \"id\": 42, \"active\": true, \"scores\": [95.5, 82.0, 100.0] }"
 
-if openErr.isOk() {
-  println("Reading line by line:")
-  var lineCount = 1
-  
-  while true {
-    var line: str, eofErr: Err::Result = lineFile.readLine()
-    if eofErr.isErr() {
-      println("Reached EOF.")
-      break
-    }
-    println("Line " + String(lineCount) + ": " + line)
-    lineCount = lineCount + 1
-  }
-  lineFile.close()
-  println("File closed successfully.")
-}
+var parsedAst: json::JsonNode = json::parse(rawJson)
 
-println("\n--- Test 4: Edge Cases - Empty Files & Strings ---")
-/; Write empty string
-var emptyWOk: bool, emptyWErr: Err::Result = file::writeText(emptyTestPath, "")
-if emptyWErr.isOk() { println("Successfully created empty file.") }
+var userNode: json::JsonNode = parsedAst.get("user")
+var idNode: json::JsonNode = parsedAst.get("id")
 
-/; Read empty file statically
-var emptyData: str, emptyRErr: Err::Result = file::readText(emptyTestPath)
-if emptyRErr.isOk() {
-  println("Read empty file statically. Content length: " + String(text::getLength(emptyData))) /; Assuming String has length
-}
+println("Parsed User: " + userNode.strVal)
+println("Parsed ID: " + String(idNode.numVal))
 
-/; Read empty file statefully
-var emptyFile: file::File = new file::File(emptyTestPath)
-emptyFile.open("r")
-var emptyLine: str, emptyLineErr: Err::Result = emptyFile.readLine()
-if emptyLineErr.isErr() {
-  println("Expected Error Caught (Read line on empty file): " + emptyLineErr.getMessage())
-}
-emptyFile.close()
+var scoresArr: json::JsonNode = parsedAst.get("scores")
+var firstScore: json::JsonNode = scoresArr.getAt(0)
+println("Parsed First Score: " + String(firstScore.numVal))
 
-println("\n--- Test 5: Edge Cases - Invalid Paths ---")
-var badPathOk: bool, badPathErr: Err::Result = file::writeText("", "Should fail")
-if badPathErr.isErr() {
-  println("Expected Error Caught (Write to empty path): " + badPathErr.getMessage())
-}
 
-println("\n--- Test 6: Edge Cases - Stateful Class Misuse ---")
-var misuseFile: file::File = new file::File(testPath)
+println("\n--- Test 3: Formatting and Re-Stringifying ---")
+var reStr = json::stringify(parsedAst)
+println("Re-Stringified output:")
+println(reStr)
 
-/; 6a. Read before open
-var readBeforeOpen: str, errReadBefore: Err::Result = misuseFile.readLine()
-if errReadBefore.isErr() {
-  println("Expected Error Caught (Read before open): " + errReadBefore.getMessage())
-}
+println("\n--- Test 4: Handling Malformed JSON ---")
+var badJson = "{ \"missing_quote: true }"
+var badAst: json::JsonNode = json::parse(badJson)
+println("Parsed Bad JSON: " + json::stringify(badAst))
 
-/; 6b. Invalid mode
-var errBadMode: Err::Result = misuseFile.open("z")
-if errBadMode.isErr() {
-  println("Expected Error Caught (Invalid open mode): " + errBadMode.getMessage())
-}
+println("Multiline string: Test" )
+var templateString = `
+ {
+    "name": "John",
+    "age": 30,
+    "city": "New York"
+ }
+`
 
-/; 6c. Double open
-var errOpen1: Err::Result = misuseFile.open("r")
-var errOpen2: Err::Result = misuseFile.open("r")
-if errOpen2.isErr() {
-  println("Expected Error Caught (Double open): " + errOpen2.getMessage())
-}
 
-/; 6d. Read after close
-misuseFile.close()
-var errReadAfter: Err::Result = misuseFile.close() /; Double close should be safe per your code
-println("Double close is safe: " + String(errReadAfter.isOk()))
+println(templateString)
 
-var readAfterClose: str, errReadAfterClose: Err::Result = misuseFile.readLine()
-if errReadAfterClose.isErr() {
-  println("Expected Error Caught (Read after close): " + errReadAfterClose.getMessage())
+var parsedJson: json::JsonNode = json::parse(templateString)
+
+
+println(json::stringify(parsedJson))
+
+
+println("\n--- Test 5: Deeply Nested Structures ---")
+var deepJsonStr = "{ \"level1\": { \"level2\": { \"level3\": [ 1, [2, 3], {\"deepKey\": \"deepValue\"} ] } } }"
+var deepAst: json::JsonNode = json::parse(deepJsonStr)
+println("Parsed Deep JSON: " + json::stringify(deepAst))
+
+var l1: json::JsonNode = deepAst.get("level1")
+var l2: json::JsonNode = l1.get("level2")
+var l3: json::JsonNode = l2.get("level3")
+var innerObj: json::JsonNode = l3.getAt(2)
+println("Extracted deep value: " + innerObj.get("deepKey").strVal)
+
+println("\n--- Test 6: Array Manipulations and Bounds ---")
+var testArr: json::JsonNode = json::newArray()
+testArr.push(json::newNumber(10.0))
+       .push(json::newNumber(20.0))
+       .push(json::newNumber(30.0))
+
+println("Array contents: " + json::stringify(testArr))
+println("Index 1: " + String(testArr.getAt(1).numVal))
+println("Index 5 (OutOfBounds): " + json::stringify(testArr.getAt(5)))
+
+println("\n--- Test 7: Object Key Updates (Overwriting) ---")
+var updateObj: json::JsonNode = json::newObject()
+updateObj.put("keyA", json::newString("initial"))
+         .put("keyB", json::newNumber(100.0))
+println("Before Update: " + json::stringify(updateObj))
+
+/; Update existing key to test the while-loop replacement logic
+updateObj.put("keyA", json::newString("updated_value!"))
+println("After Update: " + json::stringify(updateObj))
+
+println("\n--- Test 8: Escaped Characters in Strings ---")
+/; The string has escaped newlines, tabs, and quotes.
+var escStr = "{ \"text\": \"Line1\\nLine2\\tTabbed \\\"Quotes\\\"\" }"
+var escAst: json::JsonNode = json::parse(escStr)
+println("Parsed Escaped String: " + json::stringify(escAst))
+
+println("\n--- Test 9: Empty Structures ---")
+var emptyAst: json::JsonNode = json::parse(" { \"emptyObj\": {  }, \"emptyArr\": [  ] } ")
+println("Parsed Empty Structures: " + json::stringify(emptyAst))
+/#
+fun callback() {
+  println("callback")
 }
 
 
-println("\n--- Test 7: Edge Cases - Append to Non-existent File ---")
-var newAppPath = "flowwing_new_append.txt"
-var newAppOk: bool, newAppErr: Err::Result = file::appendText(newAppPath, "Created via append.")
-if newAppErr.isOk() {
-  println("Successfully created new file via append.")
-}
-var readNewApp: str, readNewAppErr: Err::Result = file::readText(newAppPath)
-if readNewAppErr.isOk() {
-  println("Content of appended file: " + readNewApp)
+fun handler(callback: [() -> nthg]) {
+  callback()
+  println("handler")
 }
 
-println("\n--- Test 8: Cleanup ---")
-var del1: bool, e1: Err::Result = file::delete(testPath)
-var del2: bool, e2: Err::Result = file::delete(emptyTestPath)
-var del3: bool, e3: Err::Result = file::delete(newAppPath)
-
-if e1.isOk() && e2.isOk() && e3.isOk() {
-  println("All test files cleaned up successfully.")
-}
-
-println("\n=========================================================")
-println("                     TESTS COMPLETE                      ")
-println("=========================================================")
+handler(callback)
