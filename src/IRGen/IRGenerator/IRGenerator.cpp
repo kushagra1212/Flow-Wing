@@ -143,6 +143,7 @@ void IRGenerator::visit(
     llvm::Module *mod = m_ir_gen_context.getLLVMModule();
     llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
     auto &builder = *m_ir_gen_context.getLLVMBuilder();
+
     llvm::FunctionType *void_void =
         llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false);
     const auto &brought_paths =

@@ -281,7 +281,7 @@ void GlobalDeclarationsInitializer::emitGlobalVariableForSymbol(
   auto *globalVar = new llvm::GlobalVariable(
       *module, llvm_type, is_llvm_constant,
       llvm::GlobalValue::ExternalLinkage ,
-      imported ? nullptr : default_value, variable_symbol->getName());
+      imported ? nullptr : default_value,"_init_global_var_" + variable_symbol->getName());
 
       if (!imported && default_value != nullptr) {
         globalVar->setLinkage(llvm::GlobalValue::WeakODRLinkage);

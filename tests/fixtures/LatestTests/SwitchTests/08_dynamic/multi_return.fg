@@ -1,0 +1,10 @@
+fun getString() -> str, bool {
+    return "Hello, FlowWing File System!", true
+}
+
+var s: str, ok: bool = getString()
+println("s: ", s, " ok: ", ok)
+var sdyn, okl = getString()
+println("sdyn: ", sdyn, " okl: ", okl)
+var sdyn2, ok2: bool = getString()
+println("sdyn2: ", sdyn2, " ok2: ", ok2)

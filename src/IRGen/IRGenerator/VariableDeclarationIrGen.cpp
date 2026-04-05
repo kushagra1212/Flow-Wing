@@ -62,6 +62,16 @@ void IRGenerator::visit(
         auto *var_type = variable_symbol->getType().get();
         auto *llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
+
+            auto source_tuple_types = expr->getMultipleTypes();
+auto *source_field_type = source_tuple_types[i].get(); 
+auto *source_llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(source_field_type);
+
+if (source_field_type->getKind() == types::TypeKind::kClass || 
+    source_field_type->getKind() == types::TypeKind::kObject) {
+    source_llvm_type = source_llvm_type->getPointerTo();
+}
+
         if (var_type->getKind() == types::TypeKind::kClass) {
           llvm_type = llvm_type->getPointerTo();
         }
@@ -86,9 +96,9 @@ void IRGenerator::visit(
             struct_type, struct_ptr, static_cast<unsigned>(i),
             "extract_" + variable_symbol->getName());
         llvm::Value *extracted_val = builder->CreateLoad(
-            llvm_type, gep, "load_" + variable_symbol->getName());
+          source_llvm_type, gep, "load_" + variable_symbol->getName());
 
-        emitTypedStore(storage_ptr, var_type, extracted_val, var_type);
+        emitTypedStore(storage_ptr, var_type, extracted_val, source_field_type);
         var_idx++;
       }
     } else {
