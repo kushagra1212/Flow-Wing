@@ -76,6 +76,7 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindIdentifierExpression(
     return std::move(error_expression);
   }
 
+
   return std::make_unique<BoundIdentifierExpression>(
       symbol, expression->getSourceLocation());
 }

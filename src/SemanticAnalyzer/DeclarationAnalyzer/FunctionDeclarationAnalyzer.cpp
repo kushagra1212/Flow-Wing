@@ -132,6 +132,8 @@ void analysis::DeclarationAnalyzer::visit(
   function_symbol->setDeclarationSite(
       m_binder_context.getCompilationContext().getAbsoluteSourceFilePath(),
       function_identifier->getSourceLocation());
+
+     
 }
 
 std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(

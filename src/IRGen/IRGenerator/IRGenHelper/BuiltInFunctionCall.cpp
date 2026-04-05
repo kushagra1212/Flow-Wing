@@ -367,7 +367,8 @@ llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
 
   bool is_object =
       (type->getKind() == types::TypeKind::kObject ||
-       type->getKind() == types::TypeKind::kClass) &&
+       type->getKind() == types::TypeKind::kClass ||
+       type->getKind() == types::TypeKind::kFunction) &&
       !is_inline_object &&
       (llvm::isa<llvm::AllocaInst>(value) ||
        llvm::isa<llvm::GEPOperator>(value) ||

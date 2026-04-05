@@ -371,8 +371,8 @@ TypeResolver::resolveFunctionType(
   assert(syntax != nullptr &&
          "TypeResolver::resolveFunctionType: syntax is null");
 
-  std::vector<std::shared_ptr<types::ParameterType>> parameter_types;
-  std::vector<std::shared_ptr<types::ReturnType>> return_types;
+  std::vector<std::shared_ptr<types::ParameterType>> parameter_types = {};
+  std::vector<std::shared_ptr<types::ReturnType>> return_types = {};
 
   size_t parameter_count = 0;
   for (const auto &parameter_type_expression : syntax->getParameterTypes()) {
@@ -388,11 +388,12 @@ TypeResolver::resolveFunctionType(
     if (!parameter_type_expression) {
       parameter_type = Builtins::m_dynamic_type_instance;
     } else {
-      auto [parameter_type, error_expression] =
+      auto [inner_parameter_type, error_expression] =
           resolveType(parameter_type_expression.get());
       if (error_expression != nullptr) {
         return {nullptr, std::move(error_expression)};
       }
+      parameter_type = inner_parameter_type;
     }
 
     parameter_types.push_back(std::make_shared<types::ParameterType>(

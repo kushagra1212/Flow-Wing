@@ -646,6 +646,8 @@ void AstJson::visit(
   function_type_expression_json["range"] =
       toJsonRange(node->getSourceLocation());
 
+      function_type_expression_json["kind"] = syntax::toString(node->getKind());
+
   m_last_node_json = std::move(function_type_expression_json);
 }
 void AstJson::visit( syntax::Int8TypeExpressionSyntax *node) {

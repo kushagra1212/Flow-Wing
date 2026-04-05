@@ -19,6 +19,8 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
+#include "src/common/types/Type.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -33,10 +35,12 @@
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/FunctionStatementSyntax/FunctionStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 #include <cassert>
 
 namespace flow_wing {
@@ -180,9 +184,16 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
           analysis::Builtins::m_nthg_type_instance));
     }
 
+
+    BINDER_DEBUG_LOG("_Parameter Type", param_type->type->getName(),types::Type::toString(param_type->type->getKind()));
+
     auto param_symbol = std::make_shared<analysis::ParameterSymbol>(
         param_identifier_name, param_type->type,
         std::move(bound_default_value_expression));
+
+
+
+    BINDER_DEBUG_LOG("_Parameter Type_Symbol", param_symbol->getType()->getName(),types::Type::toString(param_symbol->getType()->getKind()));
 
     param_symbol->setDeclarationSite(
         m_context->getCompilationContext().getAbsoluteSourceFilePath(),
@@ -197,6 +208,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
       m_context->reportError(error_statement.get());
       return std::move(error_statement);
     }
+    
 
     function_symbol->addParameter(param_symbol);
 

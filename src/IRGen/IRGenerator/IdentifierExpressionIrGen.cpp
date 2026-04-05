@@ -29,11 +29,20 @@ void IRGenerator::visit(
   CODEGEN_DEBUG_LOG("Visiting Bound Identifier Expression", "IR GENERATION");
 
   auto symbol = identifier_expression->getSymbol();
+
   auto llvm_value = m_ir_gen_context.getSymbol(symbol->getName());
+
+  if(!llvm_value && symbol->getKind() == analysis::SymbolKind::kFunction) {
+    llvm_value = m_ir_gen_context.getLLVMModule()->getFunction(symbol->getName());
+  }
+
   assert(llvm_value && "Symbol not found [BoundIdentifierExpression::visit]");
+
 
   m_last_type = symbol->getType().get();
   m_last_value = llvm_value;
+
+
 }
 
 }; // namespace flow_wing::ir_gen

@@ -104,7 +104,8 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
           m_ir_gen_context.getLLVMModule()->getDataLayout();
 
       if (param_raw_type->getKind() == types::TypeKind::kObject ||
-          param_raw_type->getKind() == types::TypeKind::kClass) {
+          param_raw_type->getKind() == types::TypeKind::kClass ||
+          param_raw_type->getKind() == types::TypeKind::kFunction) {
         local_copy = m_ir_gen_context.createAlloca(builder->getPtrTy(),
                                                    param_name + "_local");
         llvm::Align alignment =
@@ -122,6 +123,7 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
                               arg_value, llvm::MaybeAlign(alignment),
                               type_size);
       }
+      CODEGEN_DEBUG_LOG("Setting Symbol", param_name);
       m_ir_gen_context.setSymbol(param_name, local_copy);
     }
     param_index++;

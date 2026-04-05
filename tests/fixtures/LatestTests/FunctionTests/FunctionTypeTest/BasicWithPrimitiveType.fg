@@ -1,0 +1,15 @@
+fun printX(x: int,y:deci,p:str,u:bool,ano:[(str)->nthg]) -> nthg {
+    print("Printing X",x)
+    print(y,p,u)
+    ano("Hehe")
+  }
+fun printS(x: str) -> nthg {
+  print("\n from printS",x)
+}
+
+fun main2(f:[(int,deci,str,bool,[(str)->nthg])-> nthg]) -> nthg {
+f(2,2.2,"Sss",false,printS)
+}
+
+
+  main2(printX)

@@ -86,8 +86,8 @@ public:
   bool operator==(const Type &other) const override;
 
 private:
-  std::vector<std::shared_ptr<ParameterType>> m_parameters;
-  std::vector<std::shared_ptr<ReturnType>> m_return_types;
+  std::vector<std::shared_ptr<ParameterType>> m_parameters = {};
+  std::vector<std::shared_ptr<ReturnType>> m_return_types = {};
   size_t m_default_value_start_index;
   bool m_is_variadic;
   bool m_is_external;

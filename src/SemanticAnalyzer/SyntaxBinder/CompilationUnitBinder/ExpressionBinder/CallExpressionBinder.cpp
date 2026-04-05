@@ -28,6 +28,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
+#include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
@@ -153,7 +154,29 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
       return std::move(error_expression);
     }
 
-    if (symbol->getKind() != analysis::SymbolKind::kFunction) {
+
+    BINDER_DEBUG_LOG("_Symbol", symbol->getName(),symbol->getKind()==analysis::SymbolKind::kParameter, types::Type::toString(symbol->getType()->getKind()));
+
+
+
+    analysis::FunctionSymbol *function_symbol = nullptr;
+
+    if (symbol->getKind() == analysis::SymbolKind::kParameter) {
+      auto parameter_symbol = static_cast<analysis::ParameterSymbol *>(symbol);
+       if (!parameter_symbol->getFunctionSymbol()) {
+  
+        auto error_expression = std::make_unique<BoundErrorExpression>(
+          identifier_expression->getSourceLocation(),
+          diagnostic::DiagnosticCode::kTypeIsNotAFunction,
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{
+              symbol->getType() ? symbol->getType()->getName()
+                                 : callee_display_name});
+      return std::move(error_expression);
+          }else {
+            function_symbol = static_cast<analysis::FunctionSymbol *>(parameter_symbol->getFunctionSymbol().get());
+          }
+      }
+    else  if (symbol->getKind() != analysis::SymbolKind::kFunction) {
       auto error_expression = std::make_unique<BoundErrorExpression>(
           identifier_expression->getSourceLocation(),
           diagnostic::DiagnosticCode::kTypeIsNotAFunction,
@@ -161,9 +184,14 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
               symbol->getType() ? symbol->getType()->getName()
                                  : callee_display_name});
       return std::move(error_expression);
+    }else{
+      function_symbol = static_cast<analysis::FunctionSymbol *>(symbol);
     }
 
-    auto *function_symbol = static_cast<analysis::FunctionSymbol *>(symbol);
+    assert(function_symbol != nullptr && "Function Symbol is null");
+
+    BINDER_DEBUG_LOG("Function Symbol2", function_symbol->getName(),function_symbol->getKind()==analysis::SymbolKind::kFunction);
+
     auto type = function_symbol->getType();
 
     if (type->getKind() != types::TypeKind::kFunction) {

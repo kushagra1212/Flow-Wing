@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/utils/LogConfig.h"
 #include <algorithm>
 #include <cassert>
@@ -29,8 +30,11 @@ namespace flow_wing::ir_gen {
 
 void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     binding::BoundCallExpression *call_expression) {
-  const auto function_symbol = static_cast<const analysis::FunctionSymbol *>(
-      call_expression->getSymbol());
+
+
+     const  analysis::FunctionSymbol *  function_symbol =static_cast<const analysis::FunctionSymbol *>(
+    call_expression->getSymbol());
+    
   const std::string &fn_name = function_symbol->getMangledName();
 
   CODEGEN_DEBUG_LOG("Visiting User-Defined Function: ", fn_name);
@@ -46,9 +50,26 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
         static_cast<types::ClassType *>(recv_ty));
   }
 
-  auto llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(fn_name);
-  assert(llvm_function &&
-         "Function not found [dispatchUserDefinedFunctionCall]");
+  CODEGEN_DEBUG_LOG("fn_name", fn_name);
+ 
+  llvm::Value *callee_val = nullptr;
+  llvm::Function *llvm_function = nullptr;
+  const bool is_indirect_call = function_symbol->isParameterSymbol();
+
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+
+  if(!is_indirect_call) {
+    llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(fn_name);
+    assert(llvm_function && "Function not found [dispatchUserDefinedFunctionCall]");
+    callee_val = llvm_function;
+  }else{
+    llvm::Value *fn_ptr_storage = m_ir_gen_context.getSymbol(function_symbol->getName());
+    assert(fn_ptr_storage && "Function pointer symbol not found in local context");
+    
+    callee_val = builder->CreateLoad(
+        builder->getPtrTy(), fn_ptr_storage, "fn_ptr_load");
+  }
+
 
   auto function_type = static_cast<const types::FunctionType *>(
       function_symbol->getType().get());
@@ -56,7 +77,6 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
   assert(function_type != nullptr &&
          "Function type is null [dispatchUserDefinedFunctionCall]");
 
-  auto &builder = m_ir_gen_context.getLLVMBuilder();
   std::vector<types::Type *> return_types;
   for (const auto &return_type : function_type->getReturnTypes()) {
     return_types.push_back(return_type->type.get());
@@ -92,8 +112,18 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
   const auto default_value_start_index =
       function_type->getDefaultValueStartIndex();
   const size_t num_params = param_types.size();
-  assert(num_params == function_symbol->getParameters().size() &&
-         "param_types and FunctionSymbol parameters must match");
+
+
+  CODEGEN_DEBUG_LOG("num_params", num_params);
+
+  if(!is_indirect_call) {
+
+    assert(num_params == function_symbol->getParameters().size() &&
+           "param_types and FunctionSymbol parameters must match");
+  }
+
+
+
 
   const bool last_arg_is_implicit_receiver =
       call_expression->getImplicitReceiverLast();
@@ -146,7 +176,8 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
       llvm::Value *val = nullptr;
 
       if (param_raw_type->getKind() == types::TypeKind::kObject ||
-          param_raw_type->getKind() == types::TypeKind::kClass) {
+          param_raw_type->getKind() == types::TypeKind::kClass ||
+          param_raw_type->getKind() == types::TypeKind::kFunction) {
         arg_slot =
             m_ir_gen_context.createAlloca(builder->getPtrTy(), "obj_arg_slot");
 
@@ -185,12 +216,12 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     clearLast();
   };
 
-  // 1) Explicit arguments (call-site), excluding trailing implicit receiver
+  // Explicit arguments (call-site), excluding trailing implicit receiver
   for (size_t i = 0; i < n_explicit && i < param_limit_excl_receiver; i++) {
     emitOneParameter(arguments[i].get(), i);
   }
 
-  // 2) Default parameters not supplied at the call site (globals + members)
+  //  Default parameters not supplied at the call site (globals + members)
   if (default_value_start_index != static_cast<size_t>(-1)) {
     for (size_t i = std::max(default_value_start_index, n_explicit);
          i < param_limit_excl_receiver; i++) {
@@ -202,10 +233,32 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     }
   }
 
-  // 3) Implicit class receiver last (instance methods / super)
+  // Implicit class receiver last (instance methods / super)
   if (last_arg_is_implicit_receiver) {
     emitOneParameter(arguments.back().get(), num_params - 1);
   }
+
+
+  llvm::FunctionType *callee_ft = nullptr;
+  if (llvm_function) {
+    callee_ft = llvm_function->getFunctionType();
+  } else {
+    std::vector<llvm::Type*> arg_llvm_types;
+    for (auto *arg : llvm_args) {
+      arg_llvm_types.push_back(arg->getType());
+    }
+    
+    llvm::Type *ret_llvm_type = builder->getVoidTy();
+    if (!is_void_return && !is_ret_via_arg) {
+      if (return_types.size() == 1) {
+        ret_llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(return_types[0]);
+      } else {
+        ret_llvm_type = return_struct_type;
+      }
+    }
+    callee_ft = llvm::FunctionType::get(ret_llvm_type, arg_llvm_types, false);
+  }
+
 
   llvm::CallInst *call_result = nullptr;
   if (call_expression->getUseVirtualDispatch()) {
@@ -239,19 +292,20 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
         "virt.method_slot");
     llvm::Value *fn_ptr_raw =
         builder->CreateLoad(builder->getPtrTy(), fn_ptr_i8, "virt.fn_ptr");
-    llvm::FunctionType *callee_ft = llvm_function->getFunctionType();
-    llvm::Value *callee_val =
-        builder->CreateBitCast(fn_ptr_raw, llvm_function->getType());
-    call_result = builder->CreateCall(callee_ft, callee_val, llvm_args);
+        llvm::Value *callee_val_virt = builder->CreateBitCast(fn_ptr_raw, builder->getPtrTy());
+        call_result = builder->CreateCall(callee_ft, callee_val_virt, llvm_args);
   } else {
-    call_result = builder->CreateCall(llvm_function, llvm_args);
+    call_result = builder->CreateCall(callee_ft, callee_val, llvm_args);
   }
 
   // Indirect calls (vtable dispatch) do not inherit the callee Function's
   // parameter attributes. Copy the full AttributeList so SysV x86-64 `sret`
   // on the hidden return slot matches the declaration (direct calls get the
   // same treatment for consistency).
-  call_result->setAttributes(llvm_function->getAttributes());
+  if (llvm_function) {
+    call_result->setAttributes(llvm_function->getAttributes());
+  }
+
 
   if (is_ret_via_arg) {
     if (return_types.size() == 1) {

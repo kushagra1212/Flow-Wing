@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
+#include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
@@ -29,6 +30,8 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
   CODEGEN_DEBUG_LOG("Visiting Bound Call Expression", "IR GENERATION");
 
   auto function_symbol = call_expression->getSymbol();
+
+
 
   if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
     dispatchBuiltinFunctionCall(call_expression);
