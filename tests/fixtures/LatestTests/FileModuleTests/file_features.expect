@@ -1,0 +1,57 @@
+=========================================================
+          FLOWWING FILE SYSTEM COMPREHENSIVE TESTS
+=========================================================
+
+--- Test 1: Writing and Reading Static Texts ---
+Successfully wrote to file.
+Successfully appended to file.
+File Contents:
+Hello, FlowWing File System!
+This is an appended line.
+
+--- Test 2: Checking Existence & Error Handling ---
+Does test file exist? true
+Does fake file exist? false
+Expected Error Caught (Read missing): Error:
+File not found: missing_file_404.txt
+Expected Error Caught (Delete missing): Error:
+Cannot delete. File does not exist: missing_file_404.txt
+
+--- Test 3: Stateful Line-by-Line Reading ---
+Reading line by line:
+Line 1: Hello, FlowWing File System!
+Line 2: This is an appended line.
+Reached EOF.
+File closed successfully.
+
+--- Test 4: Edge Cases - Empty Files & Strings ---
+Successfully created empty file.
+Read empty file statically. Content length: 0
+Expected Error Caught (Read line on empty file): Error:
+EOF
+
+--- Test 5: Edge Cases - Invalid Paths ---
+Expected Error Caught (Write to empty path): Error:
+Failed to write to file:
+
+--- Test 6: Edge Cases - Stateful Class Misuse ---
+Expected Error Caught (Read before open): Error:
+Cannot read. File is not open.
+Expected Error Caught (Invalid open mode): Error:
+Invalid mode. Use 'r', 'w', or 'a'.
+Expected Error Caught (Double open): Error:
+File is already open.
+Double close is safe: true
+Expected Error Caught (Read after close): Error:
+Cannot read. File is not open.
+
+--- Test 7: Edge Cases - Append to Non-existent File ---
+Successfully created new file via append.
+Content of appended file: Created via append.
+
+--- Test 8: Cleanup ---
+All test files cleaned up successfully.
+
+=========================================================
+                     TESTS COMPLETE
+=========================================================
