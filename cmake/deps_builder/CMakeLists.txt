@@ -159,6 +159,26 @@ else()
     set(GC_DEPENDENCY "bdwgc_external")
 endif()
 
+   ExternalProject_Add(
+        raylib_external
+        GIT_REPOSITORY  "https://github.com/raysan5/raylib.git"
+        GIT_TAG "5.5"
+        GIT_SHALLOW TRUE
+        CMAKE_ARGS 
+            -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+            -DBUILD_EXAMPLES=OFF
+            -DBUILD_GAMES=OFF
+            -DCUSTOMIZE_BUILD=ON
+            -DBUILD_SHARED_LIBS=OFF
+            -DPLATFORM=Desktop
+        USES_TERMINAL_DOWNLOAD true 
+        USES_TERMINAL_CONFIGURE true 
+        USES_TERMINAL_BUILD true 
+        USES_TERMINAL_INSTALL true
+        GIT_PROGRESS TRUE
+    )
+
     set(LLVM_BUILD_SHARED OFF)
 
     if(NOT WIN32)
