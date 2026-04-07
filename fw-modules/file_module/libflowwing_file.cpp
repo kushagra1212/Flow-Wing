@@ -31,6 +31,7 @@
 
 namespace fs = std::filesystem;
 
+
 extern "C" {
     // Stores the last error code to avoid complex FFI pointer passing
     // 0 = OK, 1 = NOT_FOUND, 2 = FAILED
@@ -175,4 +176,5 @@ extern "C" {
         last_file_error = 1; // EOF or Failed
         return alloc_gc_string("");
     }
+
 }

@@ -266,8 +266,9 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
 
   CompilerOptions nested_opts;
   nested_opts.input_file_path = absolute_file_path;
+  std::string entry_file_path = m_binder_context.getCompilationContext().getEntryFilePath();
 
-  flow_wing::CompilationContext nested_ctx(nested_opts);
+  flow_wing::CompilationContext nested_ctx(nested_opts, entry_file_path);
   flow_wing::compiler::pipeline::CompilationPipeline pipeline;
   pipeline.addPass(
       std::make_unique<flow_wing::compiler::pipeline::SourceLoaderPass>());

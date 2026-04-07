@@ -75,5 +75,8 @@ std::string PathUtils::shortHashedHex16ForPath(const std::string &file_path) {
   return oss.str();
 }
 
+std::string PathUtils::getDirectoryPath(const std::string &path) {
+  return std::filesystem::path(path).parent_path().string();
+}
 } // namespace utils
 } // namespace flow_wing

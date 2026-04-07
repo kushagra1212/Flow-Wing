@@ -7,12 +7,11 @@ bring text
 bring Err
 bring file
 
-var absolutePath: str = "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests/ServerTests/mission_control_server/"
 
-var dashboardPath: str = absolutePath + "dashboard.html"
-var layoutPath: str = absolutePath + "layout.html"
-var crewCardPath: str = absolutePath + "crew_card.html"
-var cmdrCardPath: str = absolutePath + "cmdr_card.html"
+var dashboardPath: str = file::__DIR__ + "/dashboard.html"
+var layoutPath: str = file::__DIR__ + "/layout.html"
+var crewCardPath: str = file::__DIR__ + "/crew_card.html"
+var cmdrCardPath: str = file::__DIR__ + "/cmdr_card.html"
 /; ==========================================
 /; 1. File Loader & Template Engine
 /; ==========================================

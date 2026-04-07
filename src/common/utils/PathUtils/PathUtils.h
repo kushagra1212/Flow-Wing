@@ -44,6 +44,8 @@ struct PathUtils {
   /// 16 lowercase hex chars (FNV-1a 64 over the canonical path). Used for
   /// .obj/.exe basenames so Windows stays under MAX_PATH for long source paths.
   static std::string shortHashedHex16ForPath(const std::string &file_path);
+
+  static std::string getDirectoryPath(const std::string &path);
 };
 
 } // namespace utils

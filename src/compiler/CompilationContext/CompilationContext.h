@@ -40,11 +40,12 @@ class SyntaxToken;
 
 class CompilationContext {
 public:
-  explicit CompilationContext(const CompilerOptions &options)
+  explicit CompilationContext(const CompilerOptions &options, std::string &entry_file_path)
       : m_options(options),
         m_diagnostics(std::make_unique<diagnostic::DiagnosticHandler>()),
         m_absolute_source_file_path(
-            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)) {
+            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)), m_entry_file_path(entry_file_path) {
+
 
     std::filesystem::path temp_root(flow_wing::io::getTempDirectoryPath());
 
@@ -56,6 +57,9 @@ public:
   const CompilerOptions &getOptions() const { return m_options; }
   const std::string &getAbsoluteSourceFilePath() const {
     return m_absolute_source_file_path;
+  }
+  const std::string &getEntryFilePath() const {
+    return m_entry_file_path;
   }
   const std::vector<std::string> &getSourceLines() const {
     return m_source_lines;
@@ -140,6 +144,7 @@ private:
   std::vector<std::string> m_brought_source_paths;
   std::vector<std::string> m_brought_object_files;
   int m_brought_ctor_priority = -1;
+  std::string m_entry_file_path;
 };
 
 inline void

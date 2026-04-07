@@ -489,3 +489,24 @@ void fg_dyn_str_set(long long value_storage, long long type_tag, long long idx, 
     char* s = (char*)(uintptr_t)(unsigned long long)value_storage;
     fg_str_set(s, idx, value);
 }
+
+
+static char* fg_script_dir = NULL;
+
+// New function to be called by the Engine (C++) during startup
+void fg_set_script_anchor(const char* absolute_dir_path) {
+    // No need to search for slashes; we trust the compiler sent the dir
+    size_t len = strlen(absolute_dir_path);
+    fg_script_dir = (char*)GC_MALLOC_ATOMIC(len + 1);
+    memcpy(fg_script_dir, absolute_dir_path, len + 1);
+    
+}
+
+// The API exposed to the .fg script (The equivalent of __dirname)
+char* fg_get_script_dir() {
+    if (fg_script_dir == NULL) {
+        fg_re("Runtime Error: Script anchor not initialized.");
+    }
+    // Return a copy so the script can manipulate it without breaking the anchor
+    return fg_script_dir; 
+}

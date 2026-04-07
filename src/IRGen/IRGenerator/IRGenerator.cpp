@@ -177,6 +177,8 @@ void IRGenerator::visit(
   // Brought dependency .o: no `main`; top-level statements live in
   // __fw_brought_init_<i> (called from the primary TU's `main`).
 
+  emitGlobalVariableForScriptAnchor();
+
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
   }
@@ -256,6 +258,45 @@ void IRGenerator::visit(binding::BoundClassStatement *statement) {
       member_stmt->accept(this);
     }
   }
+}
+
+void IRGenerator::emitGlobalVariableForScriptAnchor() {
+  auto *llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(constants::functions::kSet_script_anchor_fn);
+  if (!llvm_function ||m_ir_gen_context.getCompilationContext().getEntryFilePath().empty()) {
+    return;
+  }
+
+  auto absolute_path = flow_wing::utils::PathUtils::getDirectoryPath(m_ir_gen_context.getCompilationContext().getEntryFilePath());
+
+  
+
+  CODEGEN_DEBUG_LOG("Setting script anchor to", absolute_path);
+
+
+
+  auto *string_const = llvm::ConstantDataArray::getString(*m_ir_gen_context.getLLVMContext(), absolute_path);
+  
+  auto *global_var = new llvm::GlobalVariable(
+      *m_ir_gen_context.getLLVMModule(),
+      string_const->getType(),
+      true, // isConstant
+      llvm::GlobalValue::PrivateLinkage,
+      string_const,
+      ".str.path"
+  );
+  
+  auto *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext()), 0);
+  llvm::Value *indices[] = {zero, zero};
+  
+
+  auto *ptr_to_str = m_ir_gen_context.getLLVMBuilder()->CreateInBoundsGEP(
+      string_const->getType(), 
+      global_var, 
+      indices
+  );
+  
+  m_ir_gen_context.getLLVMBuilder()->CreateCall(llvm_function, {ptr_to_str});
+  
 }
 
 void IRGenerator::visit(

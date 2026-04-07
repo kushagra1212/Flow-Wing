@@ -55,7 +55,8 @@ ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
     dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
     dep_opts.emit_brought_dependency_object = 1;
 
-    CompilationContext dep_ctx(dep_opts);
+    std::string entry_file_path = parent_opts.input_file_path;
+    CompilationContext dep_ctx(dep_opts, entry_file_path);
     dep_ctx.setBroughtCtorPriority(static_cast<int>(i));
     PipelineFactory factory;
     CompilationPipeline pipeline = factory.build(dep_opts);

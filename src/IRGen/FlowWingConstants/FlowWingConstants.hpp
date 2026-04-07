@@ -92,7 +92,6 @@ const std::string_view kDynamic_string_index_fn = "fg_dyn_str_idx";
 const std::string_view kString_set_fn = "fg_str_set";
 const std::string_view kDynamic_string_set_fn = "fg_dyn_str_set";
 
-
 // Unboxing Functions
 const std::string_view kUnbox_int8_fn = "fg_unbox_int8";
 const std::string_view kUnbox_int32_fn = "fg_unbox_int32";
@@ -102,6 +101,8 @@ const std::string_view kUnbox_float32_fn = "fg_unbox_float32";
 const std::string_view kUnbox_float64_fn = "fg_unbox_float64";
 const std::string_view kUnbox_string_fn = "fg_unbox_string";
 const std::string_view kUnbox_char_fn = "fg_unbox_char";
+
+const std::string_view kSet_script_anchor_fn = "fg_set_script_anchor";
 
 const std::string_view kMalloc_fn = "malloc";
 

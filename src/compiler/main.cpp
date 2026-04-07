@@ -36,8 +36,8 @@ int main(int argc, char *argv[]) {
   switch (parseResult.status) {
   case flow_wing::cli::ParseStatus::kSuccess: {
     const auto &options = parseResult.options.value();
-
-    flow_wing::CompilationContext context(options);
+    std::string entry_file_path = options.input_file_path;
+    flow_wing::CompilationContext context(options, entry_file_path);
     flow_wing::compiler::pipeline::PipelineFactory factory;
 
     flow_wing::compiler::pipeline::CompilationPipeline pipeline =

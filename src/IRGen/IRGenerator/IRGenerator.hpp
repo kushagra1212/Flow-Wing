@@ -233,6 +233,7 @@ private:
   void handleReturn();
   void verifyModule();
 
+  void emitGlobalVariableForScriptAnchor();
   std::string unescapeString(const std::string &value);
 
   // Dynamic Result

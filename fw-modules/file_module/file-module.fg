@@ -12,6 +12,8 @@ fun dyn_file_open(path: as str, mode: as str) -> as int64 decl
 fun dyn_file_close(handle: as int64) -> as nthg decl
 fun dyn_file_read_line(handle: as int64) -> as str decl
 
+fun fg_get_script_dir() -> as str decl
+
 
 module [file]
 
@@ -126,4 +128,7 @@ class File {
 
     return line, Err::ok()
   }
+
 }
+
+var __DIR__:str = fg_get_script_dir()
