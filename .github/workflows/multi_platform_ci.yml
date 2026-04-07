@@ -204,7 +204,7 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Install Dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -225,7 +225,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Restore Dependencies from Cache
         id: cache-deps
