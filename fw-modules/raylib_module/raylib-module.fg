@@ -3,14 +3,51 @@ fun _ray_init_window(width: as int, height: as int, title: as str) -> as nthg de
 fun _ray_window_should_close() -> as bool decl
 fun _ray_begin_drawing() -> as nthg decl
 fun _ray_end_drawing() -> as nthg decl
+fun _ray_close_window() -> as nthg decl
 fun _ray_clear_background(color_packed: as int64) -> as nthg decl
 fun _ray_draw_circle(centerX: as deci32, centerY: as deci32, radius: as deci32, color_packed: as int64) -> as nthg decl
 fun _ray_draw_rectangle(posX: as deci32, posY: as deci32, width: as deci32, height: as deci32, color_packed: as int64) -> as nthg decl
 fun _ray_draw_text(text: as str, posX: as int, posY: as int, fontSize: as int, color_packed: as int64) -> as nthg decl
 fun _ray_is_key_pressed(key: as int) -> as bool decl
-fun _ray_is_mouse_button_pressed(button: as int) -> as bool decl
+fun _ray_is_key_down(key: as int) -> as bool decl
+fun _ray_get_frame_time() -> as deci32 decl
+
+fun _ray_load_texture(fileName: as str) -> as int decl
+fun _ray_draw_texture_pro(texId: as int, sx: as deci32, sy: as deci32, sw: as deci32, sh: as deci32, dx: as deci32, dy: as deci32, dw: as deci32, dh: as deci32, ox: as deci32, oy: as deci32, rot: as deci32, color_packed: as int64) -> as nthg decl
+fun _ray_measure_text(text: as str, fontSize: as int) -> as int decl
+fun _math_sin(val: as deci32) -> as deci32 decl
+fun _math_rand() -> as int decl
+
+
+/; Key Constants
+const KEY_LEFT: int = 263
+const KEY_RIGHT: int = 262
+const KEY_UP: int = 265
+const KEY_DOWN: int = 264
+const KEY_SPACE: int = 32
 
 module [raylib]
+
+class Texture {
+  var id: int
+  init(id: int) -> nthg {
+    self.id = id
+  }
+}
+
+class Rect {
+  var x: deci32
+  var y: deci32
+  var w: deci32
+  var h: deci32
+
+  init(x: deci32, y: deci32, w: deci32, h: deci32) -> nthg {
+    self.x = x
+    self.y = y
+    self.w = w
+    self.h = h
+  }
+}
 
 class Color {
   var r: int
@@ -25,19 +62,12 @@ class Color {
     self.a = a
   }
 
-  /; Packs RGBA into a single int64 for FFI
-fun pack() -> int64 {
+  fun pack() -> int64 {
     var packed: int64 = 0
-    
-    /; If your language supports bitwise OR (|), you can use it:
     packed = packed | self.r
     packed = packed | (self.g * 256)
     packed = packed | (self.b * 65536)
     packed = packed | (self.a * 16777216)
-    
-    /; If it doesn't, standard addition works exactly the same here:
-    /; packed = self.r + (self.g * 256) + (self.b * 65536) + (self.a * 16777216)
-    
     return packed
   }
 }
@@ -50,19 +80,7 @@ class Vec2 {
     self.x = x
     self.y = y
   }
-
-  /; Packs two deci32s into a single int64 for FFI
-fun pack() -> int64 {
-    /; Using multiplication instead of << 32
-    return Int64(self.x) | (Int64(self.y) * 4294967296)
-    
-    /; Or using addition if bitwise OR is unavailable:
-    /; return self.x + (self.y * 4294967296)
-  }
 }
-
-
-
 
 class Window {
   init(width: int, height: int, title: str) -> nthg {
@@ -74,7 +92,7 @@ class Window {
   }
 
   fun begin() -> nthg {
-    _ray_begin_drawing() 
+    _ray_begin_drawing()
   }
 
   fun end() -> nthg {
@@ -82,30 +100,63 @@ class Window {
   }
 
   fun clear(color: Color) -> nthg {
-    var colorPacked :int64= color.pack()
+    var colorPacked: int64 = color.pack()
     _ray_clear_background(colorPacked)
   }
 
+
+
+  fun loadTexture(fileName: str) -> raylib::Texture {
+    return new raylib::Texture(_ray_load_texture(fileName))
+  }
+
+  fun drawTexturePro(tex: Texture, source: Rect, dest: Rect, origin: Vec2, rot: deci32, color: Color) -> nthg {
+    var packed: int64 = color.pack()
+    _ray_draw_texture_pro(tex.id, source.x, source.y, source.w, source.h, dest.x, dest.y, dest.w, dest.h, origin.x, origin.y, rot, packed)
+  }
+
+  fun measureText(text: str, fontSize: int) -> int {
+    return _ray_measure_text(text, fontSize)
+  }
+
+
   fun drawCircle(pos: Vec2, radius: deci32, color: Color) -> nthg {
-    var posPacked :int64= color.pack()
-    _ray_draw_circle(pos.x, pos.y, radius, posPacked)
+    var colorPacked: int64 = color.pack()
+    _ray_draw_circle(pos.x, pos.y, radius, colorPacked)
   }
 
   fun drawRectangle(pos: Vec2, size: Vec2, color: Color) -> nthg {
-      var colorPacked :int64= color.pack()
+    var colorPacked: int64 = color.pack()
     _ray_draw_rectangle(pos.x, pos.y, size.x, size.y, colorPacked)
   }
 
   fun drawText(text: str, x: int, y: int, fontSize: int, color: Color) -> nthg {
-    var colorPacked :int64= color.pack()
-    _ray_draw_text(text, x , y , fontSize , colorPacked)
+    var colorPacked: int64 = color.pack()
+    _ray_draw_text(text, x, y, fontSize, colorPacked)
   }
 
   fun isKeyPressed(key: int) -> bool {
-    return _ray_is_key_pressed(key )
+    return _ray_is_key_pressed(key)
   }
 
-  fun isMouseButtonPressed(button: int) -> bool {
-    return _ray_is_mouse_button_pressed(button )
+  fun isKeyDown(key: int) -> bool {
+    return _ray_is_key_down(key)
   }
+
+  fun getFrameTime() -> deci32 {
+    return _ray_get_frame_time()
+  }
+}
+
+
+
+
+/; Math Utilities (Can sit in the raylib module or globally)
+fun getSin(val: deci32) -> deci32 {
+  return _math_sin(val)
+}
+
+fun getRandomNumber(start: int, end: int) -> int {
+  var r: int = _math_rand()
+  return (r % (end - start + 1)) + start
 }

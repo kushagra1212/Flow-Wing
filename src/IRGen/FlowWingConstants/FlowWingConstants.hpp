@@ -103,6 +103,7 @@ const std::string_view kUnbox_string_fn = "fg_unbox_string";
 const std::string_view kUnbox_char_fn = "fg_unbox_char";
 
 const std::string_view kSet_script_anchor_fn = "fg_set_script_anchor";
+const std::string_view kInit_runtime_fn = "fg_init_runtime";
 
 const std::string_view kMalloc_fn = "malloc";
 

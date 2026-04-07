@@ -17,16 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 /*
  * FlowWing Compiler - Raylib Module Bridge
  */
 
 #include "raylib.h"
+#include <cmath>
 #include <cstdint>
+#include <cstdio> // For printf
+#include <cstdlib>
 #include <cstring>
 #include <string>
-
+#include <vector>
 // Dynamic Tags from your runtime
 #define DYN_TAG_INT8 0
 #define DYN_TAG_INT32 1
@@ -37,6 +39,10 @@
 #define DYN_TAG_BOOLEAN 6
 #define DYN_TAG_NIRAST 7
 #define DYN_TAG_CHAR 8
+
+#define MAX_FLOWWING_TEXTURES 256
+Texture2D _flowwing_textures[MAX_FLOWWING_TEXTURES] = {0};
+int64_t _flowwing_texture_count = 0; // Use 64-bit to match FlowWing's 'int'
 
 extern "C" {
 struct DynamicValue {
@@ -68,6 +74,56 @@ Vector2 unpackVec2(int64_t packed) {
   return {x, y};
 }
 extern "C" {
+
+// Texture Management
+int64_t _ray_load_texture(const char *fileName) {
+  if (_flowwing_texture_count >= MAX_FLOWWING_TEXTURES)
+    return -1;
+
+  // Load the texture via Raylib
+  Texture2D tex = LoadTexture(fileName);
+
+  // CRITICAL FIX: Raylib sets tex.id to 0 if it fails to load an image.
+  // If it failed, do NOT save it to the array. Return -1 immediately.
+  if (tex.id <= 0) {
+    printf("[FFI ERROR] Failed to load texture: %s\n", fileName);
+    fflush(stdout);
+    return -1;
+  }
+
+  // Save the valid texture to our array
+  _flowwing_textures[_flowwing_texture_count] = tex;
+  int64_t assigned_id = _flowwing_texture_count;
+  _flowwing_texture_count++;
+
+  return assigned_id;
+}
+
+int64_t _ray_measure_text(const char *text, int64_t fontSize) {
+  return (int64_t)MeasureText(text, (int)fontSize);
+}
+
+// Math & Random Helpers
+float _math_sin(float val) { return std::sin(val); }
+
+int64_t _math_rand() { return (int64_t)std::rand(); }
+
+void _ray_draw_texture_pro(int64_t texId, float sx, float sy, float sw,
+                           float sh, float dx, float dy, float dw, float dh,
+                           float ox, float oy, float rot,
+                           int64_t color_packed) {
+  // Safety check against invalid IDs
+  if (texId < 0 || texId >= _flowwing_texture_count)
+    return;
+
+  // Retrieve directly from the flat array
+  Texture2D tex = _flowwing_textures[texId];
+  Rectangle source = {sx, sy, sw, sh};
+  Rectangle dest = {dx, dy, dw, dh};
+  Vector2 origin = {ox, oy};
+
+  DrawTexturePro(tex, source, dest, origin, rot, unpackColor(color_packed));
+}
 
 void _ray_init_window(int width, int height, const char *title) {
   InitWindow(width, height, title);
@@ -104,4 +160,7 @@ bool _ray_is_key_pressed(int32_t key) { return IsKeyPressed((KeyboardKey)key); }
 bool _ray_is_mouse_button_pressed(int32_t button) {
   return IsMouseButtonPressed((MouseButton)button);
 }
+bool _ray_is_key_down(int32_t key) { return IsKeyDown((KeyboardKey)key); }
+
+float _ray_get_frame_time() { return GetFrameTime(); }
 }

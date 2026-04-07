@@ -1,0 +1,21 @@
+bring raylib
+/; ─────────────────────────────────────────────────────────
+/;  BACKGROUND HELPERS (With Parallax Offset)
+/; ─────────────────────────────────────────────────────────
+expose fun drawCloud(win: raylib::Window, x: deci32, y: deci32, camX: deci32) -> nthg {
+  var drawX: deci32 = x - (camX * 0.2f) /; Slower scrolling
+  var white: raylib::Color = new raylib::Color(255, 255, 255, 255)
+  var soft:  raylib::Color = new raylib::Color(230, 240, 255, 255)
+  win.drawCircle(new raylib::Vec2(drawX,        y),       22.0f, soft)
+  win.drawCircle(new raylib::Vec2(drawX + 26.0f, y - 8.0f), 28.0f, white)
+  win.drawCircle(new raylib::Vec2(drawX + 54.0f, y),       22.0f, soft)
+  win.drawRectangle(new raylib::Vec2(drawX - 22.0f, y), new raylib::Vec2(100.0f, 22.0f), white)
+}
+
+expose fun drawHill(win: raylib::Window, x: deci32, y: deci32, r: deci32, camX: deci32) -> nthg {
+  var drawX: deci32 = x - (camX * 0.5f) /; Slower scrolling
+  var hillGreen: raylib::Color = new raylib::Color(80, 170, 60, 255)
+  var hillDark:  raylib::Color = new raylib::Color(50, 130, 40, 255)
+  win.drawCircle(new raylib::Vec2(drawX,           y), r,            hillDark)
+  win.drawCircle(new raylib::Vec2(drawX - 8.0f,    y - 4.0f), r - 6.0f, hillGreen)
+}

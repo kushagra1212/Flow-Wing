@@ -14,7 +14,6 @@
  #include <stdint.h>
  #include <math.h>
  #include <gc.h> // Boehm GC
-
  #ifdef _MSC_VER
  #  define FG_THREAD_LOCAL __declspec(thread)
  #else
@@ -320,6 +319,7 @@ float fg_stf(const char* str) {
  }
  
  // Initializer for GC (Call this at start of main if needed, or rely on auto-init)
+
  void fg_init_runtime() {
     static bool initialized = false;
   if (!initialized) {

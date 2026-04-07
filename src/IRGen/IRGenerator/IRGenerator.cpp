@@ -56,7 +56,8 @@ namespace ir_gen {
 
 namespace {
 
-std::string broughtInitFunctionName([[maybe_unused]] int index, std::string module_name) {
+std::string broughtInitFunctionName([[maybe_unused]] int index,
+                                    std::string module_name) {
   return "__fw_brought_" + module_name + "_init_";
 }
 
@@ -76,7 +77,7 @@ llvm::Function *IRGenerator::createEntryPointFunction() {
       llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext());
   llvm::Type *charType =
       llvm::Type::getInt8Ty(*m_ir_gen_context.getLLVMContext());
-  llvm::Type *charPtrType = charType->getPointerTo(); // i8* (char*) 
+  llvm::Type *charPtrType = charType->getPointerTo(); // i8* (char*)
   llvm::Type *argvType = charPtrType->getPointerTo(); // i8** (char**)
 
   auto function_type =
@@ -100,9 +101,8 @@ void IRGenerator::verifyModule() {
   char *output_message = nullptr;
   // Do not use LLVMAbortProcessAction: in Release builds a verifier failure
   // calls abort(); some environments surface that as SIGBUS/SIGILL confusion.
-  LLVMBool invalid = LLVMVerifyModule(
-      wrap(m_ir_gen_context.getLLVMModule()),
-      LLVMReturnStatusAction, &output_message);
+  LLVMBool invalid = LLVMVerifyModule(wrap(m_ir_gen_context.getLLVMModule()),
+                                      LLVMReturnStatusAction, &output_message);
 
   const flow_wing::diagnostic::SourceLocation source_location =
       m_ir_gen_context.getCompilationContext()
@@ -110,14 +110,14 @@ void IRGenerator::verifyModule() {
           ->getSourceLocation();
 
   if (invalid) {
-    std::string msg = output_message ? output_message : std::string("invalid LLVM module");
+    std::string msg =
+        output_message ? output_message : std::string("invalid LLVM module");
     if (output_message) {
       free(output_message);
     }
     m_ir_gen_context.reportError(
         flow_wing::diagnostic::DiagnosticCode::kInternalIRGenerationError,
-        {flow_wing::diagnostic::DiagnosticArg(msg)},
-        source_location);
+        {flow_wing::diagnostic::DiagnosticArg(msg)}, source_location);
   }
 }
 
@@ -129,7 +129,8 @@ void IRGenerator::visit(
   llvm::Function *entry_point_function = nullptr;
   llvm::Function *brought_init_fn = nullptr;
 
-  if (!m_ir_gen_context.getCompilationContext().getOptions()
+  if (!m_ir_gen_context.getCompilationContext()
+           .getOptions()
            .emit_brought_dependency_object) {
     entry_point_function = createEntryPointFunction();
     auto entry_block = llvm::BasicBlock::Create(
@@ -146,16 +147,20 @@ void IRGenerator::visit(
 
     llvm::FunctionType *void_void =
         llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false);
+
     const auto &brought_paths =
         m_ir_gen_context.getCompilationContext().getBroughtSourcePaths();
+    emitGlobalVariableForScriptAnchor();
     for (size_t i = 0; i < brought_paths.size(); ++i) {
       auto module_name = utils::PathUtils::getFileName(brought_paths[i]);
-      const std::string name = broughtInitFunctionName(static_cast<int>(i), module_name);
+      const std::string name =
+          broughtInitFunctionName(static_cast<int>(i), module_name);
       llvm::Function *f = mod->getFunction(name);
       if (!f) {
         f = llvm::Function::Create(void_void, llvm::Function::ExternalLinkage,
                                    name, mod);
       }
+
       builder.CreateCall(f, {});
     }
   } else {
@@ -166,18 +171,19 @@ void IRGenerator::visit(
     int pri_idx =
         m_ir_gen_context.getCompilationContext().getBroughtCtorPriority();
     const int idx = pri_idx >= 0 ? pri_idx : 0;
-    auto module_name = utils::PathUtils::getFileName(m_ir_gen_context.getCompilationContext().getAbsoluteSourceFilePath());
-    brought_init_fn = llvm::Function::Create(
-        init_ft, llvm::Function::ExternalLinkage,
-        broughtInitFunctionName(idx, module_name), mod);
+    auto module_name = utils::PathUtils::getFileName(
+        m_ir_gen_context.getCompilationContext().getAbsoluteSourceFilePath());
+    brought_init_fn =
+        llvm::Function::Create(init_ft, llvm::Function::ExternalLinkage,
+                               broughtInitFunctionName(idx, module_name), mod);
     llvm::BasicBlock *init_bb =
         llvm::BasicBlock::Create(ctx, "entry", brought_init_fn);
+
     m_ir_gen_context.setInsertPoint(init_bb);
+    emitGlobalVariableForScriptAnchor();
   }
   // Brought dependency .o: no `main`; top-level statements live in
   // __fw_brought_init_<i> (called from the primary TU's `main`).
-
-  emitGlobalVariableForScriptAnchor();
 
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
@@ -185,7 +191,8 @@ void IRGenerator::visit(
 
   m_ir_gen_context.popScope();
 
-  if (m_ir_gen_context.getCompilationContext().getOptions()
+  if (m_ir_gen_context.getCompilationContext()
+          .getOptions()
           .emit_brought_dependency_object) {
     auto &builder = m_ir_gen_context.getLLVMBuilder();
     llvm::BasicBlock *cur = builder->GetInsertBlock();
@@ -261,42 +268,45 @@ void IRGenerator::visit(binding::BoundClassStatement *statement) {
 }
 
 void IRGenerator::emitGlobalVariableForScriptAnchor() {
-  auto *llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(constants::functions::kSet_script_anchor_fn);
-  if (!llvm_function ||m_ir_gen_context.getCompilationContext().getEntryFilePath().empty()) {
+
+  {
+    auto *gc_init_fn = m_ir_gen_context.getLLVMModule()->getFunction(
+        constants::functions::kInit_runtime_fn);
+    if (gc_init_fn) { // If the brought .o already has the init_runtime call,
+                      // no need to call it again.
+
+      m_ir_gen_context.getLLVMBuilder()->CreateCall(gc_init_fn, {});
+    }
+  }
+
+  auto *llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(
+      constants::functions::kSet_script_anchor_fn);
+  if (!llvm_function ||
+      m_ir_gen_context.getCompilationContext().getEntryFilePath().empty()) {
     return;
   }
 
-  auto absolute_path = flow_wing::utils::PathUtils::getDirectoryPath(m_ir_gen_context.getCompilationContext().getEntryFilePath());
-
-  
+  auto absolute_path = flow_wing::utils::PathUtils::getDirectoryPath(
+      m_ir_gen_context.getCompilationContext().getEntryFilePath());
 
   CODEGEN_DEBUG_LOG("Setting script anchor to", absolute_path);
 
+  auto *string_const = llvm::ConstantDataArray::getString(
+      *m_ir_gen_context.getLLVMContext(), absolute_path);
 
-
-  auto *string_const = llvm::ConstantDataArray::getString(*m_ir_gen_context.getLLVMContext(), absolute_path);
-  
   auto *global_var = new llvm::GlobalVariable(
-      *m_ir_gen_context.getLLVMModule(),
-      string_const->getType(),
+      *m_ir_gen_context.getLLVMModule(), string_const->getType(),
       true, // isConstant
-      llvm::GlobalValue::PrivateLinkage,
-      string_const,
-      ".str.path"
-  );
-  
-  auto *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext()), 0);
+      llvm::GlobalValue::PrivateLinkage, string_const, ".str.path");
+
+  auto *zero = llvm::ConstantInt::get(
+      llvm::Type::getInt32Ty(*m_ir_gen_context.getLLVMContext()), 0);
   llvm::Value *indices[] = {zero, zero};
-  
 
   auto *ptr_to_str = m_ir_gen_context.getLLVMBuilder()->CreateInBoundsGEP(
-      string_const->getType(), 
-      global_var, 
-      indices
-  );
-  
+      string_const->getType(), global_var, indices);
+
   m_ir_gen_context.getLLVMBuilder()->CreateCall(llvm_function, {ptr_to_str});
-  
 }
 
 void IRGenerator::visit(
@@ -459,8 +469,9 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
         arg_slot =
             m_ir_gen_context.createAlloca(builder->getPtrTy(), "init_obj_arg");
         if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
-            llvm::isa<llvm::GlobalVariable>(m_last_value)||
-            (llvm::isa<llvm::GetElementPtrInst>(m_last_value) && param_raw_type->getKind() == types::TypeKind::kClass)) {
+            llvm::isa<llvm::GlobalVariable>(m_last_value) ||
+            (llvm::isa<llvm::GetElementPtrInst>(m_last_value) &&
+             param_raw_type->getKind() == types::TypeKind::kClass)) {
           val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
                                         ->getLLVMType(param_raw_type)
                                         ->getPointerTo(),
@@ -540,8 +551,9 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
   if (type->getKind() == types::TypeKind::kObject ||
       type->getKind() == types::TypeKind::kClass) {
     if (llvm::isa<llvm::AllocaInst>(value) ||
-        llvm::isa<llvm::GlobalVariable>(value)||
-        (llvm::isa<llvm::GetElementPtrInst>(value) && type->getKind() == types::TypeKind::kClass)) {
+        llvm::isa<llvm::GlobalVariable>(value) ||
+        (llvm::isa<llvm::GetElementPtrInst>(value) &&
+         type->getKind() == types::TypeKind::kClass)) {
       auto *ptr_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(type)->getPointerTo();
       return m_ir_gen_context.getLLVMBuilder()->CreateLoad(ptr_type, value,
@@ -622,7 +634,8 @@ llvm::Value *IRGenerator::resolveValue(llvm::Value *value, types::Type *type) {
 
 void IRGenerator::visit(binding::BoundColonExpression *colon_expression) {
   // Object literals are usually handled by BoundObjectExpression; if a colon
-  // node is visited directly, evaluate the field value like ObjectExpressionIrGen.
+  // node is visited directly, evaluate the field value like
+  // ObjectExpressionIrGen.
   CODEGEN_DEBUG_LOG("Visiting Bound Colon Expression", "IR GENERATION");
   colon_expression->getRightExpression()->accept(this);
 }

@@ -1,18 +1,233 @@
 bring raylib
 
-fun main2() {
-    var win: raylib::Window = new raylib::Window(800, 600, "Flow-Wing Raylib")
-    var red: raylib::Color =new  raylib::Color(255, 0, 0)
-    var white: raylib::Color = new raylib::Color(255, 255, 255)
-    var pos: raylib::Vec2 = new raylib::Vec2(400, 300)
+const SCREEN_WIDTH:  int = 1024
+const SCREEN_HEIGHT: int = 500
+const GAME_SPEED: deci32 = 100.0f
 
-    while !win.shouldClose() {
-        win.begin()
-        win.clear(white)
-        win.drawCircle(pos, 50, red)
-        win.drawText("Hello Flow-Wing!", 10, 10, 20, red)
-        win.end()
+/; ─────────────────────────────────────────────────────────
+/;  MOUNTAIN PARALLAX
+/; ─────────────────────────────────────────────────────────
+class WideMountain {
+  var tex: raylib::Texture
+  var p1:  raylib::Vec2
+  var p2:  raylib::Vec2
+
+  init(t: raylib::Texture) -> nthg {
+    self.tex = t
+    self.p1  = new raylib::Vec2(0.0f, 0.0f)
+    self.p2  = new raylib::Vec2(-1542.0f, 0.0f)
+  }
+
+  fun update(dt: deci32) -> nthg {
+    self.p1.x = self.p1.x + (dt * GAME_SPEED)
+    self.p2.x = self.p2.x + (dt * GAME_SPEED)
+    if self.p1.x > 1542.0f { self.p1.x = -1542.0f }
+    if self.p2.x > 1542.0f { self.p2.x = -1542.0f }
+  }
+
+  fun draw(win: raylib::Window) -> nthg {
+    var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    var source: raylib::Rect = new raylib::Rect(0.0f, 0.0f, 8982.0f, 1542.0f)
+    var dest:   raylib::Rect = new raylib::Rect(0.0f, 166.0f, 1536.0f, 166.0f) /; SH/3
+    win.drawTexturePro(self.tex, source, dest, self.p1, 0.0f, cWhite)
+    win.drawTexturePro(self.tex, source, dest, self.p2, 0.0f, cWhite)
+  }
+}
+
+class StaticMountain {
+  var tex: raylib::Texture
+  var pos: raylib::Vec2
+  var src: raylib::Rect
+  var speedMod: deci32
+
+  init(t: raylib::Texture, sx: deci32, sy: deci32, sw: deci32, sh: deci32, sm: deci32) -> nthg {
+    self.tex = t
+    self.pos = new raylib::Vec2(-1024.0f, 0.0f)
+    self.src = new raylib::Rect(sx, sy, sw, sh)
+    self.speedMod = sm
+  }
+
+  fun update(dt: deci32) -> nthg {
+    self.pos.x = self.pos.x + (dt * (GAME_SPEED / self.speedMod))
+    if self.pos.x > 1536.0f { self.pos.x = -1024.0f }
+  }
+
+  fun draw(win: raylib::Window) -> nthg {
+    var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    var dest: raylib::Rect = new raylib::Rect(0.0f, 166.0f, 512.0f, 166.0f)
+    win.drawTexturePro(self.tex, self.src, dest, self.pos, 0.0f, cWhite)
+  }
+}
+
+/; ─────────────────────────────────────────────────────────
+/;  GROUND
+/; ─────────────────────────────────────────────────────────
+class Ground {
+  var tex: raylib::Texture
+  var wood: raylib::Texture
+  var pos: raylib::Vec2
+
+  init(t: raylib::Texture, w: raylib::Texture) -> nthg {
+    self.tex = t
+    self.wood = w
+    self.pos = new raylib::Vec2(0.0f, 0.0f)
+  }
+
+  fun update(dt: deci32) -> nthg {
+    self.pos.x = self.pos.x + (dt * GAME_SPEED)
+    if self.pos.x > 1024.0f { self.pos.x = 0.0f }
+  }
+
+  fun draw(win: raylib::Window) -> nthg {
+    var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    var src:  raylib::Rect = new raylib::Rect(310.0f, 1250.0f, 4360.0f, 1250.0f)
+    var dest1: raylib::Rect = new raylib::Rect(0.0f, 300.0f, 1024.0f, 250.0f)
+    var dest2: raylib::Rect = new raylib::Rect(1024.0f, 300.0f, 1024.0f, 250.0f)
+    var origin: raylib::Vec2 = new raylib::Vec2(self.pos.x, self.pos.y)
+
+    win.drawTexturePro(self.tex, src, dest1, origin, 0.0f, cWhite)
+    win.drawTexturePro(self.tex, src, dest2, origin, 0.0f, cWhite)
+  }
+}
+
+/; ─────────────────────────────────────────────────────────
+/;  BIRD
+/; ─────────────────────────────────────────────────────────
+class Bird {
+  var tex: raylib::Texture
+  var pos: raylib::Vec2
+  var timer: deci32
+  var frame: int
+
+  init(t: raylib::Texture) -> nthg {
+    self.tex = t
+    self.pos = new raylib::Vec2(0.0f, 0.0f)
+    self.timer = 0.083f /; ~10/120
+    self.frame = 0
+  }
+
+  fun update(dt: deci32, win: raylib::Window) -> nthg {
+    self.timer = self.timer - dt
+    if self.timer < 0.0f {
+      self.timer = 0.083f
+      self.frame = self.frame + 1
+      if self.frame > 8 { self.frame = 0 }
+      
+      /; Gravity applied in steps
+      self.pos.y = self.pos.y + (dt * -150.0f)
     }
+
+    /; Jump
+    if win.isKeyDown(265) { /; KEY_UP
+      self.pos.y = self.pos.y + (dt * 300.0f)
+    }
+  }
+
+  fun draw(win: raylib::Window) -> nthg {
+    var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    
+    /; Calculate sprite grid position (Avoids array usage)
+    var sx: deci32 = 0.0f
+    var sy: deci32 = 0.0f
+    if self.frame == 1 || self.frame == 4 || self.frame == 7 { sx = 360.0f }
+    if self.frame == 2 || self.frame == 5 || self.frame == 8 { sx = 720.0f }
+    if self.frame == 3 || self.frame == 4 || self.frame == 5 { sy = 360.0f }
+    if self.frame == 6 || self.frame == 7 || self.frame == 8 { sy = 720.0f }
+
+    var src:  raylib::Rect = new raylib::Rect(sx, sy, 360.0f, 360.0f)
+    var destX: deci32 = (1024.0f / 3.0f) - 45.0f
+    var destY: deci32 = (500.0f / 2.0f) - 45.0f
+    var dest: raylib::Rect = new raylib::Rect(destX, destY, 90.0f, 90.0f)
+
+    win.drawTexturePro(self.tex, src, dest, self.pos, 0.0f, cWhite)
+  }
+}
+
+/; ─────────────────────────────────────────────────────────
+/;  GAME LOOP & MAIN
+/; ─────────────────────────────────────────────────────────
+fun main2() -> nthg {
+  var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Snake/Bird Port in FlowWing")
+
+  /; Load Textures
+  var tSky:    raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/skyBackground.png")
+  var tGround: raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/ground.png")
+  var tWood:   raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/wood1.png")
+  var tM1:     raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/mountain/1mountL1.png")
+  var tM2:     raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/mountain/1mountL2.png")
+  var tM3:     raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/mountain/2mountL2.png")
+  var tM4:     raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/mountain/1mountL3.png")
+  var tBird:   raylib::Texture = win.loadTexture("/Users/apple/code/per/Flow-Wing/docs/demo/bird-game/assets/bird.png")
+
+  /; Init Entities
+  var wideM:   WideMountain   = new WideMountain(tM1)
+  var heightM: StaticMountain = new StaticMountain(tM2, 0.0f, 0.0f, 5975.0f, 1607.0f, 10.0f)
+  var greenM:  StaticMountain = new StaticMountain(tM3, 0.0f, 0.0f, 4461.0f, 1989.0f, 10.0f)
+  var blackM:  StaticMountain = new StaticMountain(tM4, 0.0f, 0.0f, 6005.0f, 2376.0f, 10.0f)
+  var ground:  Ground         = new Ground(tGround, tWood)
+  var bird:    Bird           = new Bird(tBird)
+
+  var state: int = 0 /; 0 = MENU, 1 = GAME, 2 = PAUSE
+  var score: int = 0
+
+  var cRayWhite: raylib::Color = new raylib::Color(245, 245, 245, 255)
+  var cDarkBlue: raylib::Color = new raylib::Color(0,  82, 172, 255)
+  var cGray:     raylib::Color = new raylib::Color(100, 100, 100, 255)
+
+  while !win.shouldClose() {
+    var dt: deci32 = win.getFrameTime()
+
+    /; ── Update ────────────────────────────────────────
+    if state == 0 {
+      if win.isKeyPressed(257) { state = 1 } /; ENTER
+      if win.isKeyPressed(256) { return: }   /; ESCAPE
+    }
+
+    if state == 1 {
+      if win.isKeyPressed(32) { state = 2 }  /; SPACE pauses
+      wideM.update(dt)
+      heightM.update(dt)
+      greenM.update(dt)
+      blackM.update(dt)
+      ground.update(dt)
+      bird.update(dt, win)
+      score = score + 1
+    }
+
+    if state == 2 {
+      if win.isKeyPressed(32) { state = 1 }  /; SPACE resumes
+      if win.isKeyPressed(256) { return: }   /; ESCAPE exits
+    }
+
+    /; ── Render ────────────────────────────────────────
+    win.begin()
+    win.clear(cRayWhite)
+
+    wideM.draw(win)
+    heightM.draw(win)
+    greenM.draw(win)
+    blackM.draw(win)
+    ground.draw(win)
+    bird.draw(win)
+
+    if state == 0 {
+      var w1: int = win.measureText("MAIN MENU", 60)
+      var w2: int = win.measureText("Press ENTER to Start", 20)
+      win.drawText("MAIN MENU", Int32( (SCREEN_WIDTH / 2) - (w1 / 2)), 100, 60, cDarkBlue)
+      win.drawText("Press ENTER to Start", Int32( (SCREEN_WIDTH / 2) - (w2 / 2)), 200, 20, cDarkBlue)
+    }
+    if state == 1 {
+      win.drawText("Score: ", 10, 10, 30, cDarkBlue)
+      win.drawText(String(score), Int32(120), Int32(10), 30, cDarkBlue)
+      win.drawText("Press SPACE to pause", SCREEN_WIDTH - 200, 10, 15, cGray)
+    }
+    if state == 2 {
+      var w3: int = win.measureText("Game Paused", 40)
+      win.drawText("Game Paused", Int32((SCREEN_WIDTH / 2) - (w3 / 2)), 200, 40, cDarkBlue)
+    }
+
+    win.end()
+  }
 }
 
 main2()

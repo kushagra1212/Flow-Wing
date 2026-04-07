@@ -184,6 +184,9 @@ var arr: int[5] = [1, 2, 3] /; Padded with zeros
 var matrix: int[2][2] = [[1, 2], [3, 4]]
 ```
 
+Note for object, array and classes
+Must use the type they are not dynamic
+
 ### 7.2 Vectors (`vec::Vec`)
 
 Dynamic arrays from the `vec` module. Supports chaining.
@@ -262,6 +265,13 @@ Standard error handling pattern using `Err::Result`.
 - **Self keyword**: Used within classes to refer to the current instance.
 
 ---
+
+for nthg return
+
+fun main2() -> nthg {
+println("Hello, World!")
+return:
+}
 
 ## Documentation for LLM Code Generation
 

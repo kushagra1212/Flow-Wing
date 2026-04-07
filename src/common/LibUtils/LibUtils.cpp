@@ -47,8 +47,8 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
   if (file_name == "raylib-module.fg") {
 
 #if defined(__APPLE__)
-    return "flowwing_raylib -framework IOKit -framework Cocoa -framework "
-           "OpenGL ";
+    return "flowwing_raylib -framework CoreVideo -framework IOKit -framework "
+           "Cocoa -framework GLUT -framework OpenGL ";
 
 #else
     return "flowwing_raylib";
