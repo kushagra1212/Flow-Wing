@@ -1,0 +1,111 @@
+/; FFI Declarations (Internal use)
+fun _ray_init_window(width: as int, height: as int, title: as str) -> as nthg decl
+fun _ray_window_should_close() -> as bool decl
+fun _ray_begin_drawing() -> as nthg decl
+fun _ray_end_drawing() -> as nthg decl
+fun _ray_clear_background(color_packed: as int64) -> as nthg decl
+fun _ray_draw_circle(centerX: as deci32, centerY: as deci32, radius: as deci32, color_packed: as int64) -> as nthg decl
+fun _ray_draw_rectangle(posX: as deci32, posY: as deci32, width: as deci32, height: as deci32, color_packed: as int64) -> as nthg decl
+fun _ray_draw_text(text: as str, posX: as int, posY: as int, fontSize: as int, color_packed: as int64) -> as nthg decl
+fun _ray_is_key_pressed(key: as int) -> as bool decl
+fun _ray_is_mouse_button_pressed(button: as int) -> as bool decl
+
+module [raylib]
+
+class Color {
+  var r: int
+  var g: int
+  var b: int
+  var a: int
+
+  init(r: int, g: int, b: int, a: int = 255) -> nthg {
+    self.r = r
+    self.g = g
+    self.b = b
+    self.a = a
+  }
+
+  /; Packs RGBA into a single int64 for FFI
+fun pack() -> int64 {
+    var packed: int64 = 0
+    
+    /; If your language supports bitwise OR (|), you can use it:
+    packed = packed | self.r
+    packed = packed | (self.g * 256)
+    packed = packed | (self.b * 65536)
+    packed = packed | (self.a * 16777216)
+    
+    /; If it doesn't, standard addition works exactly the same here:
+    /; packed = self.r + (self.g * 256) + (self.b * 65536) + (self.a * 16777216)
+    
+    return packed
+  }
+}
+
+class Vec2 {
+  var x: deci32
+  var y: deci32
+
+  init(x: deci32, y: deci32) -> nthg {
+    self.x = x
+    self.y = y
+  }
+
+  /; Packs two deci32s into a single int64 for FFI
+fun pack() -> int64 {
+    /; Using multiplication instead of << 32
+    return Int64(self.x) | (Int64(self.y) * 4294967296)
+    
+    /; Or using addition if bitwise OR is unavailable:
+    /; return self.x + (self.y * 4294967296)
+  }
+}
+
+
+
+
+class Window {
+  init(width: int, height: int, title: str) -> nthg {
+    _ray_init_window(width, height, title)
+  }
+
+  fun shouldClose() -> bool {
+    return _ray_window_should_close()
+  }
+
+  fun begin() -> nthg {
+    _ray_begin_drawing() 
+  }
+
+  fun end() -> nthg {
+    _ray_end_drawing()
+  }
+
+  fun clear(color: Color) -> nthg {
+    var colorPacked :int64= color.pack()
+    _ray_clear_background(colorPacked)
+  }
+
+  fun drawCircle(pos: Vec2, radius: deci32, color: Color) -> nthg {
+    var posPacked :int64= color.pack()
+    _ray_draw_circle(pos.x, pos.y, radius, posPacked)
+  }
+
+  fun drawRectangle(pos: Vec2, size: Vec2, color: Color) -> nthg {
+      var colorPacked :int64= color.pack()
+    _ray_draw_rectangle(pos.x, pos.y, size.x, size.y, colorPacked)
+  }
+
+  fun drawText(text: str, x: int, y: int, fontSize: int, color: Color) -> nthg {
+    var colorPacked :int64= color.pack()
+    _ray_draw_text(text, x , y , fontSize , colorPacked)
+  }
+
+  fun isKeyPressed(key: int) -> bool {
+    return _ray_is_key_pressed(key )
+  }
+
+  fun isMouseButtonPressed(button: int) -> bool {
+    return _ray_is_mouse_button_pressed(button )
+  }
+}

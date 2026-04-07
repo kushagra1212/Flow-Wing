@@ -110,7 +110,7 @@ TypeResolver::resolveType(const syntax::ExpressionSyntax *syntax) {
     return resolveModuleAccessType(
         static_cast<const syntax::ModuleAccessTypeExpressionSyntax *>(syntax));
 
-        default:
+  default:
     assert(false && "TypeResolver::resolveType: unknown type kind");
     return {nullptr, nullptr};
   }
@@ -263,19 +263,21 @@ TypeResolver::resolveObjectType(
   auto custom_type_type = std::dynamic_pointer_cast<types::CustomObjectType>(
       custom_type_symbol->getType());
 
-
   if (custom_type_type == nullptr) {
-    return {nullptr, std::make_unique<binding::BoundErrorExpression>(
-                         syntax->getObjectIdentifier()->getSourceLocation(),
-                         flow_wing::diagnostic::DiagnosticCode::kCustomTypeNotFound,
-                         diagnostic::DiagnosticArgs{
-                             syntax->getObjectIdentifier()->getValue()})};
+    return {nullptr,
+            std::make_unique<binding::BoundErrorExpression>(
+                syntax->getObjectIdentifier()->getSourceLocation(),
+                flow_wing::diagnostic::DiagnosticCode::kCustomTypeNotFound,
+                diagnostic::DiagnosticArgs{
+                    syntax->getObjectIdentifier()->getValue()})};
   }
 
   return {custom_type_type, nullptr};
 }
 
-std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
+std::pair<std::shared_ptr<types::ParameterType>,
+          std::unique_ptr<binding::BoundErrorExpression>>
+TypeResolver::resolveParameterExpression(
     const syntax::ParameterExpressionSyntax *syntax) {
   const bool has_inout_keyword = syntax->hasInoutKeyword();
   const bool has_const_keyword = syntax->hasConstKeyword();
@@ -289,23 +291,26 @@ std::shared_ptr<types::ParameterType> TypeResolver::resolveParameterExpression(
         result = resolveType(syntax->getTypeExpression().get());
 
     if (result.first == nullptr) {
-      return nullptr;
+      return {nullptr, std::move(result.second)};
     }
     base_type = result.first;
 
     if (base_type->isNthg()) {
-      m_ctx->reportError(flow_wing::diagnostic::DiagnosticCode::
-                             kNthgCannotBeUsedAsParameterType,
-                         {}, syntax->getTypeExpression()->getSourceLocation());
-      return nullptr;
+      return {nullptr, std::make_unique<binding::BoundErrorExpression>(
+                           syntax->getSourceLocation(),
+                           flow_wing::diagnostic::DiagnosticCode::
+                               kNthgCannotBeUsedAsParameterType,
+                           diagnostic::DiagnosticArgs{})};
     }
   } else {
     base_type = Builtins::m_dynamic_type_instance;
   }
 
-  return std::make_shared<types::ParameterType>(
-      base_type, getValueKind(has_inout_keyword),
-      getTypeConvention(has_as_keyword), getConstness(has_const_keyword));
+  return {std::make_shared<types::ParameterType>(
+              base_type, getValueKind(has_inout_keyword),
+              getTypeConvention(has_as_keyword),
+              getConstness(has_const_keyword)),
+          nullptr};
 }
 
 std::pair<std::vector<std::shared_ptr<types::ReturnType>>,

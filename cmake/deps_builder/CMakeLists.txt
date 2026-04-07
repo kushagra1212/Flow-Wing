@@ -101,7 +101,7 @@ else()
 
         # FIX: Append the library/include path flags to the list for bdw-gc
         set(BDWGC_ENV_ARGS ${AUTOTOOLS_ENV_ARGS})
-        list(APPEND BDWGC_ENV_ARGS "CPPFLAGS=-I${DEPS_INSTALL_DIR}/include" "LDFLAGS=-L${DEPS_INSTALL_DIR}/lib")
+        list(APPEND BDWGC_ENV_ARGS "CPPFLAGS=-I${DEPS_INSTALL_DIR}/include -DMAX_ROOT_SETS=2048" "LDFLAGS=-L${DEPS_INSTALL_DIR}/lib")
 
         ExternalProject_Add(
             bdwgc_external
@@ -110,7 +110,7 @@ else()
             GIT_TAG "v8.2.4"
             UPDATE_COMMAND ""
             BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND ./autogen.sh && env ${BDWGC_ENV_ARGS} ./configure --prefix=${DEPS_INSTALL_DIR} --enable-static --disable-shared --enable-cplusplus
+            CONFIGURE_COMMAND ./autogen.sh && env ${BDWGC_ENV_ARGS} ./configure --prefix=${DEPS_INSTALL_DIR} --enable-static --disable-shared --enable-cplusplus --enable-large-config
             BUILD_COMMAND make
             INSTALL_COMMAND make install
             USES_TERMINAL_DOWNLOAD true
@@ -147,7 +147,8 @@ else()
 
             # Add this to clone libatomic_ops into the source dir
             PATCH_COMMAND git clone https://github.com/ivmai/libatomic_ops.git libatomic_ops && cd libatomic_ops && git checkout v7.8.0
-            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
+            "-DCMAKE_CXX_FLAGS=-DMAX_ROOT_SETS=4096"
             USES_TERMINAL_DOWNLOAD true
             USES_TERMINAL_CONFIGURE true
             USES_TERMINAL_BUILD true

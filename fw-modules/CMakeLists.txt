@@ -13,3 +13,5 @@ add_subdirectory(text_module)
 add_subdirectory(vec_module)
 add_subdirectory(file_module)   
 add_subdirectory(vortex_module)
+add_subdirectory(raylib_module)
+

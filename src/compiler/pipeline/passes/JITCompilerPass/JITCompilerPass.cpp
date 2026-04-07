@@ -51,6 +51,7 @@
 #include "llvm/Linker/Linker.h"
 #include "llvm/Target/TargetMachine.h"
 #include "src/common/diagnostics/diagnostic_pop.h"
+#include <llvm/ExecutionEngine/Orc/EPCDynamicLibrarySearchGenerator.h>
 // clang-format on
 
 namespace flow_wing {
@@ -97,20 +98,22 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
   return ReturnStatus::kSuccess;
 }
 
-
-/// Upgrades LinkOnce linkage to Weak linkage to prevent llvm::Linker 
-/// from aggressively stripping transitive dependencies during manual module merging.
+/// Upgrades LinkOnce linkage to Weak linkage to prevent llvm::Linker
+/// from aggressively stripping transitive dependencies during manual module
+/// merging.
 void preventLinkerStripping(llvm::Module &M) {
   for (llvm::Function &F : M) {
     if (F.hasLinkOnceLinkage()) {
-      F.setLinkage(F.hasLinkOnceODRLinkage() ? llvm::GlobalValue::WeakODRLinkage
-                                             : llvm::GlobalValue::WeakAnyLinkage);
+      F.setLinkage(F.hasLinkOnceODRLinkage()
+                       ? llvm::GlobalValue::WeakODRLinkage
+                       : llvm::GlobalValue::WeakAnyLinkage);
     }
   }
   for (llvm::GlobalVariable &GV : M.globals()) {
     if (GV.hasLinkOnceLinkage()) {
-      GV.setLinkage(GV.hasLinkOnceODRLinkage() ? llvm::GlobalValue::WeakODRLinkage
-                                               : llvm::GlobalValue::WeakAnyLinkage);
+      GV.setLinkage(GV.hasLinkOnceODRLinkage()
+                        ? llvm::GlobalValue::WeakODRLinkage
+                        : llvm::GlobalValue::WeakAnyLinkage);
     }
   }
 }
@@ -189,7 +192,7 @@ collectOrderedIRFiles(const CompilationContext &context,
           flow_wing::ir_gen::jit_utils::getIRFilePath(ir_directory_path, *ms);
       std::error_code ec;
       if (fs::exists(p, ec) && !ec && canonical_key(p) == ik) {
-        return 0; 
+        return 0;
       }
     }
 
@@ -338,7 +341,6 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
 
     DEBUG_LOG(" [INFO]: Running JIT Code...", "");
 
- 
     [[maybe_unused]] int result = MainFn(argc, argv);
 
     DEBUG_LOG(" [INFO]: JIT Execution finished with code: ", result);

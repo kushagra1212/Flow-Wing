@@ -1,1 +1,18 @@
-print("Hello")
+bring raylib
+
+fun main2() {
+    var win: raylib::Window = new raylib::Window(800, 600, "Flow-Wing Raylib")
+    var red: raylib::Color =new  raylib::Color(255, 0, 0)
+    var white: raylib::Color = new raylib::Color(255, 255, 255)
+    var pos: raylib::Vec2 = new raylib::Vec2(400, 300)
+
+    while !win.shouldClose() {
+        win.begin()
+        win.clear(white)
+        win.drawCircle(pos, 50, red)
+        win.drawText("Hello Flow-Wing!", 10, 10, 20, red)
+        win.end()
+    }
+}
+
+main2()

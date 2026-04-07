@@ -105,8 +105,7 @@ void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
   // objects from other compilations).
   std::unordered_set<std::string> seen;
   const std::string primary = ir_gen::ObjectUtils::getObjectFilePath(
-      m_context.getAbsoluteSourceFilePath(),
-      m_context.getOptions().output_dir);
+      m_context.getAbsoluteSourceFilePath(), m_context.getOptions().output_dir);
   m_object_files.clear();
   m_object_files.push_back(primary);
   seen.insert(primary);
@@ -234,7 +233,8 @@ LinkerCommandBuilder::getEntryPointFlag(const std::string &entry) const {
 std::string LinkerCommandBuilder::getBinaryFilePath() const {
   const std::string &explicit_out =
       m_context.getOptions().output_executable_path;
-  // Development: Makefile passes `-o build/bin/<stem>` so the run target can execute a stable path.
+  // Development: Makefile passes `-o build/bin/<stem>` so the run target can
+  // execute a stable path.
   if (!explicit_out.empty()) {
     std::string binary_file_path = explicit_out;
 #if defined(_WIN32)
@@ -244,17 +244,16 @@ std::string LinkerCommandBuilder::getBinaryFilePath() const {
     return binary_file_path;
   }
 
-  // Default (incl. test-aot): unique hashed basename under bin/ — runner never passes `-o`.
+  // Default (incl. test-aot): unique hashed basename under bin/ — runner never
+  // passes `-o`.
   const std::string short_base = utils::PathUtils::shortHashedHex16ForPath(
       m_context.getAbsoluteSourceFilePath());
   std::string binary_file_path = "";
   // handle windows and ma
 #if defined(_WIN32)
-  binary_file_path =
-      m_context.getOptions().output_dir + "\\bin\\" + short_base;
+  binary_file_path = m_context.getOptions().output_dir + "\\bin\\" + short_base;
 #else
-  binary_file_path =
-      m_context.getOptions().output_dir + "/bin/" + short_base;
+  binary_file_path = m_context.getOptions().output_dir + "/bin/" + short_base;
 #endif
 
   if (binary_file_path.empty()) {

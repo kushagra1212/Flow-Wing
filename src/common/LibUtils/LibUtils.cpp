@@ -44,15 +44,18 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     return "flowwing_vortex";
   }
 
+  if (file_name == "raylib-module.fg") {
+    return "flowwing_raylib -framework IOKit -framework Cocoa -framework "
+           "OpenGL ";
+  }
+
   return "";
 }
 
 } // namespace
 
 const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "dynamic", "gc",
-                                           "gccpp",           "atomic_ops"};
-
-
+                                           "gccpp", "atomic_ops"};
 
 std::vector<std::string>
 getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {

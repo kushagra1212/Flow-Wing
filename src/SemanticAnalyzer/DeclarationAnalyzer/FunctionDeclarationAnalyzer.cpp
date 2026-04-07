@@ -58,9 +58,14 @@ void analysis::DeclarationAnalyzer::visit(
   for (auto &param : node->getParameters()) {
     auto param_expression =
         static_cast<syntax::ParameterExpressionSyntax *>(param.get());
-    auto param_type =
+    auto [param_type, error_expression] =
         m_binder_context.getTypeResolver()->resolveParameterExpression(
             param_expression);
+
+    if (error_expression != nullptr) {
+      m_binder_context.reportError(error_expression.get());
+      return;
+    }
 
     auto current_param_name =
         static_cast<syntax::IdentifierExpressionSyntax *>(
@@ -132,8 +137,6 @@ void analysis::DeclarationAnalyzer::visit(
   function_symbol->setDeclarationSite(
       m_binder_context.getCompilationContext().getAbsoluteSourceFilePath(),
       function_identifier->getSourceLocation());
-
-     
 }
 
 std::shared_ptr<types::Type> analysis::DeclarationAnalyzer::inferReturnType(

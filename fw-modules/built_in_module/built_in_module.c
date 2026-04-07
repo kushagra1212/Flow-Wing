@@ -321,7 +321,11 @@ float fg_stf(const char* str) {
  
  // Initializer for GC (Call this at start of main if needed, or rely on auto-init)
  void fg_init_runtime() {
-     GC_INIT();
+    static bool initialized = false;
+  if (!initialized) {
+        GC_INIT();
+        initialized = true;
+    }
  }
 
  // ==========================================

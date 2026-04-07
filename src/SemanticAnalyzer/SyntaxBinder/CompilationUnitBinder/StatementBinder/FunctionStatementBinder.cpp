@@ -19,22 +19,22 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
-#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
-#include "src/common/types/Type.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
-#include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionStatement/BoundFunctionStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
+#include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/ParameterSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
+#include "src/common/types/Type.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
@@ -68,8 +68,17 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
       for (auto &param : function_statement->getParameters()) {
         auto *param_expr =
             static_cast<syntax::ParameterExpressionSyntax *>(param.get());
-        visible.push_back(
-            m_context->getTypeResolver()->resolveParameterExpression(param_expr));
+        auto [param_type, error_expression] =
+            m_context->getTypeResolver()->resolveParameterExpression(
+                param_expr);
+
+        if (error_expression) {
+          m_context->reportError(error_expression.get());
+          return std::make_unique<BoundErrorStatement>(
+              std::move(error_expression));
+        }
+
+        visible.push_back(param_type);
       }
       auto fs = ct->resolveMethod(function_name, visible);
       if (!fs) {
@@ -109,8 +118,7 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
   assert(function_type != nullptr &&
          "FunctionStatementBinder::bind: function type is null");
 
-  const bool is_member_function =
-      m_context->getCurrentClassType() != nullptr;
+  const bool is_member_function = m_context->getCurrentClassType() != nullptr;
   const size_t syntax_param_count = function_statement->getParameters().size();
   const size_t type_param_count = function_type->getParameterTypes().size();
   assert((type_param_count == syntax_param_count ||
@@ -184,16 +192,16 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
           analysis::Builtins::m_nthg_type_instance));
     }
 
-
-    BINDER_DEBUG_LOG("_Parameter Type", param_type->type->getName(),types::Type::toString(param_type->type->getKind()));
+    BINDER_DEBUG_LOG("_Parameter Type", param_type->type->getName(),
+                     types::Type::toString(param_type->type->getKind()));
 
     auto param_symbol = std::make_shared<analysis::ParameterSymbol>(
         param_identifier_name, param_type->type,
         std::move(bound_default_value_expression));
 
-
-
-    BINDER_DEBUG_LOG("_Parameter Type_Symbol", param_symbol->getType()->getName(),types::Type::toString(param_symbol->getType()->getKind()));
+    BINDER_DEBUG_LOG("_Parameter Type_Symbol",
+                     param_symbol->getType()->getName(),
+                     types::Type::toString(param_symbol->getType()->getKind()));
 
     param_symbol->setDeclarationSite(
         m_context->getCompilationContext().getAbsoluteSourceFilePath(),
@@ -208,7 +216,6 @@ std::unique_ptr<BoundStatement> StatementBinder::bindFunctionStatement(
       m_context->reportError(error_statement.get());
       return std::move(error_statement);
     }
-    
 
     function_symbol->addParameter(param_symbol);
 

@@ -154,8 +154,16 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
     for (auto &param : func_syntax->getParameters()) {
       auto *param_expr =
           static_cast<syntax::ParameterExpressionSyntax *>(param.get());
-      params.push_back(
-          m_context->getTypeResolver()->resolveParameterExpression(param_expr));
+
+      auto [param_type, error_expression] =
+          m_context->getTypeResolver()->resolveParameterExpression(param_expr);
+      params.push_back(param_type);
+      if (error_expression != nullptr) {
+        m_context->reportError(error_expression.get());
+        m_context->getSymbolTable()->leaveScope();
+        return std::make_unique<BoundErrorStatement>(
+            std::move(error_expression));
+      }
       if (param_expr->hasDefaultValueExpression() &&
           default_value_start_index == static_cast<size_t>(-1)) {
         default_value_start_index = count;

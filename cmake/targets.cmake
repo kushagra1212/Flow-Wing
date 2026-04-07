@@ -200,9 +200,15 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:flowwing_text>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_file>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
+            "-framework CoreFoundation"
+            "-framework IOKit"
+            "-framework Cocoa"
+            "-framework OpenGL"
+            "-framework CoreVideo"
         )
     elseif(UNIX)
         # This is the corrected section for Linux
@@ -215,6 +221,7 @@ if(NOT BUILD_AOT)
             flowwing_vec
             flowwing_file
             flowwing_vortex
+            flowwing_raylib
             "${DEPS_LIB_DIR}/libgc.a"
             "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
@@ -235,6 +242,7 @@ if(NOT BUILD_AOT)
             flowwing_vec
             flowwing_file
             flowwing_vortex
+            flowwing_raylib
             "${DEPS_LIB_DIR}/gc.lib"
             "${DEPS_LIB_DIR}/gccpp.lib"
             "${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -248,6 +256,7 @@ if(NOT BUILD_AOT)
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vec>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_file>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vortex>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_raylib>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"

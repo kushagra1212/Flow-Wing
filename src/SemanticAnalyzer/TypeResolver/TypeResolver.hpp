@@ -39,7 +39,8 @@ public:
             std::unique_ptr<binding::BoundErrorExpression>>
   resolveArrayType(const syntax::ArrayTypeExpressionSyntax *syntax);
 
-  std::shared_ptr<types::ParameterType>
+  std::pair<std::shared_ptr<types::ParameterType>,
+            std::unique_ptr<binding::BoundErrorExpression>>
   resolveParameterExpression(const syntax::ParameterExpressionSyntax *syntax);
 
   std::pair<std::vector<std::shared_ptr<types::ReturnType>>,
