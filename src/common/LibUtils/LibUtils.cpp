@@ -49,11 +49,11 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
 #if defined(__APPLE__)
     return "flowwing_raylib -framework IOKit -framework Cocoa -framework "
            "OpenGL ";
-  }
+
 #else
     return "flowwing_raylib";
 #endif
-
+  }
   return "";
 }
 
