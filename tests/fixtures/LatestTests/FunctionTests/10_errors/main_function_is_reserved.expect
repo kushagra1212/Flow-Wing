@@ -1,0 +1,13 @@
+
+0| /; EXPECTED_ERROR: kFunctionNamedMain
+1| fun main() -> nthg {
+       ^^^^^           
+2|   var a:  str = "Hello, World!"
+3| }
+4| 
+5| main()
+
+[Error:FunctionNamedMain] : Line 1:4  "The function 'main' is reserved and cannot be defined"
+
+File: ----> main_function_is_reserved.fg
+Location: ----> /Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests/FunctionTests/10_errors/main_function_is_reserved.fg

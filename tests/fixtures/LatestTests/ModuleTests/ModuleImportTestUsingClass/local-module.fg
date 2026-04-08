@@ -22,7 +22,7 @@ class A {
 
 var g:local::T = {}
 
-fun main()-> nthg {
+fun main2()-> nthg {
 var a:local::A =  new local::A()
 print(a.u)
 a.x = {a:100}

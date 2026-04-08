@@ -8,7 +8,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun main2() -> nthg {
   print(local::x)
   }
 

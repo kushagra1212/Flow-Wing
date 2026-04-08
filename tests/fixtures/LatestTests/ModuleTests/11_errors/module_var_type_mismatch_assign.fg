@@ -3,6 +3,6 @@ module [m]
 
 var x: int = 0
 
-fun main() -> nthg {
+fun main2() -> nthg {
   m::x = "bad"
 }

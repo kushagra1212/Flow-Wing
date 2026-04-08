@@ -17,7 +17,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun main2() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -27,7 +27,7 @@ fun callMe(y:local::T) -> local::T {
   var p:local::T = y
 
   p.e = true
-local::main()
+local::main2()
   return p
 
   
