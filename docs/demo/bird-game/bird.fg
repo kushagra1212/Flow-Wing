@@ -1,12 +1,10 @@
 
 bring raylib
+bring file
 const SCREEN_WIDTH:  int = 1024
 const SCREEN_HEIGHT: int = 500
 const GAME_SPEED: deci32 = 100.0f
 
-fun fg_get_script_dir() -> as str decl
-
-const SCRIPT_DIR: str = fg_get_script_dir()
 
 /; ─────────────────────────────────────────────────────────
 /;  MOUNTAIN PARALLAX
@@ -153,6 +151,7 @@ class Bird {
 fun main2() -> nthg {
   var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Snake/Bird Port in FlowWing")
 
+  const SCRIPT_DIR: str = file::__DIR__
   /; Load Textures
   var tSky:    raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/skyBackground.png")
   var tGround: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/ground.png")

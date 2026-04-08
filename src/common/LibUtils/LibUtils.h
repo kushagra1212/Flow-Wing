@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-extern const char *STATIC_LINKING_LIBRARIES[5];
+extern const char *STATIC_LINKING_LIBRARIES[4];
 
 
 

@@ -202,7 +202,6 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
-            "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
             "-framework CoreFoundation"
             "-framework IOKit"
@@ -223,7 +222,6 @@ if(NOT BUILD_AOT)
             flowwing_vortex
             flowwing_raylib
             "${DEPS_LIB_DIR}/libgc.a"
-            "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
             "-Wl,--no-whole-archive"
 

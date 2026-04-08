@@ -59,8 +59,7 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
 
 } // namespace
 
-const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "dynamic", "gc",
-                                           "gccpp", "atomic_ops"};
+const char *STATIC_LINKING_LIBRARIES[4] = {"built_in_module", "dynamic", "gc", "atomic_ops"};
 
 std::vector<std::string>
 getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {
