@@ -1,0 +1,6 @@
+/; EXPECTED_ERROR: kFunctionNamedMain
+fun main() -> nthg {
+  var a:  str = "Hello, World!"
+}
+
+main()

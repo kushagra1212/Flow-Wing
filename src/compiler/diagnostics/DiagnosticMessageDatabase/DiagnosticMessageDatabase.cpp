@@ -747,6 +747,9 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
     {(DiagnosticCode::kInvalidAsKeywordUsage),
      {"Invalid 'as' keyword usage in function {0}'s {1}.", "", ""}},
 
+    {(DiagnosticCode::kFunctionNamedMain),
+     {"The function 'main' is reserved and cannot be defined", "", ""}},
+
 };
 
 const MessageTemplate &
@@ -1054,6 +1057,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kInvalidAsKeywordUsage:
     return "InvalidAsKeywordUsage";
+
+  case DiagnosticCode::kFunctionNamedMain:
+    return "FunctionNamedMain";
 
   default:
     return "Unknown diagnostic code";

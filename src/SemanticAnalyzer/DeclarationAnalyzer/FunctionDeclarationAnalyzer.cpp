@@ -41,6 +41,15 @@ void analysis::DeclarationAnalyzer::visit(
 
   auto function_name = function_identifier->getValue();
 
+  if (function_name == "main") {
+
+    m_binder_context.reportError(
+        flow_wing::diagnostic::DiagnosticCode::kFunctionNamedMain, {},
+        node->getIdentifier()->getSourceLocation());
+
+    return;
+  }
+
   auto symbol_table = m_binder_context.getSymbolTable().get();
 
   if (Builtins::isBuiltInFunction(function_name)) {

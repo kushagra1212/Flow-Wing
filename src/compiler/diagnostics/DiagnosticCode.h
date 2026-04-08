@@ -205,7 +205,9 @@ enum class DiagnosticCode : int16_t {
   kExpectedAnIntegerForIndexing,
   kEmptyContainerExpression,
   kMultipleNthgReturnTypes,
-  kInvalidAsKeywordUsage
+  kInvalidAsKeywordUsage,
+
+  kFunctionNamedMain
 
 };
 
