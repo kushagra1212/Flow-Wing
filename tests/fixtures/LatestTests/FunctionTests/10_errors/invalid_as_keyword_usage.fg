@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidAsKeywordUsage
+fun test2(a: as str) -> nthg {
+  
+}

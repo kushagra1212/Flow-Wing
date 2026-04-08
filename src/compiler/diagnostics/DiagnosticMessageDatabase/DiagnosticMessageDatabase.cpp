@@ -744,6 +744,9 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "must have at most one 'nthg' return type to ensure clear and "
       "predictable return values."}},
 
+    {(DiagnosticCode::kInvalidAsKeywordUsage),
+     {"Invalid 'as' keyword usage in function {0}'s {1}.", "", ""}},
+
 };
 
 const MessageTemplate &
@@ -1048,6 +1051,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kMultipleNthgReturnTypes:
     return "MultipleNthgReturnTypes";
+
+  case DiagnosticCode::kInvalidAsKeywordUsage:
+    return "InvalidAsKeywordUsage";
 
   default:
     return "Unknown diagnostic code";

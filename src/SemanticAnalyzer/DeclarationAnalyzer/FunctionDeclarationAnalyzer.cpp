@@ -50,6 +50,8 @@ void analysis::DeclarationAnalyzer::visit(
     return;
   }
 
+  auto is_declaration = node->hasBody() == false;
+
   std::vector<std::shared_ptr<types::ParameterType>> params = {};
   std::vector<std::shared_ptr<types::ReturnType>> return_types = {};
 
@@ -58,6 +60,15 @@ void analysis::DeclarationAnalyzer::visit(
   for (auto &param : node->getParameters()) {
     auto param_expression =
         static_cast<syntax::ParameterExpressionSyntax *>(param.get());
+
+    if (param_expression->hasAsKeyword() && !is_declaration) {
+      m_binder_context.reportError(
+          diagnostic::DiagnosticCode::kInvalidAsKeywordUsage,
+          diagnostic::DiagnosticArgs{function_name, "parameter"},
+          param_expression->getSourceLocation());
+      return;
+    }
+
     auto [param_type, error_expression] =
         m_binder_context.getTypeResolver()->resolveParameterExpression(
             param_expression);
@@ -105,6 +116,18 @@ void analysis::DeclarationAnalyzer::visit(
     }
 
     return_types = result.first;
+
+    for (const auto &return_type : return_types) {
+      if (return_type->type_convention == types::TypeConvention::kC &&
+          !is_declaration) {
+        m_binder_context.reportError(
+            diagnostic::DiagnosticCode::kInvalidAsKeywordUsage,
+            diagnostic::DiagnosticArgs{function_name, "return type"},
+            node->getReturnType()->getSourceLocation());
+        return;
+      }
+    }
+
   } else {
     auto inferred = inferReturnType(
         static_cast<syntax::BlockStatementSyntax *>(node->getBody().get()));
