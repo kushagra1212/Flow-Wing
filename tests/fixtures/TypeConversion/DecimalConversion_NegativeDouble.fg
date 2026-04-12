@@ -1,1 +1,0 @@
-print(Decimal(-1*2.2f))

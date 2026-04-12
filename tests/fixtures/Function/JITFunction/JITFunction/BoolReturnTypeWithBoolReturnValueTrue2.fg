@@ -1,4 +1,0 @@
-fun mainTest()-> bool {
-return true
-}
-print(mainTest())

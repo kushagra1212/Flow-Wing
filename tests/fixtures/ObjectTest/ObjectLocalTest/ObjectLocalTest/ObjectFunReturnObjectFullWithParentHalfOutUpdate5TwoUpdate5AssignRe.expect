@@ -1,1 +1,0 @@
-{ a : 'string', b : 500, c : true, d : 5.00000000000000, par : { pa : 700, pb : 'fdso', pc : true, pd : 4.00000000000000 } }{ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } }

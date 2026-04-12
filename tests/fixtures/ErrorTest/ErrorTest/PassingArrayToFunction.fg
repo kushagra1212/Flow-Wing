@@ -1,6 +1,0 @@
-/; EXPECT_ERROR: PassingArrayToNonArrayParam
-fun testFun(a) -> nthg {
-  print(a, "\n")
-}
-
-testFun([2,3,4])

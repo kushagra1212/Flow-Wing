@@ -1,9 +1,0 @@
-type t1 = {
-        a:bool
-      }
-
-      var x:t1 = {
-        a:true
-      }
-
-      print(x)

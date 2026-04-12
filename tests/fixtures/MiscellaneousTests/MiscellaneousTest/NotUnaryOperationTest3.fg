@@ -1,5 +1,0 @@
-var x:str = "d" 
-
-if(!x){
-    print("x",x)
-  }

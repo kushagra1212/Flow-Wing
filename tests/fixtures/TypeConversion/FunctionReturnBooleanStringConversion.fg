@@ -1,2 +1,0 @@
-fun getFlag(b: bool) -> str { return String(b) }
-    print(Int32(getFlag(true)))

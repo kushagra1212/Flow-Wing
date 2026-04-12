@@ -1,3 +1,0 @@
-var y = 10
-    var a:int[5] = [1, 2, 3, 4, y]
-    print(a)

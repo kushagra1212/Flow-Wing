@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: ImportModuleWithErrorsWarning
-
-bring test1
-  

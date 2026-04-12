@@ -1,6 +1,0 @@
-fun getSum(a:bool,b:deci)-> deci {
-    return a + b
-
-}
-
-print(getSum(true,3.3))

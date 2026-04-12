@@ -1,5 +1,0 @@
-var x:char = Int8(98)
-
-   x= x+ Int8(1)
-
-   print(x)

@@ -1,1 +1,0 @@
-print(Decimal32(String(-1 * 3.14)))

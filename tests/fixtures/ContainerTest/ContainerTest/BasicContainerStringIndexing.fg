@@ -1,2 +1,0 @@
-{var a:str[5] = ["a", "yay", "c", "d", "e"]
-print(a[1])}

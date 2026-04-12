@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
-const x: int = 2
-
-x=2

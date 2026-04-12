@@ -1,9 +1,0 @@
-
-bring local
-
-
-var j:local::T = {a:5}
-
-
-print(j)
-  

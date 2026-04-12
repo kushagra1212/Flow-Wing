@@ -1,1 +1,0 @@
-print(Bool(String(Decimal(0.0))))

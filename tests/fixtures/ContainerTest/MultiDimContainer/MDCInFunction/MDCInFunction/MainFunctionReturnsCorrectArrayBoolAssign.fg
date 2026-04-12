@@ -1,8 +1,0 @@
-fun mainTest() -> bool[2][5] {
-      var x:bool[2][5] = [6 fill true]
-      return x
-    }
-
-    var result:bool[2][5] = [7 fill true]
-    result = mainTest()
-    print(result)

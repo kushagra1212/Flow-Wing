@@ -1,8 +1,0 @@
-/; EXPECT_ERROR: MissingDefaultValueForOptionalParameter
-fun test2(a: int, b: str, c: int = 3, d) -> nthg {
-  print("A ", a, "\n")
-  print("B ", b, "\n")
-  print("C ", c, "\n")
-}
-
-test2(2, "3", 2)

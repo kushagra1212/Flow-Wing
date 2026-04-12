@@ -1,7 +1,0 @@
-var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
-{
-  var res = 10.10
-  a = [2 fill res]
-
-print(a)
-       }

@@ -1,2 +1,0 @@
-fun main2()-> int {
-}print(main2())

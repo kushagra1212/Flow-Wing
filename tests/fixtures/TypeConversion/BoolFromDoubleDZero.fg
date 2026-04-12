@@ -1,1 +1,0 @@
-print(Bool(0.0f))

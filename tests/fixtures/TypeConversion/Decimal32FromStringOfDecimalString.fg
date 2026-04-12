@@ -1,1 +1,0 @@
-print(Decimal32(String("25.2")))

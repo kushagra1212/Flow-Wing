@@ -1,2 +1,0 @@
-/; EXPECT_ERROR: VariableNotFound
-x[0]

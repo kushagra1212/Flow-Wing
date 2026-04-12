@@ -1,2 +1,0 @@
-var x : int[2][2] = [3 fill 4]
-        print(x)

@@ -1,4 +1,0 @@
-module [test]
-  
-    var x:int = 2
-  

@@ -1,8 +1,0 @@
-fun testFun(inout a: as int) -> nthg {
-  print(a, "\n")
-  a = 30 
-  print(a, "\n")
-}
-
-var x:int  = 20
-testFun(x)

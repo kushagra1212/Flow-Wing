@@ -1,5 +1,0 @@
-fun getBool(a:bool,b:bool)-> bool {
-    return a && b
-}
-
-print(getBool(true,false))

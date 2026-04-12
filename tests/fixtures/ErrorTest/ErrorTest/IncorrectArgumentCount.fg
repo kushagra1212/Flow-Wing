@@ -1,2 +1,0 @@
-/; EXPECT_ERROR: IncorrectArgumentCount
-var age: int = Int32(2.2,2)

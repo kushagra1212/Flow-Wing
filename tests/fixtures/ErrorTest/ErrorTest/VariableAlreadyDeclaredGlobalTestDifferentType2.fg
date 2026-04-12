@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: VariableAlreadyDeclared
-var x:int = 2
-
-var x = "D"

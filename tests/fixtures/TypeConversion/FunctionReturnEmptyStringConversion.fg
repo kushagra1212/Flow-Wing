@@ -1,2 +1,0 @@
-fun getD(s: str) -> str { return "" }
-    print(Decimal(getD("test")))

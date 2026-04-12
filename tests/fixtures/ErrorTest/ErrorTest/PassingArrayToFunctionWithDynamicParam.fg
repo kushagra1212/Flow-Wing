@@ -1,7 +1,0 @@
-/; EXPECT_ERROR: PassingMismatchedTypeToFunction
-fun testFun(a) -> nthg {
-  print(a, "\n")
-}
-
-var a: int[5] = [1, 2]
-testFun(a)

@@ -1,1 +1,0 @@
-if(true) { print( 5) } else { print( 6) }

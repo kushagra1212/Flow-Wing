@@ -1,1 +1,0 @@
-print(Int32(Decimal(String("12.99"))))

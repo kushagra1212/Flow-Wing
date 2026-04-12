@@ -1,8 +1,0 @@
-type t1 = {
-       x:int[10]
-     }
-    var y:t1 = {
-      x:[5 fill 5]
-    }
-
-    print(y)

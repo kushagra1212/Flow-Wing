@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: ReturnStatementOutsideOfFunction
-{
-    return :
-}

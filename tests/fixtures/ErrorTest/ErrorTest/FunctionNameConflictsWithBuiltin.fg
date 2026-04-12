@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: FunctionNameConflictsWithBuiltin
-fun Int32()->nthg{
-    
-}

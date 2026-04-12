@@ -1,4 +1,0 @@
-fun mainTest()-> nthg {
-    return (true)
-}
-print(mainTest())

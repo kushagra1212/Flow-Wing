@@ -1,9 +1,0 @@
-type t1 = {
-        a:str
-      }
-
-      var x:t1 = {
-        a:"hello"
-      }
-
-      print(x)

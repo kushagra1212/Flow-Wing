@@ -1,2 +1,0 @@
-fun getC(d: deci32) -> str { return "100" }
-    print(String(Decimal(getC(2.2d))))

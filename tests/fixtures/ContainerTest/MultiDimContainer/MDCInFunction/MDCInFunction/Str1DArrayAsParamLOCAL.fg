@@ -1,7 +1,0 @@
-fun foo(a:str[3]) -> nthg {
-                print(a)
-            }
-    
-{            var a:str[3] = ["a","b","c"]
-    
-            foo(a)}

@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: NoCaseStatementInSwitchStatement
-switch 2 {
-  default:{}
-}

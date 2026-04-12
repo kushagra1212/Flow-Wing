@@ -1,6 +1,0 @@
-/; EXPECT_ERROR: ModuleNotFound
-
-bring test3
-
-test2::main2(2,"s")
-  

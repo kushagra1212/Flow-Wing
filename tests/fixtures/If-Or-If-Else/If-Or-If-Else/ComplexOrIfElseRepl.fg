@@ -1,2 +1,0 @@
-if(false) { print(10) } or if(false) { print(20) } or if(true) {
-      if(7 > 5) { print(30) } else { print(40) } } else { print(50) }

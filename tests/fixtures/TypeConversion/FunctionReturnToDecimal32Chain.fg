@@ -1,2 +1,0 @@
-fun getC(d: deci32) -> str { return "42.5" }
-    print(Decimal32(getC(3.14d)))

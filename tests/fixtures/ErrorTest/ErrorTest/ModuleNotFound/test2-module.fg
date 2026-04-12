@@ -1,8 +1,0 @@
-module [test2]
-
-    var x:int = 2
-
- fun main2(x:int,s:str) -> nthg {
-    print("Printing from Module Test "+x+s)
-}
-  

@@ -1,7 +1,0 @@
-print((1 > 2) ? "Hello" : "Bye")
-print(("Hl" == "hl") ? "Hello" : "Bye")
-print(("Hl" == "Hl") ? "Hello" : "Bye")
-print((2.2 == 2.2) ? "Hello" : "Bye")
-print((2.2 != 2.2) ? "Hello" : "Bye")
-print((false == false) ? "Hello" : "Bye")
-print((false == true) ? "Hello" : "Bye")

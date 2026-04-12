@@ -1,2 +1,0 @@
-var x = 0 while(x<10) { x=x+1 if(x==5) { print(x) }else{ if(x==2) {
-      print(2) }or if(x==7) { print(7) break } } }

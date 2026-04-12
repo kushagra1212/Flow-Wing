@@ -1,8 +1,0 @@
-fun getOne() -> int {
-    return 2
-}
-fun getDeci(num:int) -> deci {
-    return 3.2 * num
-}
-
-print(getDeci(getOne()))

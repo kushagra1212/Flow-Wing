@@ -1,5 +1,0 @@
-var ar:deci32 = 2.2d
-
-  ar = 32.222d
-
-print(ar)

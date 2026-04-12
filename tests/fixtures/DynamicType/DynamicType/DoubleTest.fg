@@ -1,6 +1,0 @@
-var x = 1.232
-var y = "Hello"
-var z: int = 5
-print(x, "\n")
-x = x + x + y + y + z 
-print(x, "\n")

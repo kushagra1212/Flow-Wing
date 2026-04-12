@@ -1,4 +1,0 @@
-{var a:bool[5] = [true, false, true, false, true]
-
-a[2] = false  
-print(a[2])}

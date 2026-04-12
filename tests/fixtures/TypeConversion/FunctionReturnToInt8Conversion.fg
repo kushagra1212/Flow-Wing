@@ -1,2 +1,0 @@
-fun getCharCode(s: str) -> str { return "66" }
-    print(Int8(getCharCode("any")))

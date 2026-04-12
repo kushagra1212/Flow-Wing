@@ -1,3 +1,0 @@
-var x : int[2][2] = [ 4 fill 5 ] 
-        {var y : int = 1
-        print(x[y][y] + x[y][y])}

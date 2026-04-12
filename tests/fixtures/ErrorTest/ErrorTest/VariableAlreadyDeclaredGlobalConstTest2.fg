@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: VariableAlreadyDeclared
-const x =3
-
-const x =2

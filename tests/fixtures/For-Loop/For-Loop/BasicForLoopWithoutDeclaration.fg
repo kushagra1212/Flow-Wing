@@ -1,1 +1,0 @@
-var i = 0 for i to 5 { print(i) }

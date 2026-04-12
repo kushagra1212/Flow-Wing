@@ -1,7 +1,0 @@
-fun mainTest() -> int[2][5] {
-      var x:int[2][5] = [10 fill 10]
-      return x
-    }
-
-    var result:int[2][5] = mainTest()
-    print(result)

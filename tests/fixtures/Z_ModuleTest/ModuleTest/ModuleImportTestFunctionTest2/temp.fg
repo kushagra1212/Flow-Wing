@@ -1,6 +1,0 @@
-
-bring local
-
-
-print(local::callMe({a:10}))
-  

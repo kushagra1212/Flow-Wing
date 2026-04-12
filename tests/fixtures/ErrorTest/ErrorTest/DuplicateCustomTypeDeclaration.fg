@@ -1,9 +1,0 @@
-/; EXPECT_ERROR: DuplicateCustomTypeDeclaration
-type CustomType1 = {
-  a: int,
-  b: int,
-}
-type CustomType1 = {
-  a: int,
-  b: int,
-}

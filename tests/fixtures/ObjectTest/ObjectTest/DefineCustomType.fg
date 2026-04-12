@@ -1,7 +1,0 @@
-type my = {
-            name: str,
-            age: int,
-            height: deci,
-            weight: deci,
-            isEmployed: bool,
-        }

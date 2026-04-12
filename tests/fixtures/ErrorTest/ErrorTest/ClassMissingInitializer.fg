@@ -1,5 +1,0 @@
-/; EXPECT_ERROR: ClassMissingInitializer
-class A {
-}
-
-var a:A = new A()

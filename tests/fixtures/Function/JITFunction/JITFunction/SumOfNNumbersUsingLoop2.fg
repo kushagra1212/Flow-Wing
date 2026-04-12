@@ -1,8 +1,0 @@
-fun sum(n:int) -> int {
-  var sum:int = 0
-  for (var i = 0 to n : 1) {
-    sum = sum + i
-  }
-  return sum
-}
-print(sum(10))

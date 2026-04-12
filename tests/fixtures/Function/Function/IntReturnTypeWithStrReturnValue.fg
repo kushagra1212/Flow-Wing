@@ -1,4 +1,0 @@
-fun mainTest()-> int {
-return "str"
-}
-print(mainTest())

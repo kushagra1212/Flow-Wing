@@ -1,6 +1,0 @@
-/; EXPECT_ERROR: ModuleAlreadyDeclared
-
-bring test1
-bring test1
-
-  

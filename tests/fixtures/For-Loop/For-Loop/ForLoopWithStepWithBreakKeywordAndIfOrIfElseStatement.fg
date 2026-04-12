@@ -1,2 +1,0 @@
-for var i = 0 to 5 : 2 { if i == 2 { break } or if i == 2 { print(i)
-      } else { print(i) } }

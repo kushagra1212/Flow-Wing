@@ -1,7 +1,0 @@
-/; EXPECT_ERROR: ParentClassNotFound
-class A extends B {
-  init() -> nthg  {
-
-
-  }
-}

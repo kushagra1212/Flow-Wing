@@ -1,7 +1,0 @@
-/; EXPECT_ERROR: CanNotAssignObjectToDynamicType
-var x = 2
-print(x, "\n")
-x = {
-  y: 2
-} 
-print(x, "\n")

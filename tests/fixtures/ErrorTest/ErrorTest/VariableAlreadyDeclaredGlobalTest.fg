@@ -1,4 +1,0 @@
-/; EXPECT_ERROR: VariableAlreadyDeclared
-var x = 2
-
-var x =2

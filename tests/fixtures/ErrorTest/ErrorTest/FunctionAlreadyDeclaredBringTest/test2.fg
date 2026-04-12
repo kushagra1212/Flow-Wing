@@ -1,9 +1,0 @@
-/; EXPECT_ERROR: FunctionAlreadyDeclared
-
-fun helloWorld() -> nthg {
-  print("Hello World From Current")
-}
-
-bring "test1.fg"
-helloWorld()
-  

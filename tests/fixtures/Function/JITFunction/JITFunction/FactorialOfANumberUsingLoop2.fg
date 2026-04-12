@@ -1,8 +1,0 @@
-fun factorial(n:int) -> int {
-  var fact = 1
-  for (var i = 1 to n : 1) {
-    fact = fact * i
-  }
-  return fact
-}
-print(factorial(5))
