@@ -435,7 +435,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         # ---------------------------------------------
                         # Requests for the vortex_router.fg test
                         # ---------------------------------------------
-                        urls = [f"{base_url}/api/data", f"{base_url}/404-check"]
+                        urls = [f"{base_url}/api/data", f"{base_url}/stream", f"{base_url}/404-check"]
                         for url in urls:
                             try: urllib.request.urlopen(url)
                             except urllib.error.URLError: pass

@@ -48,6 +48,12 @@ struct HttpContext {
   std::mutex mtx;
   std::condition_variable cv;
   bool handled = false;
+
+  // Stream state
+  bool is_streaming = false;
+  std::string stream_content_type;
+  std::queue<std::string> stream_chunks;
+  bool stream_done = false;
 };
 
 // Represents the Vortex Server
@@ -71,20 +77,49 @@ int64_t vortex_server_new() {
   // 1. Define the handler logic once
   auto universal_handler = [server](const httplib::Request &req,
                                     httplib::Response &res) {
-    HttpContext ctx;
-    ctx.req = &req;
-    ctx.res = &res;
+    // Shared pointer keeps context alive during async streaming
+    auto ctx = std::make_shared<HttpContext>();
+    ctx->req = &req;
+    ctx->res = &res;
 
     // Push to FlowWing queue
     {
       std::lock_guard<std::mutex> lock(server->queue_mtx);
-      server->req_queue.push(&ctx);
+      server->req_queue.push(ctx.get());
     }
     server->queue_cv.notify_one();
 
     // Block the C++ worker thread until FlowWing calls vortex_res_send
-    std::unique_lock<std::mutex> wait_lock(ctx.mtx);
-    ctx.cv.wait(wait_lock, [&ctx] { return ctx.handled; });
+    std::unique_lock<std::mutex> wait_lock(ctx->mtx);
+    ctx->cv.wait(wait_lock, [&ctx] { return ctx->handled; });
+
+    // If streaming was initialized, register cpp-httplib's chunked provider
+    if (ctx->is_streaming) {
+      res.set_content_provider(
+          ctx->stream_content_type
+              .c_str(), // Content type triggers chunked transfer
+          [ctx](size_t offset, httplib::DataSink &sink) {
+            std::unique_lock<std::mutex> lock(ctx->mtx);
+
+            // Wait until we have chunks or the stream signals end
+            ctx->cv.wait(lock, [&ctx] {
+              return !ctx->stream_chunks.empty() || ctx->stream_done;
+            });
+
+            // Unload buffer onto the connection socket
+            while (!ctx->stream_chunks.empty()) {
+              std::string chunk = ctx->stream_chunks.front();
+              ctx->stream_chunks.pop();
+              sink.write(chunk.c_str(), chunk.size());
+            }
+
+            if (ctx->stream_done && ctx->stream_chunks.empty()) {
+              sink.done();
+            }
+
+            return true; // continue fetching chunks
+          });
+    }
   };
 
   // 2. Register the same handler for all HTTP methods using a regex catch-all
@@ -185,4 +220,195 @@ void vortex_res_send(int64_t req_handle, const char *body) {
   }
   ctx->cv.notify_one();
 }
+
+// --- Stream FFI ---
+
+void vortex_res_stream_begin(int64_t req_handle, const char *content_type) {
+  if (!req_handle)
+    return;
+  HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
+
+  std::lock_guard<std::mutex> lock(ctx->mtx);
+  ctx->is_streaming = true;
+  ctx->stream_content_type = content_type;
+  ctx->handled = true;
+  ctx->cv.notify_one();
 }
+
+void vortex_res_stream_write(int64_t req_handle, const char *chunk) {
+  if (!req_handle)
+    return;
+  HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
+
+  std::lock_guard<std::mutex> lock(ctx->mtx);
+  ctx->stream_chunks.push(chunk);
+  ctx->cv.notify_one(); // Awaken the inner httplib provider
+}
+
+void vortex_res_stream_end(int64_t req_handle) {
+  if (!req_handle)
+    return;
+  HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
+
+  std::lock_guard<std::mutex> lock(ctx->mtx);
+  ctx->stream_done = true;
+  ctx->cv.notify_one();
+}
+}
+
+// =======================================================================
+// FlowWing Compiler - Vortex Client FFI (Stream Receiver Backend)
+// Append this to your existing httplib integration C++ file.
+// =======================================================================
+
+struct HttpClientContext {
+  std::thread worker;
+  std::mutex mtx;
+  std::condition_variable cv;
+
+  std::queue<std::string> chunks;
+
+  bool headers_received = false;
+  bool is_ok = false;
+  bool is_done = false;
+  bool should_cancel = false;
+};
+
+// Helper: Split a URL string into Base URL and Path
+static void parse_vortex_url(const std::string &url, std::string &base,
+                             std::string &path) {
+  size_t pos = url.find("://");
+  if (pos != std::string::npos) {
+    pos = url.find("/", pos + 3);
+    if (pos != std::string::npos) {
+      base = url.substr(0, pos);
+      path = url.substr(pos);
+      return;
+    }
+  }
+  base = url;
+  path = "/";
+}
+
+extern "C" {
+
+int64_t vortex_client_post_stream(const char *url_c, const char *body_c) {
+  std::string url = url_c ? url_c : "";
+  std::string body = body_c ? body_c : "";
+
+  std::string base, path;
+  parse_vortex_url(url, base, path);
+
+  HttpClientContext *ctx = new HttpClientContext();
+
+  // Spawn a worker thread so we don't freeze FlowWing while waiting for the
+  // network
+  ctx->worker = std::thread([ctx, base, path, body]() {
+    httplib::Client cli(base);
+    cli.set_connection_timeout(5);
+    cli.set_read_timeout(120); // Keep alive for long LLM generation
+
+    httplib::Headers headers = {{"Content-Type", "application/json"}};
+
+    // Note: cpp-httplib's Post() only takes a ContentReceiver for streaming.
+    // It does not accept a ResponseHandler like Get() does.
+    auto res = cli.Post(path, headers, body, "application/json",
+                        [ctx](const char *data, size_t data_length) {
+                          std::lock_guard<std::mutex> lock(ctx->mtx);
+                          if (ctx->should_cancel)
+                            return false;
+
+                          // If this is our first chunk of data, we unblock the
+                          // caller.
+                          if (!ctx->headers_received) {
+                            ctx->headers_received = true;
+                            ctx->is_ok =
+                                true; // LLMs only stream data if HTTP 200 OK
+                            ctx->cv.notify_all();
+                          }
+
+                          ctx->chunks.push(std::string(data, data_length));
+                          ctx->cv.notify_all();
+                          return true;
+                        });
+
+    // When the Post completes (or fails outright before any chunks arrive)
+    std::lock_guard<std::mutex> lock(ctx->mtx);
+    if (!ctx->headers_received) {
+      ctx->headers_received = true;
+      if (res) {
+        ctx->is_ok = (res->status >= 200 && res->status < 300);
+      } else {
+        ctx->is_ok = false;
+      }
+    } else if (res) {
+      // Update ok status at the end just in case the server returned a short
+      // JSON error
+      ctx->is_ok = (res->status >= 200 && res->status < 300);
+    }
+    ctx->is_done = true;
+    ctx->cv.notify_all();
+  });
+
+  // Pause the FlowWing thread ONLY until the first chunk arrives (or connection
+  // fails)
+  std::unique_lock<std::mutex> lock(ctx->mtx);
+  ctx->cv.wait(lock, [ctx]() { return ctx->headers_received; });
+
+  return reinterpret_cast<int64_t>(ctx);
+}
+
+bool vortex_client_res_ok(int64_t handle) {
+  if (!handle)
+    return false;
+  HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
+  return ctx->is_ok;
+}
+
+const char *vortex_client_read_chunk(int64_t handle) {
+  if (!handle)
+    return alloc_gc_string("");
+  HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
+
+  std::unique_lock<std::mutex> lock(ctx->mtx);
+  // Yield the thread until there is a chunk to read or the connection is done
+  ctx->cv.wait(lock, [ctx]() { return !ctx->chunks.empty() || ctx->is_done; });
+
+  if (ctx->chunks.empty()) {
+    return alloc_gc_string("");
+  }
+
+  std::string chunk = ctx->chunks.front();
+  ctx->chunks.pop();
+
+  return alloc_gc_string(chunk);
+}
+
+bool vortex_client_is_done(int64_t handle) {
+  if (!handle)
+    return true;
+  HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
+
+  std::lock_guard<std::mutex> lock(ctx->mtx);
+  return ctx->is_done && ctx->chunks.empty();
+}
+
+void vortex_client_close(int64_t handle) {
+  if (!handle)
+    return;
+  HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
+
+  // Alert the worker thread to safely cancel operations
+  {
+    std::lock_guard<std::mutex> lock(ctx->mtx);
+    ctx->should_cancel = true;
+  }
+
+  if (ctx->worker.joinable()) {
+    ctx->worker.join();
+  }
+
+  delete ctx;
+}
+
+} // extern "C"

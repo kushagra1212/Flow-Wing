@@ -15,7 +15,7 @@ fun fg_main() -> nthg {
   println("Vortex Server Ready.")
 
   /; Process exactly 3 requests to test all routing branches, then exit
-  for var i: int = 0 to 2 {
+  for var i: int = 0 to 3 {
     var req: vortex::Request, res: vortex::Response = app.accept()
     
     println("-> Received " + req.getMethod() + " " + req.getPath())
@@ -28,6 +28,25 @@ fun fg_main() -> nthg {
       var data: json::JsonNode = json::parse(`{"language": "FlowWing", "status": "Awesome"}`)
       res.status(200).json(data)
       
+    } else if req.getMethod() == "GET" && req.getPath() == "/stream" {
+      res.status(200).streamBegin("text/plain")
+      
+      /; Simulate streaming chunked data
+      res.streamWrite("Starting data stream...\n")
+      res.streamWrite("Chunk 1: Everything is flowing nicely.\n")
+      res.streamWrite("Chunk 2: Stream end imminent.\n")
+      
+      res.streamEnd()
+      
+    }else if req.getMethod() == "POST" && req.getPath() == "/stream" {
+      res.status(200).streamBegin("text/plain")
+      
+      /; Simulate streaming chunked data
+      res.streamWrite("Starting data stream...\n")
+      res.streamWrite("Chunk 1: Everything is flowing nicely.\n")
+      res.streamWrite("Chunk 2: Stream end imminent.\n")
+      
+      res.streamEnd()
     } else {
       res.status(404).send("404 - Route Not Found")
     }

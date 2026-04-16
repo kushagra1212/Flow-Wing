@@ -1,0 +1,9 @@
+Starting Vortex Client Test...
+Sending POST request to: http://localhost:9432/stream
+Connection successful! Receiving stream...
+----------------------------------------
+Starting data stream...
+Chunk 1: Everything is flowing nicely.
+Chunk 2: Stream end imminent.
+----------------------------------------
+Stream finished. Closing connection cleanly.
