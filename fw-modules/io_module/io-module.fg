@@ -1,0 +1,62 @@
+bring Err
+/; FFI Declarations
+fun io_last_error() -> as int decl
+
+fun io_print_log(text: as str) -> as nthg decl
+fun io_print_log_ln(text: as str) -> as nthg decl
+fun io_print_error_log(text: as str) -> as nthg decl
+fun io_print_error_log_ln(text: as str) -> as nthg decl
+fun io_flush() -> as nthg decl
+
+fun io_read_line() -> as str decl
+
+
+
+
+module [io]
+
+/; =========================================================
+/; Standard Output / Standard Error
+/; =========================================================
+
+/; Prints text to standard output without a trailing newline.
+fun printLog(text: str) -> nthg {
+  io_print_log(text)
+}
+
+/; Prints text to standard output with a trailing newline.
+fun printLogln(text: str) -> nthg {
+  io_print_log_ln(text)
+}
+
+/; Prints text to standard error without a trailing newline.
+fun printErrorLog(text: str) -> nthg {
+  io_print_error_log(text)
+}
+
+/; Prints text to standard error with a trailing newline.
+fun printErrorLogln(text: str) -> nthg {
+  io_print_error_log_ln(text)
+}
+
+/; Flushes the standard output buffer.
+fun flush() -> nthg {
+  io_flush()
+}
+
+/; =========================================================
+/; Standard Input
+/; =========================================================
+
+/; Reads a single line from standard input.
+fun readLine() -> str, Err::Result {
+  var line: str = io_read_line()
+  var errCode: int = io_last_error()
+  
+  if errCode != 0 {
+    /; Reached EOF or stream error
+    return "", Err::error("EOF or failed to read from standard input", Err::CODE.FAILED)
+  }
+  
+  return line, Err::ok()
+}

@@ -1,0 +1,8 @@
+bring io
+
+fun test_print_error_log() -> nthg {
+  io::printErrorLog("Error")
+  io::printErrorLog(" 404")
+}
+
+test_print_error_log()

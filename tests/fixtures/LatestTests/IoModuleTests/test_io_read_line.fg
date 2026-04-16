@@ -1,0 +1,14 @@
+bring Err
+bring io
+
+fun test_read_line() -> nthg {
+  var input: str, err: Err::Result = io::readLine()
+  
+  if err.code != 0 {
+    io::printLogln("Successfully caught EOF (No input provided by test runner).")
+  } else {
+    io::printLogln("Unexpectedly read: " + input)
+  }
+}
+
+test_read_line()

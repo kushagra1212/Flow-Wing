@@ -20,10 +20,14 @@
 #include "LibUtils.h"
 
 #include "src/common/utils/PathUtils/PathUtils.h"
+#include "src/utils/LogConfig.h"
 
 namespace {
 
 std::string getRuntimeLibraryForModule(const std::string &file_name) {
+
+  LINKING_DEBUG_LOG("Checking runtime library for module: ", file_name.c_str());
+
   if (file_name == "text-module.fg") {
     return "flowwing_text";
   }
@@ -39,7 +43,9 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
   if (file_name == "file-module.fg") {
     return "flowwing_file";
   }
-
+  if (file_name == "io-module.fg") {
+    return "flowwing_io";
+  }
   if (file_name == "vortex-module.fg") {
     return "flowwing_vortex";
   }
@@ -59,7 +65,8 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
 
 } // namespace
 
-const char *STATIC_LINKING_LIBRARIES[4] = {"built_in_module", "dynamic", "gc", "atomic_ops"};
+const char *STATIC_LINKING_LIBRARIES[4] = {"built_in_module", "dynamic", "gc",
+                                           "atomic_ops"};
 
 std::vector<std::string>
 getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {

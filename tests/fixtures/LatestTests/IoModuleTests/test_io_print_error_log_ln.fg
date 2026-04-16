@@ -1,0 +1,8 @@
+bring io
+
+fun test_print_error_log_ln() -> nthg {
+  io::printErrorLogln("Fatal Error:")
+  io::printErrorLogln("System shutting down.")
+}
+
+test_print_error_log_ln()

@@ -65,7 +65,6 @@ const std::string_view kLess_than_or_equal_strings_fn = "fg_lte";
 const std::string_view kGreater_than_strings_fn = "fg_gt";
 const std::string_view kGreater_than_or_equal_strings_fn = "fg_gte";
 const std::string_view kEqual_strings_fn = "fg_eq";
-const std::string_view kGet_input_fn = "fg_gi";
 const std::string_view kString_to_int_fn = "fg_sti";
 const std::string_view kString_to_char_fn = "fg_stc";
 const std::string_view kString_to_long_fn = "fg_stl";

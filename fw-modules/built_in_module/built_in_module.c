@@ -203,15 +203,7 @@ bool fg_gt(const char* str1, const char* str2) { return strcmp(str1, str2) > 0; 
 bool fg_gte(const char* str1, const char* str2) { return strcmp(str1, str2) >= 0; }
 bool fg_eq(const char* str1, const char* str2) { return strcmp(str1, str2) == 0; }
 
-char* fg_gi() {
-    char* buffer = (char*)GC_MALLOC(1000001);
-    if (buffer == NULL) fg_re("Memory allocation failed in fg_gi");
 
-    if (scanf("%1000000s", buffer) != 1) {
-        buffer[0] = '\0';
-    }
-    return buffer;
-}
 
 
 int fg_sti(const char* str) {

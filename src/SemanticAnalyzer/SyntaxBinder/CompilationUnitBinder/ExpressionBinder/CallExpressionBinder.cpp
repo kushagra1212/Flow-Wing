@@ -33,13 +33,13 @@
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
-#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
 #include "src/syntax/expression/MemberAccessExpressionSyntax/MemberAccessExpressionSyntax.h"
 #include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
-#include "src/syntax/NodeKind/NodeKind.h"
+#include "src/syntax/expression/SuperExpressionSyntax/SuperExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
 #include <cassert>
 #include <string>
@@ -60,8 +60,7 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     return bindMemberFunctionCall(expression);
   }
 
-  if (identifier_expression->getKind() ==
-      syntax::NodeKind::kSuperExpression) {
+  if (identifier_expression->getKind() == syntax::NodeKind::kSuperExpression) {
     return bindSuperInitCall(expression);
   }
 
@@ -109,8 +108,10 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
     auto saved = m_context->getSymbolTable();
     m_context->switchSymbolTable(module_symbol->getModuleSymbolTable());
     auto mem_sym = m_context->getSymbolTable()->lookup(callee_display_name);
+    auto is_built_in_fn =
+        analysis::Builtins::isBuiltInFunction(callee_display_name);
     m_context->switchSymbolTable(saved);
-    if (!mem_sym) {
+    if (!mem_sym || is_built_in_fn) {
       auto error_expression = std::make_unique<BoundErrorExpression>(
           mem_syn->getSourceLocation(),
           diagnostic::DiagnosticCode::kFunctionNotFound,
@@ -149,48 +150,50 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
       auto error_expression = std::make_unique<BoundErrorExpression>(
           identifier_expression->getSourceLocation(),
           diagnostic::DiagnosticCode::kFunctionNotFound,
-          std::vector<flow_wing::diagnostic::DiagnosticArg>{callee_display_name});
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{
+              callee_display_name});
 
       return std::move(error_expression);
     }
 
-
-    BINDER_DEBUG_LOG("_Symbol", symbol->getName(),symbol->getKind()==analysis::SymbolKind::kParameter, types::Type::toString(symbol->getType()->getKind()));
-
-
+    BINDER_DEBUG_LOG("_Symbol", symbol->getName(),
+                     symbol->getKind() == analysis::SymbolKind::kParameter,
+                     types::Type::toString(symbol->getType()->getKind()));
 
     analysis::FunctionSymbol *function_symbol = nullptr;
 
     if (symbol->getKind() == analysis::SymbolKind::kParameter) {
       auto parameter_symbol = static_cast<analysis::ParameterSymbol *>(symbol);
-       if (!parameter_symbol->getFunctionSymbol()) {
-  
+      if (!parameter_symbol->getFunctionSymbol()) {
+
         auto error_expression = std::make_unique<BoundErrorExpression>(
-          identifier_expression->getSourceLocation(),
-          diagnostic::DiagnosticCode::kTypeIsNotAFunction,
-          std::vector<flow_wing::diagnostic::DiagnosticArg>{
-              symbol->getType() ? symbol->getType()->getName()
-                                 : callee_display_name});
-      return std::move(error_expression);
-          }else {
-            function_symbol = static_cast<analysis::FunctionSymbol *>(parameter_symbol->getFunctionSymbol().get());
-          }
+            identifier_expression->getSourceLocation(),
+            diagnostic::DiagnosticCode::kTypeIsNotAFunction,
+            std::vector<flow_wing::diagnostic::DiagnosticArg>{
+                symbol->getType() ? symbol->getType()->getName()
+                                  : callee_display_name});
+        return std::move(error_expression);
+      } else {
+        function_symbol = static_cast<analysis::FunctionSymbol *>(
+            parameter_symbol->getFunctionSymbol().get());
       }
-    else  if (symbol->getKind() != analysis::SymbolKind::kFunction) {
+    } else if (symbol->getKind() != analysis::SymbolKind::kFunction) {
       auto error_expression = std::make_unique<BoundErrorExpression>(
           identifier_expression->getSourceLocation(),
           diagnostic::DiagnosticCode::kTypeIsNotAFunction,
           std::vector<flow_wing::diagnostic::DiagnosticArg>{
               symbol->getType() ? symbol->getType()->getName()
-                                 : callee_display_name});
+                                : callee_display_name});
       return std::move(error_expression);
-    }else{
+    } else {
       function_symbol = static_cast<analysis::FunctionSymbol *>(symbol);
     }
 
     assert(function_symbol != nullptr && "Function Symbol is null");
 
-    BINDER_DEBUG_LOG("Function Symbol2", function_symbol->getName(),function_symbol->getKind()==analysis::SymbolKind::kFunction);
+    BINDER_DEBUG_LOG("Function Symbol2", function_symbol->getName(),
+                     function_symbol->getKind() ==
+                         analysis::SymbolKind::kFunction);
 
     auto type = function_symbol->getType();
 
@@ -311,7 +314,8 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
                 diagnostic::DiagnosticCode::
                     kLiteralCannotBePassedToInoutParameter,
                 std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                    callee_display_name + "(" + function_type->getName() + ")"});
+                    callee_display_name + "(" + function_type->getName() +
+                    ")"});
             return std::move(error_expression);
           }
         }
@@ -393,14 +397,15 @@ ExpressionBinder::bindCallExpression(syntax::CallExpressionSyntax *expression) {
             member_symbol->getKind() == analysis::SymbolKind::kFunction) {
           auto *function_symbol =
               static_cast<analysis::FunctionSymbol *>(member_symbol.get());
-          auto *function_type =
-              static_cast<types::FunctionType *>(function_symbol->getType().get());
+          auto *function_type = static_cast<types::FunctionType *>(
+              function_symbol->getType().get());
           const auto &param_types = function_type->getParameterTypes();
           for (size_t i = 0; i < arguments.size() && i < param_types.size();
                ++i) {
             if (i < syntax_flat.size() && param_types[i] &&
                 param_types[i]->type->getKind() == types::TypeKind::kObject &&
-                syntax_flat[i]->getKind() == syntax::NodeKind::kObjectExpression) {
+                syntax_flat[i]->getKind() ==
+                    syntax::NodeKind::kObjectExpression) {
               auto reb = bindObjectExpression(
                   static_cast<syntax::ObjectExpressionSyntax *>(syntax_flat[i]),
                   param_types[i]->type);

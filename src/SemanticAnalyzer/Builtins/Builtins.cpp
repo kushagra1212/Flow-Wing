@@ -359,10 +359,6 @@ void Builtins::initializeInternalFunctions() {
       {Builtins::m_bool_type_instance});
 
   createInternalFunction(
-      std::string(ir_gen::constants::functions::kGet_input_fn), {},
-      {Builtins::m_str_type_instance});
-
-  createInternalFunction(
       std::string(ir_gen::constants::functions::kString_to_int_fn),
       {Builtins::m_str_type_instance}, {Builtins::m_int32_type_instance});
 

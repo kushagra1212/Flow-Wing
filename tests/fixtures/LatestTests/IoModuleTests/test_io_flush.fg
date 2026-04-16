@@ -1,0 +1,9 @@
+bring io
+
+fun test_flush() -> nthg {
+  io::printLog("Preparing to flush... ")
+  io::flush()
+  io::printLogln("Flushed successfully!")
+}
+
+test_flush()

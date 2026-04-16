@@ -1,0 +1,8 @@
+bring io
+
+fun test_print_log_ln() -> nthg {
+  io::printLogln("Line 1")
+  io::printLogln("Line 2")
+}
+
+test_print_log_ln()

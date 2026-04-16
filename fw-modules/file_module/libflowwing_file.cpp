@@ -36,7 +36,7 @@ extern "C" {
 // 0 = OK, 1 = NOT_FOUND, 2 = FAILED
 static thread_local int32_t last_file_error = 0;
 
-int32_t dyn_file_last_error() { return last_file_error; }
+int32_t file_last_error() { return last_file_error; }
 
 // Helper: Allocate a GC-tracked string to return to FlowWing
 static const char *alloc_gc_string(const std::string &str) {
@@ -50,13 +50,13 @@ static const char *alloc_gc_string(const std::string &str) {
 
 // --- Path Helpers (NEW) ---
 
-const char *dyn_file_cwd() {
+const char *file_cwd() {
   std::error_code ec;
   fs::path cwd = fs::current_path(ec);
   return alloc_gc_string(cwd.string());
 }
 
-const char *dyn_file_absolute_path(const char *path) {
+const char *file_absolute_path(const char *path) {
   std::error_code ec;
   fs::path abs_path = fs::absolute(fs::path(path), ec);
   return alloc_gc_string(abs_path.string());
@@ -64,7 +64,7 @@ const char *dyn_file_absolute_path(const char *path) {
 
 // --- Static One-Shot Operations ---
 
-const char *dyn_file_read_all(const char *path) {
+const char *file_read_all(const char *path) {
   // fs::path automatically normalizes slashes for the host OS
   std::ifstream file(fs::path(path), std::ios::in | std::ios::binary);
   if (!file) {
@@ -77,7 +77,7 @@ const char *dyn_file_read_all(const char *path) {
   return alloc_gc_string(contents.str());
 }
 
-void dyn_file_write_all(const char *path, const char *content) {
+void file_write_all(const char *path, const char *content) {
   std::ofstream file(fs::path(path), std::ios::out | std::ios::binary);
   if (!file) {
     last_file_error = 2; // FAILED
@@ -87,7 +87,7 @@ void dyn_file_write_all(const char *path, const char *content) {
   last_file_error = 0;
 }
 
-void dyn_file_append_all(const char *path, const char *content) {
+void file_append_all(const char *path, const char *content) {
   std::ofstream file(fs::path(path),
                      std::ios::out | std::ios::app | std::ios::binary);
   if (!file) {
@@ -98,12 +98,12 @@ void dyn_file_append_all(const char *path, const char *content) {
   last_file_error = 0;
 }
 
-bool dyn_file_exists(const char *path) {
+bool file_exists(const char *path) {
   std::error_code ec;
   return fs::exists(fs::path(path), ec);
 }
 
-void dyn_file_delete(const char *path) {
+void file_delete(const char *path) {
   std::error_code ec;
   if (!fs::remove(fs::path(path), ec)) {
     last_file_error = 2; // FAILED
@@ -127,7 +127,7 @@ void finalizeFileHandle(void *raw_handle, void *) {
   handle->stream.~fstream_t(); // Explicit destructor call using decltype
 }
 
-int64_t dyn_file_open(const char *path, const char *mode) {
+int64_t file_open(const char *path, const char *mode) {
   auto *handle = static_cast<FileHandle *>(GC_MALLOC(sizeof(FileHandle)));
   if (!handle)
     return 0;
@@ -153,7 +153,7 @@ int64_t dyn_file_open(const char *path, const char *mode) {
   return reinterpret_cast<int64_t>(handle);
 }
 
-void dyn_file_close(int64_t raw_handle) {
+void file_close(int64_t raw_handle) {
   if (!raw_handle)
     return;
   auto *handle = reinterpret_cast<FileHandle *>(raw_handle);
@@ -162,7 +162,7 @@ void dyn_file_close(int64_t raw_handle) {
   }
 }
 
-const char *dyn_file_read_line(int64_t raw_handle) {
+const char *file_read_line(int64_t raw_handle) {
   if (!raw_handle)
     return alloc_gc_string("");
   auto *handle = reinterpret_cast<FileHandle *>(raw_handle);

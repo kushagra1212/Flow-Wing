@@ -126,6 +126,7 @@ def _maybe_emit_ir_suffix(compiler_bin, file_path, run_env, private_temp_dir, em
             env=run_env,
             encoding=SUBPROCESS_ENCODING,
             errors=SUBPROCESS_ERRORS,
+            stdin=subprocess.DEVNULL
         )
     except subprocess.TimeoutExpired:
         return f"\n[emit-ir-on-failure] subprocess timed out after {_IR_EMIT_CMD_TIMEOUT_SEC}s\n"
@@ -261,7 +262,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         f'--output-dir={aot_build_dir}',
                         '--emit=exe',
                     ]
-                    compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
+                    compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=15, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS ,stdin=subprocess.DEVNULL )
                     duration = (time.time() - start_time) * 1000
                     if compile_result.returncode != 0:
                         output = (compile_result.stderr or '') + (compile_result.stdout or '')
@@ -279,7 +280,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         if not keep_going:
                             with dir_lock: failed_dirs.add(parent_dir)
                         return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nCompilation succeeded but binary not found at: {binary_path}"
-                    run_result = subprocess.run([str(binary_path)], capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
+                    run_result = subprocess.run([str(binary_path)], capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS, stdin=subprocess.DEVNULL)
                     duration = (time.time() - start_time) * 1000
                     output = (run_result.stderr or '') + (run_result.stdout or '')
                     output = strip_ansi_codes(output)
@@ -291,7 +292,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 else:
                     # JIT: compiler compiles and runs in process, so one invocation gets both compile and runtime errors.
                     run_cmd = [str(compiler_bin), str(file_path)]
-                    result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
+                    result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
                     duration = (time.time() - start_time) * 1000
                     output = (result.stderr or '') + (result.stdout or '')
                     output = strip_ansi_codes(output)
@@ -313,7 +314,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 ]
                 
                 # Use env=run_env here
-                compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
+                compile_result = subprocess.run(compile_cmd, capture_output=True, text=True, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
                 
                 if compile_result.returncode != 0:
                     # If an .expect file exists, this might be an intentional
@@ -464,7 +465,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 client_thread.start()
 
             # Use env=run_env here
-            result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS)
+            result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
             duration = (time.time() - start_time) * 1000
             
             raw_output = (result.stdout or '') + (result.stderr or '')

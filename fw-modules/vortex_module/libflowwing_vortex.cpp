@@ -62,41 +62,43 @@ struct VortexServer {
 
 extern "C" {
 
-  int64_t dyn_vortex_server_new() {
-    VortexServer* server = new VortexServer();
-    // Catch-all route to intercept every request and pipe it to FlowWing
-    server->svr.set_error_handler([](const httplib::Request&, httplib::Response&) {});
-    
-    // 1. Define the handler logic once
-    auto universal_handler = [server](const httplib::Request& req, httplib::Response& res) {
-        HttpContext ctx;
-        ctx.req = &req;
-        ctx.res = &res;
+int64_t vortex_server_new() {
+  VortexServer *server = new VortexServer();
+  // Catch-all route to intercept every request and pipe it to FlowWing
+  server->svr.set_error_handler(
+      [](const httplib::Request &, httplib::Response &) {});
 
-        // Push to FlowWing queue
-        {
-            std::lock_guard<std::mutex> lock(server->queue_mtx);
-            server->req_queue.push(&ctx);
-        }
-        server->queue_cv.notify_one();
+  // 1. Define the handler logic once
+  auto universal_handler = [server](const httplib::Request &req,
+                                    httplib::Response &res) {
+    HttpContext ctx;
+    ctx.req = &req;
+    ctx.res = &res;
 
-        // Block the C++ worker thread until FlowWing calls dyn_vortex_res_send
-        std::unique_lock<std::mutex> wait_lock(ctx.mtx);
-        ctx.cv.wait(wait_lock, [&ctx] { return ctx.handled; });
-    };
+    // Push to FlowWing queue
+    {
+      std::lock_guard<std::mutex> lock(server->queue_mtx);
+      server->req_queue.push(&ctx);
+    }
+    server->queue_cv.notify_one();
 
-    // 2. Register the same handler for all HTTP methods using a regex catch-all
-    server->svr.Get(".*", universal_handler);
-    server->svr.Post(".*", universal_handler);
-    server->svr.Put(".*", universal_handler);
-    server->svr.Delete(".*", universal_handler);
-    server->svr.Patch(".*", universal_handler);
-    server->svr.Options(".*", universal_handler);
-    
-    return reinterpret_cast<int64_t>(server);
+    // Block the C++ worker thread until FlowWing calls vortex_res_send
+    std::unique_lock<std::mutex> wait_lock(ctx.mtx);
+    ctx.cv.wait(wait_lock, [&ctx] { return ctx.handled; });
+  };
+
+  // 2. Register the same handler for all HTTP methods using a regex catch-all
+  server->svr.Get(".*", universal_handler);
+  server->svr.Post(".*", universal_handler);
+  server->svr.Put(".*", universal_handler);
+  server->svr.Delete(".*", universal_handler);
+  server->svr.Patch(".*", universal_handler);
+  server->svr.Options(".*", universal_handler);
+
+  return reinterpret_cast<int64_t>(server);
 }
 
-bool dyn_vortex_server_listen(int64_t handle, int32_t port) {
+bool vortex_server_listen(int64_t handle, int32_t port) {
   if (!handle)
     return false;
   VortexServer *server = reinterpret_cast<VortexServer *>(handle);
@@ -109,7 +111,7 @@ bool dyn_vortex_server_listen(int64_t handle, int32_t port) {
   return true;
 }
 
-int64_t dyn_vortex_server_accept(int64_t handle) {
+int64_t vortex_server_accept(int64_t handle) {
   if (!handle)
     return 0;
   VortexServer *server = reinterpret_cast<VortexServer *>(handle);
@@ -126,21 +128,21 @@ int64_t dyn_vortex_server_accept(int64_t handle) {
 
 // --- Request FFI ---
 
-const char *dyn_vortex_req_method(int64_t req_handle) {
+const char *vortex_req_method(int64_t req_handle) {
   if (!req_handle)
     return alloc_gc_string("");
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
   return alloc_gc_string(ctx->req->method);
 }
 
-const char *dyn_vortex_req_path(int64_t req_handle) {
+const char *vortex_req_path(int64_t req_handle) {
   if (!req_handle)
     return alloc_gc_string("");
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
   return alloc_gc_string(ctx->req->path);
 }
 
-const char *dyn_vortex_req_body(int64_t req_handle) {
+const char *vortex_req_body(int64_t req_handle) {
   if (!req_handle)
     return alloc_gc_string("");
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
@@ -149,22 +151,21 @@ const char *dyn_vortex_req_body(int64_t req_handle) {
 
 // --- Response FFI ---
 
-void dyn_vortex_res_status(int64_t req_handle, int32_t status) {
+void vortex_res_status(int64_t req_handle, int32_t status) {
   if (!req_handle)
     return;
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
   ctx->res->status = status;
 }
 
-void dyn_vortex_res_header(int64_t req_handle, const char *key,
-                           const char *val) {
+void vortex_res_header(int64_t req_handle, const char *key, const char *val) {
   if (!req_handle)
     return;
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
   ctx->res->set_header(key, val);
 }
 
-void dyn_vortex_res_send(int64_t req_handle, const char *body) {
+void vortex_res_send(int64_t req_handle, const char *body) {
   if (!req_handle)
     return;
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);

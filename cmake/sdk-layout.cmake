@@ -36,6 +36,7 @@ set(SDK_LIBRARY_TARGETS
     flowwing_vec
     flowwing_text
     flowwing_file
+    flowwing_io
     flowwing_vortex
     flowwing_raylib
     

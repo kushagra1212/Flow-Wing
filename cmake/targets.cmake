@@ -199,6 +199,7 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vec>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_text>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_file>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_io>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
@@ -219,6 +220,7 @@ if(NOT BUILD_AOT)
             flowwing_text
             flowwing_vec
             flowwing_file
+            flowwing_io
             flowwing_vortex
             flowwing_raylib
             "${DEPS_LIB_DIR}/libgc.a"
@@ -239,6 +241,7 @@ if(NOT BUILD_AOT)
             flowwing_text
             flowwing_vec
             flowwing_file
+            flowwing_io
             flowwing_vortex
             flowwing_raylib
             "${DEPS_LIB_DIR}/gc.lib"
@@ -253,6 +256,7 @@ if(NOT BUILD_AOT)
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_text>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vec>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_file>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_io>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vortex>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_raylib>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"

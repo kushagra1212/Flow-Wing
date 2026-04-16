@@ -6,17 +6,17 @@ bring Err
 /; =========================================================
 /; FFI Declarations
 /; =========================================================
-fun dyn_vortex_server_new() -> as int64 decl
-fun dyn_vortex_server_listen(handle: as int64, port: as int) -> as bool decl
-fun dyn_vortex_server_accept(handle: as int64) -> as int64 decl
+fun vortex_server_new() -> as int64 decl
+fun vortex_server_listen(handle: as int64, port: as int) -> as bool decl
+fun vortex_server_accept(handle: as int64) -> as int64 decl
 
-fun dyn_vortex_req_method(req_handle: as int64) -> as str decl
-fun dyn_vortex_req_path(req_handle: as int64) -> as str decl
-fun dyn_vortex_req_body(req_handle: as int64) -> as str decl
+fun vortex_req_method(req_handle: as int64) -> as str decl
+fun vortex_req_path(req_handle: as int64) -> as str decl
+fun vortex_req_body(req_handle: as int64) -> as str decl
 
-fun dyn_vortex_res_status(req_handle: as int64, status: as int) -> as nthg decl
-fun dyn_vortex_res_header(req_handle: as int64, key: as str, val: as str) -> as nthg decl
-fun dyn_vortex_res_send(req_handle: as int64, body: as str) -> as nthg decl
+fun vortex_res_status(req_handle: as int64, status: as int) -> as nthg decl
+fun vortex_res_header(req_handle: as int64, key: as str, val: as str) -> as nthg decl
+fun vortex_res_send(req_handle: as int64, body: as str) -> as nthg decl
 
 module [vortex]
 
@@ -31,9 +31,9 @@ class Request {
 
   init(handle: int64)  {
     self._handle = handle
-    self.method = dyn_vortex_req_method(handle)
-    self.path = dyn_vortex_req_path(handle)
-    self.body = dyn_vortex_req_body(handle)
+    self.method = vortex_req_method(handle)
+    self.path = vortex_req_path(handle)
+    self.body = vortex_req_body(handle)
   }
 
    getMethod() -> str { return self.method }
@@ -55,12 +55,12 @@ class Response {
 
   /; Method chaining supported
    status(code: int) -> vortex::Response {
-    dyn_vortex_res_status(self._handle, code)
+    vortex_res_status(self._handle, code)
     return self
   }
 
    header(key: str, val: str) -> vortex::Response {
-    dyn_vortex_res_header(self._handle, key, val)
+    vortex_res_header(self._handle, key, val)
     return self
   }
 
@@ -68,7 +68,7 @@ class Response {
     if self._sent {
       return Err::error("Response already sent to client.", Err::CODE.FAILED)
     }
-    dyn_vortex_res_send(self._handle, body)
+    vortex_res_send(self._handle, body)
     self._sent = true
     return Err::ok()
   }
@@ -87,12 +87,12 @@ class Server {
   var _isListening: bool
 
   init()  {
-    self._handle = dyn_vortex_server_new()
+    self._handle = vortex_server_new()
     self._isListening = false
   }
 
    listen(port: int) -> Err::Result {
-    var success = dyn_vortex_server_listen(self._handle, port)
+    var success = vortex_server_listen(self._handle, port)
     if !success {
       return Err::error("Vortex failed to bind to port " + String(port), Err::CODE.FAILED)
     }
@@ -103,7 +103,7 @@ class Server {
 
   /; Blocks and waits for the next incoming HTTP request
    accept() -> vortex::Request, vortex::Response {
-    var req_handle = dyn_vortex_server_accept(self._handle)
+    var req_handle = vortex_server_accept(self._handle)
     
     var req: vortex::Request = new vortex::Request(req_handle)
     var res: vortex::Response = new vortex::Response(req_handle)

@@ -18,13 +18,13 @@
  */
 
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/utils/LogConfig.h"
 #include <string>
- #include "src/IRGen/IRGenerator/IRGenHelper/DynamicValueHandler.h"
 namespace flow_wing::ir_gen {
 
 void IRGenerator::emitRecursivePrint(llvm::Value *value, types::Type *type,
@@ -365,14 +365,13 @@ llvm::Value *IRGenerator::resolvePtr(llvm::Value *value, types::Type *type) {
     }
   }
 
-  bool is_object =
-      (type->getKind() == types::TypeKind::kObject ||
-       type->getKind() == types::TypeKind::kClass ||
-       type->getKind() == types::TypeKind::kFunction) &&
-      !is_inline_object &&
-      (llvm::isa<llvm::AllocaInst>(value) ||
-       llvm::isa<llvm::GEPOperator>(value) ||
-       llvm::isa<llvm::GlobalVariable>(value));
+  bool is_object = (type->getKind() == types::TypeKind::kObject ||
+                    type->getKind() == types::TypeKind::kClass ||
+                    type->getKind() == types::TypeKind::kFunction) &&
+                   !is_inline_object &&
+                   (llvm::isa<llvm::AllocaInst>(value) ||
+                    llvm::isa<llvm::GEPOperator>(value) ||
+                    llvm::isa<llvm::GlobalVariable>(value));
 
   bool is_inline_array = false;
   if (auto *alloca = llvm::dyn_cast<llvm::AllocaInst>(value)) {
@@ -416,29 +415,39 @@ void IRGenerator::emitCast(
     auto &builder = m_ir_gen_context.getLLVMBuilder();
     auto *module = m_ir_gen_context.getLLVMModule();
 
-    llvm::Value *dyn_ptr = ensurePointer(m_last_value, m_last_type, "dyn_cast_ptr");
+    llvm::Value *dyn_ptr =
+        ensurePointer(m_last_value, m_last_type, "dyn_cast_ptr");
     llvm::Function *unbox_fn = nullptr;
 
     if (target_type == analysis::Builtins::m_int8_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int8_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_int8_fn));
     } else if (target_type == analysis::Builtins::m_int32_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int32_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_int32_fn));
     } else if (target_type == analysis::Builtins::m_int64_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_int64_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_int64_fn));
     } else if (target_type == analysis::Builtins::m_bool_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_bool_fn));
-    } else if (target_type == analysis::Builtins::m_deci32_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_float32_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_bool_fn));
+    } else if (target_type ==
+               analysis::Builtins::m_deci32_type_instance.get()) {
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_float32_fn));
     } else if (target_type == analysis::Builtins::m_deci_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_float64_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_float64_fn));
     } else if (target_type == analysis::Builtins::m_char_type_instance.get()) {
-      unbox_fn = module->getFunction(std::string(constants::functions::kUnbox_char_fn));
+      unbox_fn = module->getFunction(
+          std::string(constants::functions::kUnbox_char_fn));
     } else {
       assert(false && "Unsupported dynamic unbox target type");
     }
 
-    assert(unbox_fn && "Unbox function not found in module (ensure it is declared)");
-    
+    assert(unbox_fn &&
+           "Unbox function not found in module (ensure it is declared)");
+
     m_last_value = builder->CreateCall(unbox_fn, {dyn_ptr}, "unbox_result");
     m_last_type = target_type;
     return;
@@ -477,20 +486,23 @@ void IRGenerator::dispatchBuiltinFunctionCall(
     if (m_last_type->isDynamic()) {
       auto &builder = m_ir_gen_context.getLLVMBuilder();
       auto *module = m_ir_gen_context.getLLVMModule();
-      
-      llvm::Value *dyn_ptr = ensurePointer(m_last_value, m_last_type, "dyn_str_ptr");
+
+      llvm::Value *dyn_ptr =
+          ensurePointer(m_last_value, m_last_type, "dyn_str_ptr");
       llvm::Function *unbox_string_fn = module->getFunction("fg_unbox_string");
       assert(unbox_string_fn && "fg_unbox_string function not found in module");
-      
-      m_last_value = builder->CreateCall(unbox_string_fn, {dyn_ptr}, "unbox_str_result");
+
+      m_last_value =
+          builder->CreateCall(unbox_string_fn, {dyn_ptr}, "unbox_str_result");
       m_last_type = analysis::Builtins::m_str_type_instance.get();
-    }else {
+    } else {
 
       auto last_value = resolveValue(m_last_value, m_last_type);
       bool is_char =
           (m_last_type == analysis::Builtins::m_char_type_instance.get());
-  
-      m_last_value = convertToString(last_value, last_value->getType(), is_char);
+
+      m_last_value =
+          convertToString(last_value, last_value->getType(), is_char);
       m_last_type = analysis::Builtins::m_str_type_instance.get();
     }
   } else if (fn_name == fns::kBool_fn) {
@@ -522,7 +534,9 @@ void IRGenerator::dispatchBuiltinFunctionCall(
     emitCast(
         call_expression, analysis::Builtins::m_char_type_instance.get(),
         [this](llvm::Value *v, llvm::Type *t) { return convertToChar(v, t); });
-  } else {
+  }
+
+  else {
     assert(false && "Unknown builtin function dispatched");
   }
 }

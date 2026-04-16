@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: FunctionNotFound
+bring Err
+
+Err::println("Hello from Flow-Wing CLI!")
