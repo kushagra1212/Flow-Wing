@@ -161,15 +161,6 @@ bool Builtins::initialize(binding::BinderContext *context) {
                                              types::TypeConvention::kC)},
         true);
 
-    createBuiltinFunction(
-        "input",
-        {{std::make_shared<types::ParameterType>(Builtins::m_str_type_instance,
-                                                 types::ValueKind::kByValue,
-                                                 types::TypeConvention::kC)}},
-        {std::make_shared<types::ReturnType>(Builtins::m_str_type_instance,
-                                             types::TypeConvention::kC)},
-        false);
-
     // --- Int32, Int8, Int64 Conversion Overloads ---
 
     auto int8Fn = std::string(ir_gen::constants::functions::kInt8_fn);
