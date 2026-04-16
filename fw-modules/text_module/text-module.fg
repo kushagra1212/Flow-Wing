@@ -54,6 +54,40 @@ fun equalsIgnoreCase( str1: str, str2: str) -> bool {
     return toLower(str1) == toLower(str2)
 }
 
+fun substring(source: str, start: int, end: int) -> str {
+  var result: str = ""
+  var i = start
+  while i < end {
+    result = result + source[i]
+    i = i + 1
+  }
+  return result
+}
+
+/; Finds the first occurrence of a target substring. Returns -1 if not found.
+fun indexOf(source: str, target: str) -> int {
+  var srcLen = text::length(source)
+  var tgtLen = text::length(target)
+  if tgtLen == 0 { return 0 }
+  if srcLen < tgtLen { return -1 }
+
+  var i = 0
+  while i <= (srcLen - tgtLen) {
+    var match = true
+    var j = 0
+    while j < tgtLen {
+      if source[i + j] != target[j] {
+        match = false
+        break
+      }
+      j = j + 1
+    }
+    if match { return i }
+    i = i + 1
+  }
+  return -1
+}
+
 
 class Text {
   var _buffer: str
@@ -132,6 +166,15 @@ class Text {
 
   fun equalsIgnoreCase(other: str) -> bool {
     return equalsIgnoreCase(self._buffer, other)
+  }
+
+  indexOf(target: str) -> int {
+    return indexOf(self._buffer, target)
+  }
+
+  substring(start: int, end: int) -> text::Text {
+    var substr = substring(self._buffer, start, end)
+    return new text::Text(substr)
   }
 
   fun get() -> str {

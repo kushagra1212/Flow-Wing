@@ -63,14 +63,15 @@ void IRGenerator::visit(
         auto *llvm_type =
             m_ir_gen_context.getTypeBuilder()->getLLVMType(var_type);
 
-            auto source_tuple_types = expr->getMultipleTypes();
-auto *source_field_type = source_tuple_types[i].get(); 
-auto *source_llvm_type = m_ir_gen_context.getTypeBuilder()->getLLVMType(source_field_type);
+        auto source_tuple_types = expr->getMultipleTypes();
+        auto *source_field_type = source_tuple_types[i].get();
+        auto *source_llvm_type =
+            m_ir_gen_context.getTypeBuilder()->getLLVMType(source_field_type);
 
-if (source_field_type->getKind() == types::TypeKind::kClass || 
-    source_field_type->getKind() == types::TypeKind::kObject) {
-    source_llvm_type = source_llvm_type->getPointerTo();
-}
+        if (source_field_type->getKind() == types::TypeKind::kClass ||
+            source_field_type->getKind() == types::TypeKind::kObject) {
+          source_llvm_type = source_llvm_type->getPointerTo();
+        }
 
         if (var_type->getKind() == types::TypeKind::kClass) {
           llvm_type = llvm_type->getPointerTo();
@@ -96,7 +97,7 @@ if (source_field_type->getKind() == types::TypeKind::kClass ||
             struct_type, struct_ptr, static_cast<unsigned>(i),
             "extract_" + variable_symbol->getName());
         llvm::Value *extracted_val = builder->CreateLoad(
-          source_llvm_type, gep, "load_" + variable_symbol->getName());
+            source_llvm_type, gep, "load_" + variable_symbol->getName());
 
         emitTypedStore(storage_ptr, var_type, extracted_val, source_field_type);
         var_idx++;
@@ -135,7 +136,10 @@ if (source_field_type->getKind() == types::TypeKind::kClass ||
         init_expression->accept(this);
         assert(m_last_value &&
                "m_last_value is null after initializer expression");
+
         emitTypedStore(storage_ptr, var_type, m_last_value, m_last_type);
+
+        CODEGEN_DEBUG_LOG("After emit ", " ");
       }
       var_idx++;
     }

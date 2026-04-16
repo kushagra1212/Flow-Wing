@@ -1,0 +1,28 @@
+bring "text-module.fg"
+
+/; --- SIMPLE substring TESTS ---
+println("--- Simple substring ---")
+var subStrTest: text::Text = new text::Text("programming")
+
+/; Extract from the beginning
+println(subStrTest.substring(0, 3).get()) /; Expected: "pro"
+
+/; Extract from the middle
+println(subStrTest.substring(3, 7).get()) /; Expected: "gram"
+
+/; Extract to the end
+println(subStrTest.substring(7, 11).get()) /; Expected: "ming"
+
+
+/; --- COMPLEX substring TESTS ---
+println("--- Complex substring ---")
+var complexSubStrTest: text::Text = new text::Text("edge cases")
+
+/; Start and end are the same (should return empty string)
+println(complexSubStrTest.substring(5, 5).get()) /; Expected: ""
+
+/; Extract the entire string using length()
+println(complexSubStrTest.substring(0, complexSubStrTest.length()).get()) /; Expected: "edge cases"
+
+/; Extracting a single character (behaves like charAt but returns a string)
+println(complexSubStrTest.substring(0, 1).get()) /; Expected: "e"

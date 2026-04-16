@@ -79,27 +79,6 @@ void IRGenerator::visit(
   const bool is_str =
       (left_type == analysis::Builtins::m_str_type_instance.get());
 
-  if (is_str) {
-    llvm::Value *str_ptr = resolveValue(left_value, left_type);
-
-    const auto &dim_exprs = statement->getDimensionClauseExpressions();
-    assert(dim_exprs.size() == 1 && "str indexing must have exactly 1 index");
-    dim_exprs[0]->accept(this);
-    llvm::Value *idx_val = resolveValue(m_last_value, m_last_type);
-    clearLast();
-
-    idx_val = builder->CreateIntCast(idx_val, builder->getInt64Ty(), true,
-                                     "str_idx_i64");
-
-    llvm::Function *str_idx_fn = getOrDeclareStrIdx(mod, ctx);
-    llvm::Value *result =
-        builder->CreateCall(str_idx_fn, {str_ptr, idx_val}, "str_idx_result");
-
-    m_last_value = result;
-    m_last_type = analysis::Builtins::m_char_type_instance.get();
-    return;
-  }
-
   const bool is_dynamic = left_type->isDynamic();
 
   if (is_dynamic) {
@@ -136,6 +115,36 @@ void IRGenerator::visit(
     llvm::Value *result = builder->CreateCall(
         dyn_str_idx_fn, {value_storage, type_tag_i64, idx_val},
         "dyn_str_idx_result");
+
+    m_last_value = result;
+    m_last_type = analysis::Builtins::m_char_type_instance.get();
+    return;
+  }
+
+  if (is_str) {
+    llvm::Value *str_ptr = resolveValue(left_value, left_type);
+
+    const auto &dim_exprs = statement->getDimensionClauseExpressions();
+    assert(dim_exprs.size() == 1 && "str indexing must have exactly 1 index");
+    dim_exprs[0]->accept(this);
+    llvm::Value *idx_val = nullptr;
+    if (m_last_type->isDynamic()) {
+      llvm::Type *idx_dyn_type =
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(m_last_type);
+      auto [idx_storage, _tag] = DynamicValueHandler::extractDynamicValue(
+          m_last_value, idx_dyn_type, builder);
+      idx_val = idx_storage;
+    } else {
+      idx_val = resolveValue(m_last_value, m_last_type);
+    }
+    clearLast();
+
+    idx_val = builder->CreateIntCast(idx_val, builder->getInt64Ty(), true,
+                                     "str_idx_i64");
+
+    llvm::Function *str_idx_fn = getOrDeclareStrIdx(mod, ctx);
+    llvm::Value *result =
+        builder->CreateCall(str_idx_fn, {str_ptr, idx_val}, "str_idx_result");
 
     m_last_value = result;
     m_last_type = analysis::Builtins::m_char_type_instance.get();

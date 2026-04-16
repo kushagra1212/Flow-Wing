@@ -1,0 +1,31 @@
+bring "text-module.fg"
+
+/; --- SIMPLE indexOf TESTS ---
+println("--- Simple indexOf ---")
+var searchStr: text::Text = new text::Text("hello world")
+
+/; Match at the beginning
+println(searchStr.indexOf("hello")) /; Expected: 0
+
+/; Match in the middle/end
+println(searchStr.indexOf("world")) /; Expected: 6
+
+/; No match found
+println(searchStr.indexOf("planet")) /; Expected: -1
+
+
+/; --- COMPLEX indexOf TESTS ---
+println("--- Complex indexOf ---")
+var complexSearchStr: text::Text = new text::Text("mississippi")
+
+/; Overlapping patterns (should return the very first occurrence)
+println(complexSearchStr.indexOf("issi")) /; Expected: 1
+
+/; Target string is empty (handled by your tgtLen == 0 check)
+println(complexSearchStr.indexOf("")) /; Expected: 0
+
+/; Target string is longer than the source
+println(complexSearchStr.indexOf("mississippis")) /; Expected: -1
+
+/; Match at the very end of the string
+println(complexSearchStr.indexOf("ppi")) /; Expected: 8
