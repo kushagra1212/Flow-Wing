@@ -13,6 +13,8 @@ import platform
 import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 # Subprocess output encoding: use UTF-8 so compiler/binary output decodes correctly on Windows (avoid cp1252 UnicodeDecodeError).
 SUBPROCESS_ENCODING = "utf-8"
@@ -34,6 +36,19 @@ def get_server_test_port(file_path):
             for _ in range(5):
                 line = f.readline()
                 match = re.search(r'/;\s*TEST_SERVER_PORT:\s*(\d+)', line)
+                if match:
+                    return int(match.group(1))
+    except Exception:
+        pass
+    return None
+
+def get_mock_server_port(file_path):
+    """Checks if the FlowWing client test requires a Python mock server to connect to."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for _ in range(5):
+                line = f.readline()
+                match = re.search(r'/;\s*MOCK_SERVER_PORT:\s*(\d+)', line)
                 if match:
                     return int(match.group(1))
     except Exception:
@@ -464,8 +479,54 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 client_thread = threading.Thread(target=fire_requests)
                 client_thread.start()
 
+
+            mock_server_port = get_mock_server_port(file_path)
+            mock_server = None
+            mock_server_thread = None
+
+            if mock_server_port:
+                class MockStreamHandler(BaseHTTPRequestHandler):
+                    def do_POST(self):
+                        if self.path == '/stream':
+                            self.send_response(200)
+                            self.send_header('Content-Type', 'text/plain')
+                            self.send_header('Transfer-Encoding', 'chunked')
+                            self.end_headers()
+                            
+                            # Standard HTTP/1.1 chunked encoding format
+                            chunks = [
+                                b"Starting data stream...\n",
+                                b"Chunk 1: Everything is flowing nicely.\n",
+                                b"Chunk 2: Stream end imminent.\n"
+                            ]
+                            for chunk in chunks:
+                                self.wfile.write(f"{len(chunk):X}\r\n".encode('utf-8') + chunk + b"\r\n")
+                                self.wfile.flush()
+                                time.sleep(0.05) # Tiny sleep to simulate real streaming delays
+                                
+                            self.wfile.write(b"0\r\n\r\n") # Send EOF chunk
+                            self.wfile.flush()
+                        else:
+                            self.send_response(404)
+                            self.end_headers()
+
+                    def log_message(self, format, *args):
+                        pass # Suppress logging to keep FlowWing CLI output clean
+
+                mock_server = HTTPServer(('127.0.0.1', mock_server_port), MockStreamHandler)
+                mock_server_thread = threading.Thread(target=mock_server.serve_forever)
+                mock_server_thread.daemon = True
+                mock_server_thread.start()
+
             # Use env=run_env here
             result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
+
+            if mock_server:
+                mock_server.shutdown()
+                mock_server.server_close()
+                mock_server_thread.join()
+    
+
             duration = (time.time() - start_time) * 1000
             
             raw_output = (result.stdout or '') + (result.stderr or '')

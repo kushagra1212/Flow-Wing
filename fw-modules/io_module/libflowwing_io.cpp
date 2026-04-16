@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 /*
  * FlowWing Compiler - IO FFI
  * Cross-Platform: Compiles on Windows, macOS, and Linux
@@ -48,15 +47,66 @@ static const char *alloc_gc_string_io(const std::string &str) {
   return cstr;
 }
 
+// Helper to map semantic color names to actual C++ ANSI literals
+static const char *get_ansi_code(const char *color) {
+  if (!color)
+    return "";
+  if (std::strcmp(color, "dim") == 0)
+    return "\x1b[2m";
+  if (std::strcmp(color, "cyan") == 0)
+    return "\x1b[36m";
+  if (std::strcmp(color, "green") == 0)
+    return "\x1b[32m";
+  if (std::strcmp(color, "yellow") == 0)
+    return "\x1b[33m";
+  if (std::strcmp(color, "red") == 0)
+    return "\x1b[31m";
+
+  // Fallback: If Flow-Wing's lexer gets updated later to support \x1b natively,
+  // this ensures raw ANSI codes still pass through safely.
+  if (color[0] == '\x1b')
+    return color;
+
+  return "";
+}
+
 // --- Standard Output ---
 
-void io_print_log(const char *text) { std::cout << text; }
+void io_print_log(const char *text, const char *color) {
+  const char *ansi = get_ansi_code(color);
+  if (std::strlen(ansi) > 0) {
+    std::cout << ansi << text << "\x1b[0m"; // Reset color after printing
+  } else {
+    std::cout << text;
+  }
+}
 
-void io_print_log_ln(const char *text) { std::cout << text << "\n"; }
+void io_print_log_ln(const char *text, const char *color) {
+  const char *ansi = get_ansi_code(color);
+  if (std::strlen(ansi) > 0) {
+    std::cout << ansi << text << "\x1b[0m\n"; // Reset color after printing
+  } else {
+    std::cout << text << "\n";
+  }
+}
 
-void io_print_error_log(const char *text) { std::cerr << text; }
+void io_print_error_log(const char *text, const char *color) {
+  const char *ansi = get_ansi_code(color);
+  if (std::strlen(ansi) > 0) {
+    std::cerr << ansi << text << "\x1b[0m"; // Reset color after printing
+  } else {
+    std::cerr << text;
+  }
+}
 
-void io_print_error_log_ln(const char *text) { std::cerr << text << "\n"; }
+void io_print_error_log_ln(const char *text, const char *color) {
+  const char *ansi = get_ansi_code(color);
+  if (std::strlen(ansi) > 0) {
+    std::cerr << ansi << text << "\x1b[0m\n"; // Reset color after printing
+  } else {
+    std::cerr << text << "\n";
+  }
+}
 
 void io_flush() { std::cout.flush(); }
 
@@ -64,6 +114,7 @@ void io_flush() { std::cout.flush(); }
 
 const char *io_read_line() {
   std::string line;
+  std::cin.clear();
   // std::getline reads up to the newline character
   if (std::getline(std::cin, line)) {
     last_io_error = 0;

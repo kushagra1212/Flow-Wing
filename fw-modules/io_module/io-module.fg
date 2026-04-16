@@ -2,12 +2,13 @@ bring Err
 /; FFI Declarations
 fun io_last_error() -> as int decl
 
-fun io_print_log(text: as str) -> as nthg decl
-fun io_print_log_ln(text: as str) -> as nthg decl
-fun io_print_error_log(text: as str) -> as nthg decl
-fun io_print_error_log_ln(text: as str) -> as nthg decl
+fun io_print_log(text: as str, color: as str) -> as nthg decl
+fun io_print_log_ln(text: as str, color: as str) -> as nthg decl
+fun io_print_error_log(text: as str, color: as str) -> as nthg decl
+fun io_print_error_log_ln(text: as str, color: as str) -> as nthg decl
 fun io_flush() -> as nthg decl
-
+/; New colored FFI prints
+fun io_print_colored(text: as str, color_ansi: as str) -> as nthg decl
 fun io_read_line() -> as str decl
 
 
@@ -20,23 +21,23 @@ module [io]
 /; =========================================================
 
 /; Prints text to standard output without a trailing newline.
-fun printLog(text: str) -> nthg {
-  io_print_log(text)
+fun printLog(text: str, color: str = "") -> nthg {
+    io_print_log(text, color)
 }
 
-/; Prints text to standard output with a trailing newline.
-fun printLogln(text: str) -> nthg {
-  io_print_log_ln(text)
+/; Core print line with optional color parameter mapped to FFI
+fun printLogln(text: str, color: str = "") -> nthg {
+    io_print_log_ln(text, color)
 }
 
 /; Prints text to standard error without a trailing newline.
-fun printErrorLog(text: str) -> nthg {
-  io_print_error_log(text)
+fun printErrorLog(text: str, color: str = "") -> nthg {
+    io_print_error_log(text, color)
 }
 
 /; Prints text to standard error with a trailing newline.
-fun printErrorLogln(text: str) -> nthg {
-  io_print_error_log_ln(text)
+fun printErrorLogln(text: str, color: str = "") -> nthg {
+  io_print_error_log_ln(text, color)
 }
 
 /; Flushes the standard output buffer.
