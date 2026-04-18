@@ -77,6 +77,21 @@ jobs:
           echo "CXX=clang++-17" >> $GITHUB_ENV
           echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
+      # --- Build Project Dependencies ---
+      # --- Restore/Build Project Dependencies ---
+      - name: Restore Dependencies Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          # This key must perfectly match the one used in multi_platform_ci.yml
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Build Project Dependencies
+        # Only run the heavy make command if the cache wasn't found
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: make deps-install-release
+
       # --- Build compiler with install prefix ---
       - name: Configure CMake (Release)
         run: |
