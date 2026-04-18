@@ -1,0 +1,20 @@
+/; Tests the basic success paths of the sys module.
+bring sys
+
+println("--- Sys Module Basic Test ---")
+
+var arg_count = sys::getArgCount()
+println("Has at least 1 argument: " + (arg_count >= 1))
+
+if (arg_count > 0) {
+    var program_name = sys::getArg(0)
+    println("Arg 0 (program) exists: " + (program_name != ""))
+}
+
+var dir = sys::scriptDir()
+println("Script directory is not empty: " + (dir != ""))
+
+var ts = sys::timestamp()
+println("Timestamp is valid (> 0): " + (ts > 0))
+
+println("Basic tests completed successfully.")

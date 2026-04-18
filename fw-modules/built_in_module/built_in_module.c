@@ -13,6 +13,7 @@
  #include <stdbool.h>
  #include <stdint.h>
  #include <math.h>
+#include <time.h>
  #include <gc.h> // Boehm GC
  #ifdef _MSC_VER
  #  define FG_THREAD_LOCAL __declspec(thread)
@@ -505,4 +506,39 @@ char* fg_get_script_dir() {
     }
     // Return a copy so the script can manipulate it without breaking the anchor
     return fg_script_dir; 
+}
+
+// ==========================================
+// sys Module Runtime Support
+// ==========================================
+
+static int fg_argc = 0;
+static char **fg_argv = NULL;
+
+void fg_store_args(int argc, char **argv) {
+    fg_argc = argc;
+    fg_argv = argv;
+}
+
+int fg_get_arg_count(void) {
+    return fg_argc;
+}
+
+char* fg_get_arg(int index) {
+    if (fg_argv == NULL || index < 0 || index >= fg_argc) {
+        return NULL;
+    }
+    return fg_argv[index];
+}
+
+void fg_exit(int code) {
+    exit(code);
+}
+
+long long fg_timestamp(void) {
+    return (long long)time(NULL);
+}
+
+void fg_runtime_error(const char* msg) {
+    fg_re(msg);
 }

@@ -90,14 +90,15 @@ public:
 
   const CliOption kOptOutputExe = {
       {"-o", "--output"},
-      "AOT executable path (default: <output-dir>/bin/<hash>; omit for test runner)",
+      "AOT executable path (default: <output-dir>/bin/<hash>; omit for test "
+      "runner)",
       "-o, --output=<path>"};
 
   const std::vector<CliOption> cli_options = {
-      kOptHelp,        kOptVersion,   kOptFile,     kOptCode,    kOptFormat,
-      kOptFormatPrint, kOptOptLevels, kOptEntry,    kOptLibPath, kOptLinkLib,
-      kOptFramework,   kOptServer,    kOptLinkWarn, kOptEmit,    kOutDir,
-      kOptOutputExe};
+      kOptHelp,     kOptVersion,     kOptFile,      kOptCode,
+      kOptFormat,   kOptFormatPrint, kOptOptLevels, kOptEntry,
+      kOptLibPath,  kOptLinkLib,     kOptFramework, kOptServer,
+      kOptLinkWarn, kOptEmit,        kOutDir,       kOptOutputExe};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
@@ -144,6 +145,17 @@ public:
   ParseResult parse(int argc, char *argv[]) {
     argh::parser cmdl(argc, argv, argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
     CompilerOptions opts;
+
+    bool in_runtime = false;
+    for (int i = 0; i < argc; ++i) {
+      if (std::string(argv[i]) == "--") {
+        in_runtime = true;
+        continue;
+      }
+      if (in_runtime) {
+        opts.runtime_args.emplace_back(argv[i]);
+      }
+    }
 
     auto parseParam = [](argh::parser &cmdl, const CliOption &option,
                          const std::string &default_value = "") -> std::string {

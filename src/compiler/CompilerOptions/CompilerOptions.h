@@ -38,6 +38,7 @@ struct CompilerOptions {
   // Input sources
   std::string input_file_path;
   std::optional<std::string> code_content; // For --code flag
+  std::vector<std::string> runtime_args; // Args after -- separator (for sys module)
 
   // Compiler modes
   int8_t show_help = 0;

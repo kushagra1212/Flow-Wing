@@ -335,13 +335,24 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   auto MainFn = SymExpected->toPtr<int (*)(int, char **)>();
 
   try {
-    // Setup Fake Args
-    int argc = 1;
-    char *argv[] = {(char *)"flow-wing-jit", nullptr};
+    // Setup Args from runtime_args (forwarded from CLI via --)
+    std::vector<std::string> args_vec = {"flow-wing-jit"};
+    for (const auto &a : context.getOptions().runtime_args) {
+      args_vec.emplace_back(a);
+    }
+    std::vector<char *> argv_vec;
+    std::vector<std::string> argv_storage;
+    argv_storage.reserve(args_vec.size());
+    for (auto &s : args_vec) {
+      argv_storage.emplace_back(s);
+      argv_vec.push_back(argv_storage.back().data());
+    }
+    argv_vec.push_back(nullptr);
+    int argc = static_cast<int>(argv_vec.size()) - 1;
 
     DEBUG_LOG(" [INFO]: Running JIT Code...", "");
 
-    [[maybe_unused]] int result = MainFn(argc, argv);
+    [[maybe_unused]] int result = MainFn(argc, argv_vec.data());
 
     DEBUG_LOG(" [INFO]: JIT Execution finished with code: ", result);
 

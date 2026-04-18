@@ -137,6 +137,21 @@ void IRGenerator::visit(
         *m_ir_gen_context.getLLVMContext(), "entry", entry_point_function);
     m_ir_gen_context.setInsertPoint(entry_block);
 
+    // Store CLI arguments for sys module (called before any user code)
+    {
+      auto *store_fn = m_ir_gen_context.getLLVMModule()->getFunction(
+          constants::functions::kStore_args_fn);
+
+      assert(store_fn && "store_args function should be declared in builtins");
+
+      auto arg_it = entry_point_function->arg_begin();
+      auto *argc_arg = &*arg_it;
+      arg_it++;
+      auto *argv_arg = &*arg_it;
+      m_ir_gen_context.getLLVMBuilder()->CreateCall(store_fn,
+                                                    {argc_arg, argv_arg});
+    }
+
     // Run each brought TU's top-level in order. We rely on explicit calls from
     // `main` (not only llvm.global_ctors): Linux AOT + lld was not reliably
     // executing those ctors before user code, so e.g. println in a brought file
