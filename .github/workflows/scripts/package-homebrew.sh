@@ -19,7 +19,7 @@ echo "Version: $VERSION"
 echo "Release URL: $RELEASE_URL"
 
 # Determine the correct download URL based on platform
-MACOS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("macos-arm64")) | .browser_download_url')"
+MACOS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos-arm64")) | .browser_download_url')"
 
 if [ -z "$MACOS_URL" ]; then
   echo "Warning: Could not find macOS artifact for Homebrew formula."
@@ -39,19 +39,19 @@ class Flowwing < Formula
       sha256 "$(curl -s "$MACOS_URL" | shasum -a 256 | cut -d' ' -f1)"
     else
       # Intel Mac (if available)
-      url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')"
-      sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
+      url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')"
+      sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
     end
   end
 
   on_linux do
-    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')"
-    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
+    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')"
+    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
   end
 
   on_windows do
-    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
-    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
+    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
+    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
   end
 
   license "GPL-2.0-only"

@@ -77,49 +77,43 @@ SetOverwrite on
 !insertmacro MUI_LANGUAGE English
 
 ; Default install directory
-InstallDir "C:\Program Files\FlowWing\$FLOWWING_VERSION"
+InstallDir "C:\Program Files\FlowWing\\$FLOWWING_VERSION"
 
 Section "Install"
-  SetOutPath $INSTDIR
+  SetOutPath \$INSTDIR
   
   ; Copy all files from the install prefix
   File /r "$INSTALL_PREFIX\*"
   
   ; Create Start Menu shortcut
-  CreateShortCut "$SMPROGRAMS\FlowWing.lnk" "$INSTDIR\bin\FlowWing.exe" ""
+  CreateShortCut "\$SMPROGRAMS\FlowWing.lnk" "\$INSTDIR\bin\FlowWing.exe" ""
   
-  ; Add to PATH (registry)
+  ; Write Registry keys for uninstaller
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing" "DisplayVersion" "$FLOWWING_VERSION"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing" "UninstallString" "$INSTDIR\uninstall.exe"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing" "InstallLocation" "\$INSTDIR"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing" "UninstallString" "\$INSTDIR\uninstall.exe"
   
-  ; Add bin to PATH
-  ReadRegStr $R0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "PATH"
-  StrCmp $R0 "" 0 +2
-    WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "PATH" "$INSTDIR\bin"
-  Else
-    StrCpy $R0 "$R0;$INSTDIR\bin"
-    WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "PATH" "$R0"
+  ; Add bin to System PATH using PowerShell (Bypasses NSIS 1024-char limit)
+  DetailPrint "Adding FlowWing to System PATH..."
+  nsExec::ExecToLog 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "\$target = ''\$INSTDIR\bin''; \$path = [Environment]::GetEnvironmentVariable(''PATH'', ''Machine''); if (\$path -notmatch [regex]::Escape(\$target)) { [Environment]::SetEnvironmentVariable(''PATH'', \$path + '';'' + \$target, ''Machine'') }"'
   
   ; Create uninstaller
-  WriteUninstaller "$INSTDIR\uninstall.exe"
+  WriteUninstaller "\$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
-  ; Remove from PATH
-  ReadRegStr $R0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "PATH"
-  StrReplace $R0 "$INSTDIR\bin;" "" "$R0"
-  StrReplace $R0 "$INSTDIR\bin" "" "$R0"
-  WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "PATH" "$R0"
+  ; Remove from System PATH using PowerShell
+  DetailPrint "Removing FlowWing from System PATH..."
+  nsExec::ExecToLog 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "\$target = ''\$INSTDIR\bin''; \$path = [Environment]::GetEnvironmentVariable(''PATH'', ''Machine''); \$newPath = (\$path -split '';'' | Where-Object { \$_ -and \$_ -ne \$target }) -join '';''; [Environment]::SetEnvironmentVariable(''PATH'', \$newPath, ''Machine'')"'
   
   ; Remove registry entries
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\FlowWing"
   
   ; Remove start menu shortcut
-  Delete "$SMPROGRAMS\FlowWing.lnk"
+  Delete "\$SMPROGRAMS\FlowWing.lnk"
   
   ; Remove installed files
-  RMDir /r "$INSTDIR"
+  RMDir /r "\$INSTDIR"
 SectionEnd
 NSIS_EOF
     
@@ -132,6 +126,11 @@ NSIS_EOF
   Linux)
     # Create .deb using fpm
     echo "Creating Linux .deb installer..."
+
+    DEB_ARCH=$ARCH
+    if [ "$ARCH" = "x86_64" ]; then
+      DEB_ARCH="amd64"
+    fi
     
     # Create control file
     mkdir -p /tmp/flowwing-deb/DEBIAN
@@ -153,7 +152,7 @@ Description: FlowWing Programming Language
       -t deb \
       -n flowwing \
       -v "$FLOWWING_VERSION" \
-      -a "$ARCH" \
+      -a "$DEB_ARCH" \ # Use mapped architecture
       --deb-repo "flowwing" \
       --after-install .github/workflows/scripts/post-install.sh \
       --before-remove .github/workflows/scripts/pre-remove.sh \

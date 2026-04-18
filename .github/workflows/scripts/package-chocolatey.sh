@@ -15,7 +15,7 @@ echo "Version: $VERSION"
 echo "Release URL: $RELEASE_URL"
 
 # Get the Windows download URL
-WINDOWS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/v$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
+WINDOWS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
 
 if [ -z "$WINDOWS_URL" ]; then
   echo "Warning: Could not find Windows artifact for Chocolatey package."
