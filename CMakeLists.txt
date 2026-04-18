@@ -27,6 +27,10 @@
 cmake_minimum_required(VERSION 3.29)
 project(FlowWing VERSION 0.0.2 LANGUAGES C CXX)
 
+# Install prefix for release builds - baked into compiler binary at compile time
+set(FLOWWING_INSTALL_PREFIX ""
+    CACHE STRING "Install prefix for FlowWing SDK (e.g., /usr/local/flow-wing/1.0.0/). Empty for development builds.")
+
 # Disable C++ extensions
 set(CMAKE_CXX_EXTENSIONS OFF)
 

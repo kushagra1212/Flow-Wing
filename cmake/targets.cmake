@@ -283,6 +283,19 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     "PROJECT_DIR=\"${CMAKE_SOURCE_DIR}\""
 )
 
+# Install prefix baked into compiler binary for module/library resolution
+if(FLOWWING_INSTALL_PREFIX)
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+        "FLOWWING_INSTALL_PREFIX=\"${FLOWWING_INSTALL_PREFIX}\""
+    )
+    message(STATUS "FlowWing install prefix baked into binary: ${FLOWWING_INSTALL_PREFIX}")
+else()
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+        "FLOWWING_INSTALL_PREFIX=\"\""
+    )
+    message(STATUS "No install prefix specified; compiler will use relative paths.")
+endif()
+
 if(TESTS_ENABLED)
     # Define the SDK path relative to the project root. This must match the Makefile.
     set(TEST_SDK_PATH "${CMAKE_SOURCE_DIR}/build/test-sdk")

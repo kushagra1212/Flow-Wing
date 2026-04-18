@@ -24,6 +24,15 @@ const std::string_view kIR_files_extension = ".ll";
 #else
 const std::string_view kIR_files_extension = ".bc";
 #endif
+
+// Install prefix baked into binary at compile time (from FLOWWING_INSTALL_PREFIX CMake cache variable)
+#ifndef FLOWWING_INSTALL_PREFIX
+#define FLOWWING_INSTALL_PREFIX ""
+#endif
+
+const std::string_view kInstallPrefix = FLOWWING_INSTALL_PREFIX;
+const std::string_view kModulesDir = FLOWWING_INSTALL_PREFIX "lib/modules/";
+const std::string_view kLibDir = FLOWWING_INSTALL_PREFIX "lib/";
 } // namespace paths
 
 namespace types {

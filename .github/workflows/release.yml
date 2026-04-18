@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  FLOWWING_VERSION: ${{ github.event.release.tag_name }}
+
+jobs:
+  # ============================================================================
+  # BUILD INSTALLERS & ARCHIVES (matrix)
+  # ============================================================================
+  build:
+    name: Build ${{ matrix.name }} installer
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: macos-arm64
+            os: macos-14
+            arch: arm64
+            installer_ext: .dmg
+            archive_name: FlowWing-${{ github.event.release.tag_name }}-macos-arm64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name }}-macos-arm64.dmg
+            install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
+          - name: windows-x86_64
+            os: windows-latest
+            arch: x86_64
+            installer_ext: .exe
+            archive_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.exe
+            install_prefix: "C:\\Program Files\\FlowWing\\${{ github.event.release.tag_name }}\\"
+          - name: linux-x86_64
+            os: ubuntu-latest
+            arch: x86_64
+            installer_ext: .deb
+            archive_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.deb
+            install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up environment
+        run: |
+          echo "FLOWWING_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          echo "INSTALL_PREFIX=${{ matrix.install_prefix }}" >> $GITHUB_ENV
+
+      # --- macOS dependencies ---
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install --quiet ninja ccache automake autoconf libtool llvm@17 create-dmg
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+
+      # --- Windows dependencies ---
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        run: |
+          choco install --quiet make nsis
+          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      # --- Linux dependencies ---
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+          echo "CC=clang-17" >> $GITHUB_ENV
+          echo "CXX=clang++-17" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+
+      # --- Build compiler with install prefix ---
+      - name: Configure CMake (Release)
+        run: |
+          cmake --preset aot-release \
+            -DFLOWWING_INSTALL_PREFIX="${{ matrix.install_prefix }}" \
+            -DCMAKE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
+
+      - name: Build compiler
+        run: cmake --build --preset aot-release -- --jobs $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+
+      # --- Stage SDK ---
+      - name: Stage SDK
+        run: cmake --install build/aot-release --prefix ${{ matrix.install_prefix }}
+
+      # --- Create archive ---
+      - name: Create archive
+        run: |
+          cd ${{ matrix.install_prefix }}
+          zip -r ../${{ matrix.archive_name }} .
+
+      # --- Create native installer ---
+      - name: Create native installer
+        run: |
+          chmod +x .github/workflows/scripts/build-installer.sh
+          .github/workflows/scripts/build-installer.sh \
+            ${{ matrix.install_prefix }} \
+            ${{ matrix.install_prefix }} \
+            ${{ matrix.installer_name }} \
+            ${{ runner.os }} \
+            ${{ matrix.arch }}
+
+      # --- Upload installer artifact ---
+      - name: Upload installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ matrix.installer_name }}
+          asset_name: ${{ matrix.installer_name }}
+          asset_content_type: application/octet-stream
+
+      # --- Upload archive artifact ---
+      - name: Upload archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ../${{ matrix.archive_name }}
+          asset_name: ${{ matrix.archive_name }}
+          asset_content_type: application/zip
+
+  # ============================================================================
+  # UPLOAD ARTIFACTS (waits for all builds)
+  # ============================================================================
+  upload:
+    name: Upload all artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all artifacts uploaded
+        run: |
+          echo "All build artifacts uploaded successfully."
+          echo "Release: ${{ github.event.release.tag_name }}"
+
+  # ============================================================================
+  # PACKAGE MANAGER PUBLISHING (parallel, non-blocking)
+  # ============================================================================
+  publish-homebrew:
+    name: Publish to Homebrew
+    needs: upload
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Publish to Homebrew
+        run: |
+          chmod +x .github/workflows/scripts/package-homebrew.sh
+          .github/workflows/scripts/package-homebrew.sh \
+            "${{ github.event.release.tag_name }}" \
+            "${{ github.event.release.html_url }}" \
+            "${{ secrets.HOMEBREW_TAP_TOKEN }}" \
+            "${{ secrets.HOMEBREW_TAP_USERNAME }}" \
+            "${{ secrets.HOMEBREW_TAP_EMAIL }}"
+
+  publish-chocolatey:
+    name: Publish to Chocolatey
+    needs: upload
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Publish to Chocolatey
+        run: |
+          chmod +x .github/workflows/scripts/package-chocolatey.sh
+          .github/workflows/scripts/package-chocolatey.sh \
+            "${{ github.event.release.tag_name }}" \
+            "${{ github.event.release.html_url }}" \
+            "${{ secrets.CHOCOLATEY_API_KEY }}"
+
+  publish-apt:
+    name: Publish to apt
+    needs: upload
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Publish to apt
+        run: |
+          chmod +x .github/workflows/scripts/package-apt.sh
+          .github/workflows/scripts/package-apt.sh \
+            "${{ github.event.release.tag_name }}" \
+            "${{ secrets.APT_REPO_TOKEN }}" \
+            "${{ secrets.APT_REPO_USERNAME }}"
