@@ -40,6 +40,10 @@ jobs:
             install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
 
     steps:
+      - name: Enable Windows longpaths
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
