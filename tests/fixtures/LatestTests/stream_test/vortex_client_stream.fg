@@ -1,4 +1,4 @@
-/; MOCK_SERVER_PORT: 9432
+/; MOCK_SERVER_PORT: 9434
 bring vortex
 bring json
 bring Err
@@ -6,7 +6,7 @@ bring Err
 fun fg_main() -> nthg {
   println("Starting Vortex Client Test...")
   
-  var target_url: str = "http://localhost:9432/stream"
+  var target_url: str = "http://localhost:9434/stream"
   var payload: str = `{"message": "Hello from the Vortex Client!"}`
   
   println("Sending POST request to: " + target_url)
