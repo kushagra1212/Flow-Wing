@@ -12,7 +12,7 @@ INSTALLER_NAME="$2"
 OS="$3"
 ARCH="$4"
 
-echo "=== Building installer for $OS ($ARCH) ==="
+echo "=== Building installer $INSTALLER_NAME ($OS $ARCH) ==="
 echo "Install prefix: $INSTALL_PREFIX"
 echo "Installer name: $INSTALLER_NAME"
 
@@ -139,20 +139,20 @@ Package: flowwing
 Version: $FLOWWING_VERSION
 Section: devel
 Priority: optional
-Architecture: $ARCH
+Architecture: $DEB_ARCH
 Maintainer: FlowWing <kushagrarathore002@gmail.com>
 Description: FlowWing Programming Language
  FlowWing is a fast, simple, and easy to use programming language with
  static and dynamic typing, object-oriented programming, and memory management.
- DEB_EOF
-    
-    # Package using fpm
+DEB_EOF
+
+    # Package using fpm (DEB_ARCH is e.g. amd64 for x86_64)
     fpm -f \
       -s dir \
       -t deb \
       -n flowwing \
       -v "$FLOWWING_VERSION" \
-      -a "$DEB_ARCH" \ # Use mapped architecture
+      -a "$DEB_ARCH" \
       --deb-repo "flowwing" \
       --after-install .github/workflows/scripts/post-install.sh \
       --before-remove .github/workflows/scripts/pre-remove.sh \
