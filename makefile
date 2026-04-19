@@ -336,24 +336,13 @@ release-aot-build: $(RELEASE_BUILD_STAMP)
 release-aot-install: $(RELEASE_BUILD_STAMP)
 	$(ECHO_MSG) "--> Installing AOT (Release) to $(RELEASE_INSTALL_PREFIX)..."
 	$(CHECK_RELEASE_PREFIX)
-	@cmake --install $(AOT_RELEASE_DIR) --prefix "$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
-
-	# Copy LLVM tools (clang, lld) from dependencies into the SDK bin/ directory
-	@if [ -d ".fw_dependencies/install/bin" ]; then \
+	@cmake --install $(AOT_RELEASE_DIR) --prefix "$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD); \
+	if [ -d ".fw_dependencies/install/bin" ]; then \
 		echo "--> Copying LLVM tools to release stage..."; \
 		mkdir -p "$(RELEASE_INSTALL_PREFIX)/bin"; \
-		if [ "$(OS)" = "Windows_NT" ]; then \
-			copy .fw_dependencies\install\bin\clang.exe "$(RELEASE_INSTALL_PREFIX)\bin\" 2>NUL || true; \
-			copy .fw_dependencies\install\bin\clang++.exe "$(RELEASE_INSTALL_PREFIX)\bin\" 2>NUL || true; \
-			copy .fw_dependencies\install\bin\lld.exe "$(RELEASE_INSTALL_PREFIX)\bin\" 2>NUL || true; \
-		else \
-			cp .fw_dependencies/install/bin/clang "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
-			cp .fw_dependencies/install/bin/clang++ "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
-			cp .fw_dependencies/install/bin/lld "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
-		fi; \
-	else \
-		echo "--> WARNING: Dependencies not found, LLVM tools will NOT be included"; \
-	fi
+		cp .fw_dependencies/install/bin/clang++ "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
+		cp .fw_dependencies/install/bin/clang "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
+	else echo "--> WARNING: Dependencies not found, LLVM tools will NOT be included"; fi
 
 release-aot: release-aot-install
 
