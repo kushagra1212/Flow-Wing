@@ -77,6 +77,14 @@ jobs:
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
           echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
+      - name: Select Xcode (macOS)
+        if: runner.os == 'macOS'
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: SDKROOT (macOS)
+        if: runner.os == 'macOS'
+        run: echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+
       # --- Windows dependencies ---
       - name: Install Windows dependencies
         if: runner.os == 'Windows'
@@ -118,6 +126,7 @@ jobs:
         run: rm -rf .fw_dependencies/build
 
       # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
+      # macOS: same as multi_platform_ci — Homebrew LLVM + Xcode 15.4 + SDKROOT.
       - name: Configure CMake (Release)
         run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
