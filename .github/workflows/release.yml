@@ -1,371 +1,367 @@
 name: Release
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      simulated_tag:
-        description: "Simulate a release tag (e.g., v0.0.3-alpha)"
-        required: true
-        default: "v0.0.3-alpha"
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            simulated_tag:
+                description: "Simulate a release tag (e.g., v0.0.3-alpha)"
+                required: true
+                default: "v0.0.3-alpha"
 
 # Default GITHUB_TOKEN is read-only in many repos; uploading release assets requires write access.
 permissions:
-  contents: write
+    contents: write
 
 env:
-  FLOWWING_VERSION: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+    FLOWWING_VERSION: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
 jobs:
-  # ============================================================================
-  # BUILD INSTALLERS & ARCHIVES (matrix)
-  # ============================================================================
-  build:
-    name: Build ${{ matrix.name }} installer
-    runs-on: ${{ matrix.os }}
-    # `github.workspace` is valid here (unlike in matrix.include). Required so `${{ env.INSTALL_PREFIX }}`
-    # works in `working-directory` and other expressions; GITHUB_ENV alone is not applied early enough for that.
-    env:
-      INSTALL_PREFIX: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
-    strategy:
-      # Let macOS / Windows / Linux all run to completion so one failure does not cancel the others.
-      fail-fast: false
-      matrix:
-        include:
-          # Install under the workspace so CI does not need sudo (/usr/local/... is not writable).
-          # Do not put install paths in the matrix: `github.workspace` is empty there, which produced `/release-stage/...` (root FS).
-          # `INSTALL_PREFIX` is set on the job env (above).
-          - name: macos-arm64
-            os: macos-14
-            arch: arm64
-            installer_ext: .dmg
-            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.dmg
-          - name: windows-x86_64
-            os: windows-latest
-            arch: x86_64
-            installer_ext: .exe
-            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.exe
-          - name: linux-x86_64
-            os: ubuntu-latest
-            arch: x86_64
-            installer_ext: .deb
-            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.deb
-
-    steps:
-      # Order and toolchain mirror .github/workflows/multi_platform_ci.yml per OS.
-      - name: Enable Windows longpaths
-        if: runner.os == 'Windows'
-        run: git config --system core.longpaths true
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          # ref is always a tag here; shallow fetch + fetch-tags:false often breaks tag resolution (Windows/macOS/Linux).
-          fetch-tags: true
-          fetch-depth: 0
-
-      - name: Set up environment
-        shell: bash
-        run: |
-          # Real tag if it's a release, otherwise use the manual input
-          TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
-          echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
-
-      - name: Normalize INSTALL_PREFIX (convert Windows backslashes to forward slashes)
-        run: |
-          # github.workspace returns D:\a\... on Windows, but bash steps need D:/a/...
-          PREFIX="${{ env.INSTALL_PREFIX }}"
-          NORMALIZED=$(echo "$PREFIX" | sed 's/\\/\//g')
-          echo "INSTALL_PREFIX=$NORMALIZED" >> $GITHUB_ENV
-
-      # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
-      - name: Select Xcode Version
-        if: runner.os == 'macOS'
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-
-      - name: Install Tools (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg librsvg
-
-      - name: Set Compiler Environment (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
-          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
-          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
-
-      # --- Windows (same as multi_platform_ci windows_x86_64_test + nsis for release installers) ---
-      - name: Install Build Tools
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install -y 7zip make nsis
-          # Git Bash steps do not inherit Chocolatey's NSIS PATH; add explicitly.
-          Add-Content -Path $env:GITHUB_PATH -Value 'C:\Program Files (x86)\NSIS'
-
-      - name: Set up MSVC Developer Command Prompt
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
-      # --- Linux (same apt line as multi_platform_ci linux_x86_64_test) ---
-      - name: Install Tools (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ruby ruby-dev build-essential
-          sudo gem install --no-document fpm
-
-      - name: Set Compiler Environment (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          echo "CC=clang-17" >> $GITHUB_ENV
-          echo "CXX=clang++-17" >> $GITHUB_ENV
-          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
-
-      # --- Staged SDK (release install tree): version + OS + arch specific ---
-      # On a cache hit, skip dependency build (if needed), CMake, compile, and re-stage; reuse the tree under release-stage/<tag>/.
-      # Use restore + explicit save: the combined cache action only saves in a post step after the *whole job* succeeds.
-      # If zip/installer/upload fails, the staged tree would never be cached otherwise.
-      - name: Restore staged SDK cache
-        id: cache-staged-sdk
-        uses: actions/cache/restore@v4
-        with:
-          path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-
-      # --- Build Project Dependencies ---
-      # --- Restore/Build Project Dependencies ---
-      - name: Restore Dependencies Cache
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            .fw_dependencies/install
-            .fw_dependencies/stamps
-          # This key must perfectly match the one used in multi_platform_ci.yml
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
-
-      - name: Build Project Dependencies
-        # Skip when staged SDK is already cached (nothing to build) or deps cache hit
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
-        run: make deps-install-release
-
-      - name: Prune dependency build tree (reduce cache size)
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
-        shell: bash
-        run: rm -rf .fw_dependencies/build
-
-      # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
-      # Toolchains match multi_platform_ci: macOS Homebrew LLVM + Xcode + SDKROOT;
-      # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
-      - name: Configure CMake (Release)
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
-
-      - name: Build compiler
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
-
-      # --- Stage SDK ---
-      - name: Stage SDK
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
-
-      # Bundle LLVM tools (clang++) into the staged SDK bin/ so AOT linking works on user machines.
-      - name: Bundle LLVM linker tools
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
-        run: |
-          DEPS_BIN="${{ github.workspace }}/.fw_dependencies/install/bin"
-          STAGED_BIN="${{ env.INSTALL_PREFIX }}/bin"
-          for tool in clang++ llvm-config; do
-            if [ -f "$DEPS_BIN/$tool" ]; then
-              cp "$DEPS_BIN/$tool" "$STAGED_BIN/"
-              echo "Bundled $tool into SDK bin/"
-            fi
-          done
-
-      - name: Save staged SDK cache
-        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-
-      # --- Create archive ---
-      # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
-      # Windows images do not ship `zip` in Git Bash PATH; 7-Zip is installed via Chocolatey above.
-      - name: Create archive
-        shell: bash
-        run: |
-          cd "${{ env.INSTALL_PREFIX }}"
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            7z a -tzip -r "../${{ matrix.archive_name }}" .
-          else
-            zip -r "../${{ matrix.archive_name }}" .
-          fi
-
-      # --- Create native installer ---
-      - name: Create native installer
-        shell: bash
-        run: |
-          chmod +x .github/workflows/scripts/build-installer.sh
-          .github/workflows/scripts/build-installer.sh \
-            "${{ env.INSTALL_PREFIX }}" \
-            "${{ matrix.installer_name }}" \
-            "${{ runner.os }}" \
-            "${{ matrix.arch }}"
-
-      # --- Native installer (.dmg / .exe / .deb): GitHub Release assets + workflow artifacts ---
-      - name: Upload native installer to GitHub Release
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
+    # ============================================================================
+    # BUILD INSTALLERS & ARCHIVES (matrix)
+    # ============================================================================
+    build:
+        name: Build ${{ matrix.name }} installer
+        runs-on: ${{ matrix.os }}
+        # `github.workspace` is valid here (unlike in matrix.include). Required so `${{ env.INSTALL_PREFIX }}`
+        # works in `working-directory` and other expressions; GITHUB_ENV alone is not applied early enough for that.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ matrix.installer_name }}
-          asset_name: ${{ matrix.installer_name }}
-          asset_content_type: application/octet-stream
+            INSTALL_PREFIX: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
+        strategy:
+            # Let macOS / Windows / Linux all run to completion so one failure does not cancel the others.
+            fail-fast: false
+            matrix:
+                include:
+                    # Install under the workspace so CI does not need sudo (/usr/local/... is not writable).
+                    # Do not put install paths in the matrix: `github.workspace` is empty there, which produced `/release-stage/...` (root FS).
+                    # `INSTALL_PREFIX` is set on the job env (above).
+                    - name: macos-arm64
+                      os: macos-14
+                      arch: arm64
+                      installer_ext: .dmg
+                      archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.zip
+                      installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.dmg
+                    - name: windows-x86_64
+                      os: windows-latest
+                      arch: x86_64
+                      installer_ext: .exe
+                      archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.zip
+                      installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.exe
+                    - name: linux-x86_64
+                      os: ubuntu-latest
+                      arch: x86_64
+                      installer_ext: .deb
+                      archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.zip
+                      installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.deb
 
-      - name: Upload native installer (workflow artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-installer-${{ matrix.name }}
-          path: ${{ matrix.installer_name }}
-          if-no-files-found: error
+        steps:
+            # Order and toolchain mirror .github/workflows/multi_platform_ci.yml per OS.
+            - name: Enable Windows longpaths
+              if: runner.os == 'Windows'
+              run: git config --system core.longpaths true
 
-      # --- Staged SDK zip: GitHub Release assets + workflow artifacts ---
-      - name: Upload SDK zip to GitHub Release
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: release-stage/${{ matrix.archive_name }}
-          asset_name: ${{ matrix.archive_name }}
-          asset_content_type: application/zip
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  # ref is always a tag here; shallow fetch + fetch-tags:false often breaks tag resolution (Windows/macOS/Linux).
+                  fetch-tags: true
+                  fetch-depth: 0
 
-      - name: Upload SDK zip (workflow artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-zip-${{ matrix.name }}
-          path: release-stage/${{ matrix.archive_name }}
-          if-no-files-found: error
+            - name: Set up environment
+              shell: bash
+              run: |
+                  # Real tag if it's a release, otherwise use the manual input
+                  TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
+                  echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
 
-  # ============================================================================
-  # UPLOAD ARTIFACTS (waits for all builds)
-  # ============================================================================
-  upload:
-    name: Upload all artifacts
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify build completed
-        env:
-          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-        run: |
-          echo "Build matrix finished."
-          echo "Native installers and SDK zips: GitHub Release (if this was a release) + job Artifacts (native-installer-*, sdk-zip-*)."
-          echo "Tag: ${TAG}"
+            # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
+            - name: Select Xcode Version
+              if: runner.os == 'macOS'
+              run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
-  # ============================================================================
-  # PACKAGE MANAGER PUBLISHING (parallel, non-blocking)
-  # ============================================================================
-  publish-homebrew:
-    name: Publish to Homebrew
-    needs: upload
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout repository (packaging script only)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          fetch-tags: true
-          fetch-depth: 1
-          sparse-checkout: |
-            .github/workflows/scripts
-          sparse-checkout-cone-mode: true
+            - name: Install Tools (macOS)
+              if: runner.os == 'macOS'
+              run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg librsvg
 
-      - name: Publish to Homebrew
-        env:
-          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
-          # Git author + tap repo owner: same as the user that triggered the run (no extra secrets).
-          GIT_AUTHOR_NAME: ${{ github.actor }}
-          GIT_AUTHOR_EMAIL: ${{ format('{0}+{1}@users.noreply.github.com', github.actor_id, github.actor) }}
-        run: |
-          chmod +x .github/workflows/scripts/package-homebrew.sh
-          .github/workflows/scripts/package-homebrew.sh \
-            "${TAG}" \
-            "${RELEASE_URL}" \
-            "${{ secrets.HOMEBREW_TAP_TOKEN }}"
+            - name: Set Compiler Environment (macOS)
+              if: runner.os == 'macOS'
+              run: |
+                  echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+                  echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+                  echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+                  echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
 
-  publish-chocolatey:
-    name: Publish to Chocolatey
-    needs: upload
-    # choco is the Chocolatey CLI and is available on Windows images, not on ubuntu-latest.
-    runs-on: windows-latest
-    continue-on-error: true
-    steps:
-      - name: Enable Git long paths (Windows)
-        shell: bash
-        run: git config --global core.longpaths true
+            # --- Windows (same as multi_platform_ci windows_x86_64_test + nsis for release installers) ---
+            - name: Install Build Tools
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: |
+                  choco install -y 7zip make nsis
+                  # Git Bash steps do not inherit Chocolatey's NSIS PATH; add explicitly.
+                  Add-Content -Path $env:GITHUB_PATH -Value 'C:\Program Files (x86)\NSIS'
 
-      - name: Checkout repository (packaging script only)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          fetch-tags: true
-          fetch-depth: 1
-          sparse-checkout: |
-            .github/workflows/scripts
-          sparse-checkout-cone-mode: true
+            - name: Set up MSVC Developer Command Prompt
+              if: runner.os == 'Windows'
+              uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install jq (JSON for release API)
-        shell: pwsh
-        run: choco install jq -y
+            # --- Linux (same apt line as multi_platform_ci linux_x86_64_test) ---
+            - name: Install Tools (Linux)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ruby ruby-dev build-essential
+                  sudo gem install --no-document fpm
 
-      - name: Publish to Chocolatey
-        shell: bash
-        env:
-          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
-        run: |
-          # Chocolatey shims + Git usrbin (sha256sum, etc.) for Git Bash
-          export PATH="/c/ProgramData/chocolatey/bin:/c/Program Files/Git/usr/bin:$PATH"
-          chmod +x .github/workflows/scripts/package-chocolatey.sh
-          .github/workflows/scripts/package-chocolatey.sh \
-            "${TAG}" \
-            "${RELEASE_URL}" \
-            "${{ secrets.CHOCOLATEY_API_KEY }}"
+            - name: Set Compiler Environment (Linux)
+              if: runner.os == 'Linux'
+              run: |
+                  echo "CC=clang-17" >> $GITHUB_ENV
+                  echo "CXX=clang++-17" >> $GITHUB_ENV
+                  echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
-  publish-apt:
-    name: Publish to apt
-    needs: upload
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-          fetch-tags: true
-          fetch-depth: 0
+            # --- Staged SDK (release install tree): version + OS + arch specific ---
+            # On a cache hit, skip dependency build (if needed), CMake, compile, and re-stage; reuse the tree under release-stage/<tag>/.
+            # Use restore + explicit save: the combined cache action only saves in a post step after the *whole job* succeeds.
+            # If zip/installer/upload fails, the staged tree would never be cached otherwise.
+            - name: Restore staged SDK cache
+              id: cache-staged-sdk
+              uses: actions/cache/restore@v4
+              with:
+                  path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
-      - name: Publish to apt
-        env:
-          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-        run: |
-          chmod +x .github/workflows/scripts/package-apt.sh
-          .github/workflows/scripts/package-apt.sh \
-            "${TAG}" \
-            "${{ secrets.APT_REPO_TOKEN }}" \
-            "${{ secrets.APT_REPO_USERNAME }}"
+            # --- Build Project Dependencies ---
+            # --- Restore/Build Project Dependencies ---
+            - name: Restore Dependencies Cache
+              id: cache-deps
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      .fw_dependencies/install
+                      .fw_dependencies/stamps
+                  # This key must perfectly match the one used in multi_platform_ci.yml
+                  key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+            - name: Build Project Dependencies
+              # Skip when staged SDK is already cached (nothing to build) or deps cache hit
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
+              run: make deps-install-release
+
+            - name: Prune dependency build tree (reduce cache size)
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
+              shell: bash
+              run: rm -rf .fw_dependencies/build
+
+            # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
+            # Toolchains match multi_platform_ci: macOS Homebrew LLVM + Xcode + SDKROOT;
+            # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
+            - name: Configure CMake (Release)
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+            - name: Build compiler
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+            # --- Stage SDK ---
+            - name: Stage SDK
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              run: |
+                  # Explicitly create the path before installing to prevent Windows cmd.exe errors
+                  mkdir -p "${{ env.INSTALL_PREFIX }}"
+                  make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+            # Bundle LLVM tools (clang++) into the staged SDK bin/ so AOT linking works on user machines.
+            - name: Bundle LLVM linker tools
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
+              run: |
+                  DEPS_BIN="${{ github.workspace }}/.fw_dependencies/install/bin"
+                  STAGED_BIN="${{ env.INSTALL_PREFIX }}/bin"
+                  for tool in clang++ llvm-config; do
+                    if [ -f "$DEPS_BIN/$tool" ]; then
+                      cp "$DEPS_BIN/$tool" "$STAGED_BIN/"
+                      echo "Bundled $tool into SDK bin/"
+                    fi
+                  done
+
+            - name: Save staged SDK cache
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              uses: actions/cache/save@v4
+              with:
+                  path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+
+            # --- Create archive ---
+            # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
+            # Windows images do not ship `zip` in Git Bash PATH; 7-Zip is installed via Chocolatey above.
+            - name: Create archive
+              shell: bash
+              run: |
+                  cd "${{ env.INSTALL_PREFIX }}"
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    7z a -tzip -r "../${{ matrix.archive_name }}" .
+                  else
+                    zip -r "../${{ matrix.archive_name }}" .
+                  fi
+
+            # --- Create native installer ---
+            - name: Create native installer
+              shell: bash
+              run: |
+                  chmod +x .github/workflows/scripts/build-installer.sh
+                  .github/workflows/scripts/build-installer.sh \
+                    "${{ env.INSTALL_PREFIX }}" \
+                    "${{ matrix.installer_name }}" \
+                    "${{ runner.os }}" \
+                    "${{ matrix.arch }}"
+
+            # --- Native installer (.dmg / .exe / .deb): GitHub Release assets + workflow artifacts ---
+            - name: Upload native installer to GitHub Release
+              if: github.event_name == 'release'
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  upload_url: ${{ github.event.release.upload_url }}
+                  asset_path: ${{ matrix.installer_name }}
+                  asset_name: ${{ matrix.installer_name }}
+                  asset_content_type: application/octet-stream
+
+            - name: Upload native installer (workflow artifact)
+              uses: actions/upload-artifact@v4
+              with:
+                  name: native-installer-${{ matrix.name }}
+                  path: ${{ matrix.installer_name }}
+                  if-no-files-found: error
+
+            # --- Staged SDK zip: GitHub Release assets + workflow artifacts ---
+            - name: Upload SDK zip to GitHub Release
+              if: github.event_name == 'release'
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  upload_url: ${{ github.event.release.upload_url }}
+                  asset_path: release-stage/${{ matrix.archive_name }}
+                  asset_name: ${{ matrix.archive_name }}
+                  asset_content_type: application/zip
+
+            - name: Upload SDK zip (workflow artifact)
+              uses: actions/upload-artifact@v4
+              with:
+                  name: sdk-zip-${{ matrix.name }}
+                  path: release-stage/${{ matrix.archive_name }}
+                  if-no-files-found: error
+
+    # ============================================================================
+    # UPLOAD ARTIFACTS (waits for all builds)
+    # ============================================================================
+    upload:
+        name: Upload all artifacts
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Verify build completed
+              env:
+                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+              run: |
+                  echo "Build matrix finished."
+                  echo "Native installers and SDK zips: GitHub Release (if this was a release) + job Artifacts (native-installer-*, sdk-zip-*)."
+                  echo "Tag: ${TAG}"
+
+    # ============================================================================
+    # PACKAGE MANAGER PUBLISHING (parallel, non-blocking)
+    # ============================================================================
+    publish-homebrew:
+        name: Publish to Homebrew
+        needs: upload
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - name: Checkout repository (packaging script only)
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  fetch-tags: true
+                  fetch-depth: 1
+                  sparse-checkout: |
+                      .github/workflows/scripts
+                  sparse-checkout-cone-mode: true
+
+            - name: Publish to Homebrew
+              env:
+                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
+                  # Git author + tap repo owner: same as the user that triggered the run (no extra secrets).
+                  GIT_AUTHOR_NAME: ${{ github.actor }}
+                  GIT_AUTHOR_EMAIL: ${{ format('{0}+{1}@users.noreply.github.com', github.actor_id, github.actor) }}
+              run: |
+                  chmod +x .github/workflows/scripts/package-homebrew.sh
+                  .github/workflows/scripts/package-homebrew.sh \
+                    "${TAG}" \
+                    "${RELEASE_URL}" \
+                    "${{ secrets.HOMEBREW_TAP_TOKEN }}"
+
+    publish-chocolatey:
+        name: Publish to Chocolatey
+        needs: upload
+        # choco is the Chocolatey CLI and is available on Windows images, not on ubuntu-latest.
+        runs-on: windows-latest
+        continue-on-error: true
+        steps:
+            - name: Enable Git long paths (Windows)
+              shell: bash
+              run: git config --global core.longpaths true
+
+            - name: Checkout repository (packaging script only)
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  fetch-tags: true
+                  fetch-depth: 1
+                  sparse-checkout: |
+                      .github/workflows/scripts
+                  sparse-checkout-cone-mode: true
+
+            - name: Install jq (JSON for release API)
+              shell: pwsh
+              run: choco install jq -y
+
+            - name: Publish to Chocolatey
+              shell: bash
+              env:
+                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
+              run: |
+                  # Chocolatey shims + Git usrbin (sha256sum, etc.) for Git Bash
+                  export PATH="/c/ProgramData/chocolatey/bin:/c/Program Files/Git/usr/bin:$PATH"
+                  chmod +x .github/workflows/scripts/package-chocolatey.sh
+                  .github/workflows/scripts/package-chocolatey.sh \
+                    "${TAG}" \
+                    "${RELEASE_URL}" \
+                    "${{ secrets.CHOCOLATEY_API_KEY }}"
+
+    publish-apt:
+        name: Publish to apt
+        needs: upload
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  fetch-tags: true
+                  fetch-depth: 0
+
+            - name: Publish to apt
+              env:
+                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+              run: |
+                  chmod +x .github/workflows/scripts/package-apt.sh
+                  .github/workflows/scripts/package-apt.sh \
+                    "${TAG}" \
+                    "${{ secrets.APT_REPO_TOKEN }}" \
+                    "${{ secrets.APT_REPO_USERNAME }}"
