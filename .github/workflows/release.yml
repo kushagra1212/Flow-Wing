@@ -76,6 +76,13 @@ jobs:
           TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
           echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
 
+      - name: Normalize INSTALL_PREFIX (convert Windows backslashes to forward slashes)
+        run: |
+          # github.workspace returns D:\a\... on Windows, but bash steps need D:/a/...
+          PREFIX="${{ env.INSTALL_PREFIX }}"
+          NORMALIZED=$(echo "$PREFIX" | sed 's/\\/\//g')
+          echo "INSTALL_PREFIX=$NORMALIZED" >> $GITHUB_ENV
+
       # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
       - name: Select Xcode Version
         if: runner.os == 'macOS'
