@@ -99,19 +99,26 @@ class Flowwing < Formula
 end
 FORMULA_EOF
 
-# Create a branch and PR
+# Push only the formula to the tap repo. Do NOT push a branch from this (Flow-Wing) clone: that
+# branch would contain the entire project tree, and GitHub rejects PAT pushes that touch
+# .github/workflows/* without the workflow scope.
+REPO_ROOT="${GITHUB_WORKSPACE:-$PWD}"
+FORMULA_SRC="$REPO_ROOT/FlowWing.rb"
+TAP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TAP_DIR"' EXIT
+
+TAP_REMOTE="https://x-access-token:${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git"
+GIT_TERMINAL_PROMPT=0 git -c credential.helper= clone --depth 1 "$TAP_REMOTE" "$TAP_DIR"
+
+cd "$TAP_DIR"
 git config user.name "$GIT_AUTHOR_NAME"
 git config user.email "$GIT_AUTHOR_EMAIL"
 git checkout -b "bump-flowwing-$VERSION"
+cp "$FORMULA_SRC" FlowWing.rb
 git add FlowWing.rb
 git commit -m "FlowWing $VERSION"
-# actions/checkout injects http.https://github.com/.extraheader (GITHUB_TOKEN). That wins over
-# credentials in the remote URL and authenticates as github-actions[bot], which cannot push to
-# another repo. Unset it so the PAT in the push URL is used.
-git config --local --unset-all "http.https://github.com/.extraheader" 2>/dev/null || true
-GIT_TERMINAL_PROMPT=0 git -c credential.helper= push \
-  "https://x-access-token:${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git" \
-  "bump-flowwing-$VERSION" --force
+git -c credential.helper= push "$TAP_REMOTE" "bump-flowwing-$VERSION" --force
+cd "$REPO_ROOT"
 
 # Create PR
 curl -X POST \

@@ -264,12 +264,15 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (packaging script only)
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           fetch-tags: true
-          fetch-depth: 0
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/workflows/scripts
+          sparse-checkout-cone-mode: true
 
       - name: Publish to Homebrew
         env:
@@ -292,12 +295,19 @@ jobs:
     runs-on: windows-latest
     continue-on-error: true
     steps:
-      - name: Checkout repository
+      - name: Enable Git long paths (Windows)
+        shell: bash
+        run: git config --global core.longpaths true
+
+      - name: Checkout repository (packaging script only)
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           fetch-tags: true
-          fetch-depth: 0
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/workflows/scripts
+          sparse-checkout-cone-mode: true
 
       - name: Install jq (JSON for release API)
         shell: pwsh
