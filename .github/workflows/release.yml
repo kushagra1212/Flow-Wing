@@ -20,6 +20,10 @@ jobs:
   build:
     name: Build ${{ matrix.name }} installer
     runs-on: ${{ matrix.os }}
+    # `github.workspace` is valid here (unlike in matrix.include). Required so `${{ env.INSTALL_PREFIX }}`
+    # works in `working-directory` and other expressions; GITHUB_ENV alone is not applied early enough for that.
+    env:
+      INSTALL_PREFIX: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
     strategy:
       # Let macOS / Windows / Linux all run to completion so one failure does not cancel the others.
       fail-fast: false
@@ -27,7 +31,7 @@ jobs:
         include:
           # Install under the workspace so CI does not need sudo (/usr/local/... is not writable).
           # Do not put install paths in the matrix: `github.workspace` is empty there, which produced `/release-stage/...` (root FS).
-          # Use `env.INSTALL_PREFIX` from the "Set up environment" step ($GITHUB_WORKSPACE/release-stage/<tag>/).
+          # `INSTALL_PREFIX` is set on the job env (above).
           - name: macos-arm64
             os: macos-14
             arch: arm64
@@ -67,7 +71,6 @@ jobs:
           # Real tag if it's a release, otherwise use the manual input
           TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
           echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
-          echo "INSTALL_PREFIX=${GITHUB_WORKSPACE}/release-stage/${TAG_NAME}/" >> $GITHUB_ENV
 
       # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
       - name: Select Xcode Version
