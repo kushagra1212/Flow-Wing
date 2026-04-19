@@ -25,8 +25,14 @@ fi
 # Get the SHA256 hash
 WINDOWS_SHA256="$(curl -s "$WINDOWS_URL" | sha256sum | cut -d' ' -f1)"
 
-# Create the Chocolatey package
-mkdir -p flowwing.nuspec flowwing/tools
+if [ -z "$API_KEY" ]; then
+  echo "Warning: CHOCOLATEY_API_KEY is not set; skipping Chocolatey pack and push."
+  exit 0
+fi
+
+# Create the Chocolatey package (flowwing.nuspec must be a file, not a directory)
+rm -rf flowwing flowwing.nuspec
+mkdir -p flowwing/tools
 
 cat > flowwing.nuspec << NUSPEC_EOF
 <?xml version="1.0" encoding="utf-8"?>

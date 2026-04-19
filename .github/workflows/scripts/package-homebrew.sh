@@ -14,6 +14,10 @@ TOKEN="$3"
 USERNAME="$4"
 EMAIL="$5"
 
+# CI often omits tap secrets; git commit requires a non-empty name and email.
+GIT_AUTHOR_NAME="${USERNAME:-FlowWing Bot}"
+GIT_AUTHOR_EMAIL="${EMAIL:-github-actions[bot]@users.noreply.github.com}"
+
 echo "=== Publishing to Homebrew ==="
 echo "Version: $VERSION"
 echo "Release URL: $RELEASE_URL"
@@ -23,6 +27,11 @@ MACOS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releas
 
 if [ -z "$MACOS_URL" ]; then
   echo "Warning: Could not find macOS artifact for Homebrew formula."
+  exit 0
+fi
+
+if [ -z "$TOKEN" ]; then
+  echo "Warning: HOMEBREW_TAP_TOKEN is not set; skipping Homebrew tap PR."
   exit 0
 fi
 
@@ -84,8 +93,8 @@ end
 FORMULA_EOF
 
 # Create a branch and PR
-git config user.name "$USERNAME"
-git config user.email "$EMAIL"
+git config user.name "$GIT_AUTHOR_NAME"
+git config user.email "$GIT_AUTHOR_EMAIL"
 git checkout -b "bump-flowwing-$VERSION"
 git add FlowWing.rb
 git commit -m "FlowWing $VERSION"
