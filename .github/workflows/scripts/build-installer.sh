@@ -114,6 +114,15 @@ Or call the binary directly:
   "/Applications/FlowWing.app/Contents/Resources/FlowWingSDK/bin/FlowWing" --version
 EOF
 
+    # create-dmg's source must be a *folder whose contents* appear at the DMG root.
+    # Passing the .app path directly makes hdiutil/makehybrid flatten the bundle so only
+    # a top-level "Contents" folder appears (no FlowWing.app). Stage a parent directory instead.
+    STAGE="/tmp/flowwing-dmg-stage"
+    rm -rf "$STAGE"
+    mkdir -p "$STAGE"
+    cp -R "$APP" "$STAGE/FlowWing.app"
+    cp "$README" "$STAGE/Read me (PATH).txt"
+
     # --skip-jenkins / --sandbox-safe: avoid Finder AppleScript in CI; reduces hangs and “window won’t close” issues.
     create-dmg \
       --volname "FlowWing ${FW_VER}" \
@@ -121,11 +130,11 @@ EOF
       --icon-size 128 \
       --icon "FlowWing.app" 150 200 \
       --app-drop-link 450 200 \
-      --add-file "Read me (PATH).txt" "$README" 300 200 \
+      --icon "Read me (PATH).txt" 300 200 \
       --sandbox-safe \
       --skip-jenkins \
       "/tmp/$INSTALLER_NAME" \
-      "$APP"
+      "$STAGE"
 
     echo "macOS .dmg created: /tmp/$INSTALLER_NAME"
     mv "/tmp/$INSTALLER_NAME" "$INSTALLER_NAME"
