@@ -10,6 +10,10 @@ on:
         required: true
         default: "v0.0.3-alpha"
 
+# Default GITHUB_TOKEN is read-only in many repos; uploading release assets requires write access.
+permissions:
+  contents: write
+
 env:
   FLOWWING_VERSION: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
