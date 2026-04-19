@@ -20,37 +20,115 @@ case "$OS" in
   macOS)
     # Create .dmg using create-dmg
     echo "Creating macOS .dmg installer..."
-    
-    # Create the app directory structure
-    mkdir -p /tmp/FlowWing\ Installer.app/Contents/Resources
-    mkdir -p /tmp/FlowWing\ Installer.app/Contents/MacOS
-    
-    # Copy the FlowWing binary and SDK to the app bundle
-    cp -r "$INSTALL_PREFIX" /tmp/FlowWing\ Installer.app/Contents/Resources/
-    
-    # Create a simple shell script wrapper in the app bundle
-    cat > /tmp/FlowWing\ Installer.app/Contents/MacOS/FlowWing << 'WRAPPER'
+
+    APP="/tmp/FlowWing.app"
+    rm -rf "$APP"
+    mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/FlowWingSDK"
+
+    # Install tree must live at a fixed path inside the bundle (no versioned folder name guessing).
+    cp -R "${INSTALL_PREFIX%/}/." "$APP/Contents/Resources/FlowWingSDK/"
+
+    # App icon from repo assets (requires rsvg-convert: brew install librsvg).
+    REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+    LOGO_SVG="$REPO_ROOT/assets/logo/logo.svg"
+    ICON_EXTRA=""
+    if [[ -f "$LOGO_SVG" ]] && command -v rsvg-convert >/dev/null 2>&1; then
+      echo "Building AppIcon.icns from assets/logo/logo.svg"
+      RASTER=/tmp/fw-icon-1024.png
+      rsvg-convert -w 1024 -h 1024 "$LOGO_SVG" -o "$RASTER"
+      ICONSET=/tmp/AppIcon.iconset
+      rm -rf "$ICONSET"
+      mkdir "$ICONSET"
+      sips -z 16 16 "$RASTER" --out "$ICONSET/icon_16x16.png" >/dev/null
+      sips -z 32 32 "$RASTER" --out "$ICONSET/icon_16x16@2x.png" >/dev/null
+      sips -z 32 32 "$RASTER" --out "$ICONSET/icon_32x32.png" >/dev/null
+      sips -z 64 64 "$RASTER" --out "$ICONSET/icon_32x32@2x.png" >/dev/null
+      sips -z 128 128 "$RASTER" --out "$ICONSET/icon_128x128.png" >/dev/null
+      sips -z 256 256 "$RASTER" --out "$ICONSET/icon_128x128@2x.png" >/dev/null
+      sips -z 256 256 "$RASTER" --out "$ICONSET/icon_256x256.png" >/dev/null
+      sips -z 512 512 "$RASTER" --out "$ICONSET/icon_256x256@2x.png" >/dev/null
+      sips -z 512 512 "$RASTER" --out "$ICONSET/icon_512x512.png" >/dev/null
+      sips -z 1024 1024 "$RASTER" --out "$ICONSET/icon_512x512@2x.png" >/dev/null
+      iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+      ICON_EXTRA="
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>"
+    else
+      echo "Warning: no app icon (missing $LOGO_SVG or rsvg-convert not in PATH)"
+    fi
+
+    # Valid app bundle requires Info.plist; without it Finder shows a broken / “no entry” icon.
+    FW_VER="${FLOWWING_VERSION:-0.0.0}"
+    cat > "$APP/Contents/Info.plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>FlowWing</string>
+  <key>CFBundleIdentifier</key>
+  <string>dev.flowwing.cli</string>
+  <key>CFBundleName</key>
+  <string>FlowWing</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>${FW_VER}</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>11.0</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>${ICON_EXTRA}
+</dict>
+</plist>
+PLIST
+
+    # Launcher: must resolve SDK root reliably (old script used invalid ../Resources/lib/modules/../../..).
+    cat > "$APP/Contents/MacOS/FlowWing" << 'WRAPPER'
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")"/../Resources/lib/modules/../../.." 2>/dev/null || pwd)"
-export PATH="$SCRIPT_DIR/bin:$PATH"
-export FLOWWING_MODULES_PATH="$SCRIPT_DIR/lib/modules"
-export FLOWWING_LIB_PATH="$SCRIPT_DIR/lib"
-exec "$SCRIPT_DIR/bin/FlowWing" "$@"
+SDK_ROOT="$(cd "$(dirname "$0")/../Resources/FlowWingSDK" && pwd)"
+export PATH="$SDK_ROOT/bin:$PATH"
+export FLOWWING_MODULES_PATH="$SDK_ROOT/lib/modules"
+export FLOWWING_LIB_PATH="$SDK_ROOT/lib"
+exec "$SDK_ROOT/bin/FlowWing" "$@"
 WRAPPER
-    chmod +x /tmp/FlowWing\ Installer.app/Contents/MacOS/FlowWing
-    
-    # Create the .dmg
+    chmod +x "$APP/Contents/MacOS/FlowWing"
+
+    # Short usage note on the disk image (DMG does not modify shell PATH on the system).
+    README="/tmp/FlowWing-DMG-README.txt"
+    cat > "$README" << EOF
+FlowWing ${FW_VER} (macOS)
+
+• Drag “FlowWing.app” into Applications, then open it from Applications (or run FlowWing from Terminal as below).
+
+• This build is for the same CPU architecture as the GitHub runner (e.g. arm64 Apple Silicon). An Intel Mac cannot run an arm64 build and vice versa.
+
+• Terminal: add the compiler to PATH (after copying the app to /Applications):
+
+  export PATH="/Applications/FlowWing.app/Contents/Resources/FlowWingSDK/bin:\$PATH"
+  FlowWing --version
+
+Or call the binary directly:
+
+  "/Applications/FlowWing.app/Contents/Resources/FlowWingSDK/bin/FlowWing" --version
+EOF
+
+    # --skip-jenkins / --sandbox-safe: avoid Finder AppleScript in CI; reduces hangs and “window won’t close” issues.
     create-dmg \
-      --volname "FlowWing $FLOWWING_VERSION" \
+      --volname "FlowWing ${FW_VER}" \
       --window-size 600 400 \
       --icon-size 128 \
-      --icon "FlowWing Installer.app" 150 200 \
+      --icon "FlowWing.app" 150 200 \
       --app-drop-link 450 200 \
+      --add-file "Read me (PATH).txt" "$README" 300 200 \
+      --sandbox-safe \
+      --skip-jenkins \
       "/tmp/$INSTALLER_NAME" \
-      "/tmp/FlowWing Installer.app"
-    
+      "$APP"
+
     echo "macOS .dmg created: /tmp/$INSTALLER_NAME"
-    mv /tmp/$INSTALLER_NAME "$INSTALLER_NAME"
+    mv "/tmp/$INSTALLER_NAME" "$INSTALLER_NAME"
     ;;
     
   Windows)

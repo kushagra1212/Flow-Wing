@@ -79,7 +79,7 @@ jobs:
 
       - name: Install Tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg
+        run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg librsvg
 
       - name: Set Compiler Environment (macOS)
         if: runner.os == 'macOS'
@@ -197,8 +197,8 @@ jobs:
             "${{ runner.os }}" \
             "${{ matrix.arch }}"
 
-      # --- Upload installer / archive (release has upload_url; workflow_dispatch does not) ---
-      - name: Upload installer to release
+      # --- Native installer (.dmg / .exe / .deb): GitHub Release assets + workflow artifacts ---
+      - name: Upload native installer to GitHub Release
         if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         env:
@@ -209,14 +209,15 @@ jobs:
           asset_name: ${{ matrix.installer_name }}
           asset_content_type: application/octet-stream
 
-      - name: Upload installer artifact
-        if: github.event_name == 'workflow_dispatch'
+      - name: Upload native installer (workflow artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.installer_name }}
+          name: native-installer-${{ matrix.name }}
           path: ${{ matrix.installer_name }}
+          if-no-files-found: error
 
-      - name: Upload zip to release
+      # --- Staged SDK zip: GitHub Release assets + workflow artifacts ---
+      - name: Upload SDK zip to GitHub Release
         if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         env:
@@ -227,12 +228,12 @@ jobs:
           asset_name: ${{ matrix.archive_name }}
           asset_content_type: application/zip
 
-      - name: Upload zip artifact
-        if: github.event_name == 'workflow_dispatch'
+      - name: Upload SDK zip (workflow artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.archive_name }}
+          name: sdk-zip-${{ matrix.name }}
           path: release-stage/${{ matrix.archive_name }}
+          if-no-files-found: error
 
   # ============================================================================
   # UPLOAD ARTIFACTS (waits for all builds)
@@ -243,9 +244,10 @@ jobs:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify all artifacts uploaded
+      - name: Verify release job completed
         run: |
-          echo "All build artifacts uploaded successfully."
+          echo "Build matrix finished; native installers and SDK zips were attached to this release."
+          echo "Download from the release page, or from each matrix job under Artifacts (native-installer-*, sdk-zip-*)."
           echo "Release: ${{ github.event.release.tag_name }}"
 
   # ============================================================================
