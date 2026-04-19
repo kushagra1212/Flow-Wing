@@ -110,26 +110,17 @@ ${LINUX_BLOCK}
       # macOS ARM64 - flat structure matching actual zip contents
       bin.install "bin/FlowWing"
       
-      # Install Darwin-arm64 libraries explicitly
-      lib.mkpath("Darwin-arm64")
-      Dir["lib/Darwin-arm64/*.a"].each do |file|
-        install file, "Darwin-arm64/#{File.basename(file)}"
-      end
-      
-      # Install modules directory recursively
-      lib.install Dir["lib/modules/**/*"]
+      # Use single wildcard; Homebrew natively copies subdirectories recursively
+      lib.install Dir["lib/*"] 
     elsif OS.linux?
-      # Linux
+      # Linux - extract .deb and install files
       deb_file = cached_download
       system "dpkg", "-x", deb_file, "deb_extracted"
-      bin.install "deb_extracted/usr/local/flow-wing/#{version}/bin/*"
       
-      lib.mkpath("Darwin-arm64") if Dir.exist?("deb_extracted/usr/local/flow-wing/#{version}/lib/Darwin-arm64")
-      Dir["deb_extracted/usr/local/flow-wing/#{version}/lib/Darwin-arm64/*.a"].each do |file|
-        install file, "Darwin-arm64/#{File.basename(file)}" if File.exist?(file)
-      end
+      bin.install Dir["deb_extracted/usr/local/flow-wing/#{version}/bin/*"] if Dir.exist?("deb_extracted/usr/local/flow-wing/#{version}/bin")
       
-      lib.install Dir["deb_extracted/usr/local/flow-wing/#{version}/modules/**/*"] if Dir.exist?("deb_extracted/usr/local/flow-wing/#{version}/lib/modules")
+      # Apply the same fix here to prevent potential Linux install failures
+      lib.install Dir["deb_extracted/usr/local/flow-wing/#{version}/lib/*"] if Dir.exist?("deb_extracted/usr/local/flow-wing/#{version}/lib")
     else
       skip "Unsupported platform for Homebrew formula"
     end
