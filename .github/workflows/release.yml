@@ -241,21 +241,21 @@ jobs:
   upload:
     name: Upload all artifacts
     needs: build
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify release job completed
+      - name: Verify build completed
+        env:
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
         run: |
-          echo "Build matrix finished; native installers and SDK zips were attached to this release."
-          echo "Download from the release page, or from each matrix job under Artifacts (native-installer-*, sdk-zip-*)."
-          echo "Release: ${{ github.event.release.tag_name }}"
+          echo "Build matrix finished."
+          echo "Native installers and SDK zips: GitHub Release (if this was a release) + job Artifacts (native-installer-*, sdk-zip-*)."
+          echo "Tag: ${TAG}"
 
   # ============================================================================
   # PACKAGE MANAGER PUBLISHING (parallel, non-blocking)
   # ============================================================================
   publish-homebrew:
     name: Publish to Homebrew
-    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -263,23 +263,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           fetch-tags: true
           fetch-depth: 0
 
       - name: Publish to Homebrew
+        env:
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+          RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
         run: |
           chmod +x .github/workflows/scripts/package-homebrew.sh
           .github/workflows/scripts/package-homebrew.sh \
-            "${{ github.event.release.tag_name }}" \
-            "${{ github.event.release.html_url }}" \
+            "${TAG}" \
+            "${RELEASE_URL}" \
             "${{ secrets.HOMEBREW_TAP_TOKEN }}" \
             "${{ secrets.HOMEBREW_TAP_USERNAME }}" \
             "${{ secrets.HOMEBREW_TAP_EMAIL }}"
 
   publish-chocolatey:
     name: Publish to Chocolatey
-    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -287,21 +289,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           fetch-tags: true
           fetch-depth: 0
 
       - name: Publish to Chocolatey
+        env:
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+          RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
         run: |
           chmod +x .github/workflows/scripts/package-chocolatey.sh
           .github/workflows/scripts/package-chocolatey.sh \
-            "${{ github.event.release.tag_name }}" \
-            "${{ github.event.release.html_url }}" \
+            "${TAG}" \
+            "${RELEASE_URL}" \
             "${{ secrets.CHOCOLATEY_API_KEY }}"
 
   publish-apt:
     name: Publish to apt
-    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -309,14 +313,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           fetch-tags: true
           fetch-depth: 0
 
       - name: Publish to apt
+        env:
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
         run: |
           chmod +x .github/workflows/scripts/package-apt.sh
           .github/workflows/scripts/package-apt.sh \
-            "${{ github.event.release.tag_name }}" \
+            "${TAG}" \
             "${{ secrets.APT_REPO_TOKEN }}" \
             "${{ secrets.APT_REPO_USERNAME }}"
