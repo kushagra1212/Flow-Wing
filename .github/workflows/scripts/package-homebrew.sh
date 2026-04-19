@@ -63,10 +63,8 @@ class Flowwing < Formula
     sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
   end
 
-  on_windows do
-    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
-    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
-  end
+  # Do not use `on_windows` here: it is not defined on many Homebrew versions (e.g. macOS),
+  # and the install path below only supports macOS arm64 and Linux anyway.
 
   license "GPL-2.0-only"
 
