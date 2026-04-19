@@ -26,28 +26,26 @@ jobs:
       matrix:
         include:
           # Install under the workspace so CI does not need sudo (/usr/local/... is not writable).
-          # Same path shape on macOS / Linux / Windows (forward slashes are fine for CMake on Windows).
+          # Do not put install paths in the matrix: `github.workspace` is empty there, which produced `/release-stage/...` (root FS).
+          # Use `env.INSTALL_PREFIX` from the "Set up environment" step ($GITHUB_WORKSPACE/release-stage/<tag>/).
           - name: macos-arm64
             os: macos-14
             arch: arm64
             installer_ext: .dmg
             archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.zip
             installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.dmg
-            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
           - name: windows-x86_64
             os: windows-latest
             arch: x86_64
             installer_ext: .exe
             archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.zip
             installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.exe
-            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
           - name: linux-x86_64
             os: ubuntu-latest
             arch: x86_64
             installer_ext: .deb
             archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.zip
             installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.deb
-            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
 
     steps:
       # Order and toolchain mirror .github/workflows/multi_platform_ci.yml per OS.
@@ -147,22 +145,22 @@ jobs:
       # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
       - name: Configure CMake (Release)
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
+        run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
       - name: Build compiler
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
+        run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
       # --- Stage SDK ---
       - name: Stage SDK
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
-        run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
+        run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
       # --- Create archive ---
       # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
       - name: Create archive
         shell: bash
-        working-directory: ${{ matrix.install_prefix }}
+        working-directory: ${{ env.INSTALL_PREFIX }}
         run: zip -r "../${{ matrix.archive_name }}" .
 
       # --- Create native installer ---
@@ -171,8 +169,8 @@ jobs:
         run: |
           chmod +x .github/workflows/scripts/build-installer.sh
           .github/workflows/scripts/build-installer.sh \
-            "${{ matrix.install_prefix }}" \
-            "${{ matrix.install_prefix }}" \
+            "${{ env.INSTALL_PREFIX }}" \
+            "${{ env.INSTALL_PREFIX }}" \
             "${{ matrix.installer_name }}" \
             "${{ runner.os }}" \
             "${{ matrix.arch }}"
