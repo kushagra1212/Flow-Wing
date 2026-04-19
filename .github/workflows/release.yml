@@ -46,6 +46,7 @@ jobs:
             install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
 
     steps:
+      # Order and toolchain mirror .github/workflows/multi_platform_ci.yml per OS.
       - name: Enable Windows longpaths
         if: runner.os == 'Windows'
         run: git config --system core.longpaths true
@@ -68,37 +69,42 @@ jobs:
             echo "INSTALL_PREFIX=/usr/local/flow-wing/$TAG_NAME/" >> $GITHUB_ENV
           fi
 
-      # --- macOS dependencies ---
-      - name: Install macOS dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install --quiet ninja ccache automake autoconf libtool llvm@17 create-dmg
-          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
-          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
-
-      - name: Select Xcode (macOS)
+      # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
+      - name: Select Xcode Version
         if: runner.os == 'macOS'
         run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
-      - name: SDKROOT (macOS)
+      - name: Install Tools (macOS)
         if: runner.os == 'macOS'
-        run: echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+        run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg
 
-      # --- Windows dependencies ---
-      - name: Install Windows dependencies
-        if: runner.os == 'Windows'
+      - name: Set Compiler Environment (macOS)
+        if: runner.os == 'macOS'
         run: |
-          choco install --quiet make nsis
-          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
 
-      # --- Linux dependencies ---
-      - name: Install Linux dependencies
+      # --- Windows (same as multi_platform_ci windows_x86_64_test + nsis for release installers) ---
+      - name: Install Build Tools
+        if: runner.os == 'Windows'
+        run: choco install -y 7zip make nsis
+
+      - name: Set up MSVC Developer Command Prompt
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # --- Linux (same apt line as multi_platform_ci linux_x86_64_test) ---
+      - name: Install Tools (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
-          sudo apt-get install -y libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+
+      - name: Set Compiler Environment (Linux)
+        if: runner.os == 'Linux'
+        run: |
           echo "CC=clang-17" >> $GITHUB_ENV
           echo "CXX=clang++-17" >> $GITHUB_ENV
           echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
@@ -126,7 +132,8 @@ jobs:
         run: rm -rf .fw_dependencies/build
 
       # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
-      # macOS: same as multi_platform_ci — Homebrew LLVM + Xcode 15.4 + SDKROOT.
+      # Toolchains match multi_platform_ci: macOS Homebrew LLVM + Xcode + SDKROOT;
+      # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
       - name: Configure CMake (Release)
         run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
