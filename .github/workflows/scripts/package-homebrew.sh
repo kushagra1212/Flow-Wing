@@ -81,13 +81,15 @@ class Flowwing < Formula
       mkdir_p lib_dir
       system "unzip", "-d", lib_dir, "#{share}/#{lib_dir}.zip"
       bin.install Dir["#{lib_dir}/bin/*"]
-      lib.install Dir["#{lib_dir}/lib/**/*"]
+      # Install each top-level entry under SDK lib (modules/, platform libs, etc.).
+      # Using **/* flattens into prefix/lib and breaks lib/modules layout.
+      lib.install Dir["#{lib_dir}/lib/*"]
     elsif OS.linux?
       # Linux
       deb_file = "#{share}/FlowWing-$VERSION-linux-x86_64.deb"
       system "dpkg", "-x", deb_file, "deb_extracted"
       bin.install "deb_extracted/usr/local/flow-wing/$VERSION/bin/*"
-      lib.install "deb_extracted/usr/local/flow-wing/$VERSION/lib"
+      lib.install Dir["deb_extracted/usr/local/flow-wing/$VERSION/lib/*"]
     else
       skip "Unsupported platform for Homebrew formula"
     end

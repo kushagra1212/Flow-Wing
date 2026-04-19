@@ -57,6 +57,11 @@ public:
 
   // Gets the path to the fg modules (.fg files).
   static std::filesystem::path getModulesPath() {
+    if (const char *env = std::getenv("FLOWWING_MODULES_PATH")) {
+      if (env[0] != '\0') {
+        return std::filesystem::path(env);
+      }
+    }
     auto exePath = getExecutablePath();
 #if defined(__APPLE__)
     if (exePath.string().find(".app/Contents/MacOS") != std::string::npos) {

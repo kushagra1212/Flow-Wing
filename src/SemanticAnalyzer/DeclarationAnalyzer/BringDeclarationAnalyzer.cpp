@@ -34,6 +34,7 @@
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 #include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "src/common/io/PathUtils.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <optional>
@@ -229,7 +230,18 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
     if (auto resolved = tryResolveBringPath(base, path_obj)) {
       absolute_file_path = *resolved;
     } else {
-      absolute_file_path = std::filesystem::absolute(base / path_obj).string();
+      const auto modules_root = flow_wing::io::PathUtils::getModulesPath();
+      std::error_code ec_mod;
+      if (!modules_root.empty() &&
+          std::filesystem::exists(modules_root, ec_mod) && !ec_mod) {
+        if (auto resolved = tryResolveBringPath(modules_root, path_obj)) {
+          absolute_file_path = *resolved;
+        } else {
+          absolute_file_path = std::filesystem::absolute(base / path_obj).string();
+        }
+      } else {
+        absolute_file_path = std::filesystem::absolute(base / path_obj).string();
+      }
     }
   }
 
