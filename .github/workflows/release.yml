@@ -56,11 +56,11 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Set up environment
+        shell: bash
         run: |
           # Real tag if it's a release, otherwise use the manual input
           TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
           echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
-
 
           if [ "${{ runner.os }}" == "Windows" ]; then
             echo "INSTALL_PREFIX=C:\\Program Files\\FlowWing\\$TAG_NAME\\" >> $GITHUB_ENV
