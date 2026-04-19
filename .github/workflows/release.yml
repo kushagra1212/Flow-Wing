@@ -3,6 +3,12 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      simulated_tag:
+        description: "Simulate a release tag (e.g., v0.0.3-alpha)"
+        required: true
+        default: "v0.0.3-alpha"
 
 env:
   FLOWWING_VERSION: ${{ github.event.release.tag_name }}
@@ -51,8 +57,16 @@ jobs:
 
       - name: Set up environment
         run: |
-          echo "FLOWWING_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          echo "INSTALL_PREFIX=${{ matrix.install_prefix }}" >> $GITHUB_ENV
+          # Real tag if it's a release, otherwise use the manual input
+          TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
+          echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
+
+
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "INSTALL_PREFIX=C:\\Program Files\\FlowWing\\$TAG_NAME\\" >> $GITHUB_ENV
+          else
+            echo "INSTALL_PREFIX=/usr/local/flow-wing/$TAG_NAME/" >> $GITHUB_ENV
+          fi
 
       # --- macOS dependencies ---
       - name: Install macOS dependencies
