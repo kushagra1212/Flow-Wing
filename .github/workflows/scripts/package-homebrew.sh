@@ -107,20 +107,17 @@ ${LINUX_BLOCK}
 
   def install
     if OS.mac? && Hardware::CPU.arm?
-      # macOS ARM64
-      #
-      # Homebrew stages/extracts archives into the build directory automatically. The release zip
-      # contains a top-level directory named `FlowWing-<version>-macos-arm64/`.
-      root = "FlowWing-#{version}-macos-arm64"
-      lib.install Dir["lib/**/*"]
+      # macOS ARM64 - flat structure matching actual zip contents
       bin.install "bin/FlowWing"
+      
+      # Install all library files recursively, preserving directory structure
+      lib.install Dir["lib/**/*"]
     elsif OS.linux?
       # Linux
-      # `.deb` is not extracted by Homebrew; use the downloaded file directly.
       deb_file = cached_download
       system "dpkg", "-x", deb_file, "deb_extracted"
       bin.install "deb_extracted/usr/local/flow-wing/#{version}/bin/*"
-      lib.install Dir["deb_extracted/usr/local/flow-wing/#{version}/lib/*"]
+      lib.install Dir["deb_extracted/usr/local/flow-wing/#{version}/lib/**/*"]
     else
       skip "Unsupported platform for Homebrew formula"
     end
