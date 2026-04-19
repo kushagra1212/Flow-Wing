@@ -81,9 +81,16 @@ Install-ChocolateyShortcut -ShortcutFilePath $shortcutPath `
   -WorkDir $installDir
 PS1_EOF
 
-# Replace placeholders
-sed -i "s/WINDOWS_URL_PLACEHOLDER/$WINDOWS_URL/g" flowwing/tools/chocolateyinstall.ps1
-sed -i "s/WINDOWS_SHA256_PLACEHOLDER/$WINDOWS_SHA256/g" flowwing/tools/chocolateyinstall.ps1
+# Replace placeholders (URLs contain / so sed 's///' breaks; use Python)
+WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" python3 << 'PY'
+from pathlib import Path
+import os
+p = Path("flowwing/tools/chocolateyinstall.ps1")
+t = p.read_text()
+t = t.replace("WINDOWS_URL_PLACEHOLDER", os.environ["WU"])
+t = t.replace("WINDOWS_SHA256_PLACEHOLDER", os.environ["WS"])
+p.write_text(t)
+PY
 
 cat > flowwing/tools/chocolateyuninstall.ps1 << 'UNINSTALL_EOF'
 $installDir = Join-Path $env:ProgramFiles "FlowWing"

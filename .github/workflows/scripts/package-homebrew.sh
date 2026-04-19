@@ -105,7 +105,11 @@ git config user.email "$GIT_AUTHOR_EMAIL"
 git checkout -b "bump-flowwing-$VERSION"
 git add FlowWing.rb
 git commit -m "FlowWing $VERSION"
-git push "https://${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git" "bump-flowwing-$VERSION" --force
+# Actions sets up a credential helper that uses GITHUB_TOKEN (github-actions[bot]) for github.com;
+# that token cannot push to another repo. Use the PAT in-url + disable helper for this push.
+GIT_TERMINAL_PROMPT=0 git -c credential.helper= push \
+  "https://x-access-token:${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git" \
+  "bump-flowwing-$VERSION" --force
 
 # Create PR
 curl -X POST \
