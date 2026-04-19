@@ -147,13 +147,13 @@ Description: FlowWing Programming Language
 DEB_EOF
 
     # Package using fpm (DEB_ARCH is e.g. amd64 for x86_64)
+    # Note: fpm has no --deb-repo; use --deb-field for custom control stanzas if needed.
     fpm -f \
       -s dir \
       -t deb \
       -n flowwing \
       -v "$FLOWWING_VERSION" \
       -a "$DEB_ARCH" \
-      --deb-repo "flowwing" \
       --after-install .github/workflows/scripts/post-install.sh \
       --before-remove .github/workflows/scripts/pre-remove.sh \
       --package "$INSTALLER_NAME" \
