@@ -109,7 +109,7 @@ Flow-Wing is distributed via a community tap. Add the tap and install:
 
 ```bash
 # macOS only — Apple Silicon recommended
-brew tap kushagra1212/flow-wing
+brew tap kushagra1212/flowwing
 brew install flowwing
 flowwing --version
 ```
