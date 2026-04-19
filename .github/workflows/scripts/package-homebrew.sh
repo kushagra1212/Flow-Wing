@@ -24,11 +24,12 @@ echo "=== Publishing to Homebrew ==="
 echo "Version: $VERSION"
 echo "Release URL: $RELEASE_URL"
 
-# Determine the correct download URL based on platform
-MACOS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos-arm64")) | .browser_download_url')"
+# SDK zip only (release also publishes .dmg with the same "macos-arm64" in the name; jq must not match both).
+MACOS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | endswith("-macos-arm64.zip")) | .browser_download_url' | head -n1)"
+LINUX_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | endswith("-linux-x86_64.deb")) | .browser_download_url' | head -n1)"
 
 if [ -z "$MACOS_URL" ]; then
-  echo "Warning: Could not find macOS artifact for Homebrew formula."
+  echo "Warning: Could not find macOS arm64 SDK zip for Homebrew formula."
   exit 0
 fi
 
@@ -59,8 +60,8 @@ class Flowwing < Formula
   end
 
   on_linux do
-    url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')"
-    sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
+    url "$LINUX_URL"
+    sha256 "$(curl -s "$LINUX_URL" | shasum -a 256 | cut -d' ' -f1)"
   end
 
   # Do not use `on_windows` here: it is not defined on many Homebrew versions (e.g. macOS),
