@@ -92,7 +92,11 @@ jobs:
       # --- Windows (same as multi_platform_ci windows_x86_64_test + nsis for release installers) ---
       - name: Install Build Tools
         if: runner.os == 'Windows'
-        run: choco install -y 7zip make nsis
+        shell: pwsh
+        run: |
+          choco install -y 7zip make nsis
+          # Git Bash steps do not inherit Chocolatey's NSIS PATH; add explicitly.
+          Add-Content -Path $env:GITHUB_PATH -Value 'C:\Program Files (x86)\NSIS'
 
       - name: Set up MSVC Developer Command Prompt
         if: runner.os == 'Windows'
@@ -103,7 +107,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
 
       - name: Set Compiler Environment (Linux)
         if: runner.os == 'Linux'
@@ -192,8 +197,9 @@ jobs:
             "${{ runner.os }}" \
             "${{ matrix.arch }}"
 
-      # --- Upload installer artifact ---
-      - name: Upload installer
+      # --- Upload installer / archive (release has upload_url; workflow_dispatch does not) ---
+      - name: Upload installer to release
+        if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -203,8 +209,15 @@ jobs:
           asset_name: ${{ matrix.installer_name }}
           asset_content_type: application/octet-stream
 
-      # --- Upload archive artifact ---
-      - name: Upload archive
+      - name: Upload installer artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.installer_name }}
+          path: ${{ matrix.installer_name }}
+
+      - name: Upload zip to release
+        if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -214,12 +227,20 @@ jobs:
           asset_name: ${{ matrix.archive_name }}
           asset_content_type: application/zip
 
+      - name: Upload zip artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive_name }}
+          path: release-stage/${{ matrix.archive_name }}
+
   # ============================================================================
   # UPLOAD ARTIFACTS (waits for all builds)
   # ============================================================================
   upload:
     name: Upload all artifacts
     needs: build
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Verify all artifacts uploaded
@@ -232,6 +253,7 @@ jobs:
   # ============================================================================
   publish-homebrew:
     name: Publish to Homebrew
+    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -255,6 +277,7 @@ jobs:
 
   publish-chocolatey:
     name: Publish to Chocolatey
+    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -276,6 +299,7 @@ jobs:
 
   publish-apt:
     name: Publish to apt
+    if: github.event_name == 'release'
     needs: upload
     runs-on: ubuntu-latest
     continue-on-error: true
