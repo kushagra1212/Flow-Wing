@@ -161,10 +161,16 @@ jobs:
 
       # --- Create archive ---
       # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
+      # Windows images do not ship `zip` in Git Bash PATH; 7-Zip is installed via Chocolatey above.
       - name: Create archive
         shell: bash
         working-directory: ${{ env.INSTALL_PREFIX }}
-        run: zip -r "../${{ matrix.archive_name }}" .
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip -r "../${{ matrix.archive_name }}" .
+          else
+            zip -r "../${{ matrix.archive_name }}" .
+          fi
 
       # --- Create native installer ---
       - name: Create native installer
