@@ -44,7 +44,8 @@ Description: FlowWing Programming Language
 curl -L "$LINUX_URL" -o /tmp/flowwing.deb
 dpkg-deb -x /tmp/flowwing.deb flowwing-deb-extracted
 
-# Copy the extracted files
+# Copy the extracted files (dest must exist — cp will not create the full path)
+mkdir -p flowwing-deb/usr/local/flow-wing
 cp -r flowwing-deb-extracted/usr/local/flow-wing/* flowwing-deb/usr/local/flow-wing/
 
 # Create the new .deb

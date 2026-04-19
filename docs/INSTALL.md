@@ -114,11 +114,11 @@ brew install flowwing
 flowwing --version
 ```
 
-> **Note:** The Homebrew formula currently supports macOS ARM64 and Linux. Intel Mac builds depend on release availability.
+> **Note:** The tap ships an Apple Silicon (arm64) macOS SDK zip. On Intel Macs, `brew install` will stop with a clear message; use Linux/Windows binaries or build from source. Linux is supported via the `.deb` asset in the formula.
 
 ### Chocolatey (Windows)
 
-Install via Chocolatey package manager:
+The package downloads the release **zip** into the Chocolatey package `tools` folder (full `bin/` + `lib/` tree) and adds `tools/bin` to the **machine** PATH (requires an elevated/admin Chocolatey install).
 
 ```powershell
 choco install flowwing

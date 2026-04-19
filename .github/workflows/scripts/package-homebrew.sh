@@ -54,9 +54,7 @@ class Flowwing < Formula
       url "$MACOS_URL"
       sha256 "$(curl -s "$MACOS_URL" | shasum -a 256 | cut -d' ' -f1)"
     else
-      # Intel Mac (if available)
-      url "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')"
-      sha256 "$(curl -s "$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("macos")) | .browser_download_url')" | shasum -a 256 | cut -d' ' -f1)"
+      odie "FlowWing: this tap only publishes an Apple Silicon (arm64) macOS SDK zip. Use Linux/Windows releases or build from source on Intel Macs."
     end
   end
 
@@ -71,8 +69,6 @@ class Flowwing < Formula
   end
 
   license "GPL-2.0-only"
-
-  depends_on :macos => :arm64
 
   def install
     if OS.mac? && Hardware::CPU.arm?

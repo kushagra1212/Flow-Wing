@@ -80,6 +80,23 @@ public:
       return std::filesystem::path(TEST_SDK_PATH) / FLOWWING_PLATFORM_LIB_DIR;
     }
 
+    // e.g. macOS .app wrapper: FLOWWING_LIB_PATH=<SDK>/lib (parent of lib/<platform>/).
+    // Also accepts the platform lib dir itself (same path getLibrariesPath() would return).
+    if (const char *env = std::getenv("FLOWWING_LIB_PATH")) {
+      if (env[0] != '\0') {
+        const std::filesystem::path lib_root(env);
+        const std::filesystem::path plat_rel(FLOWWING_PLATFORM_LIB_DIR);
+        std::error_code ec;
+        const std::filesystem::path resolved = lib_root / plat_rel.filename();
+        if (std::filesystem::is_directory(resolved, ec) && !ec) {
+          return resolved;
+        }
+        if (std::filesystem::is_directory(lib_root, ec) && !ec) {
+          return lib_root;
+        }
+      }
+    }
+
 #if defined(__APPLE__)
     if (exePath.string().find(".app/Contents/MacOS") != std::string::npos) {
       return exePath.parent_path().parent_path() / "Resources";

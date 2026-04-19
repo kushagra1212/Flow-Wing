@@ -32,9 +32,9 @@ if [ -z "$API_KEY" ]; then
   exit 0
 fi
 
-# Create the Chocolatey package (flowwing.nuspec must be a file, not a directory)
-rm -rf flowwing flowwing.nuspec
-mkdir -p flowwing/tools
+# Create the Chocolatey package: nuspec + tools/ beside it (choco pack layout)
+rm -rf tools flowwing.nuspec
+mkdir -p tools
 
 cat > flowwing.nuspec << NUSPEC_EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -57,45 +57,41 @@ cat > flowwing.nuspec << NUSPEC_EOF
 </package>
 NUSPEC_EOF
 
-cat > flowwing/tools/chocolateyinstall.ps1 << 'PS1_EOF'
-$package = 'flowwing'
-$version = '$VERSION_PLACEHOLDER'
-$url = 'WINDOWS_URL_PLACEHOLDER'
-$checksum = 'WINDOWS_SHA256_PLACEHOLDER'
+cat > tools/chocolateyinstall.ps1 << 'PS1_EOF'
+$ErrorActionPreference = 'Stop'
+# Installed next to this script: tools/bin, tools/lib/... (release zip layout)
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$packageArgs = @{
+  packageName    = 'flowwing'
+  unzipLocation  = $toolsDir
+  url            = 'WINDOWS_URL_PLACEHOLDER'
+  checksum       = 'WINDOWS_SHA256_PLACEHOLDER'
+  checksumType   = 'sha256'
+}
+Install-ChocolateyZipPackage @packageArgs
+$binDir = Join-Path $toolsDir 'bin'
+Install-ChocolateyPath -PathToInstall $binDir -PathType 'Machine'
 PS1_EOF
 
 # Replace placeholders (URLs contain / so sed 's///' breaks; use Python)
-WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" WV="$VERSION" python3 << 'PY'
+WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" python3 << 'PY'
 from pathlib import Path
 import os
-p = Path("flowwing/tools/chocolateyinstall.ps1")
+p = Path("tools/chocolateyinstall.ps1")
 t = p.read_text()
 t = t.replace("WINDOWS_URL_PLACEHOLDER", os.environ["WU"])
 t = t.replace("WINDOWS_SHA256_PLACEHOLDER", os.environ["WS"])
-t = t.replace("$VERSION_PLACEHOLDER", os.environ["WV"])
+# VERSION placeholder not used in install script (kept for future use)
 p.write_text(t)
 PY
 
-cat > flowwing/tools/chocolateyuninstall.ps1 << 'UNINSTALL_EOF'
-$installDir = Join-Path $env:ProgramFiles "FlowWing"
-
-# Remove all FlowWing versions
-Get-ChildItem $installDir -Directory | ForEach-Object {
-  if ($_.Name -match '^\d+\.\d+\.\d+$') {
-    Remove-Item $_.FullName -Recurse -Force
-  }
-}
-
-# Remove from PATH
-$path = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
-$path = $path -replace ';[;]*[^\;]*FlowWing[^;]*', ''
-[System.Environment]::SetEnvironmentVariable('PATH', $path, 'Machine')
-
-# Remove start menu shortcut
-$shortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\FlowWing.lnk'
-if (Test-Path $shortcutPath) {
-  Remove-Item $shortcutPath -Force
-}
+cat > tools/chocolateyuninstall.ps1 << 'UNINSTALL_EOF'
+$ErrorActionPreference = 'Stop'
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$binDir = Join-Path $toolsDir 'bin'
+$machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$newPath = ($machinePath -split ';' | Where-Object { $_ -and ($_ -ne $binDir) }) -join ';'
+[Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine')
 UNINSTALL_EOF
 
 # Package and push
