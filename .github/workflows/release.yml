@@ -114,9 +114,11 @@ jobs:
 
       # --- Staged SDK (release install tree): version + OS + arch specific ---
       # On a cache hit, skip dependency build (if needed), CMake, compile, and re-stage; reuse the tree under release-stage/<tag>/.
+      # Use restore + explicit save: the combined cache action only saves in a post step after the *whole job* succeeds.
+      # If zip/installer/upload fails, the staged tree would never be cached otherwise.
       - name: Restore staged SDK cache
         id: cache-staged-sdk
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
@@ -158,6 +160,13 @@ jobs:
       - name: Stage SDK
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+      - name: Save staged SDK cache
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+          key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
       # --- Create archive ---
       # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
