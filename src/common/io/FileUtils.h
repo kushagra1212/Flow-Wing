@@ -121,13 +121,7 @@ getFiles(const std::string &directory_path, const std::string &extension,
   return files;
 }
 
-static inline void removeFiles(const std::string &directory_path,
-                               const std::string &extension) {
-  std::vector<std::string> files = getFiles(directory_path, extension);
-  for (const auto &file : files) {
-    std::filesystem::remove(file);
-  }
-}
+
 
 static inline std::string getTempDirectoryPath() {
 #if defined(_WIN32)
@@ -144,6 +138,14 @@ static inline std::string getTempDirectoryPath() {
   }
   return std::string(tempDir);
 #endif
+}
+
+static inline void removeFiles(const std::string &directory_path,
+  const std::string &extension) {
+std::vector<std::string> files = getFiles(directory_path, extension);
+for (const auto &file : files) {
+std::filesystem::remove(file);
+}
 }
 
 } // namespace io
