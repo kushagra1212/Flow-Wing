@@ -4,19 +4,21 @@ set -e
 # Arguments:
 #   $1: version - Release version (e.g., 1.0.0)
 #   $2: release_url - GitHub release HTML URL
-#   $3: token - GitHub token for the homebrew-tap repo
-#   $4: username - Git username
-#   $5: email - Git email
+#   $3: token - GitHub PAT with push access to the tap repo (HOMEBREW_TAP_TOKEN)
+#
+# Git author and tap repo owner ($GITHUB_ACTOR / homebrew-$GITHUB_ACTOR on GitHub):
+#   Set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL in CI (e.g. github.actor + noreply email).
+#   Locally you can export them or rely on GITHUB_ACTOR when set.
 
 VERSION="$1"
 RELEASE_URL="$2"
 TOKEN="$3"
-USERNAME="$4"
-EMAIL="$5"
 
-# CI often omits tap secrets; git commit requires a non-empty name and email.
-GIT_AUTHOR_NAME="${USERNAME:-FlowWing Bot}"
-GIT_AUTHOR_EMAIL="${EMAIL:-github-actions[bot]@users.noreply.github.com}"
+# Tap remote is https://github.com/$TAP_OWNER/homebrew-flowwing — default: user who runs the workflow
+TAP_OWNER="${TAP_OWNER:-${GITHUB_ACTOR:-}}"
+
+GIT_AUTHOR_NAME="${GIT_AUTHOR_NAME:-${GITHUB_ACTOR:-FlowWing Bot}}"
+GIT_AUTHOR_EMAIL="${GIT_AUTHOR_EMAIL:-github-actions[bot]@users.noreply.github.com}"
 
 echo "=== Publishing to Homebrew ==="
 echo "Version: $VERSION"
@@ -33,6 +35,11 @@ fi
 if [ -z "$TOKEN" ]; then
   echo "Warning: HOMEBREW_TAP_TOKEN is not set; skipping Homebrew tap PR."
   exit 0
+fi
+
+if [ -z "$TAP_OWNER" ]; then
+  echo "Error: TAP_OWNER / GITHUB_ACTOR is empty (cannot infer github.com/<owner>/homebrew-flowwing)."
+  exit 1
 fi
 
 # Create the formula
@@ -98,13 +105,13 @@ git config user.email "$GIT_AUTHOR_EMAIL"
 git checkout -b "bump-flowwing-$VERSION"
 git add FlowWing.rb
 git commit -m "FlowWing $VERSION"
-git push "https://${TOKEN}@github.com/$USERNAME/homebrew-flowwing.git" "bump-flowwing-$VERSION" --force
+git push "https://${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git" "bump-flowwing-$VERSION" --force
 
 # Create PR
 curl -X POST \
   -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github.v3+json" \
-  "https://api.github.com/repos/$USERNAME/homebrew-flowwing/pulls" \
+  "https://api.github.com/repos/${TAP_OWNER}/homebrew-flowwing/pulls" \
   -d "{\"title\":\"FlowWing $VERSION\",\"head\":\"bump-flowwing-$VERSION\",\"base\":\"main\",\"body\":\"Auto-update for FlowWing $VERSION\\n\\nRelease: $RELEASE_URL\"}"
 
 echo "=== Homebrew PR created ==="

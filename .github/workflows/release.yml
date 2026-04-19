@@ -275,14 +275,15 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
+          # Git author + tap repo owner: same as the user that triggered the run (no extra secrets).
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ format('{0}+{1}@users.noreply.github.com', github.actor_id, github.actor) }}
         run: |
           chmod +x .github/workflows/scripts/package-homebrew.sh
           .github/workflows/scripts/package-homebrew.sh \
             "${TAG}" \
             "${RELEASE_URL}" \
-            "${{ secrets.HOMEBREW_TAP_TOKEN }}" \
-            "${{ secrets.HOMEBREW_TAP_USERNAME }}" \
-            "${{ secrets.HOMEBREW_TAP_EMAIL }}"
+            "${{ secrets.HOMEBREW_TAP_TOKEN }}"
 
   publish-chocolatey:
     name: Publish to Chocolatey
