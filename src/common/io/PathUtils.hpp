@@ -80,8 +80,9 @@ public:
       return std::filesystem::path(TEST_SDK_PATH) / FLOWWING_PLATFORM_LIB_DIR;
     }
 
-    // e.g. macOS .app wrapper: FLOWWING_LIB_PATH=<SDK>/lib (parent of lib/<platform>/).
-    // Also accepts the platform lib dir itself (same path getLibrariesPath() would return).
+    // e.g. macOS .app wrapper: FLOWWING_LIB_PATH=<SDK>/lib (parent of
+    // lib/<platform>/). Also accepts the platform lib dir itself (same path
+    // getLibrariesPath() would return).
     if (const char *env = std::getenv("FLOWWING_LIB_PATH")) {
       if (env[0] != '\0') {
         const std::filesystem::path lib_root(env);
@@ -121,7 +122,23 @@ public:
   }
 
   // Gets the path to the AOT linker.(Clang)
-  static std::string getAOTLinkerPath() { return AOT_LINKER_PATH; }
+  static std::string getAOTLinkerPath() {
+    // 1. Check if a compatible clang++ exists next to this executable (in bin/)
+    auto exe = getExecutablePath();
+#if defined(_WIN32)
+    auto sibling_clang = exe.parent_path() / "clang++.exe";
+#else
+    auto sibling_clang = exe.parent_path() / "clang++";
+#endif
+
+    if (std::filesystem::exists(sibling_clang)) {
+      return sibling_clang.string();
+    }
+
+    // 2. Fall back to the compile-time constant for dev builds or system
+    // installs
+    return AOT_LINKER_PATH;
+  }
 };
 
 } // namespace io
