@@ -348,17 +348,19 @@ release-aot: release-aot-install
 
 #? Run AOT
 .PHONY: run-aot-debug run-aot-release
+run-aot-release: build-aot-release
+	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
+	$(ECHO_MSG) "---------------------------------"
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
 	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE)) 
 
-run-aot-release: build-aot-release
-	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
-	@$(call RM_RF, $(RUN_OUT_EXE))
-	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+
 
 #! ----- AOT Tests -----
 
