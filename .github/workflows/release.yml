@@ -59,6 +59,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+          # ref is always a tag here; shallow fetch + fetch-tags:false often breaks tag resolution (Windows/macOS/Linux).
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Set up environment
         shell: bash
@@ -222,6 +225,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Publish to Homebrew
         run: |
@@ -243,6 +248,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Publish to Chocolatey
         run: |
@@ -262,6 +269,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Publish to apt
         run: |
