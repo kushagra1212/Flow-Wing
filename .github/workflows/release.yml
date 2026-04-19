@@ -101,7 +101,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           # This key must perfectly match the one used in multi_platform_ci.yml
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
@@ -109,6 +111,11 @@ jobs:
         # Only run the heavy make command if the cache wasn't found
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
+
+      - name: Prune dependency build tree (reduce cache size)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: rm -rf .fw_dependencies/build
 
       # --- Build compiler with install prefix ---
       - name: Configure CMake (Release)
