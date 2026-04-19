@@ -174,6 +174,12 @@ help:
 	@echo "    JOBS=-j<N>               Sets the number of parallel build jobs (default: all available cores)."
 	@echo "    SILENT=1                 Suppress build and configuration messages for a clean output."
 	@echo ""
+	@echo "  Release packaging (CI / installers):"
+	@echo "    release-aot-configure    Configure AOT Release with RELEASE_INSTALL_PREFIX (FlowWing + CMake install roots)."
+	@echo "    release-aot-build        Build AOT Release after release-aot-configure."
+	@echo "    release-aot-install      cmake --install into RELEASE_INSTALL_PREFIX."
+	@echo "    release-aot              Run configure, build, and install in one step."
+	@echo ""
 
 #! ----- Dependencies -----
 
@@ -300,6 +306,39 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	@cmake --install $(AOT_RELEASE_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
 	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
+
+#? AOT Release packaging (installers): same preset as build-aot-release but install prefix is RELEASE_INSTALL_PREFIX
+RELEASE_CONFIG_STAMP := $(AOT_RELEASE_DIR)/.release-configured
+RELEASE_BUILD_STAMP  := $(AOT_RELEASE_DIR)/.release-built
+
+ifeq ($(OS),Windows_NT)
+    CHECK_RELEASE_PREFIX = @if "$(RELEASE_INSTALL_PREFIX)"=="" (echo RELEASE_INSTALL_PREFIX is required & exit /b 1)
+else
+    CHECK_RELEASE_PREFIX = @test -n "$(RELEASE_INSTALL_PREFIX)" || (echo RELEASE_INSTALL_PREFIX is required && exit 1)
+endif
+
+$(RELEASE_CONFIG_STAMP): $(RELEASE_DEPS_DIR)/.installed-Release
+	$(ECHO_MSG) "--> Configuring AOT (Release) for release packaging..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --preset $(AOT_RELEASE_PRESET) -DFLOWWING_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" -DCMAKE_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+	@$(call TOUCH, $(RELEASE_CONFIG_STAMP))
+
+$(RELEASE_BUILD_STAMP): $(RELEASE_CONFIG_STAMP)
+	$(ECHO_MSG) "--> Building AOT (Release) for release packaging..."
+	@cmake --build --preset $(AOT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
+	@$(call TOUCH, $(RELEASE_BUILD_STAMP))
+
+.PHONY: release-aot-configure release-aot-build release-aot-install release-aot
+release-aot-configure: $(RELEASE_CONFIG_STAMP)
+
+release-aot-build: $(RELEASE_BUILD_STAMP)
+
+release-aot-install: $(RELEASE_BUILD_STAMP)
+	$(ECHO_MSG) "--> Installing AOT (Release) to $(RELEASE_INSTALL_PREFIX)..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --install $(AOT_RELEASE_DIR) --prefix "$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+
+release-aot: release-aot-install
 
 #? Run AOT
 .PHONY: run-aot-debug run-aot-release

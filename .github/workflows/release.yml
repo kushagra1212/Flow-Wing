@@ -117,19 +117,16 @@ jobs:
         shell: bash
         run: rm -rf .fw_dependencies/build
 
-      # --- Build compiler with install prefix ---
+      # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
       - name: Configure CMake (Release)
-        run: |
-          cmake --preset aot-release \
-            -DFLOWWING_INSTALL_PREFIX="${{ matrix.install_prefix }}" \
-            -DCMAKE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
+        run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       - name: Build compiler
-        run: cmake --build --preset aot-release -- --jobs $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+        run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       # --- Stage SDK ---
       - name: Stage SDK
-        run: cmake --install build/aot-release --prefix ${{ matrix.install_prefix }}
+        run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       # --- Create archive ---
       - name: Create archive
