@@ -195,8 +195,8 @@ jobs:
       # Windows images do not ship `zip` in Git Bash PATH; 7-Zip is installed via Chocolatey above.
       - name: Create archive
         shell: bash
-        working-directory: ${{ env.INSTALL_PREFIX }}
         run: |
+          cd "${{ env.INSTALL_PREFIX }}"
           if [ "${{ runner.os }}" = "Windows" ]; then
             7z a -tzip -r "../${{ matrix.archive_name }}" .
           else
