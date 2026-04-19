@@ -11,7 +11,7 @@ on:
         default: "v0.0.3-alpha"
 
 env:
-  FLOWWING_VERSION: ${{ github.event.release.tag_name }}
+  FLOWWING_VERSION: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
 jobs:
   # ============================================================================
@@ -25,27 +25,29 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Install under the workspace so CI does not need sudo (/usr/local/... is not writable).
+          # Same path shape on macOS / Linux / Windows (forward slashes are fine for CMake on Windows).
           - name: macos-arm64
             os: macos-14
             arch: arm64
             installer_ext: .dmg
-            archive_name: FlowWing-${{ github.event.release.tag_name }}-macos-arm64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name }}-macos-arm64.dmg
-            install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
+            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.dmg
+            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
           - name: windows-x86_64
             os: windows-latest
             arch: x86_64
             installer_ext: .exe
-            archive_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.exe
-            install_prefix: "C:\\Program Files\\FlowWing\\${{ github.event.release.tag_name }}\\"
+            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.exe
+            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
           - name: linux-x86_64
             os: ubuntu-latest
             arch: x86_64
             installer_ext: .deb
-            archive_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.zip
-            installer_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.deb
-            install_prefix: /usr/local/flow-wing/${{ github.event.release.tag_name }}/
+            archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.zip
+            installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.deb
+            install_prefix: ${{ github.workspace }}/release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}/
 
     steps:
       # Order and toolchain mirror .github/workflows/multi_platform_ci.yml per OS.
@@ -56,7 +58,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
       - name: Set up environment
         shell: bash
@@ -64,12 +66,7 @@ jobs:
           # Real tag if it's a release, otherwise use the manual input
           TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
           echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
-
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            echo "INSTALL_PREFIX=C:\\Program Files\\FlowWing\\$TAG_NAME\\" >> $GITHUB_ENV
-          else
-            echo "INSTALL_PREFIX=/usr/local/flow-wing/$TAG_NAME/" >> $GITHUB_ENV
-          fi
+          echo "INSTALL_PREFIX=${GITHUB_WORKSPACE}/release-stage/${TAG_NAME}/" >> $GITHUB_ENV
 
       # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
       - name: Select Xcode Version
@@ -111,6 +108,15 @@ jobs:
           echo "CXX=clang++-17" >> $GITHUB_ENV
           echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
 
+      # --- Staged SDK (release install tree): version + OS + arch specific ---
+      # On a cache hit, skip dependency build (if needed), CMake, compile, and re-stage; reuse the tree under release-stage/<tag>/.
+      - name: Restore staged SDK cache
+        id: cache-staged-sdk
+        uses: actions/cache@v4
+        with:
+          path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+          key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+
       # --- Build Project Dependencies ---
       # --- Restore/Build Project Dependencies ---
       - name: Restore Dependencies Cache
@@ -124,12 +130,12 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Build Project Dependencies
-        # Only run the heavy make command if the cache wasn't found
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+        # Skip when staged SDK is already cached (nothing to build) or deps cache hit
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
 
       - name: Prune dependency build tree (reduce cache size)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && steps.cache-deps.outputs.cache-hit != 'true'
         shell: bash
         run: rm -rf .fw_dependencies/build
 
@@ -137,31 +143,36 @@ jobs:
       # Toolchains match multi_platform_ci: macOS Homebrew LLVM + Xcode + SDKROOT;
       # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
       - name: Configure CMake (Release)
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       - name: Build compiler
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       # --- Stage SDK ---
       - name: Stage SDK
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ matrix.install_prefix }}"
 
       # --- Create archive ---
+      # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
       - name: Create archive
-        run: |
-          cd ${{ matrix.install_prefix }}
-          zip -r ../${{ matrix.archive_name }} .
+        shell: bash
+        working-directory: ${{ matrix.install_prefix }}
+        run: zip -r "../${{ matrix.archive_name }}" .
 
       # --- Create native installer ---
       - name: Create native installer
+        shell: bash
         run: |
           chmod +x .github/workflows/scripts/build-installer.sh
           .github/workflows/scripts/build-installer.sh \
-            ${{ matrix.install_prefix }} \
-            ${{ matrix.install_prefix }} \
-            ${{ matrix.installer_name }} \
-            ${{ runner.os }} \
-            ${{ matrix.arch }}
+            "${{ matrix.install_prefix }}" \
+            "${{ matrix.install_prefix }}" \
+            "${{ matrix.installer_name }}" \
+            "${{ runner.os }}" \
+            "${{ matrix.arch }}"
 
       # --- Upload installer artifact ---
       - name: Upload installer
@@ -181,7 +192,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ../${{ matrix.archive_name }}
+          asset_path: release-stage/${{ matrix.archive_name }}
           asset_name: ${{ matrix.archive_name }}
           asset_content_type: application/zip
 
