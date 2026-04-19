@@ -11,6 +11,7 @@ import threading
 import tempfile  # <--- NEW IMPORT
 import platform
 import hashlib
+import signal
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -93,6 +94,24 @@ def print_progress_bar(iteration, total, failed, skipped, start_time, bar_length
 def strip_ansi_codes(text):
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     return ansi_escape.sub('', text)
+
+
+def _subprocess_result_diagnostics(result):
+    """Exit status line for debugging empty-capture or silent subprocess failures."""
+    if result is None:
+        return ""
+    rc = result.returncode
+    if rc is None:
+        return "subprocess.returncode=None"
+    parts = [f"subprocess.returncode={rc}"]
+    if rc < 0:
+        sig = -rc
+        parts.append(f"signal={sig}")
+        try:
+            parts.append(signal.strsignal(sig))
+        except (AttributeError, ValueError, OSError):
+            pass
+    return " | ".join(parts)
 
 def get_expected_error_code(file_path):
     try:
@@ -518,8 +537,22 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 mock_server_thread.daemon = True
                 mock_server_thread.start()
 
+            # Server fixtures need time for listen + client polling; 5s was tight on loaded macOS CI.
+            run_timeout_sec = 15 if server_port else 5
             # Use env=run_env here
-            result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
+            result = subprocess.run(
+                run_cmd,
+                capture_output=True,
+                text=True,
+                timeout=run_timeout_sec,
+                env=run_env,
+                encoding=SUBPROCESS_ENCODING,
+                errors=SUBPROCESS_ERRORS,
+                stdin=subprocess.DEVNULL,
+            )
+
+            if client_thread is not None:
+                client_thread.join(timeout=15)
 
             if mock_server:
                 mock_server.shutdown()
@@ -575,7 +608,12 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     diff_text = f"{Colors.WARNING}--- INVISIBLE DIFF ---{Colors.ENDC}\nExp: {repr(expected_output)}\nAct: {repr(actual_output)}\n"
                 if stderr_output and stderr_output not in raw_output: 
                     diff_text += f"\n{Colors.WARNING}--- STDERR ---{Colors.ENDC}\n{stderr_output}"
-                
+                if not actual_output.strip():
+                    diff_text += (
+                        f"\n{Colors.WARNING}--- SUBPROCESS ---{Colors.ENDC}\n"
+                        f"{_subprocess_result_diagnostics(result)}\n"
+                    )
+
                 if not keep_going:
                     with dir_lock: failed_dirs.add(parent_dir)
                 return False, (

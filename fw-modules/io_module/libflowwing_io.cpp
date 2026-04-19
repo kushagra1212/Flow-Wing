@@ -88,6 +88,7 @@ void io_print_log_ln(const char *text, const char *color) {
   } else {
     std::cout << text << "\n";
   }
+  std::cout.flush();
 }
 
 void io_print_error_log(const char *text, const char *color) {
@@ -106,6 +107,7 @@ void io_print_error_log_ln(const char *text, const char *color) {
   } else {
     std::cerr << text << "\n";
   }
+  std::cerr.flush();
 }
 
 void io_flush() { std::cout.flush(); }

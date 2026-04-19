@@ -142,6 +142,16 @@ bool vortex_server_listen(int64_t handle, int32_t port) {
   server->listener_thread =
       std::thread([server, port]() { server->svr.listen("0.0.0.0", port); });
 
+ 
+  server->svr.wait_until_ready();
+
+  if (!server->svr.is_running()) {
+    if (server->listener_thread.joinable()) {
+      server->listener_thread.join();
+    }
+    return false;
+  }
+
   server->listener_thread.detach();
   return true;
 }
