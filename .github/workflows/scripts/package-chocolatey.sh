@@ -46,7 +46,6 @@ cat > flowwing.nuspec << NUSPEC_EOF
     <authors>Kushagra Rathore</authors>
     <projectUrl>https://github.com/kushagra1212/Flow-Wing</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/src/lsp/client/src/resources/icon.png</iconUrl>
-    <license type="expression">GPL-2.0-only</license>
     <licenseUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/LICENSE.txt</licenseUrl>
     <projectSourceUrl>https://github.com/kushagra1212/Flow-Wing</projectSourceUrl>
     <docsUrl>https://github.com/kushagra1212/Flow-Wing</docsUrl>
