@@ -7,7 +7,7 @@ new-test.txt
 **/jit-compiler*/**build*/
 **/aot-compiler*/**build*/
 **/repl/**build*/
-temp
+temp/
 compile_commands.json
 .fw_dependencies/
 .fw_dependencies_debug/

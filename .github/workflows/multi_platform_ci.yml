@@ -3,7 +3,6 @@ name: Build and Test on All Platforms
 on:
   push:
     branches: [main]
-
 jobs:
   ## ------------------ macOS Jobs (Apple Silicon) ------------------ ##
 
@@ -18,7 +17,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
           lookup-only: true
 
@@ -42,6 +43,11 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
 
+      - name: Prune dependency build tree (reduce cache size)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: rm -rf .fw_dependencies/build
+
   macos_arm64_test:
     name: Test AOT & JIT on macOS (Apple Silicon)
     runs-on: macos-14
@@ -60,7 +66,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Fail if cache not found
@@ -116,7 +124,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
           lookup-only: true
 
@@ -131,6 +141,11 @@ jobs:
       - name: Install Dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
+
+      - name: Prune dependency build tree (reduce cache size)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: rm -rf .fw_dependencies/build
 
   windows_x86_64_test:
     name: Test AOT on Windows (x86_64)
@@ -153,7 +168,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Fail if cache not found
@@ -194,7 +211,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
           lookup-only: true
 
@@ -211,6 +230,11 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make deps-install-release
+
+      - name: Prune dependency build tree (reduce cache size)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: rm -rf .fw_dependencies/build
 
   linux_x86_64_test:
     name: Test AOT & JIT on Linux (x86_64)
@@ -229,7 +253,9 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: .fw_dependencies
+          path: |
+            .fw_dependencies/install
+            .fw_dependencies/stamps
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Fail if cache not found
