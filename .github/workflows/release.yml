@@ -21,6 +21,8 @@ jobs:
     name: Build ${{ matrix.name }} installer
     runs-on: ${{ matrix.os }}
     strategy:
+      # Let macOS / Windows / Linux all run to completion so one failure does not cancel the others.
+      fail-fast: false
       matrix:
         include:
           - name: macos-arm64
