@@ -112,11 +112,8 @@ ${LINUX_BLOCK}
       # Homebrew stages/extracts archives into the build directory automatically. The release zip
       # contains a top-level directory named `FlowWing-<version>-macos-arm64/`.
       root = "FlowWing-#{version}-macos-arm64"
-      bin.install "bin/*"
       lib.install Dir["lib/**/*"]
-      # Install each top-level entry under SDK lib (modules/, platform libs, etc.).
-      # Using **/* flattens into prefix/lib and breaks lib/modules layout.
-      lib.install Dir["#{root}/lib/*"]
+      bin.install "bin/FlowWing"
     elsif OS.linux?
       # Linux
       # `.deb` is not extracted by Homebrew; use the downloaded file directly.
