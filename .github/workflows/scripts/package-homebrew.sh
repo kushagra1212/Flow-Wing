@@ -109,7 +109,12 @@ ${LINUX_BLOCK}
     if OS.mac? && Hardware::CPU.arm?
       # macOS ARM64 - flat structure matching actual zip contents
       bin.install "bin/FlowWing"
-      
+
+      # Bundle LLVM tools (clang++) shipped alongside FlowWing in the SDK zip.
+      # clang++ acts as both compiler and linker driver for AOT-compiled user code.
+      llvm_tools = %w[clang++ llvm-config]
+      bin.install llvm_tools.select { |t| File.exist?("bin/#{t}") }
+
       # Use single wildcard; Homebrew natively copies subdirectories recursively
       lib.install Dir["lib/*"] 
     elsif OS.linux?

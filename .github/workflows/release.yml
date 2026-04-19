@@ -170,6 +170,19 @@ jobs:
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         run: make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
+      # Bundle LLVM tools (clang++) into the staged SDK bin/ so AOT linking works on user machines.
+      - name: Bundle LLVM linker tools
+        if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
+        run: |
+          DEPS_BIN="${{ github.workspace }}/.fw_dependencies/install/bin"
+          STAGED_BIN="${{ env.INSTALL_PREFIX }}/bin"
+          for tool in clang++ llvm-config; do
+            if [ -f "$DEPS_BIN/$tool" ]; then
+              cp "$DEPS_BIN/$tool" "$STAGED_BIN/"
+              echo "Bundled $tool into SDK bin/"
+            fi
+          done
+
       - name: Save staged SDK cache
         if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
