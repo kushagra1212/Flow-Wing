@@ -1,0 +1,41 @@
+/; MOCK_SERVER_PORT: 9434
+bring vortex
+bring json
+bring Err
+
+fun fg_main() -> nthg {
+  println("Starting Vortex Client Test...")
+  
+  var target_url: str = "http://localhost:9434/stream"
+  var payload: str = `{"message": "Hello from the Vortex Client!"}`
+  
+  println("Sending POST request to: " + target_url)
+  
+  /; Initialize the client.
+  var client: vortex::Client = new vortex::Client(target_url, payload)
+  
+  if !client.isOk() {
+    println("Error: The server responded with a non-OK status or the connection failed.")
+    client.close()
+    return:
+  }
+  
+  println("Connection successful! Receiving stream...")
+  println("----------------------------------------")
+  
+  /; Continuously read chunks until the stream is closed
+  while !client.isDone() {
+    var chunk: str = client.readChunk()
+    
+    if chunk != "" {
+      print(chunk) 
+    }
+  }
+  
+  println("----------------------------------------")
+  println("Stream finished. Closing connection cleanly.")
+  
+  client.close()
+}
+
+fg_main()

@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+if (false) {
+  println("x")
+} else if (missing_var) {
+  println("y")
+}

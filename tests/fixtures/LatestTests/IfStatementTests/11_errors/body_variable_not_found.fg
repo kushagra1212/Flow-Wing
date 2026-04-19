@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: VariableNotFound
+if (true) {
+  println(never_declared)
+}

@@ -1,0 +1,5 @@
+var x:deci = 3.14159265358979
+println(x)
+var y:deci = -2.71828
+println(y)
+println(x + y)

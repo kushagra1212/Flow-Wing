@@ -1,0 +1,6 @@
+var x:str = "Hello"
+var y:str = "World"
+x = 'a'
+y = 'b'
+print(x, " ", y, "\n")
+

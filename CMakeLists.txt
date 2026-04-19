@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,6 +27,10 @@
 cmake_minimum_required(VERSION 3.29)
 project(FlowWing VERSION 0.0.2 LANGUAGES C CXX)
 
+# Install prefix for release builds - baked into compiler binary at compile time
+set(FLOWWING_INSTALL_PREFIX ""
+    CACHE STRING "Install prefix for FlowWing SDK (e.g., /usr/local/flow-wing/1.0.0/). Empty for development builds.")
+
 # Disable C++ extensions
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -37,14 +41,16 @@ include(cmake/compiler-warnings.cmake)
 include(cmake/dependencies.cmake)
 
 # Add the module sources to the build. This will define the library
-# targets like 'flowwing_string' and 'flowwing_map'.
+# targets like 'flowwing_text' and 'flowwing_map'.
 add_subdirectory(fw-modules)
 
 include(cmake/targets.cmake)
 include(cmake/installation.cmake)
 include(cmake/packaging.cmake)
 
+
 # Conditional inclusion of testing configuration.
 if(TESTS_ENABLED)
     include(cmake/testing.cmake)
 endif()
+

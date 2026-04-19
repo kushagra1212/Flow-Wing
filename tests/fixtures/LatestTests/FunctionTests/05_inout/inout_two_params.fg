@@ -1,0 +1,14 @@
+fun swapAndDouble(inout a: int, inout b: int) -> int {
+  var temp: int = a
+  a = b * 2
+  b = temp * 2
+  return a
+}
+
+var x: int = 5
+var y: int = 10
+println(x)
+println(y)
+swapAndDouble(x, y)
+println(x)
+println(y)

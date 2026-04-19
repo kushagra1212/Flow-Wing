@@ -1,0 +1,9 @@
+var x: int = 1
+
+if (true) {
+  var x: int = 2
+  println(x)
+} else {
+  println(x)
+}
+println(x)

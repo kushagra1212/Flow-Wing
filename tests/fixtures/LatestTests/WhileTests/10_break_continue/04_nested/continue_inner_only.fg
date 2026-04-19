@@ -1,0 +1,14 @@
+var i = 0
+while (i < 3) {
+  var j = 0
+  while (j < 4) {
+    j = j + 1
+    if (j == 2) {
+      continue
+    }
+    println(j)
+  }
+  println(i)
+  i = i + 1
+}
+println("done")

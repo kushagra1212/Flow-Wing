@@ -1,0 +1,43 @@
+--- Test 1: Push Mixed Types & Size ---
+5
+10
+"FlowWing"
+3.14159
+true
+'Z'
+--- Test 2: Set & Out of Bounds Get ---
+"Replaced!"
+false
+null
+--- Test 3: Insert & RemoveAt ---
+"First"
+10
+"First"
+10
+--- Test 4: Pop, Clear, & isEmpty ---
+false
+'Z'
+true
+0
+null
+--- Test 5: Sorting Numbers (Ascending & Descending) ---
+-5
+3.14
+100
+100
+-5
+--- Test 6: Sorting Strings ---
+"Apple"
+"Zebra"
+--- Test 7: Array Reversal ---
+4
+1
+--- Test 8: IndexOf (Searching Mixed Types) ---
+1
+2
+3
+-1
+--- Test 9: Mega Method Chaining ---
+4
+4
+1

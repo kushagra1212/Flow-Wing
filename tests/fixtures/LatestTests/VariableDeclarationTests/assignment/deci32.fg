@@ -1,0 +1,4 @@
+var x:deci32
+x = 2.5f
+print(x, "\n")
+

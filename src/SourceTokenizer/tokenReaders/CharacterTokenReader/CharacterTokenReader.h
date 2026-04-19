@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,33 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
+#include <memory>
+#include <string>
+
+namespace flow_wing {
+namespace lexer {
 
 class CharacterTokenReader : public TokenReader {
 
-  std::unique_ptr<SyntaxToken<std::any>>
-  unTerminatedCharacterToken(SourceTokenizer &lexer, const size_t &start);
-
-  std::unique_ptr<SyntaxToken<std::any>>
-  badEscapeSequenceToken(SourceTokenizer &lexer, const size_t &start);
-
 public:
-  std::unique_ptr<SyntaxToken<std::any>>
+  std::unique_ptr<syntax::SyntaxToken>
   readToken(SourceTokenizer &lexer) override;
+
+private:
+  std::unique_ptr<syntax::SyntaxToken>
+  unTerminatedCharacterToken(SourceTokenizer &lexer, const std::string &text,
+                             const size_t &start_pos);
+
+  std::unique_ptr<syntax::SyntaxToken>
+  badEscapeSequenceToken(SourceTokenizer &lexer, const std::string &text,
+                         const size_t &start_pos);
+
+  std::unique_ptr<syntax::SyntaxToken> badCharToken(SourceTokenizer &lexer,
+                                                    const std::string &text,
+                                                    const size_t &start_pos);
 };
+} // namespace lexer
+} // namespace flow_wing

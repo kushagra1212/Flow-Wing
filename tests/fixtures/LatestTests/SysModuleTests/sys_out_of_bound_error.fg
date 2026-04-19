@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: index out of bounds
+/; Tests the boundary guards for command-line arguments
+bring sys
+
+println("Attempting to access an argument index that doesn't exist...")
+
+/; Accessing a massively out-of-bounds index, or a negative index (-1), 
+/; should trigger fg_runtime_error in sys-module.fg
+var invalid_arg = sys::getArg(9999)
+
+println("FAIL: Should have crashed before reaching this line.")

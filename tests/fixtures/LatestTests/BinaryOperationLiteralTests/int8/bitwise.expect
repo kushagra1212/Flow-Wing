@@ -1,0 +1,24 @@
+Int8 Bitwise AND Tests
+0
+0
+0
+1
+1
+7
+64
+Int8 Bitwise OR Tests
+0
+1
+1
+1
+7
+15
+96
+Int8 Bitwise XOR Tests
+0
+1
+1
+0
+6
+8
+63

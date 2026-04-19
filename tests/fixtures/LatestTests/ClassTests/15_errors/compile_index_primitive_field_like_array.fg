@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: IndexingNonArrayTypeVariable
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+var a: A = new A(1)
+println(a.x[0])

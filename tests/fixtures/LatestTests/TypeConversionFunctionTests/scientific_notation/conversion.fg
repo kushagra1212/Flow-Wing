@@ -1,0 +1,6 @@
+print(Int32(1e3), "\n")
+print(Int64(1e10), "\n")
+print(Decimal(1e5), "\n")
+print(Decimal32(1e3f), "\n")
+print(String(1e6), "\n")
+

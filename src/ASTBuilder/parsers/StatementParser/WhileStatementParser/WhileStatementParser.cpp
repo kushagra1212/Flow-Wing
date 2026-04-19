@@ -18,32 +18,29 @@
  */
 
 #include "WhileStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-WhileStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> keyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::WhileKeyword);
-  ctx->getCodeFormatterRef()->appendWithSpace();
+WhileStatementParser::WhileStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  std::unique_ptr<ExpressionSyntax> condition =
-      PrecedenceAwareExpressionParser::parse(ctx);
+std::unique_ptr<syntax::StatementSyntax> WhileStatementParser::parse() {
+  auto while_keyword = m_ctx->match(lexer::TokenKind::kWhileKeyword); // while
+  auto condition = PrecedenceAwareExpressionParser::parse(m_ctx);   // condition
+  auto statement = StatementParserFactory::create(*m_ctx)->parse(); // statement
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  return std::make_unique<syntax::WhileStatementSyntax>(
+      while_keyword, std::move(condition), std::move(statement));
 
-  std::unique_ptr<BlockStatementSyntax> statement(
-      static_cast<BlockStatementSyntax *>(
-          std::make_unique<BlockStatementParser>()
-              ->parseStatement(ctx)
-              .release()));
-
-  return std::make_unique<WhileStatementSyntax>(
-      std::move(keyword), std::move(condition), std::move(statement));
+  /*
+  while (condition) {
+    statement;
+  }
+  */
 }
+} // namespace parser
+} // namespace flow_wing

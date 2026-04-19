@@ -7,4 +7,12 @@
 # =============================================================================
 
 add_subdirectory(built_in_module)
-add_subdirectory(string_module)
+add_subdirectory(dynamic)
+add_subdirectory(map_module)
+add_subdirectory(text_module)
+add_subdirectory(vec_module)
+add_subdirectory(file_module)  
+add_subdirectory(io_module) 
+add_subdirectory(vortex_module)
+add_subdirectory(raylib_module)
+

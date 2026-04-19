@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,30 +22,34 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include <memory>
 
+namespace flow_wing {
+namespace binding {
+
 class BoundTernaryExpression : public BoundExpression {
+
 public:
-  BoundTernaryExpression(const DiagnosticUtils::SourceLocation &location,
-                         std::unique_ptr<BoundExpression> conditionExpression,
-                         std::unique_ptr<BoundExpression> trueExpression,
-                         std::unique_ptr<BoundExpression> falseExpression);
+  BoundTernaryExpression(std::unique_ptr<BoundExpression> condition_expression,
+                         std::unique_ptr<BoundExpression> true_expression,
+                         std::unique_ptr<BoundExpression> false_expression,
+                         std::shared_ptr<types::Type> result_type,
+                         const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundTernaryExpression() = default;
 
-  inline const std::unique_ptr<BoundExpression> &
-  getConditionExpressionRef() const {
-    return _conditionExpression;
-  }
-  inline const std::unique_ptr<BoundExpression> &getTrueExpressionRef() const {
-    return _trueExpression;
-  }
-  inline const std::unique_ptr<BoundExpression> &getFalseExpressionRef() const {
-    return _falseExpression;
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
+  // Getters
+  std::shared_ptr<types::Type> getType() const override;
 
-  const std::type_info &getType() override;
-  BinderKindUtils::BoundNodeKind getKind() const override;
-  std::vector<BoundNode *> getChildren() override;
+  const std::unique_ptr<BoundExpression> &getConditionExpression();
+  const std::unique_ptr<BoundExpression> &getTrueExpression();
+  const std::unique_ptr<BoundExpression> &getFalseExpression();
 
 private:
-  std::unique_ptr<BoundExpression> _conditionExpression;
-  std::unique_ptr<BoundExpression> _trueExpression;
-  std::unique_ptr<BoundExpression> _falseExpression;
+  std::unique_ptr<BoundExpression> m_conditionExpression;
+  std::unique_ptr<BoundExpression> m_trueExpression;
+  std::unique_ptr<BoundExpression> m_falseExpression;
+  std::shared_ptr<types::Type> m_resultType;
 };
+} // namespace binding
+} // namespace flow_wing

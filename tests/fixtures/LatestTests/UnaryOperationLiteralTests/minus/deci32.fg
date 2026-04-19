@@ -1,0 +1,9 @@
+print("Unary Minus Deci32 (Float) Tests\n")
+print(-0.0f, "\n")
+print(-1.0f, "\n")
+print(-3.14f, "\n")
+print(--1.0f, "\n")
+print(--3.14f, "\n")
+print(-100.5f, "\n")
+print(--100.5f, "\n")
+

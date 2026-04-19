@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: CustomTypeNotFound
+fun test2(a: string) -> as nthg decl

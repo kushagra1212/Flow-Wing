@@ -1,0 +1,11 @@
+print("Deci (Double) Greater Than or Equal Tests\n")
+print(0.0 >= 0.0, "\n")
+print(0.0 >= 1.0, "\n")
+print(1.0 >= 0.0, "\n")
+print(1.0 >= 1.0, "\n")
+print(3.14 >= 3.15, "\n")
+print(3.15 >= 3.14, "\n")
+print(-1.5 >= 1.5, "\n")
+print(1.5 >= -1.5, "\n")
+print(3.14159265359 >= 3.14159265359, "\n")
+

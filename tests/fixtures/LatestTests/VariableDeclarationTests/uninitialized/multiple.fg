@@ -1,0 +1,6 @@
+var x:int8
+var y:int
+var z:deci
+var w:bool
+print(x, " ", y, " ", z, " ", w, "\n")
+

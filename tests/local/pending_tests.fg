@@ -1,0 +1,163 @@
+type Point = {
+    x: int
+    y: int
+}
+
+type Dummy = {
+    x:int
+}
+
+var d1: Dummy = { x: 10 }
+
+var p1: Point =d1
+print("p1: ", p1, "\n")
+
+
+type Point = {
+    x: int
+    y: int
+}
+
+type Dummy = {
+    x:int
+}
+
+type T = {
+    p: Point
+    t: T
+    d: int
+}
+
+var t1: T = { p: { x: 10, y: 20 }, t: {}, d: 10 }
+
+print("t1: ", t1, "\n")
+
+t1  = { p: { x: 100, y: 200 } }
+
+print("t1: ", t1, "\n")
+
+
+type Point = {
+    x: int
+    y: int
+}
+
+type Dummy = {
+    x:int
+}
+
+type T = {
+    p: Point
+    t: T
+    d: int
+}
+
+var t1: T 
+
+print("t1: ", t1, "\n")
+
+t1  = { p: { x: 100, y: 200 } }
+
+print("t1: ", t1, "\n")
+
+
+/#
+
+var a: int[2] 
+
+print("a: ", a, "\n")
+
+
+OUTPUT:
+a: [ 0, 0 ]
+
+
+
+var a: int[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+var a: deci[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+
+var a: deci32[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+
+var a: deci32[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+var a: int64[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+var a: int8[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+
+
+
+var a: char[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ '', '' ], [ '', '' ], [ '', '' ] ]
+
+
+
+var a: str[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ "", "" ], [ "", "" ], [ "", "" ] ]
+
+type Point = {
+    x: int
+    y: int
+}
+var a: Point[3][2] 
+
+print("a: ", a, "\n")
+
+OUTPUT:
+a: [ [ { x: 0, y: 0 }, { x: 0, y: 0 } ], [ { x: 0, y: 0 }, { x: 0, y: 0 } ], [ { x: 0, y: 0 }, { x: 0, y: 0 } ] ]
+
+
+
+/; EXPECT_ERROR: :TooFewInitializerExpressions
+
+const a:int, b: str = 2
+
+
+
+/; EXPECT_ERROR: :MissingInitializerExpression
+const a:int, b: str 

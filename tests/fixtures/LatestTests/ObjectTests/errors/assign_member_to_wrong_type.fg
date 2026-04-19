@@ -1,0 +1,15 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+var x: str = "test"
+
+p.name = 123
+

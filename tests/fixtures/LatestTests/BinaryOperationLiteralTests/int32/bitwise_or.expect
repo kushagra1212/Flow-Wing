@@ -1,0 +1,9 @@
+Int32 Bitwise OR Tests (values outside int8 range)
+128
+128
+511
+1020
+65535
+65535
+1000001
+1610612736

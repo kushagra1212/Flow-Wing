@@ -1,0 +1,8 @@
+var a: int = 5
+var b: int = 3
+
+if (a & b) {
+  println("nonzero")
+} else {
+  println("zero")
+}

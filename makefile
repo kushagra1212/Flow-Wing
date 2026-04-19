@@ -16,12 +16,13 @@ endif
 #? Dependency Presets
 DEPS_INSTALL_PRESET ?= deps-install-debug
 
-#? Dependency Stamps
-STAMPS_DIR :=.fw_dependencies/stamps
+#? Dependency Stamps (Separate directories for debug and release)
+DEBUG_STAMPS_DIR := .fw_dependencies_debug/stamps
+RELEASE_STAMPS_DIR := .fw_dependencies/stamps
 
 #? Dependency Directories
-DEBUG_DEPS_DIR := $(STAMPS_DIR)
-RELEASE_DEPS_DIR := $(STAMPS_DIR)
+DEBUG_DEPS_DIR := $(DEBUG_STAMPS_DIR)
+RELEASE_DEPS_DIR := $(RELEASE_STAMPS_DIR)
 
 #! ----- SDK -----
 
@@ -176,41 +177,43 @@ help:
 
 #! ----- Dependencies -----
 
-#? Configured Dependencies
-$(DEBUG_DEPS_DIR)/.configured-debug:
+#? Configured Dependencies (use capital case to match CMAKE_BUILD_TYPE)
+$(DEBUG_DEPS_DIR)/.configured-Debug:
 	$(ECHO_MSG) "--> Configuring dependencies (Debug)..."
+	@$(call MKDIR_P, $(DEBUG_STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-debug $(SILENT_CMD))
+	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.configured-Debug)
 
-$(RELEASE_DEPS_DIR)/.configured-release:
+$(RELEASE_DEPS_DIR)/.configured-Release:
 	$(ECHO_MSG) "--> Configuring dependencies (Release)..."
+	@$(call MKDIR_P, $(RELEASE_STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-release $(SILENT_CMD))
+	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.configured-Release)
 
 #? Install dependencies
-$(DEBUG_DEPS_DIR)/.installed-debug: $(DEBUG_DEPS_DIR)/.configured-debug
+$(DEBUG_DEPS_DIR)/.installed-Debug: $(DEBUG_DEPS_DIR)/.configured-Debug
 	$(ECHO_MSG) "--> Installing dependencies (Debug)..."
-	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-debug -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.installed-debug)
+	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.installed-Debug)
 
-$(RELEASE_DEPS_DIR)/.installed-release: $(RELEASE_DEPS_DIR)/.configured-release
+$(RELEASE_DEPS_DIR)/.installed-Release: $(RELEASE_DEPS_DIR)/.configured-Release
 	$(ECHO_MSG) "--> Installing dependencies (Release)..."
-	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-release -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.installed-release)
+	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.installed-Release)
 
 #? Dependencies Aliases
 .PHONY: deps-install-debug deps-install-release
-deps-install-debug: $(DEBUG_DEPS_DIR)/.installed-debug
-deps-install-release: $(RELEASE_DEPS_DIR)/.installed-release
+deps-install-debug: $(DEBUG_DEPS_DIR)/.installed-Debug
+deps-install-release: $(RELEASE_DEPS_DIR)/.installed-Release
 
 #! ----- JIT -----
 
 #? Configured JIT
-$(JIT_DEBUG_DIR)/.configured: deps-install-debug
+$(JIT_DEBUG_DIR)/.configured: $(DEBUG_DEPS_DIR)/.installed-Debug
 	$(ECHO_MSG) "--> Configuring JIT (Debug)..."
 	@cmake --preset $(JIT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
-$(JIT_RELEASE_DIR)/.configured: deps-install-release
+$(JIT_RELEASE_DIR)/.configured: $(RELEASE_DEPS_DIR)/.installed-Release
 	$(ECHO_MSG) "--> Configuring JIT (Release)..."
 	@cmake --preset $(JIT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
@@ -236,36 +239,47 @@ build-jit-release: $(JIT_RELEASE_DIR)/.configured
 .PHONY: run-jit-debug run-jit-release
 run-jit-debug: build-jit-debug
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..."
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS)
 
 run-jit-release: build-jit-release
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS)
 
 #! ----- JIT Tests -----
 
-#? Configured JIT Tests
-$(TESTS_JIT_DIR)/.configured: deps-install-release
-	$(ECHO_MSG) "--> Configuring JIT tests..."
-	@cmake --preset $(TESTS_JIT_PRESET) && $(call TOUCH, $@)
+# #? Configured JIT Tests
+# $(TESTS_JIT_DIR)/.configured: deps-install-release
+# 	$(ECHO_MSG) "--> Configuring JIT tests..."
+# 	@cmake --preset $(TESTS_JIT_PRESET) && $(call TOUCH, $@)
 
+# .PHONY: test-jit
+# #? Build and Run JIT Tests
+# test-jit: $(TESTS_JIT_DIR)/.configured
+# 	$(ECHO_MSG) "--> Building and running JIT tests... (Filter: $(FILTER))"
+# 	@cmake --build --preset $(TESTS_JIT_PRESET)
+# 	$(ECHO_MSG) "--> Staging SDK for tests..."
+# 	@cmake --install $(TESTS_JIT_DIR) --prefix $(TEST_SDK_DIR)
+# 	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
+
+
+# ARGS: IR dump on failure is ON by default (FLOWWING_IR_ARTIFACT= line + .ll file). Disable: ARGS='--no-emit-ir-on-failure'
 .PHONY: test-jit
-#? Build and Run JIT Tests
-test-jit: $(TESTS_JIT_DIR)/.configured
-	$(ECHO_MSG) "--> Building and running JIT tests... (Filter: $(FILTER))"
-	@cmake --build --preset $(TESTS_JIT_PRESET)
-	$(ECHO_MSG) "--> Staging SDK for tests..."
-	@cmake --install $(TESTS_JIT_DIR) --prefix $(TEST_SDK_DIR)
-	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
+test-jit: build-jit-release
+	$(ECHO_MSG) "--> Running JIT Integration Tests..."
+	@python3 tests/runner.py \
+		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
+		--dir tests/fixtures \
+		--filter "$(FILTER)" \
+		--mode jit $(ARGS)
 
 #! ----- AOT -----
 
 #? Configured AOT
-$(AOT_DEBUG_DIR)/.configured: deps-install-debug
+$(AOT_DEBUG_DIR)/.configured: $(DEBUG_DEPS_DIR)/.installed-Debug
 	$(ECHO_MSG) "--> Configuring AOT (Debug)..."
 	@cmake --preset $(AOT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
-$(AOT_RELEASE_DIR)/.configured: deps-install-release
+$(AOT_RELEASE_DIR)/.configured: $(RELEASE_DEPS_DIR)/.installed-Release
 	$(ECHO_MSG) "--> Configuring AOT (Release)..."
 	@cmake --preset $(AOT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
@@ -291,31 +305,88 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 .PHONY: run-aot-debug run-aot-release
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE)) 
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
-#? Configured AOT Tests
-$(TESTS_AOT_DIR)/.configured: deps-install-release
-	$(ECHO_MSG) "--> Configuring AOT tests..."
-	@cmake --preset $(TESTS_AOT_PRESET) && $(call TOUCH, $@)
+# #? Configured AOT Tests
+# $(TESTS_AOT_DIR)/.configured: deps-install-release
+# 	$(ECHO_MSG) "--> Configuring AOT tests..."
+# 	@cmake --preset $(TESTS_AOT_PRESET) && $(call TOUCH, $@)
 
+# .PHONY: test-aot
+# #? Build and Run AOT Tests
+# test-aot: $(TESTS_AOT_DIR)/.configured
+# 	$(ECHO_MSG) "--> Building and running AOT tests... (Filter: $(FILTER))"
+# 	@cmake --build --preset $(TESTS_AOT_PRESET)
+# 	$(ECHO_MSG) "--> Staging SDK for tests..."
+# 	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
+# 	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
+
+#? Configured AOT Tests (see test-jit for IR-on-failure / ARGS)
 .PHONY: test-aot
-#? Build and Run AOT Tests
-test-aot: $(TESTS_AOT_DIR)/.configured
-	$(ECHO_MSG) "--> Building and running AOT tests... (Filter: $(FILTER))"
-	@cmake --build --preset $(TESTS_AOT_PRESET)
-	$(ECHO_MSG) "--> Staging SDK for tests..."
-	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
-	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
+test-aot: build-aot-release
+	$(ECHO_MSG) "--> Running AOT Integration Tests..."
+	@python3 tests/runner.py \
+		--bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) \
+		--dir tests/fixtures \
+		--filter "$(FILTER)" \
+		--mode aot $(ARGS)
 
-#! ----- Clean -----
+
+
+#! ----- LSP -----
+
+.PHONY: lsp-compile run-lsp lsp-test
+#? Compile the Flow-Wing LSP extension
+lsp-compile:
+	$(ECHO_MSG) "--> Compiling LSP..."
+	@cd src/lsp && yarn compile
+
+#? Run the LSP in Extension Development Host (opens new editor window with project + tests)
+# Uses 'cursor' if available (Cursor IDE), otherwise 'code' (VS Code)
+run-lsp: lsp-compile
+	$(ECHO_MSG) "--> Launching Flow-Wing LSP..."
+	@if command -v cursor >/dev/null 2>&1; then \
+		cursor --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests"; \
+	elif command -v code >/dev/null 2>&1; then \
+		code --extensionDevelopmentPath="$(CURDIR)/src/lsp" "$(CURDIR)" "$(CURDIR)/tests"; \
+	else \
+		echo "Install 'code' (VS Code) or 'cursor' CLI: run 'Shell Command: Install code/cursor command' from Command Palette"; \
+		exit 1; \
+	fi
+
+#? Run LSP unit tests (semService, completion, hover, definitions, signature help)
+lsp-test: lsp-compile
+	$(ECHO_MSG) "--> Running LSP tests..."
+	@cd src/lsp && yarn test
+
+#! ----- Visualization -----
+
+#? Visualization Output Directory
+VIZ_DIR := flow-wing-viz/build
+
+.PHONY: viz
+viz: build-aot-debug
+	$(ECHO_MSG) "--> Generating Visualization Data for $(FILE)..."
+	@$(call MKDIR_P, $(VIZ_DIR))
+	$(ECHO_MSG) "    [1/3] Generating Tokens..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=tokens -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "    [2/3] Generating AST..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=ast -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "    [3/3] Generating Semantic Tree..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) --emit=sem -OD=$(call NATIVE_PATH, $(VIZ_DIR))
+	$(ECHO_MSG) "--> Viz data ready in $(VIZ_DIR)"
+
+#! ----- Clean ----- DANGER
 
 .PHONY: clean clean-all
 #? Clean Targets (Only Build Artifacts)
@@ -333,12 +404,14 @@ ifeq ($(OS),Windows_NT)
 	@$(call RM_RF, build)
 	@$(call RM_RF, bin)
 	@$(call RM_RF, .fw_dependencies)
+	@$(call RM_RF, .fw_dependencies_debug)
 else
 	@if [ "$(FORCE)" = "1" ]; then \
 		echo "--> Deleting files (non-interactive)..."; \
 		$(call RM_RF, build); \
 		$(call RM_RF, bin); \
 		$(call RM_RF, .fw_dependencies); \
+		$(call RM_RF, .fw_dependencies_debug); \
 	else \
 		read -p "Are you sure? This will delete all dependencies? [y/N] " -n 1 -r; \
 		echo; \
@@ -347,6 +420,7 @@ else
 			$(call RM_RF, build); \
 			$(call RM_RF, bin); \
 			$(call RM_RF, .fw_dependencies); \
+			$(call RM_RF, .fw_dependencies_debug); \
 		else \
 			echo "--> Aborted."; \
 		fi; \

@@ -1,0 +1,8 @@
+type T = { val:int }
+var arr:T[2] = [{val:1}, {val:2}]
+println(arr)
+{
+    arr[0].val = 100
+    println(arr)
+}
+println(arr)

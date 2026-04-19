@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: IndexingNonArrayTypeVariable
+var x:int = 5
+println(x[0])

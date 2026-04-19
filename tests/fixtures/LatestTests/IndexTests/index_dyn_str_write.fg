@@ -1,0 +1,3 @@
+var x = "hello"
+x[1] = 'a'
+println(x)

@@ -1,0 +1,20 @@
+Int8 and Decimal Mixed Operations
+Int8 + Double:
+11.5
+11.5
+-8.5
+-8.5
+Int8 + Float:
+11.5
+11.5
+-8.5
+-8.5
+Int8 - Double:
+8.5
+-8.5
+Int8 * Double:
+15
+15
+Int8 / Double:
+6.666666666666667
+0.15

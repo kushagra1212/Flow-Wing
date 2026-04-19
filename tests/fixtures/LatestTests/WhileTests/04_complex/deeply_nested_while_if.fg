@@ -1,0 +1,14 @@
+var a = 0
+while (a < 2) {
+  var b = 0
+  while (b < 2) {
+    if (a == b) {
+      println(1)
+    } else {
+      println(0)
+    }
+    b = b + 1
+  }
+  a = a + 1
+}
+println("end")

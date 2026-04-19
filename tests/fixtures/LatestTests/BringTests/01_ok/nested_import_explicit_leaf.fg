@@ -1,0 +1,4 @@
+bring "../include_for_nested_chain/nested_mid.fg"
+bring "../include_for_nested_chain/nested_leaf.fg"
+
+println(nested_leaf_val)

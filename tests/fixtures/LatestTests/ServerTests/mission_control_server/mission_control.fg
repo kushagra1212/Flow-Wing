@@ -1,0 +1,250 @@
+/; TEST_SERVER_PORT: 9433
+bring vortex
+bring json
+bring map
+bring vec
+bring text
+bring Err
+bring file
+
+
+var dashboardPath: str = file::__DIR__ + "/dashboard.html"
+var layoutPath: str = file::__DIR__ + "/layout.html"
+var crewCardPath: str = file::__DIR__ + "/crew_card.html"
+var cmdrCardPath: str = file::__DIR__ + "/cmdr_card.html"
+/; ==========================================
+/; 1. File Loader & Template Engine
+/; ==========================================
+
+/; Helper function to safely load HTML files
+fun loadTemplate(path: str) -> str {
+  var content: str, err: Err::Result = file::readText(path)
+  if Err::isErr(err) {
+    println("WARNING: Could not load template -> " + path)
+    return "<h2>Template Missing: " + path + "</h2>"
+  }
+  return content
+}
+
+class Template {
+  var _engine: text::Text
+  
+  fun init(rawHtml: str) -> nthg {
+    self._engine = new text::Text(rawHtml)
+  }
+  
+  fun set(key: str, value: str) -> Template {
+    var target = "{{" + key + "}}"
+    self._engine.replace(target, value)
+    return self 
+  }
+  
+  fun render() -> str {
+    return self._engine.get()
+  }
+}
+
+/; ==========================================
+/; 2. Data Models (Reading HTML from Disk!)
+/; ==========================================
+
+class Astronaut {
+  var name: str
+  var role: str
+  var status: str
+  
+  fun init(name: str, role: str) -> nthg {
+    self.name = name
+    self.role = role
+    self.status = "Optimal"
+  }
+
+  fun getProfile() -> str {
+    var tplHtml: str = loadTemplate(crewCardPath)
+    var tpl: Template = new Template(tplHtml)
+    return tpl.set("name", self.name).set("role", self.role).set("status", self.status).render()
+  }
+}
+
+class Commander extends Astronaut {
+  var missionsCompleted: int
+  
+  fun init(name: str, role: str, missions: int) -> nthg {
+    super(name, role) 
+    self.missionsCompleted = missions
+  }
+
+  fun getProfile() -> str {
+    var tplHtml: str = loadTemplate(cmdrCardPath)
+    var tpl: Template = new Template(tplHtml)
+    return tpl.set("name", self.name).set("role", self.role).set("tours", String(self.missionsCompleted)).set("status", self.status).render()
+  }
+}
+
+/; ==========================================
+/; 3. State Simulation
+/; ==========================================
+
+fun decaySystems(inout data: int[4], tick: int) -> nthg {
+  if data[0] > 0 { data[0] = data[0] - 1 }
+  if data[1] > 0 { data[1] = data[1] - 1 }
+  if tick % 5 == 0 { data[2] = data[2] + 1 }
+}
+
+fun applyRepairs(inout data: int[4]) -> nthg {
+  data[1] = 100 
+  data[3] = 100 
+  data[2] = 22  
+}
+
+fun initiateWarp(inout data: int[4]) -> bool {
+  if data[0] < 40 { return false } 
+  data[0] = data[0] - 40 
+  data[2] = data[2] + 20 
+  return true
+}
+
+/; ==========================================
+/; 4. Server Loop & HTTP Logic
+/; ==========================================
+
+fun parseRoute(req: vortex::Request) -> str, str {
+  return req.getMethod(), req.getPath()
+}
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9433)
+  
+  if Err::isErr(err) {
+    println("Fatal: " + err.getMessage())
+    return:
+  }
+
+  println("SpaceOS File-Driven SSR Engine initialized on port 9433")
+
+  /; Application State
+  var cmdr: Commander = new Commander("Elena Rostova", "Mission Commander", 4)
+  var eng: Astronaut = new Astronaut("Kaelen", "Chief Engineer")
+  var globalLogs: text::Text = new text::Text("<div class='log-entry'><span>[SYS]</span> Boot sequence complete.</div>")
+  
+  var sysData: int[4] = [100, 100, 22, 100] /; Fuel, O2, Temp, Hull
+  var shieldsActive: bool = false
+  var serverTicks: int = 0
+
+  for var i: int = 0 to 3 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    var method, path = parseRoute(req)
+    
+
+    /; Add a print statement so the test runner can capture what route was hit
+    println("-> " + method + " " + path)
+
+    serverTicks = serverTicks + 1
+    decaySystems(sysData, serverTicks)
+
+    /; -------------------------
+    /; SSR PAGE ROUTES
+    /; -------------------------
+    if method == "GET" && path == "/" {
+      
+      var dashHtml: str = loadTemplate(dashboardPath)
+      var dashTpl: Template = new Template(dashHtml)
+      
+      dashTpl.set("fuel", String(sysData[0]))
+             .set("o2", String(sysData[1]))
+             .set("hull", String(sysData[3]))
+             .set("hull_color", (sysData[3] < 50 ? "#ff3366" : "#00ffcc"))
+             .set("temp", String(sysData[2]))
+             .set("temp_alert", (sysData[2] > 40 ? "alert" : ""))
+             .set("shields", (shieldsActive ? "ONLINE 🛡️" : "OFFLINE ⚠️"))
+             .set("shield_alert", (shieldsActive ? "" : "alert"))
+             .set("tick", String(serverTicks))
+             
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
+      
+      layout.set("title", "Dashboard")
+            .set("home_active", "active")
+            .set("crew_active", "")
+            .set("logs_active", "")
+            .set("content", dashTpl.render())
+            
+      res.header("Content-Type", "text/html").status(200).send(layout.render())
+
+    } else if method == "GET" && path == "/crew" {
+      var content = "<h1>Manifest & Crew Roster</h1>" + cmdr.getProfile() + eng.getProfile()
+      
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
+      layout.set("title", "Crew")
+            .set("home_active", "")
+            .set("crew_active", "active")
+            .set("logs_active", "")
+            .set("content", content)
+
+      res.header("Content-Type", "text/html").status(200).send(layout.render())
+
+    } else if method == "GET" && path == "/logs" {
+      var content = "<h1>Main System Logs</h1><div style='background: #0a0a0a; border: 1px solid #333; padding: 20px; border-radius: 5px; height: 600px; overflow-y: auto;'>" + globalLogs.get() + "</div>"
+      
+      var layoutHtml: str = loadTemplate(layoutPath)
+      var layout: Template = new Template(layoutHtml)
+      layout.set("title", "Logs")
+            .set("home_active", "")
+            .set("crew_active", "")
+            .set("logs_active", "active")
+            .set("content", content)
+
+      res.header("Content-Type", "text/html").status(200).send(layout.render())
+
+    /; -------------------------
+    /; POST COMMAND ENDPOINT
+    /; -------------------------
+    } else if method == "POST" && path == "/api/command" {
+      var bodyTxt: str = req.getBody()
+      var parsed: json::JsonNode = json::parse(bodyTxt)
+      var responseMsg: str = "Command ignored."
+      
+      if parsed != null && parsed.get("action") != null {
+        var action: str = parsed.get("action").strVal
+        var txt: text::Text = new text::Text(action)
+        txt.trim().toLower()
+        
+        switch txt.get() {
+          case "shields_on": {
+            shieldsActive = true
+            responseMsg = "Shields activated."
+          }
+          case "shields_off": {
+            shieldsActive = false
+            responseMsg = "Shields dropped."
+          }
+          case "repair": {
+            applyRepairs(sysData)
+            responseMsg = "Engineer dispatched. Systems restored."
+          }
+          case "warp": {
+            if initiateWarp(sysData) {
+              responseMsg = "WARP JUMP SUCCESSFUL. Heat spike detected."
+            } else {
+              responseMsg = "WARP FAILED: Insufficient Fuel."
+            }
+          }
+          default: {
+            responseMsg = "Error: Unrecognized syntax."
+          }
+        }
+      }
+      
+      globalLogs.concat("<div class='log-entry'><span>[T:" + String(serverTicks) + "]</span> CMD: " + responseMsg + "</div>")
+      res.status(200).send("OK")
+
+    } else {
+      res.status(404).send("404 - Void")
+    }
+  }
+    println("Server shutting down cleanly.")
+}
+
+fg_main()

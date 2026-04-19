@@ -1,0 +1,4 @@
+var x:char
+x = 'a'
+print(x, "\n")
+

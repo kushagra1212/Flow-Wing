@@ -17,121 +17,73 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BringStatementSyntax.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/CompilationUnitSyntax.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
 
-void BringStatementSyntax::addExpression(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> expression) {
-  expressions.push_back(std::move(expression));
-}
-void BringStatementSyntax::setAbsoluteFilePath(
-    const std::string &absoluteFilePath) {
-  this->absoluteFilePath = absoluteFilePath;
-}
-void BringStatementSyntax::setDiagnosticHandler(
-    std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler) {
-  this->diagnosticHandler = std::move(diagnosticHandler);
-}
+namespace flow_wing {
+namespace syntax {
 
-void BringStatementSyntax::setRelativeFilePath(
-    const std::string &relativeFilePath) {
-  this->relativeFilePath = relativeFilePath;
-}
+BringStatementSyntax::BringStatementSyntax(
+    const SyntaxToken *bring_keyword_token, const SyntaxToken *open_brace_token,
+    std::vector<std::unique_ptr<ExpressionSyntax>> identifier_expressions,
+    const SyntaxToken *close_brace_token, const SyntaxToken *from_keyword_token,
+    std::unique_ptr<StringLiteralExpressionSyntax> string_literal_expression)
+    : m_bring_keyword_token(bring_keyword_token),
+      m_open_brace_token(open_brace_token),
+      m_identifier_expressions(std::move(identifier_expressions)),
+      m_close_brace_token(close_brace_token),
+      m_from_keyword_token(from_keyword_token),
+      m_string_literal_expression(std::move(string_literal_expression)) {}
 
-void BringStatementSyntax::setCompilationUnit(
-    std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
-  this->_compilationUnit = std::move(compilationUnit);
+NodeKind BringStatementSyntax::getKind() const {
+  return NodeKind::kBringStatement;
 }
 
-void BringStatementSyntax::addBringKeyword(
-    std::unique_ptr<SyntaxToken<std::any>> bringKeyword) {
-  this->_bringKeyword = std::move(bringKeyword);
+void BringStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-void BringStatementSyntax::addPathToken(
-    std::unique_ptr<SyntaxToken<std::any>> pathToken) {
-
-  this->_pathToken = std::move(pathToken);
+const std::vector<std::unique_ptr<ExpressionSyntax>> &
+BringStatementSyntax::getIdentifierExpressions() const {
+  return m_identifier_expressions;
 }
 
-const std::string &BringStatementSyntax::getAbsoluteFilePath() const {
-  return absoluteFilePath;
+const std::unique_ptr<StringLiteralExpressionSyntax> &
+BringStatementSyntax::getStringLiteralExpression() const {
+  return m_string_literal_expression;
 }
 
-SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::BringStatementSyntax;
-}
-const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    this->_children.push_back(_bringKeyword.get());
+const std::vector<const SyntaxNode *> &
+BringStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &node : {
+             static_cast<const SyntaxNode *>(m_bring_keyword_token),
+             static_cast<const SyntaxNode *>(m_open_brace_token),
+         }) {
 
-    if (_pathToken)
-      this->_children.push_back(_pathToken.get());
-
-    for (const auto &expression : expressions) {
-      this->_children.push_back(expression.get());
+      if (node)
+        m_children.push_back(node);
     }
-    for (const auto &member : _compilationUnit->getMembers()) {
-      this->_children.push_back(member.get());
+
+    for (const auto &identifier_expression : m_identifier_expressions) {
+      if (identifier_expression)
+        m_children.push_back(identifier_expression.get());
+    }
+
+    for (const auto &node : {
+             static_cast<const SyntaxNode *>(m_close_brace_token),
+             static_cast<const SyntaxNode *>(m_from_keyword_token),
+             static_cast<const SyntaxNode *>(m_string_literal_expression.get()),
+         }) {
+      if (node)
+        m_children.push_back(node);
     }
   }
-  return _children;
-}
-const DiagnosticUtils::SourceLocation
-BringStatementSyntax::getSourceLocation() const {
-
-  if (_pathToken) {
-    return _pathToken->getSourceLocation();
-  }
-
-  if (_openBraceToken) {
-    return _openBraceToken->getSourceLocation();
-  }
-
-  return _bringKeyword->getSourceLocation();
+  return m_children;
 }
 
-const std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> &
-BringStatementSyntax::getExpressionsPtr() {
-  return expressions;
-}
-
-bool BringStatementSyntax::getIsChoosyImportPtr() {
-  return this->_openBraceToken != nullptr;
-}
-const std::string &BringStatementSyntax::getAbsoluteFilePathPtr() {
-  return absoluteFilePath;
-}
-const std::string &BringStatementSyntax::getRelativeFilePathPtr() {
-  return relativeFilePath;
-}
-
-std::unique_ptr<FlowWing::DiagnosticHandler> &
-BringStatementSyntax::getDiagnosticHandlerPtr() {
-  return diagnosticHandler;
-}
-
-const std::unique_ptr<SyntaxToken<std::any>> &
-BringStatementSyntax::getBringKeywordPtr() {
-  return _bringKeyword;
-}
-
-const std::unique_ptr<CompilationUnitSyntax> &
-BringStatementSyntax::getCompilationUnitPtr() {
-  return _compilationUnit;
-}
-
-const std::unique_ptr<SyntaxToken<std::any>> &
-BringStatementSyntax::getPathTokenPtr() {
-  return _pathToken;
-}
-
-void BringStatementSyntax::addOpenBraceToken(
-    std::unique_ptr<SyntaxToken<std::any>> openBraceToken) {
-  this->_openBraceToken = std::move(openBraceToken);
-}
+} // namespace syntax
+} // namespace flow_wing

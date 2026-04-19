@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,23 @@
 
 #pragma once
 
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
+#include <memory>
+#include <string>
+
+namespace flow_wing {
+namespace lexer {
 
 class KeywordTokenReader : public TokenReader {
 
 public:
-  std::unique_ptr<SyntaxToken<std::any>>
+  std::unique_ptr<syntax::SyntaxToken>
   readToken(SourceTokenizer &lexer) override;
+
+private:
+  lexer::TokenKind getKeywordKind(const std::string &text) const;
 };
+
+} // namespace lexer
+} // namespace flow_wing

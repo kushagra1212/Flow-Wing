@@ -1,0 +1,4 @@
+print("Tilting Prefix Operator for Int\n")
+print(~1 , "\n")
+print(~3 , "\n")
+print(~0 , "\n")

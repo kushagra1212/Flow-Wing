@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,71 +19,38 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
+#include <memory>
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
 
 class CaseStatementSyntax : public StatementSyntax {
-  std::unique_ptr<SyntaxToken<std::any>> _caseToken;
-  std::unique_ptr<ExpressionSyntax> _caseExpression;
-  std::unique_ptr<SyntaxToken<std::any>> _defaultToken;
-  std::unique_ptr<SyntaxToken<std::any>> _colonToken;
-  std::unique_ptr<BlockStatementSyntax> _blockStatement;
 
 public:
-  /*
-    Overrides
-  */
+  CaseStatementSyntax(const SyntaxToken *case_token,
+                      std::unique_ptr<ExpressionSyntax> case_expression,
+                      const SyntaxToken *colon_token,
+                      std::unique_ptr<StatementSyntax> statement);
 
-  const std::vector<SyntaxNode *> &getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  /*
-    Setters
-  */
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getCaseExpression() const;
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
 
-  inline auto setCaseToken(std::unique_ptr<SyntaxToken<std::any>> caseToken)
-      -> void {
-    _caseToken = std::move(caseToken);
-  }
+private:
+  const SyntaxToken *m_case_token;
+  std::unique_ptr<ExpressionSyntax> m_case_expression;
+  const SyntaxToken *m_colon_token;
+  std::unique_ptr<StatementSyntax> m_statement;
 
-  inline auto
-  setDefaultToken(std::unique_ptr<SyntaxToken<std::any>> defaultToken) -> void {
-    _defaultToken = std::move(defaultToken);
-  }
-
-  inline auto
-  setCaseExpression(std::unique_ptr<ExpressionSyntax> caseExpression) -> void {
-    _caseExpression = std::move(caseExpression);
-  }
-
-  inline auto setColonToken(std::unique_ptr<SyntaxToken<std::any>> colonToken)
-      -> void {
-    _colonToken = std::move(colonToken);
-  }
-
-  inline auto
-  setBlockStatement(std::unique_ptr<BlockStatementSyntax> blockStatement)
-      -> void {
-    _blockStatement = std::move(blockStatement);
-  }
-
-  /*
-    Getters
-  */
-
-  inline auto getCaseExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _caseExpression;
-  }
-
-  inline auto getBlockStatementRef() const
-      -> const std::unique_ptr<BlockStatementSyntax> & {
-    return _blockStatement;
-  }
-
-  inline auto isDefaultCase() const -> bool { return _defaultToken != nullptr; }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

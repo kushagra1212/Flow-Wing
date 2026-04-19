@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: Cannot cast Dynamic value to Char
+var z: char = 'a'
+print(z, "\n")
+
+var x = 'b'
+print(x, "\n")
+z = x
+print(z, "\n")
+var k = "Hello"
+z = k
+print(z, "\n")
+

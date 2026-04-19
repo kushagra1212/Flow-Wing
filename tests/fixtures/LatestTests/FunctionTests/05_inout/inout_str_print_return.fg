@@ -1,0 +1,10 @@
+fun test1(inout a) {
+  print("Hello", a)
+  a = "something"
+  return "Hello World2"
+}
+
+var a = 10
+println(a)
+var x = test1(a)
+println(a)

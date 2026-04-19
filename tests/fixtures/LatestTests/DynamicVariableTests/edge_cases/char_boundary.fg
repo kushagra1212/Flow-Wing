@@ -1,0 +1,7 @@
+var x = 'a'
+print(x, "\n")
+x = 'Z'
+print(x, "\n")
+x = '0'
+print(x, "\n")
+

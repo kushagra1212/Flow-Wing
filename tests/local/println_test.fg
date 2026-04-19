@@ -1,0 +1,6 @@
+fun strLength(str1: as str) -> as int decl
+fun strToUpper(str1: as str) -> as str decl
+fun strToLower(str1: as str) -> as str decl
+fun strReverse(str1: as str) -> as str decl
+fun strTrim(str1: as str) -> as str decl
+fun strReplace(str1: as str, target: as str, replacement: as str) -> as str decl

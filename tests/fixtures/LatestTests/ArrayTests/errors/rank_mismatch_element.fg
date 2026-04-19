@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: ContainerExpressionRankMismatch
+var j = 2
+var p:int[2] = [3, 5]
+var l:int[2] = [1, j]
+
+var q:int[3][2] = [l, p, [7, p]]
+
+print(q)

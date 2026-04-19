@@ -1,4 +1,0 @@
-type P = {
-  x: int
-}
-var j: P

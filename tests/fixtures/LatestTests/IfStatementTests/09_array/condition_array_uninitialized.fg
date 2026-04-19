@@ -1,0 +1,7 @@
+var a: int[2]
+
+if (a) {
+  println("nonnull")
+} else {
+  println("null")
+}

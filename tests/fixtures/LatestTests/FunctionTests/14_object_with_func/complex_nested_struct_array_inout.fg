@@ -1,0 +1,24 @@
+type Vec2 = {x: deci, y: deci}
+type Polygon = { vertices: Vec2[3], color: str }
+
+fun shiftPolygon(inout poly: Polygon, dx: deci, dy: deci) {
+  poly.vertices[0].x = poly.vertices[0].x + dx
+  poly.vertices[0].y = poly.vertices[0].y + dy
+  poly.vertices[1].x = poly.vertices[1].x + dx
+  poly.vertices[1].y = poly.vertices[1].y + dy
+  poly.color = "shifted"
+}
+
+var p: Polygon = {
+  vertices: [{x: 0.0, y: 0.0}, {x: 1.0, y: 0.0}, {x: 0.5, y: 1.0}],
+  color: "original"
+}
+
+shiftPolygon(p, 2.5, 3.5)
+
+println(p.color)
+println(p.vertices[0].x)
+println(p.vertices[0].y)
+println(p.vertices[1].x)
+println(p.vertices[1].y)
+println(p.vertices[2].x)

@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: EmptyContainerExpression
+var x:int[2] = []
+println(x)

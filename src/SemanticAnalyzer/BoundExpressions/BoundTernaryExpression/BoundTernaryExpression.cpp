@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,34 +18,51 @@
  */
 
 #include "BoundTernaryExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include <cstdlib>
+#include <iostream>
+
+namespace flow_wing {
+namespace binding {
 
 BoundTernaryExpression::BoundTernaryExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundExpression> conditionExpression,
-    std::unique_ptr<BoundExpression> trueExpression,
-    std::unique_ptr<BoundExpression> falseExpression)
+    std::unique_ptr<BoundExpression> condition_expression,
+    std::unique_ptr<BoundExpression> true_expression,
+    std::unique_ptr<BoundExpression> false_expression,
+    std::shared_ptr<types::Type> result_type,
+    const flow_wing::diagnostic::SourceLocation &location)
     : BoundExpression(location),
-      _conditionExpression(std::move(conditionExpression)),
-      _trueExpression(std::move(trueExpression)),
-      _falseExpression(std::move(falseExpression)) {}
+      m_conditionExpression(std::move(condition_expression)),
+      m_trueExpression(std::move(true_expression)),
+      m_falseExpression(std::move(false_expression)),
+      m_resultType(std::move(result_type)) {}
 
-const std::type_info &BoundTernaryExpression::getType() { return typeid(void); }
-
-BinderKindUtils::BoundNodeKind BoundTernaryExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundTernaryExpression;
+NodeKind BoundTernaryExpression::getKind() const {
+  return NodeKind::kTernaryExpression;
 }
 
-std::vector<BoundNode *> BoundTernaryExpression::getChildren() {
-  std::vector<BoundNode *> children;
-  if (_children.empty()) {
-    if (_conditionExpression)
-      children.emplace_back(_conditionExpression.get());
-    if (_trueExpression)
-      children.emplace_back(_trueExpression.get());
-    if (_falseExpression)
-      children.emplace_back(_falseExpression.get());
-  }
-
-  return children;
+void BoundTernaryExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
+
+std::shared_ptr<types::Type> BoundTernaryExpression::getType() const {
+  return m_resultType;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getConditionExpression() {
+  return m_conditionExpression;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getTrueExpression() {
+  return m_trueExpression;
+}
+
+const std::unique_ptr<BoundExpression> &
+BoundTernaryExpression::getFalseExpression() {
+  return m_falseExpression;
+}
+
+} // namespace binding
+} // namespace flow_wing

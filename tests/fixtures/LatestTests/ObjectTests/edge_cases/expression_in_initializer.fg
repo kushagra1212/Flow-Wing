@@ -1,0 +1,19 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var x: int = 20
+var y: int = 10
+
+var p: Person = {
+    name: "John",
+    age: x + y
+}
+
+print("Person with expression: ", p, "\n")
+
+p.age = p.age * 2
+
+print("After doubling age: ", p, "\n")
+

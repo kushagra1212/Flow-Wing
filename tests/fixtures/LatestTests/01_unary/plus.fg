@@ -1,0 +1,13 @@
+print("Plus Prefix Operator for Int\n")
+print(+1 , "\n")
+print(+3 , "\n")
+
+print("Plus Prefix Operator for Double\n")
+print(+1.0 , "\n")
+print(+3.0 , "\n")
+print(+2.5 , "\n")
+
+print("Plus Prefix Operator for Float\n")
+print(+1.0f , "\n")
+print(+3.0f , "\n")
+print(+2.5f , "\n")

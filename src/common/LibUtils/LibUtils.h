@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,12 @@
 
 #pragma once
 
-extern const char *STATIC_LINKING_LIBRARIES[5];
+#include <string>
+#include <vector>
 
-extern const char *DYNAMIC_LINKING_LIBRARIES[2];
+extern const char *STATIC_LINKING_LIBRARIES[4];
+
+
+
+std::vector<std::string>
+getRuntimeLibrariesForSourceFile(const std::string &source_file_path);

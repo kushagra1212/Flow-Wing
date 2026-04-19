@@ -1,0 +1,5 @@
+print(Bool("true"), "\n")
+print(Bool("false"), "\n")
+print(Bool("hello"), "\n")
+print(Bool(""), "\n")
+

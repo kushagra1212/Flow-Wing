@@ -1,0 +1,7 @@
+var x: int = 42
+
+if (x) {
+  println("nonzero")
+} else {
+  println("zero")
+}

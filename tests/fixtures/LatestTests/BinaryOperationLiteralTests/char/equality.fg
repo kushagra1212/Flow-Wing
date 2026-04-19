@@ -1,0 +1,10 @@
+print("Char Equality Tests\n")
+print('a' == 'a', "\n")
+print('a' == 'b', "\n")
+print('A' == 'A', "\n")
+print('A' == 'a', "\n")
+print('1' == '1', "\n")
+print('1' == '2', "\n")
+print(' ' == ' ', "\n")
+print('0' == '0', "\n")
+

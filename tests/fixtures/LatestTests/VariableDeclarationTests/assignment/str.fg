@@ -1,0 +1,4 @@
+var x:str
+x = "Hello"
+print(x, "\n")
+

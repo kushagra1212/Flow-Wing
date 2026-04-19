@@ -16,34 +16,33 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include <cassert>
 
-#include "NirastExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+namespace flow_wing {
+namespace syntax {
 
-NirastExpressionSyntax::NirastExpressionSyntax(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> nirastExpression)
-    : _nirastExpression(std::move(nirastExpression)) {}
+NirastExpressionSyntax::NirastExpressionSyntax(const SyntaxToken *token)
+    : m_token(token) {}
 
-SyntaxKindUtils::SyntaxKind NirastExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::NirastExpression;
+// Overrides
+NodeKind NirastExpressionSyntax::getKind() const {
+  return NodeKind::kNirastExpression;
 }
-const std::vector<SyntaxNode *> &NirastExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
 
-  if (_nirastExpression)
-    _children.emplace_back(_nirastExpression.get());
-
-  return _children;
+void NirastExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
-const DiagnosticUtils::SourceLocation
-NirastExpressionSyntax::getSourceLocation() const {
 
-  if (_nirastExpression)
-    return _nirastExpression->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
+const std::vector<const SyntaxNode *> &
+NirastExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_token)
+      m_children.push_back(m_token);
+  }
+  return m_children;
 }
+
+} // namespace syntax
+} // namespace flow_wing

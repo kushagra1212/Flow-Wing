@@ -1,0 +1,15 @@
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 10, y: 20 }
+
+print("outer p1: ", p1, "\n")
+
+{
+    var p1: Point = { x: 100, y: 200 }
+    print("inner p1: ", p1, "\n")
+}
+
+print("outer p1 after scope: ", p1, "\n")

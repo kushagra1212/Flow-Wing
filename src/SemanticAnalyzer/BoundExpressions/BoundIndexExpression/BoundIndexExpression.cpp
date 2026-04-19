@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,36 +18,42 @@
  */
 
 #include "BoundIndexExpression.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/common/Symbol/Symbol.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundIndexExpression::BoundIndexExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression)
-    : BoundExpression(location),
-      _boundIdentifierExpression(std::move(boundIdentifierExpression)) {}
+    std::unique_ptr<BoundExpression> left_expression,
+    std::shared_ptr<types::Type> type,
+    std::vector<std::unique_ptr<BoundExpression>> dimension_clause_expressions,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_left_expression(std::move(left_expression)),
+      m_type(type),
+      m_dimension_clause_expressions(std::move(dimension_clause_expressions)) {}
 
-const std::type_info &BoundIndexExpression::getType() {
-  return _boundIdentifierExpression->getType();
+NodeKind BoundIndexExpression::getKind() const {
+  return NodeKind::kIndexExpression;
 }
 
-BinderKindUtils::BoundNodeKind BoundIndexExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::IndexExpression;
+void BoundIndexExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::vector<BoundNode *> BoundIndexExpression::getChildren() {
-  if (_children.size() == 0) {
-    _children.push_back(_boundIdentifierExpression.get());
-    for (const auto &item : _boundIndexExpressions) {
-      _children.push_back(item.get());
-    }
-    if (_variableExpression) {
-      _children.push_back(_variableExpression.get());
-    }
-  }
-
-  return _children;
+std::shared_ptr<types::Type> BoundIndexExpression::getType() const {
+  return m_type;
 }
 
-std::unique_ptr<BoundLiteralExpression<std::any>> &
-BoundIndexExpression::getBoundIdentifierExpression() {
-  return _boundIdentifierExpression;
+const std::unique_ptr<BoundExpression> &
+BoundIndexExpression::getLeftExpression() const {
+  return m_left_expression;
 }
+
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundIndexExpression::getDimensionClauseExpressions() const {
+  return m_dimension_clause_expressions;
+}
+
+} // namespace binding
+} // namespace flow_wing

@@ -1,0 +1,12 @@
+class A {
+  fun init() -> nthg {}
+  fun inc(x: int) {
+    return x + 1
+  }
+  fun addTwo(x: int) {
+    return x + 2
+  }
+}
+
+var a: A = new A()
+println(a.inc(a.addTwo(0)))

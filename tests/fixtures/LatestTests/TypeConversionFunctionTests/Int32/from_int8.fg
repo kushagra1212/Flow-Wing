@@ -1,0 +1,4 @@
+print(Int32(1), "\n")
+print(Int32(127), "\n")
+print(Int32(-128), "\n")
+

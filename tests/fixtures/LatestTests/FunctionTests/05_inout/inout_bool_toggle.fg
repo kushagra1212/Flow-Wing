@@ -1,0 +1,11 @@
+fun setFlag(inout flag: bool) -> bool {
+  flag = !flag
+  return flag
+}
+
+var b: bool = true
+println(b)
+setFlag(b)
+println(b)
+setFlag(b)
+println(b)

@@ -1,0 +1,3 @@
+print("Nir (Null) Equality Tests\n")
+print(null == null, "\n")
+

@@ -1,0 +1,4 @@
+const x:int = 10
+const y:int = 20
+var z:int = x + y
+println(z)

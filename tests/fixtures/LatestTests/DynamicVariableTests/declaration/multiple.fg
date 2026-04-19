@@ -1,0 +1,7 @@
+var x = 2
+var y = 3.14
+var z = "test"
+var w = true
+var v = 'x'
+print(x, " ", y, " ", z, " ", w, " ", v, "\n")
+

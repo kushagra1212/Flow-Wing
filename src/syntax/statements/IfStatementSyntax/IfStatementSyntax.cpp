@@ -17,97 +17,69 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "IfStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "src/syntax/statements/ElseClauseSyntax/ElseClauseSyntax.h"
-#include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 
-IfStatementSyntax::IfStatementSyntax() {}
+namespace flow_wing {
+namespace syntax {
 
-std::unique_ptr<SyntaxToken<std::any>> IfStatementSyntax::getIfKeyword() {
-  return std::move(ifKeyword);
+IfStatementSyntax::IfStatementSyntax(
+    const SyntaxToken *if_keyword,
+    std::unique_ptr<ExpressionSyntax> condition_expression,
+    std::unique_ptr<StatementSyntax> statement,
+    std::vector<std::unique_ptr<OrIfStatementSyntax>> or_if_statements,
+    std::unique_ptr<ElseClauseSyntax> else_clause)
+    : m_if_keyword(if_keyword),
+      m_condition_expression(std::move(condition_expression)),
+      m_statement(std::move(statement)),
+      m_or_if_statements(std::move(or_if_statements)),
+      m_else_clause(std::move(else_clause)) {}
+
+NodeKind IfStatementSyntax::getKind() const { return NodeKind::kIfStatement; }
+
+void IfStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<ExpressionSyntax> IfStatementSyntax::getCondition() {
-  return std::move(condition);
+const std::unique_ptr<ExpressionSyntax> &
+IfStatementSyntax::getConditionExpression() const {
+  return m_condition_expression;
+}
+const std::unique_ptr<StatementSyntax> &
+IfStatementSyntax::getStatement() const {
+  return m_statement;
+}
+const std::vector<std::unique_ptr<OrIfStatementSyntax>> &
+IfStatementSyntax::getOrIfStatements() const {
+  return m_or_if_statements;
+}
+const std::unique_ptr<ElseClauseSyntax> &
+IfStatementSyntax::getElseClause() const {
+  return m_else_clause;
 }
 
-std::unique_ptr<BlockStatementSyntax> IfStatementSyntax::getStatement() {
-  return std::move(statement);
-}
-
-std::unique_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() {
-  return std::move(elseClause);
-}
-
-SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::IfStatement;
-}
-
-const DiagnosticUtils::SourceLocation
-IfStatementSyntax::getSourceLocation() const {
-  return this->ifKeyword->getSourceLocation();
-}
-
-const std::vector<SyntaxNode *> &IfStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    _children.push_back(this->ifKeyword.get());
-    _children.push_back(this->condition.get());
-    _children.push_back(this->statement.get());
-
-    for (auto &orIfStatement : this->orIfStatements) {
-      _children.push_back(orIfStatement.get());
+const std::vector<const SyntaxNode *> &IfStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &node :
+         {static_cast<const SyntaxNode *>(m_if_keyword),
+          static_cast<const SyntaxNode *>(m_condition_expression.get()),
+          static_cast<const SyntaxNode *>(m_statement.get())}) {
+      if (node)
+        m_children.push_back(node);
     }
 
-    if (this->elseClause != nullptr) {
-      _children.push_back(this->elseClause.get());
+    for (const auto &node : m_or_if_statements) {
+      if (node)
+        m_children.push_back(node.get());
     }
+
+    if (m_else_clause)
+      m_children.push_back(m_else_clause.get());
   }
-
-  return this->_children;
+  return m_children;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> &IfStatementSyntax::getIfKeywordRef() {
-  return this->ifKeyword;
-}
-std::unique_ptr<ExpressionSyntax> &IfStatementSyntax::getConditionRef() {
-  return this->condition;
-}
-std::unique_ptr<BlockStatementSyntax> &IfStatementSyntax::getStatementRef() {
-  return this->statement;
-}
-std::unique_ptr<ElseClauseSyntax> &IfStatementSyntax::getElseClauseRef() {
-  return this->elseClause;
-}
-
-void IfStatementSyntax::addIfKeyword(
-    std::unique_ptr<SyntaxToken<std::any>> ifKeyword) {
-  this->ifKeyword = std::move(ifKeyword);
-}
-
-void IfStatementSyntax::addCondition(
-    std::unique_ptr<ExpressionSyntax> condition) {
-  this->condition = std::move(condition);
-}
-
-void IfStatementSyntax::addStatement(
-    std::unique_ptr<BlockStatementSyntax> statement) {
-  this->statement = std::move(statement);
-}
-
-void IfStatementSyntax::addOrIfStatement(
-    std::unique_ptr<OrIfStatementSyntax> orIfStatement) {
-  this->orIfStatements.push_back(std::move(orIfStatement));
-}
-void IfStatementSyntax::addElseClause(
-    std::unique_ptr<ElseClauseSyntax> elseClause) {
-  this->elseClause = std::move(elseClause);
-}
-std::vector<std::unique_ptr<OrIfStatementSyntax>> &
-IfStatementSyntax::getOrIfStatementsRef() {
-  return this->orIfStatements;
-}
+} // namespace syntax
+} // namespace flow_wing

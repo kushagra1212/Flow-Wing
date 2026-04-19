@@ -1,0 +1,3 @@
+const x:int = -50000
+print(x, "\n")
+

@@ -21,32 +21,34 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include <any>
 #include <memory>
 
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
 
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
-  std::unique_ptr<ExpressionSyntax> _expression;
-  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
 public:
-  ParenthesizedExpressionSyntax(
-      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
-      std::unique_ptr<ExpressionSyntax> expression,
-      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
+  ParenthesizedExpressionSyntax(const SyntaxToken *open_parenthesis_token,
+                                std::unique_ptr<ExpressionSyntax> expression,
+                                const SyntaxToken *close_parenthesis_token);
 
-  std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
-  std::unique_ptr<ExpressionSyntax> getExpression();
-  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::unique_ptr<ExpressionSyntax> &getExpression() const;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenRef();
-  std::unique_ptr<ExpressionSyntax> &getExpressionRef();
-  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenRef();
+private:
+  const SyntaxToken *m_open_parenthesis_token;
+  std::unique_ptr<ExpressionSyntax> m_expression;
+  const SyntaxToken *m_close_parenthesis_token;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

@@ -18,14 +18,21 @@
  */
 
 #include "ContinueStatementParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-ContinueStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> continueKeyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::ContinueKeyword);
-  return std::make_unique<ContinueStatementSyntax>(std::move(continueKeyword));
+ContinueStatementParser::ContinueStatementParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
+
+std::unique_ptr<syntax::StatementSyntax> ContinueStatementParser::parse() {
+
+  auto continue_keyword = m_ctx->match(lexer::TokenKind::kContinueKeyword);
+
+  return std::make_unique<syntax::ContinueStatementSyntax>(continue_keyword);
 }
+} // namespace parser
+} // namespace flow_wing

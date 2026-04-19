@@ -1,0 +1,38 @@
+type Type1 = {
+    a: int
+    b: str
+}
+
+type Type2 = {
+    a: int
+    b: str
+    c: deci
+}
+
+type Type3 = {
+    a: int
+    b: str
+    c: deci
+}
+
+var t1: Type1 = {
+    a: 10,
+    b: "hello"
+}
+
+var t2: Type2
+var t3: Type3
+
+print("Initial:\n")
+print("t1: ", t1, "\n")
+print("t2: ", t2, "\n")
+print("t3: ", t3, "\n")
+
+t2 = t1
+t3 = t1
+
+print("After assignments:\n")
+print("t1: ", t1, "\n")
+print("t2: ", t2, "\n")
+print("t3: ", t3, "\n")
+

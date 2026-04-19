@@ -1,0 +1,6 @@
+fun getInt8() -> int8 {
+  return 100
+}
+
+var n: int8 = getInt8()
+println(n)

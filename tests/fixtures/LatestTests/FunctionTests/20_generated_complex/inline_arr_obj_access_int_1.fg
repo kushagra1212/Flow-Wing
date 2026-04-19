@@ -1,0 +1,8 @@
+
+type Obj_1_0 = { val: int }
+fun getObjs() -> Obj_1_0[5] {
+    var res: Obj_1_0[5] = [{val: 1}, {val: 11}, {val: 21}, {val: 31}, {val: 41}]
+    return res
+}
+
+println(getObjs()[4].val)

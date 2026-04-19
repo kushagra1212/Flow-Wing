@@ -1,0 +1,15 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+print("Age: ", p.age, "\n")
+print("Negated age: ", -(p.age), "\n")
+print("Bitwise not age: ", ~(p.age), "\n")
+print("Logical not (age == 0): ", !(p.age == 0), "\n")
+

@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: Runtime Error: Invalid input for Long conversion.
+print(Int64("abc"))
+

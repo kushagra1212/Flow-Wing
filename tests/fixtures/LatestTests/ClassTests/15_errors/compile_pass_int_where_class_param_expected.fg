@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+fun take(a: A) -> nthg {
+  println(a.x)
+}
+take(42)

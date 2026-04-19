@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: VariableNotFound
+const y:int = x + 5
+const x:int = 10
+

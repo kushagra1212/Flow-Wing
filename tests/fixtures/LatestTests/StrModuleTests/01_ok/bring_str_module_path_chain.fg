@@ -1,0 +1,6 @@
+bring "text-module.fg"
+
+var s: text::Text = new text::Text("  hill ")
+println(text::trim("  hill "))
+println(s.trim().get())
+println(s.at(3))

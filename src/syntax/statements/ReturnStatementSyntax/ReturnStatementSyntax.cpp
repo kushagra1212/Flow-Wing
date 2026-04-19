@@ -17,40 +17,47 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "ReturnStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
+
+namespace flow_wing {
+namespace syntax {
 
 ReturnStatementSyntax::ReturnStatementSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> returnKeyword)
-    : _returnKeyword(std::move(returnKeyword)) {}
+    const SyntaxToken *return_keyword, const SyntaxToken *colon_token,
+    std::unique_ptr<ExpressionSyntax> return_expression)
+    : m_return_keyword(return_keyword), m_colon_token(colon_token),
+      m_return_expression(std::move(return_expression)) {}
 
-const std::vector<SyntaxNode *> &ReturnStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
+NodeKind ReturnStatementSyntax::getKind() const {
+  return NodeKind::kReturnStatement;
+}
 
-    if (_returnKeyword)
-      _children.push_back(_returnKeyword.get());
+void ReturnStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-    for (const auto &expression : _expressionList) {
-      _children.push_back(expression.get());
+const std::unique_ptr<ExpressionSyntax> &
+ReturnStatementSyntax::getReturnExpression() const {
+  return m_return_expression;
+}
+
+const std::vector<const SyntaxNode *> &
+ReturnStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &child :
+         {static_cast<const SyntaxNode *>(m_return_keyword),
+          static_cast<const SyntaxNode *>(m_colon_token),
+          static_cast<const SyntaxNode *>(m_return_expression.get())}) {
+      if (child) {
+        m_children.push_back(child);
+      }
     }
   }
-
-  return this->_children;
+  return m_children;
 }
 
-SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ReturnStatement;
-}
-
-const DiagnosticUtils::SourceLocation
-ReturnStatementSyntax::getSourceLocation() const {
-  if (_returnKeyword)
-    return _returnKeyword->getSourceLocation();
-
-  if (!_expressionList.empty())
-    return _expressionList[0]->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: Runtime Error: Array Index Out of Bounds.
+class A {
+  var arr: int[2]
+  fun init() -> nthg {
+    self.arr[0] = 1
+    self.arr[1] = 2
+  }
+}
+var a: A = new A()
+println(a.arr[5])

@@ -1,0 +1,8 @@
+bring io
+
+fun test_print_log() -> nthg {
+  io::printLog("Hello")
+  io::printLog(" World!")
+}
+
+test_print_log()

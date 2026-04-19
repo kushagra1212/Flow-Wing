@@ -1,0 +1,4 @@
+print(Char(Int32('A')), "\n")
+print(Char(Int32('z')), "\n")
+print(Char(Int32('0')), "\n")
+

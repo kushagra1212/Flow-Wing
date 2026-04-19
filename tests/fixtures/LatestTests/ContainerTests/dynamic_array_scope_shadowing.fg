@@ -1,0 +1,6 @@
+var d:[2] = [true, "Hello"]
+{
+    var d:[2] = [100, 2.5]
+    println("Inner: ", d)
+}
+println("Outer: ", d)

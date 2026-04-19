@@ -1,0 +1,14 @@
+/; EXPECT_ERROR: MultipleDefaultCaseStatements
+var a: int = 1
+
+switch a {
+  case 1:{
+    println("one")
+  }
+  default:{
+    println("default")
+  }
+  default:{
+    println("second default")
+  }
+}

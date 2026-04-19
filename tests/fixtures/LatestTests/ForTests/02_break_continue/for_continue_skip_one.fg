@@ -1,0 +1,7 @@
+for (var i: int = 0 to 4 : 1) {
+  if (i == 2) {
+    continue
+  }
+  println(i)
+}
+println("done")

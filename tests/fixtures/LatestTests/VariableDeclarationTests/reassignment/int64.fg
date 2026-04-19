@@ -1,0 +1,7 @@
+var x:int64 = 1000l
+print(x, "\n")
+x = 2000l
+print(x, "\n")
+x = 3000l
+print(x, "\n")
+

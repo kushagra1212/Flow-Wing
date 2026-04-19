@@ -1,0 +1,5 @@
+var a: bool = true
+var b: bool = false
+var c: bool = true
+
+println((a && (b || c)) ? "true" : "false")

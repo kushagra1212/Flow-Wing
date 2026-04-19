@@ -1,0 +1,9 @@
+fun setGreeting(inout msg: str) -> str {
+  msg = "Hello"
+  return msg
+}
+
+var s: str = "Hi"
+println(s)
+setGreeting(s)
+println(s)

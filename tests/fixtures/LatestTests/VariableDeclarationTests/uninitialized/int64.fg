@@ -1,0 +1,3 @@
+var x:int64
+print(x, "\n")
+

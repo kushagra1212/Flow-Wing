@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: ContinueStatementNotAllowedOutsideOfLoop
+fun foo() {
+  var x = 1
+  if (x > 0) {
+    continue
+  }
+  println(x)
+}
+foo()

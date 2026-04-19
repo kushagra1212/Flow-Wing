@@ -1,0 +1,5 @@
+type T = { val:str }
+{
+    var obj:T = { val: "hello" }
+    println(obj)
+}

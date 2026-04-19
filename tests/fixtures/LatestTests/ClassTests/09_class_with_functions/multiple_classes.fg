@@ -1,0 +1,35 @@
+class Point {
+  var x: int
+  var y: int
+  fun init(x: int, y: int) -> nthg {
+    self.x = x
+    self.y = y
+  }
+}
+
+class Line {
+  var x1: int
+  var y1: int
+  var x2: int
+  var y2: int
+  fun init(x1: int, y1: int, x2: int, y2: int) -> nthg {
+    self.x1 = x1
+    self.y1 = y1
+    self.x2 = x2
+    self.y2 = y2
+  }
+  fun dx() -> int {
+    return self.x2 - self.x1
+  }
+  fun dy() -> int {
+    return self.y2 - self.y1
+  }
+}
+
+var p: Point = new Point(3, 4)
+println(p.x)
+println(p.y)
+
+var l: Line = new Line(1, 2, 5, 8)
+println(l.dx())
+println(l.dy())

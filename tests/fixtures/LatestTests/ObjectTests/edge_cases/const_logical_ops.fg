@@ -1,0 +1,24 @@
+type Person = {
+    name: str
+    age: int
+    active: bool
+}
+
+const p1: Person = {
+    name: "Alice",
+    age: 30,
+    active: true
+}
+
+const p2: Person = {
+    name: "Bob",
+    age: 25,
+    active: false
+}
+
+print("p1.active && p2.active: ", p1.active && p2.active, "\n")
+print("p1.active || p2.active: ", p1.active || p2.active, "\n")
+print("!p1.active: ", !p1.active, "\n")
+print("!p2.active: ", !p2.active, "\n")
+print("p1.age > 20 && p2.age > 20: ", p1.age > 20 && p2.age > 20, "\n")
+print("p1.age > 30 || p2.age > 30: ", p1.age > 30 || p2.age > 30, "\n")

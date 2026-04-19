@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,125 +18,48 @@
  */
 
 #include "ModuleStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/CallExpressionParser/CallExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/LiteralExpressionParserUtils/LiteralExpressionParserUtils.h"
-#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
-#include "src/ASTBuilder/parsers/StatementParser/ClassStatementParser/ClassStatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/CustomTypeStatementParser/CustomTypeStatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/FunctionDeclarationParser/FunctionDeclarationParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
-#include <memory>
+#include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-ModuleStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<ModuleStatementSyntax> moduleStatement =
-      std::make_unique<ModuleStatementSyntax>();
+ModuleStatementParser::ModuleStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  moduleStatement->addModuleKeyword(
-      ctx->match(SyntaxKindUtils::SyntaxKind::ModuleKeyword));
+std::unique_ptr<syntax::StatementSyntax> ModuleStatementParser::parse() {
+  auto module_keyword_token =
+      m_ctx->match(lexer::TokenKind::kModuleKeyword); // module
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto open_bracket_token =
+      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // [
 
-  moduleStatement->addOpenBracketToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
+  auto module_name_identifier_expression =
+      std::make_unique<IdentifierExpressionParser>(m_ctx)
+          ->parse(); // module_name
 
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> modNameLitExp(
-      static_cast<LiteralExpressionSyntax<std::any> *>(
-          LiteralExpressionParserUtils::parseExpression(
-              ctx, SyntaxKindUtils::SyntaxKind::IdentifierToken)
-              .release()));
+  auto close_bracket_token =
+      m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
 
-  moduleStatement->addModuleName(std::move(modNameLitExp));
+  auto module_statements =
+      std::vector<std::unique_ptr<syntax::StatementSyntax>>();
 
-  moduleStatement->addCloseBracketToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-  ctx->getCodeFormatterRef()->appendNewLine();
-
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
-    ctx->getCodeFormatterRef()->append(
-        ctx->getCodeFormatterRef()->getIndentAmount());
-    SyntaxKindUtils::SyntaxKind kind = ctx->getKind();
-
-    switch (kind) {
-    case SyntaxKindUtils::SyntaxKind::VarKeyword:
-    case SyntaxKindUtils::SyntaxKind::ConstKeyword: {
-
-      ctx->setCurrentModuleName(
-          moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
-
-      moduleStatement->addStatement(
-          VariableParserUtils::parseSingleVariableDeclaration(ctx));
-
-      ctx->setCurrentModuleName("");
-      break;
-    }
-    case SyntaxKindUtils::SyntaxKind::TypeKeyword: {
-
-      ctx->setCurrentModuleName(
-          moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
-
-      moduleStatement->addStatement(
-          std::make_unique<CustomTypeStatementParser>()->parseStatement(ctx));
-
-      ctx->setCurrentModuleName("");
-      break;
-    }
-
-    case SyntaxKindUtils::SyntaxKind::ClassKeyword: {
-
-      ctx->setCurrentModuleName(
-          moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
-
-      moduleStatement->addStatement(
-          std::make_unique<ClassStatementParser>()->parseStatement(ctx));
-
-      ctx->setCurrentModuleName("");
-      break;
-    }
-    case SyntaxKindUtils::SyntaxKind::FunctionKeyword: {
-
-      std::unique_ptr<SyntaxToken<std::any>> functionKeyword = nullptr;
-
-      functionKeyword =
-          (ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword));
-      ctx->getCodeFormatterRef()->appendWithSpace();
-
-      std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration(
-          static_cast<FunctionDeclarationSyntax *>(
-              std::make_unique<FunctionDeclarationParser>()
-                  ->parseStatement(ctx)
-                  .release()));
-
-      functionDeclaration->setFunctionKeyword(std::move(functionKeyword));
-      functionDeclaration->setIsMemberFunction(false);
-
-      moduleStatement->addStatement(std::move(functionDeclaration));
-      break;
-    }
-    case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-      moduleStatement->addStatement(
-          std::make_unique<CallExpressionParser>()->parseExpression(ctx));
-      break;
-    }
-
-    case SyntaxKindUtils::SyntaxKind::ModuleKeyword: {
-      moduleStatement->addStatement(
-          std::make_unique<ModuleStatementParser>()->parseStatement(ctx));
-      break;
-    }
-    default: {
-
-      ctx->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-      break;
-    }
-    }
-    ctx->getCodeFormatterRef()->appendNewLine();
+    module_statements.push_back(
+        StatementParserFactory::create(*m_ctx)
+            ->parse()); //  CustomTypeStatement, FunctionDeclaration,
+                        //  VariableDeclaration, ClassStatement, CallExpression
   }
 
-  return moduleStatement;
+  auto end_of_file_token = m_ctx->match(lexer::TokenKind::kEndOfFileToken); //
+
+  return std::make_unique<syntax::ModuleStatementSyntax>(
+      module_keyword_token, open_bracket_token,
+      std::move(module_name_identifier_expression), close_bracket_token,
+      std::move(module_statements), end_of_file_token);
 }
+} // namespace parser
+} // namespace flow_wing

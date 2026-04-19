@@ -19,39 +19,31 @@
 
 #pragma once
 
-#include <any>
+#include "src/syntax/CompilationUnitSyntax.h"
 #include <memory>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/SourceTokenizer/SourceTokenizer.h"
+namespace flow_wing {
+
+namespace diagnostic {
+class DiagnosticHandler;
+} // namespace diagnostic
+
+class CompilationContext;
+
+namespace parser {
 
 class ParserContext;
-class SourceTokenizer;
-class CompilationUnitSyntax;
-template <typename T> class SyntaxToken;
-
-namespace FlowWing {
-class DiagnosticHandler;
-}
-
 class ASTBuilder {
-  std::unique_ptr<ParserContext> _parserCtx = nullptr;
-  std::unique_ptr<SourceTokenizer> _lexer = nullptr;
 
 public:
-  ASTBuilder(const std::vector<std::string> &sourceCode,
-             FlowWing::DiagnosticHandler *diagnosticHandler,
-             const std::unordered_map<std::string, int8_t> &dependencyPathsMap =
-                 std::unordered_map<std::string, int8_t>());
+  ASTBuilder(CompilationContext &context);
 
   ~ASTBuilder();
 
-  //? getters
-  const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getTokenListRef();
-  const std::string &getFormattedSourceCode();
+  std::unique_ptr<syntax::CompilationUnitSyntax> create();
 
-  std::unique_ptr<CompilationUnitSyntax> createCompilationUnit();
+private:
+  std::unique_ptr<ParserContext> m_parser_ctx = nullptr;
 };
+} // namespace parser
+} // namespace flow_wing

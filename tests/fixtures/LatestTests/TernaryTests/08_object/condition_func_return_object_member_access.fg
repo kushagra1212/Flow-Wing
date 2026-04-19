@@ -1,0 +1,11 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun getPoint() -> Point {
+  return { x: 5, y: 10 }
+}
+
+println((getPoint().x > 3) ? "x_gt_3" : "x_le_3")
+println((getPoint().y == 10) ? "y_eq_10" : "y_ne_10")

@@ -1,0 +1,12 @@
+fun printA() -> int {
+  return 2
+}
+
+fun printB() -> int {
+  return 3
+}
+
+var g: int = 3
+var x: int = (g == 2) ? printA() : printB()
+
+println(x)

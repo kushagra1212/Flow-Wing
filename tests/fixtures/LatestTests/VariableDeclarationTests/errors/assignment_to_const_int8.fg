@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+const x:int8 = 10
+x = 20
+

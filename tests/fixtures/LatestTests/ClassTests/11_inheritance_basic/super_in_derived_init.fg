@@ -1,0 +1,18 @@
+class Base {
+  var tag: int
+  fun init(x: int) -> nthg {
+    self.tag = x
+  }
+}
+
+class Child extends Base {
+  var extra: int
+  fun init(y: int) -> nthg {
+    super(y)
+    self.extra = y + 10
+  }
+}
+
+var c: Child = new Child(7)
+println(c.tag)
+println(c.extra)

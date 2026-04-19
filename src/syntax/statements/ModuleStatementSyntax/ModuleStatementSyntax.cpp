@@ -18,55 +18,69 @@
  */
 
 #include "ModuleStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
-SyntaxKindUtils::SyntaxKind ModuleStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ModuleStatement;
+namespace flow_wing {
+namespace syntax {
+
+ModuleStatementSyntax::ModuleStatementSyntax(
+    const SyntaxToken *module_keyword_token,
+    const SyntaxToken *open_bracket_token,
+    std::unique_ptr<ExpressionSyntax> module_name_identifier_expression,
+    const SyntaxToken *close_bracket_token,
+    std::vector<std::unique_ptr<StatementSyntax>> module_statements,
+    const SyntaxToken *end_of_file_token)
+    : m_module_keyword_token(module_keyword_token),
+      m_open_bracket_token(open_bracket_token),
+      m_module_name_identifier_expression(
+          std::move(module_name_identifier_expression)),
+      m_close_bracket_token(close_bracket_token),
+      m_module_statements(std::move(module_statements)),
+      m_end_of_file_token(end_of_file_token) {}
+
+NodeKind ModuleStatementSyntax::getKind() const {
+  return NodeKind::kModuleStatement;
 }
 
-const DiagnosticUtils::SourceLocation
-ModuleStatementSyntax::getSourceLocation() const {
-
-  if (_moduleKeyword)
-    return _moduleKeyword->getSourceLocation();
-
-  if (_openBracketToken)
-    return _openBracketToken->getSourceLocation();
-
-  if (_moduleName)
-    return _moduleName->getSourceLocation();
-
-  if (_closeBracketToken)
-    return _closeBracketToken->getSourceLocation();
-
-  if (!_statements.empty())
-    return _statements[0]->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
+void ModuleStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::vector<SyntaxNode *> &ModuleStatementSyntax::getChildren() {
-  if (_children.empty()) {
+const std::unique_ptr<ExpressionSyntax> &
+ModuleStatementSyntax::getModuleNameExpression() const {
+  return m_module_name_identifier_expression;
+}
 
-    //! BUG: Not Showing up as Chiild in lsp
-    // if (_moduleKeyword)
-    //   this->_children.push_back(_moduleKeyword.get());
+const std::vector<std::unique_ptr<StatementSyntax>> &
+ModuleStatementSyntax::getModuleMemberStatements() const {
+  return m_module_statements;
+}
 
-    if (_openBracketToken)
-      this->_children.push_back(_openBracketToken.get());
-
-    if (_moduleName)
-      this->_children.push_back(_moduleName.get());
-
-    if (_closeBracketToken)
-      this->_children.push_back(_closeBracketToken.get());
-
-    for (const auto &s : _statements) {
-      _children.push_back(s.get());
+const std::vector<const SyntaxNode *> &
+ModuleStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_module_keyword_token),
+          static_cast<const SyntaxNode *>(m_open_bracket_token),
+          static_cast<const SyntaxNode *>(
+              m_module_name_identifier_expression.get()),
+          static_cast<const SyntaxNode *>(m_close_bracket_token)}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
+    for (const auto &node : m_module_statements) {
+      if (node) {
+        m_children.push_back(node.get());
+      }
+    }
+    if (m_end_of_file_token) {
+      m_children.push_back(m_end_of_file_token);
     }
   }
-
-  return this->_children;
+  return m_children;
 }
+
+} // namespace syntax
+} // namespace flow_wing

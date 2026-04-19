@@ -1,0 +1,24 @@
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  fun init(a: int, b: str, d: deci) -> nthg {
+    self.a = a
+    self.b = b
+    self.d = d
+  }
+  fun updateA() -> nthg {
+    self.a = 100
+    self.d = 2.2
+    self.b = "Nice"
+  }
+}
+
+var obj: A = new A(2, "Hello", 3.3)
+println(obj.a)
+println(obj.b)
+println(obj.d)
+obj.updateA()
+println(obj.a)
+println(obj.b)
+println(obj.d)

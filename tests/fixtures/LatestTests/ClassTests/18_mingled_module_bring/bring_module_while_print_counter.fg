@@ -1,0 +1,8 @@
+bring "support_cnt_module.fg"
+
+var c: cnt::Counter = new cnt::Counter(0)
+var i: int = 0
+while (i < 3) {
+  println(c.bump())
+  i = i + 1
+}

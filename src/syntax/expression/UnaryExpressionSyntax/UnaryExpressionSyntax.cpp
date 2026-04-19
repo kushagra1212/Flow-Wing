@@ -18,41 +18,54 @@
  */
 
 #include "UnaryExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/SyntaxToken.h"
 
+namespace flow_wing {
+namespace syntax {
+
 UnaryExpressionSyntax::UnaryExpressionSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-    std::unique_ptr<ExpressionSyntax> operand) {
-  this->_operatorToken = std::move(operatorToken);
-  this->_operand = std::move(operand);
+    const SyntaxToken *operator_token,
+    std::unique_ptr<ExpressionSyntax> expression)
+    : m_operator_token(operator_token), m_expression(std::move(expression)) {}
+
+NodeKind UnaryExpressionSyntax::getKind() const {
+  return NodeKind::kUnaryExpression;
 }
 
-SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::UnaryExpression;
+void UnaryExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::vector<SyntaxNode *> &UnaryExpressionSyntax::getChildren() {
-  if (this->_children.size() == 0) {
+const std::unique_ptr<ExpressionSyntax> &
+UnaryExpressionSyntax::getExpression() const {
+  return m_expression;
+}
+
+const SyntaxToken *UnaryExpressionSyntax::getOperatorToken() const {
+  return m_operator_token;
+}
+
+lexer::TokenKind UnaryExpressionSyntax::getOperatorTokenKind() const {
+  return m_operator_token->getTokenKind();
+}
+
+const std::vector<const SyntaxNode *> &
+UnaryExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
     // Add children
-    this->_children.emplace_back(this->_operatorToken.get());
-    this->_children.emplace_back(this->_operand.get());
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_operator_token),
+          static_cast<const SyntaxNode *>(m_expression.get())}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
   }
 
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-UnaryExpressionSyntax::getSourceLocation() const {
-  return this->_operatorToken->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-UnaryExpressionSyntax::getOperatorTokenRef() {
-  return this->_operatorToken;
-}
-
-std::unique_ptr<ExpressionSyntax> &UnaryExpressionSyntax::getOperandRef() {
-  return this->_operand;
-}
+} // namespace syntax
+} // namespace flow_wing

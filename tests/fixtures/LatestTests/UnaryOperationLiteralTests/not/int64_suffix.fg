@@ -1,0 +1,7 @@
+print(!0l, "\n")
+print(!1l, "\n")
+print(!10000000000l, "\n")
+/; EXPECT: true
+/; EXPECT: false
+/; EXPECT: false
+

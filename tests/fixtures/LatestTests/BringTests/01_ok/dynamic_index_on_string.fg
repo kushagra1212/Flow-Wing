@@ -1,0 +1,4 @@
+var source: str = "Hello, World!"
+
+  var i = 1
+println(source[i])

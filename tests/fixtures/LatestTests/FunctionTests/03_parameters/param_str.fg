@@ -1,0 +1,5 @@
+fun greetPerson(name: str) -> str {
+  return "Hello " + name
+}
+
+println(greetPerson("Alice"))

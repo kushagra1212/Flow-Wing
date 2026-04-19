@@ -1,0 +1,7 @@
+type T = {
+  a:int 
+  b:deci 
+}
+
+var t:T[2] = [{a:1, b:2.3}, {a:2, b:3.4}]
+println(t)

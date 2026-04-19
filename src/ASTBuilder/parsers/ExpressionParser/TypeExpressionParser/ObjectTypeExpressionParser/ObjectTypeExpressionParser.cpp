@@ -19,29 +19,32 @@
 
 #include "ObjectTypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 
-std::unique_ptr<ExpressionSyntax>
-ObjectTypeExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<ObjectTypeExpressionSyntax> objectTypeExpression =
-      std::make_unique<ObjectTypeExpressionSyntax>(
-          std::make_unique<SyntaxToken<std::any>>(
-              ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
-              SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE, 0,
-              "NBU_OBJECT_TYPE", "NBU_OBJECT_TYPE"));
+namespace flow_wing {
+namespace parser {
 
-  std::unique_ptr<SyntaxToken<std::any>> iden =
-      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+ObjectTypeExpressionParser::ObjectTypeExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  std::any value = iden->getValue();
-
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> literalExp =
-      std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(iden),
-                                                          value);
-
-  objectTypeExpression->setObjectTypeIdentifier(std::move(literalExp));
-
-  return objectTypeExpression;
+std::unique_ptr<syntax::ExpressionSyntax>
+ObjectTypeExpressionParser::parsePostfix(
+    std::unique_ptr<syntax::IdentifierExpressionSyntax> identifier_expression) {
+  return std::make_unique<syntax::ObjectTypeExpressionSyntax>(
+      std::move(identifier_expression));
 }
+
+std::unique_ptr<syntax::ExpressionSyntax> ObjectTypeExpressionParser::parse() {
+
+  auto identifier_expression =
+      std::make_unique<syntax::IdentifierExpressionSyntax>(m_ctx->match(
+          lexer::TokenKind::kIdentifierToken)); // object_type_identifier
+
+  return parsePostfix(std::move(identifier_expression));
+}
+
+} // namespace parser
+} // namespace flow_wing

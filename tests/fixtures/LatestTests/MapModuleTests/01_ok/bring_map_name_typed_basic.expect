@@ -1,0 +1,28 @@
+--- Test 1: Basic Insert & Mixed Types ---
+"FlowWing"
+1
+true
+42
+'X'
+--- Test 2: Reassignment (Overwriting keys) ---
+2.5
+"Forty Two"
+--- Test 3: Fallbacks (getOr) ---
+"default"
+false
+-99
+--- Test 4: Size & Existence (has/contains) ---
+5
+true
+false
+--- Test 5: Removal ---
+true
+false
+false
+4
+--- Test 6: Clear & isEmpty ---
+false
+true
+0
+--- Test 7: Method Chaining ---
+3

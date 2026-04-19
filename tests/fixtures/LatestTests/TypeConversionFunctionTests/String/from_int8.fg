@@ -1,0 +1,5 @@
+print(String(1), "\n")
+print(String(127), "\n")
+print(String(-128), "\n")
+print(String(0), "\n")
+

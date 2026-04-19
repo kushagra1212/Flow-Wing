@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,27 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include <memory>
+
+namespace flow_wing {
+
+namespace syntax {
+class SyntaxToken;
+} // namespace syntax
+
+namespace parser {
 
 class CallExpressionParser : public ExpressionParser {
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit CallExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+  std::unique_ptr<syntax::ExpressionSyntax>
+  parsePostfix(std::unique_ptr<syntax::ExpressionSyntax> identifier_expression);
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

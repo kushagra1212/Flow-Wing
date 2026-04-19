@@ -1,0 +1,14 @@
+fun getVal() -> int {
+  return 3
+}
+
+var a: int = 3
+
+switch a {
+  case getVal():{
+    println("match")
+  }
+  default:{
+    println("default")
+  }
+}

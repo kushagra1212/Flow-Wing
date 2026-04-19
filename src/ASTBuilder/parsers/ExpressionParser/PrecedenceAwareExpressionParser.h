@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,23 @@
 
 #include <memory>
 
-class ParserContext;
+namespace flow_wing {
+
+namespace syntax {
+
 class ExpressionSyntax;
+}
+namespace parser {
+
+class ParserContext;
 class PrecedenceAwareExpressionParser {
 
 public:
-  static std::unique_ptr<ExpressionSyntax> parse(ParserContext *ctx,
-                                                 int parentPrecedence = 0);
+  static std::unique_ptr<syntax::ExpressionSyntax>
+  parse(ParserContext *ctx, int parent_precedence = 0);
+
+  static std::unique_ptr<syntax::ExpressionSyntax>
+  parseAssignmentExpression(ParserContext *ctx);
 };
+} // namespace parser
+} // namespace flow_wing

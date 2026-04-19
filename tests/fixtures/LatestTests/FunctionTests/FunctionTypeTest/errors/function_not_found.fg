@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: FunctionNotFound
+fun callback() {
+  println("callback")
+}
+
+
+fun handler(x:str,callback: [() -> nthg]) {
+  s() 
+  println("handler")
+}
+
+handler("s",callback)

@@ -1,0 +1,11 @@
+fun swap(a: int, b: int) -> int, int {
+  return b, a
+}
+
+var x: int = 1
+var y: int = 2
+var u: int, v: int = swap(x, y)
+println(u)
+println(v)
+println(x)
+println(y)

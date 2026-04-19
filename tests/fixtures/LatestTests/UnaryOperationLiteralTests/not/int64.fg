@@ -1,0 +1,7 @@
+print("Unary Not Int64 Tests (checks if zero)\n")
+print(!3000000000, "\n")
+print(!-3000000000, "\n")
+print(!9223372036854775807, "\n")
+print(!-9223372036854775808, "\n")
+print(!5000000000, "\n")
+

@@ -1,0 +1,134 @@
+bring Err
+
+/; FFI Declarations
+fun file_last_error() -> as int decl
+fun file_read_all(path: as str) -> as str decl
+fun file_write_all(path: as str, content: as str) -> as nthg decl
+fun file_append_all(path: as str, content: as str) -> as nthg decl
+fun file_exists(path: as str) -> as bool decl
+fun file_delete(path: as str) -> as nthg decl
+
+fun file_open(path: as str, mode: as str) -> as int64 decl
+fun file_close(handle: as int64) -> as nthg decl
+fun file_read_line(handle: as int64) -> as str decl
+
+fun fg_get_script_dir() -> as str decl
+
+
+module [file]
+
+/; =========================================================
+/; Quick Static Operations (Read/Write Whole Files)
+/; =========================================================
+
+fun readText(path: str) -> str, Err::Result {
+  if !file::exists(path) {
+    return "", Err::error("File not found: " + path, Err::CODE.NOT_FOUND)
+  }
+  
+  var content: str = file_read_all(path)
+  var errCode: int = file_last_error()
+  
+  if errCode != 0 {
+    return "", Err::error("Failed to read file: " + path, Err::CODE.FAILED)
+  }
+  
+  return content, Err::ok()
+}
+
+fun writeText(path: str, content: str) -> bool, Err::Result {
+  file_write_all(path, content)
+  if file_last_error() != 0 {
+    return false, Err::error("Failed to write to file: " + path, Err::CODE.FAILED)
+  }
+  return true, Err::ok()
+}
+
+fun appendText(path: str, content: str) -> bool, Err::Result {
+  file_append_all(path, content)
+  if file_last_error() != 0 {
+    return false, Err::error("Failed to append to file: " + path, Err::CODE.FAILED)
+  }
+  return true, Err::ok()
+}
+
+fun exists(path: str) -> bool {
+  return file_exists(path)
+}
+
+fun delete(path: str) -> bool, Err::Result {
+  if !file::exists(path) {
+    return false, Err::error("Cannot delete. File does not exist: " + path, Err::CODE.NOT_FOUND)
+  }
+  
+  file_delete(path)
+  if file_last_error() != 0 {
+    return false, Err::error("Failed to delete file (may be locked): " + path, Err::CODE.FAILED)
+  }
+  return true, Err::ok()
+}
+
+/; =========================================================
+/; Stateful File Class (For Streaming & Line-by-Line I/O)
+/; =========================================================
+
+class File {
+  var _handle: int64
+  var _path: str
+  var _isOpen: bool
+
+  init(path: str) -> nthg {
+    self._path = path
+    self._handle = 0
+    self._isOpen = false
+  }
+
+  fun open(mode: str) -> Err::Result {
+    if self._isOpen {
+      return Err::error("File is already open.", Err::CODE.INVALID_ARGUMENT)
+    }
+
+    if mode != "r" && mode != "w" && mode != "a" {
+      return Err::error("Invalid mode. Use 'r', 'w', or 'a'.", Err::CODE.INVALID_ARGUMENT)
+    }
+
+    self._handle = file_open(self._path, mode)
+    
+    if self._handle == 0 {
+      return Err::error("Failed to open file: " + self._path, Err::CODE.FAILED)
+    }
+
+    self._isOpen = true
+    return Err::ok()
+  }
+
+  fun close() -> Err::Result {
+    if !self._isOpen {
+      return Err::ok() /; Safe to call close on already closed file
+    }
+    
+    file_close(self._handle)
+    self._isOpen = false
+    self._handle = 0
+    return Err::ok()
+  }
+
+  fun readLine() -> str, Err::Result {
+    if !self._isOpen {
+      return "", Err::error("Cannot read. File is not open.", Err::CODE.FAILED)
+    }
+
+    var line: str = file_read_line(self._handle)
+    var errCode: int = file_last_error()
+
+    if errCode != 0 {
+      /; Reached EOF or stream error
+      return "", Err::error("EOF", Err::CODE.NOT_FOUND)
+    }
+
+    return line, Err::ok()
+  }
+
+}
+
+var __DIR__:str = fg_get_script_dir()

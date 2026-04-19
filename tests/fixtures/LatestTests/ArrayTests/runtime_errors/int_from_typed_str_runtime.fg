@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int32.
+var x:int = 5
+var y:str = "Hello"
+var a:int[5] = [x, y]
+print(a)

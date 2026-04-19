@@ -1,0 +1,4 @@
+Global p: { age: 100, name: "Global" }
+Local p (shadowed): { age: 50, name: "Local" }
+After modifying local p: { age: 25, name: "Local" }
+Global p after local scope: { age: 100, name: "Global" }

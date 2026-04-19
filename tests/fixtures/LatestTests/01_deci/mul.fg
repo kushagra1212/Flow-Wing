@@ -1,0 +1,21 @@
+print("Double Multiplication\n")
+print(1.3 * 1.2, "\n")
+print(1.3 * 2.2, "\n")
+
+
+print("Double / Int Multiplication\n")
+print(1.3 * 1, "\n")
+print(2 * 1.3, "\n")
+
+print("Float Multiplication\n")
+print(1.3f * 1.2f, "\n")
+print(1.3f * 2.2f, "\n")
+
+print("Float / Int Multiplication\n")
+print(1.3f * 1, "\n")
+print(2 * 1.3f, "\n")
+
+print("Double / Float Multiplication\n")
+print(1.3 * 1.2f, "\n")
+print(2.2 * 1.3f, "\n")
+print(3.3f * 4.4, "\n")

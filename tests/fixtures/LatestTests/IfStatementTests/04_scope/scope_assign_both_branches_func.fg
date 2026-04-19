@@ -1,0 +1,16 @@
+fun getA() -> int {
+  return 1
+}
+
+fun getB() -> int {
+  return 2
+}
+
+var x: int = 0
+
+if (true) {
+  x = getA()
+} else {
+  x = getB()
+}
+println(x)

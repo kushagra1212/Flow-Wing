@@ -1,0 +1,16 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+  fun getDouble() -> int {
+    return self.x * 2
+  }
+  fun printDouble() -> nthg {
+    var d: int = self.getDouble()
+    println(d)
+  }
+}
+
+var a: A = new A(21)
+a.printDouble()

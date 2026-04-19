@@ -1,0 +1,11 @@
+type Point = {
+  x: int
+  y: int
+}
+
+for (var i: int = 0 to 2 : 1) {
+  var p: Point = { x: i, y: i * 2 }
+  println(p.x)
+  println(p.y)
+}
+println("done")

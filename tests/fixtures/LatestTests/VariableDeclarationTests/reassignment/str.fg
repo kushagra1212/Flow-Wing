@@ -1,0 +1,7 @@
+var x:str = "First"
+print(x, "\n")
+x = "Second"
+print(x, "\n")
+x = "Third"
+print(x, "\n")
+

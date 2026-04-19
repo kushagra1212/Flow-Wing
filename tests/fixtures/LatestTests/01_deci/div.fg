@@ -1,0 +1,26 @@
+print("Double Division\n")
+print(1.3 / 1.2, "\n")
+print(1.3 / 2.2, "\n")
+
+
+print("Double / Int Multiplication\n")
+print(1.3 / 1, "\n")
+print(2 / 1.3, "\n")
+
+print("Int Division\n")
+print(1 / 2, "\n")
+print(1 / 3, "\n")
+print(2 / 4, "\n")
+print(2 / 3, "\n")
+
+print("Float Division\n")
+print(1.3f / 1.2f, "\n")
+print(1.3f / 2.2f, "\n")
+
+print("Float / Int Division\n")
+print(1.3f / 1, "\n")
+print(2 / 1.3f, "\n")
+
+print("Double / Float Division\n")
+print(1.3 / 1.2f, "\n")
+print(2.2 / 1.3f, "\n")

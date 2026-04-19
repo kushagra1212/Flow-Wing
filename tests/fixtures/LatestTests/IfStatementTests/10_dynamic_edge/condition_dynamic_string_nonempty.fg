@@ -1,0 +1,7 @@
+var d = "hello"
+
+if (d) {
+  println("truthy")
+} else {
+  println("falsy")
+}

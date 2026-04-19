@@ -1,0 +1,6 @@
+Before assignment:
+p1: { age: 30, name: "John" }
+p2: { age: 25, name: "Jane" }
+After assignment:
+p1: { age: 25, name: "Jane" }
+p2: { age: 25, name: "Jane" }

@@ -1,0 +1,11 @@
+var x = 10
+var y = 20
+var z = x + y
+print(z, "\n")
+z = x * y
+print(z, "\n")
+z = y / x
+print(z, "\n")
+z = x < y
+print(z, "\n")
+

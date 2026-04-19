@@ -1,0 +1,10 @@
+fun inner() -> int {
+  return 13
+}
+
+fun outer() -> int {
+  return inner() + 1
+}
+
+println(outer())
+println(inner())

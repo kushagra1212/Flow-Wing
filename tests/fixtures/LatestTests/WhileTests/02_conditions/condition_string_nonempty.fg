@@ -1,0 +1,10 @@
+var s: str = "ab"
+var i = 0
+while (s) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    s = ""
+  }
+}
+println("done")

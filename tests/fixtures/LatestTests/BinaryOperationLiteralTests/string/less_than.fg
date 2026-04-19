@@ -1,0 +1,12 @@
+print("String Less Than Tests\n")
+print("" < "", "\n")
+print("" < "a", "\n")
+print("a" < "", "\n")
+print("a" < "a", "\n")
+print("a" < "b", "\n")
+print("b" < "a", "\n")
+print("abc" < "abd", "\n")
+print("abc" < "abcd", "\n")
+print("A" < "a", "\n")
+print("z" < "A", "\n")
+

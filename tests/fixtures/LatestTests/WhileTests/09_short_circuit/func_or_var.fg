@@ -1,0 +1,10 @@
+fun no() -> bool {
+  return false
+}
+
+var flag: bool = true
+while (no() || flag) {
+  println("once")
+  flag = false
+}
+println("done")

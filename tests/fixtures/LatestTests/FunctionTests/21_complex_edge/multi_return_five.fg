@@ -1,0 +1,7 @@
+fun five() -> int, int, int, int, int {
+  return 1, 2, 3, 4, 5
+}
+
+var a: int, b: int, c: int, d: int, e: int = five()
+println(a + b + c + d + e)
+println(e)

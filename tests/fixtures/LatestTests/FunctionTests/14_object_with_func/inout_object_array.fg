@@ -1,0 +1,16 @@
+type Item = { id: int, active: bool }
+
+fun toggleItems(inout items: Item[2]) {
+  items[0].active = true
+  items[0].id = 99
+  
+  var temp: Item = items[1]
+  temp.id = 100
+  items[1] = temp
+}
+
+var myItems: Item[2] = [{id: 1, active: false}, {id: 2, active: true}]
+toggleItems(myItems)
+println(myItems[0].id)
+println(myItems[0].active)
+println(myItems[1].id)

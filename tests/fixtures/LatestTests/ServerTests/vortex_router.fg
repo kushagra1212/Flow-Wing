@@ -1,0 +1,58 @@
+/; TEST_SERVER_PORT: 9432
+bring vortex
+bring json
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9432)
+  
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+
+  println("Vortex Server Ready.")
+
+  /; Process exactly 3 requests to test all routing branches, then exit
+  for var i: int = 0 to 3 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    
+    println("-> Received " + req.getMethod() + " " + req.getPath())
+    
+    if req.getMethod() == "GET" && req.getPath() == "/" {
+      res.status(200).send("Welcome to the FlowWing Vortex Server!")
+      
+    } else if req.getMethod() == "GET" && req.getPath() == "/api/data" {
+      var version = 1.2
+      var data: json::JsonNode = json::parse(`{"language": "FlowWing", "status": "Awesome"}`)
+      res.status(200).json(data)
+      
+    } else if req.getMethod() == "GET" && req.getPath() == "/stream" {
+      res.status(200).streamBegin("text/plain")
+      
+      /; Simulate streaming chunked data
+      res.streamWrite("Starting data stream...\n")
+      res.streamWrite("Chunk 1: Everything is flowing nicely.\n")
+      res.streamWrite("Chunk 2: Stream end imminent.\n")
+      
+      res.streamEnd()
+      
+    }else if req.getMethod() == "POST" && req.getPath() == "/stream" {
+      res.status(200).streamBegin("text/plain")
+      
+      /; Simulate streaming chunked data
+      res.streamWrite("Starting data stream...\n")
+      res.streamWrite("Chunk 1: Everything is flowing nicely.\n")
+      res.streamWrite("Chunk 2: Stream end imminent.\n")
+      
+      res.streamEnd()
+    } else {
+      res.status(404).send("404 - Route Not Found")
+    }
+  }
+
+  println("Server shutting down cleanly.")
+}
+
+fg_main()

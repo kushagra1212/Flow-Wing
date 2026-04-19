@@ -1,0 +1,5 @@
+outer !p1: false
+inner !p1 (uninitialized): false
+inner !p1 (initialized): false
+inner !p1 (null): true
+outer !p1 after scope: false

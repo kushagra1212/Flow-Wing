@@ -1,0 +1,4 @@
+print(1e15, "\n")
+print(1e20, "\n")
+print(1e-15, "\n")
+

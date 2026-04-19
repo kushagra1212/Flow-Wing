@@ -1,0 +1,5 @@
+var a:bool[4] = [true, false, true, false]
+println(a[0])
+println(a[3])
+a[3] = true
+println(a[3])

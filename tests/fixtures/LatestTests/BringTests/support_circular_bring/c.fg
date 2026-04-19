@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: CircularReference
+/; Circular-bring support: side B imports A again, closing the A<->B cycle.
+/; The compiler must report CircularReference; this pair is not valid to merge.
+/; EXPECT_ERROR: CircularReference
+bring "bring_circular_pair_a.fg"
+
+type SideBRecord = { tag_id: int, checksum: int }
+
+var b_partition_rows: int = 20
+
+fun b_row_hint() -> int {
+  return b_partition_rows
+}

@@ -1,0 +1,4 @@
+outer p1: { x: 10, y: 20 }
+inner p2 (ref to outer p1): { x: 10, y: 20 }
+inner p2 after modify: { x: 999, y: 888 }
+outer p1 after scope: { x: 999, y: 888 }

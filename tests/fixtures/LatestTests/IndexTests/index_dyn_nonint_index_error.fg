@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: ExpectedAnIntegerForIndexing
+var d = "flow"
+println(d[3.14])

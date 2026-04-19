@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,34 +18,45 @@
  */
 
 #include "ObjectExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 
-SyntaxKindUtils::SyntaxKind ObjectExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ObjectExpression;
+namespace flow_wing {
+namespace syntax {
+
+ObjectExpressionSyntax::ObjectExpressionSyntax(
+    const SyntaxToken *open_brace_token,
+    std::unique_ptr<ExpressionSyntax> colon_expression,
+    const SyntaxToken *close_brace_token)
+    : m_open_brace_token(open_brace_token),
+      m_colon_expression(std::move(colon_expression)),
+      m_close_brace_token(close_brace_token) {}
+
+NodeKind ObjectExpressionSyntax::getKind() const {
+  return NodeKind::kObjectExpression;
 }
-const std::vector<SyntaxNode *> &ObjectExpressionSyntax::getChildren() {
-  if (_children.empty()) {
 
-    _children.push_back(_openBraceToken.get());
-    _children.push_back(_closeBraceToken.get());
+void ObjectExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-    for (auto &attribute : _attributes) {
-      _children.push_back(attribute.get());
-    }
+const std::unique_ptr<ExpressionSyntax> &
+ObjectExpressionSyntax::getColonExpression() const {
+  return m_colon_expression;
+}
+
+const std::vector<const SyntaxNode *> &
+ObjectExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+
+    m_children.push_back(m_open_brace_token);
+
+    m_children.push_back(m_colon_expression.get());
+
+    m_children.push_back(m_close_brace_token);
   }
 
-  return _children;
+  return m_children;
 }
-const DiagnosticUtils::SourceLocation
-ObjectExpressionSyntax::getSourceLocation() const {
-  if (_openBraceToken)
-    return _openBraceToken->getSourceLocation();
-  if (_closeBraceToken)
-    return _closeBraceToken->getSourceLocation();
 
-  if (_attributes.size() > 0)
-    return _attributes[0]->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

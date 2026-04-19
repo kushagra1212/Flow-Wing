@@ -1,0 +1,4 @@
+var x = 5
+var y = x < 10
+print(y, "\n")
+

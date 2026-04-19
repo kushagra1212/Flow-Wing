@@ -1,0 +1,7 @@
+fun greet(name: str = "World", suffix: str = "!") -> str {
+  return "Hi " + name + suffix
+}
+
+println(greet("A"))
+println(greet("B", "?"))
+println(greet())

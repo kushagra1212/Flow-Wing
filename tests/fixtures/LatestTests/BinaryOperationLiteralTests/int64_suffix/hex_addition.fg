@@ -1,0 +1,3 @@
+print(0xFFl + 0x10l, "\n")
+/; EXPECT: 271
+

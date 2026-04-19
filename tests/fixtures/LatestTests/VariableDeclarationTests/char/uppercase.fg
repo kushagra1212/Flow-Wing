@@ -1,0 +1,3 @@
+var x:char = 'Z'
+print(x, "\n")
+

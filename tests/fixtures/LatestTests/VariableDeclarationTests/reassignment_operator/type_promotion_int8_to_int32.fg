@@ -1,0 +1,5 @@
+var x:int = 100
+var y:int8 = 50
+x <- y
+print(x, "\n")
+

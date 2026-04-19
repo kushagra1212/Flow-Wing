@@ -1,0 +1,12 @@
+class A {
+  var a: int
+  var b: int
+  init(x: int, y: int = 100) -> nthg {
+    self.a = x
+    self.b = y
+  }
+}
+
+var z: A = new A(5)
+println(z.a)
+println(z.b)

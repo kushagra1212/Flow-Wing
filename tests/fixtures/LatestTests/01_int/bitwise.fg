@@ -1,0 +1,17 @@
+print("Int Bitwise AND\n")
+print(1 & 1, "\n")
+print(1 & 2, "\n")
+print(2 & 1, "\n")
+print(2 & 2, "\n")
+
+print("Int Bitwise OR\n")
+print(1 | 1, "\n")
+print(1 | 2, "\n")
+print(2 | 1, "\n")
+print(2 | 2, "\n")
+
+print("Int Bitwise XOR\n")
+print(1 ^ 1, "\n")
+print(1 ^ 2, "\n")
+print(2 ^ 1, "\n")
+print(2 ^ 2, "\n")

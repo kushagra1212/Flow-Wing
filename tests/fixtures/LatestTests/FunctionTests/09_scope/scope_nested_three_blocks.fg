@@ -1,0 +1,18 @@
+fun f1() -> int { return 1 }
+fun f2() -> int { return 2 }
+fun f3() -> int { return 3 }
+
+var z: int = 0
+{
+  var z: int = f1()
+  {
+    var z: int = f2()
+    {
+      var z: int = f3()
+      println(z)
+    }
+    println(z)
+  }
+  println(z)
+}
+println(z)

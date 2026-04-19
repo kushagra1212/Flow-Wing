@@ -1,0 +1,5 @@
+module [m]
+
+var x: int = 42
+
+println(m::x)

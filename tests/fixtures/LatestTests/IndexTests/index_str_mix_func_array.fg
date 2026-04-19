@@ -1,0 +1,15 @@
+fun greeting() -> str {
+  return "hello"
+}
+
+var s: str = greeting()
+var a:int[3] = [1, 2, 3]
+var i:int = 1
+
+println(s[i])
+s[i] = 'a'
+println(s)
+
+println(a[i])
+a[i] = 9
+println(a)

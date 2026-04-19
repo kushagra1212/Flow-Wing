@@ -1,17 +1,27 @@
 {
 	"version": "0.2.0",
-	// List of configurations. Add new configurations or edit existing ones.
 	"configurations": [
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Launch Client",
+			"name": "Launch LSP (open src/lsp as workspace)",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
 			"autoAttachChildProcesses": true,
 			"sourceMaps": true,
-			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
+			"outFiles": ["${workspaceFolder}/client/out/**/*.js"],
 			"preLaunchTask": "npm: watch"
+		},
+		{
+			"type": "extensionHost",
+			"request": "launch",
+			"name": "Launch LSP (open Flow-Wing root as workspace)",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}/src/lsp"],
+			"autoAttachChildProcesses": true,
+			"sourceMaps": true,
+			"outFiles": ["${workspaceFolder}/src/lsp/client/out/**/*.js"],
+			"preLaunchTask": "watch-lsp"
 		}
 	]
 }

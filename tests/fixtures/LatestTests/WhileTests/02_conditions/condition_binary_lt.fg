@@ -1,0 +1,6 @@
+var i = 0
+while (i < 4) {
+  println(i)
+  i = i + 1
+}
+println("end")

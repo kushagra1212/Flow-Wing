@@ -1,0 +1,9 @@
+node1: { next: { next: { next: null, value: 3 }, value: 2 }, value: 1 }
+node1: { next: { next: null, value: 5 }, value: 1 }
+node1: { next: { next: { next: { next: null, value: 7 }, value: 6 }, value: 5 }, value: 1 }
+node5: { next: { next: { next: { next: null, value: 7 }, value: 6 }, value: 5 }, value: 1 }
+node1: { next: null, value: 1 }
+node5: { next: null, value: 1 }
+node1 == node5: true
+node5 == node6: true
+node7 == node6: false

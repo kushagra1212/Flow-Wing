@@ -17,17 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundBreakStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
-#include "BoundBreakStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundBreakStatement::BoundBreakStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location) {}
 
-BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BreakStatement;
+NodeKind BoundBreakStatement::getKind() const {
+  return NodeKind::kBreakStatement;
 }
 
-std::vector<BoundNode *> BoundBreakStatement::getChildren() {
-  return this->_children;
+void BoundBreakStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
+
+} // namespace binding
+} // namespace flow_wing

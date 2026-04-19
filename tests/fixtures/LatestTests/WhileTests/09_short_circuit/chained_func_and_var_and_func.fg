@@ -1,0 +1,18 @@
+fun limit() -> int {
+  return 2
+}
+
+fun ok() -> bool {
+  return true
+}
+
+var i = 0
+var flag = true
+while (i < limit() && flag && ok()) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    flag = false
+  }
+}
+println("done")

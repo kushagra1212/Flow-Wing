@@ -1,0 +1,2 @@
+const x:int = 100
+println(x)

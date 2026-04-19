@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,86 +19,54 @@
 
 #pragma once
 
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
-#include "src/syntax/SyntaxToken.h"
-#include <any>
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/compiler/diagnostics/DiagnosticCode.h"
 #include <cstdint>
-#include <memory>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 class SourceTokenizer;
 
-namespace FlowWing {
+namespace flow_wing {
+
+class CompilationContext;
+
+namespace diagnostic {
 class DiagnosticHandler;
+enum class DiagnosticCode : int16_t;
+struct SourceLocation;
+} // namespace diagnostic
+
+namespace syntax {
+class SyntaxToken;
 }
 
-namespace SyntaxKindUtils {
-enum SyntaxKind : int;
-}
+namespace parser {
 
 class ParserContext {
 
 public:
-  ParserContext(
-      FlowWing::DiagnosticHandler *diagnosticHandler,
-      const std::unordered_map<std::string, int8_t> &dependencyPathsMap =
-          std::unordered_map<std::string, int8_t>());
-
-  ~ParserContext();
+  ParserContext(CompilationContext &context);
 
   //? Syntax Token Methods
 
-  std::unique_ptr<SyntaxToken<std::any>>
-  match(const SyntaxKindUtils::SyntaxKind &kind);
-  SyntaxToken<std::any> *peek(const int &offset);
-  SyntaxToken<std::any> *getCurrent();
-  std::unique_ptr<SyntaxToken<std::any>> nextToken();
-  SyntaxKindUtils::SyntaxKind getKind();
-  //? Build Token List
-  void buildTokenList(SourceTokenizer *lexer);
+  const syntax::SyntaxToken *match(const lexer::TokenKind &kind);
+  const syntax::SyntaxToken *matchIf(const lexer::TokenKind &kind);
+  const syntax::SyntaxToken *peek(const int &offset);
+  lexer::TokenKind getCurrentTokenKind();
+  const syntax::SyntaxToken *getCurrent();
+  const syntax::SyntaxToken *nextToken();
+  CompilationContext &getCompilationContext();
 
-  //? Code Formatter Methods
-
-  const std::unique_ptr<CodeFormatter> &getCodeFormatterRef();
-
-  //? Parser Methods
-
-  //? Getters
-  const std::string &getCurrentModuleName();
-  FlowWing::DiagnosticHandler *getDiagnosticHandler();
-  bool getIsInsideCallExpression() const;
-  bool getIsInsideIndexExpression() const;
-  bool getIsInsideContainerExpression() const;
-  bool getIsInsideReturnStatement() const;
-  int8_t getDependencyFileCount(const std::string &path);
-  const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getTokenListRef();
-
-  //? Setters
-
-  void setCurrentModuleName(const std::string &name);
-  void setIsInsideCallExpression(const bool value);
-  void setIsInsideIndexExpression(const bool value);
-  void setIsInsideContainerExpression(const bool value);
-  void setIsInsideReturnStatement(const bool value);
-  void updateDependencyCount(const std::string &path, const int8_t count);
-  const std::unordered_map<std::string, int8_t> &getDependencyPathsMap();
+  //? Error Reporting
+  void
+  reportError(flow_wing::diagnostic::DiagnosticCode code,
+              const std::vector<flow_wing::diagnostic::DiagnosticArg> &args,
+              const flow_wing::diagnostic::SourceLocation &location);
 
 private:
-  void handleDiagnosticsForBadToken(SyntaxToken<std::any> *token);
-  void handleFormatCommentToken(SyntaxToken<std::any> *token,
-                                bool &isEncounteredEndOfLineBefore);
-
-  FlowWing::DiagnosticHandler *_diagnosticHandler = nullptr;
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _tokens = {};
-  std::unique_ptr<CodeFormatter> _codeFormatter = nullptr;
-  std::unordered_map<std::string, int8_t> _dependencyPathsMap =
-      std::unordered_map<std::string, int8_t>();
-  size_t _position = 0;
-  std::string _currentModuleName = "";
-  bool _isInsideCallExpression = false;
-  bool _isInsideIndexExpression = false;
-  bool _isInsideContainerExpression = false;
-  bool _isInsideReturnStatement = false;
+  CompilationContext &m_context;
+  size_t m_position = 0;
 };
+} // namespace parser
+
+} // namespace flow_wing

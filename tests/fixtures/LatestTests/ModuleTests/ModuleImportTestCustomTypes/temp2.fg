@@ -1,0 +1,6 @@
+
+bring local
+
+local::main2()
+print(local::x)
+  

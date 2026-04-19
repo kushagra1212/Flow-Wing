@@ -18,80 +18,94 @@
  */
 
 #include "IfStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/ElseStatementParser/ElseStatementParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/syntax/statements/ElseClauseSyntax/ElseClauseSyntax.h"
 #include "src/syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
-#include <memory>
+#include "src/syntax/statements/StatementSyntax.h"
 
-std::unique_ptr<StatementSyntax>
-IfStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<IfStatementSyntax> ifStatement =
-      std::make_unique<IfStatementSyntax>();
+namespace flow_wing {
+namespace parser {
 
-  std::unique_ptr<SyntaxToken<std::any>> keyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
-  ctx->getCodeFormatterRef()->appendWithSpace();
+IfStatementParser::IfStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  std::unique_ptr<ExpressionSyntax> condition =
-      PrecedenceAwareExpressionParser::parse(ctx);
-  ctx->getCodeFormatterRef()->appendWithSpace();
+std::unique_ptr<syntax::StatementSyntax> IfStatementParser::parse() {
 
-  std::unique_ptr<BlockStatementSyntax> statement(
-      static_cast<BlockStatementSyntax *>(
-          std::make_unique<BlockStatementParser>()
-              ->parseStatement(ctx)
-              .release()));
-  // appendNewLine();
-  ifStatement->addIfKeyword(std::move(keyword));
-  ifStatement->addCondition(std::move(condition));
-  ifStatement->addStatement(std::move(statement));
+  auto if_keyword = m_ctx->match(lexer::TokenKind::kIfKeyword); // if
 
-  while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OrKeyword) {
-    // _formattedSourceCode += INDENT;
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  auto if_condition =
+      PrecedenceAwareExpressionParser::parse(m_ctx); // condition expression
 
-    std::unique_ptr<SyntaxToken<std::any>> orKeyword =
-        ctx->match(SyntaxKindUtils::SyntaxKind::OrKeyword);
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  auto if_statement =
+      StatementParserFactory::create(*m_ctx)->parse(); // statement
 
-    std::unique_ptr<SyntaxToken<std::any>> ifKeyword =
-        ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  auto or_if_statements =
+      std::vector<std::unique_ptr<syntax::OrIfStatementSyntax>>();
 
-    std::unique_ptr<ExpressionSyntax> orIfCondition =
-        PrecedenceAwareExpressionParser::parse(ctx);
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  while (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOrKeyword) {
+    auto or_keyword = m_ctx->match(lexer::TokenKind::kOrKeyword); // or
+    auto if_keyword = m_ctx->match(lexer::TokenKind::kIfKeyword); // if
+    auto or_if_condition =
+        PrecedenceAwareExpressionParser::parse(m_ctx); // condition expression
+    auto or_if_statement =
+        StatementParserFactory::create(*m_ctx)->parse(); // statement
 
-    std::unique_ptr<BlockStatementSyntax> orIfStatement(
-        static_cast<BlockStatementSyntax *>(
-            std::make_unique<BlockStatementParser>()
-                ->parseStatement(ctx)
-                .release()));
-    // appendNewLine();
-
-    ifStatement->addOrIfStatement(std::make_unique<OrIfStatementSyntax>(
-        std::move(orKeyword), std::move(ifKeyword), std::move(orIfCondition),
-        std::move(orIfStatement)));
-  }
-  std::unique_ptr<ElseClauseSyntax> elseClause = nullptr;
-
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ElseKeyword) {
-    // _formattedSourceCode += INDENT;
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    elseClause = std::unique_ptr<ElseClauseSyntax>(
-        static_cast<ElseClauseSyntax *>(std::make_unique<ElseStatementParser>()
-                                            ->parseStatement(ctx)
-                                            .release()));
+    or_if_statements.push_back(std::make_unique<syntax::OrIfStatementSyntax>(
+        or_keyword, if_keyword, std::move(or_if_condition),
+        std::move(or_if_statement)));
   }
 
-  ifStatement->addElseClause(std::move(elseClause));
+  std::unique_ptr<syntax::ElseClauseSyntax> else_clause = nullptr;
 
-  return ifStatement;
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kElseKeyword) {
+    auto else_keyword = m_ctx->match(lexer::TokenKind::kElseKeyword); // else
+    auto else_statement =
+        StatementParserFactory::create(*m_ctx)->parse(); // statement
+
+    else_clause = std::make_unique<syntax::ElseClauseSyntax>(
+        else_keyword, std::move(else_statement)); // else statement
+  }
+
+  return std::make_unique<syntax::IfStatementSyntax>(
+      if_keyword, std::move(if_condition), std::move(if_statement),
+      std::move(or_if_statements), std::move(else_clause));
+
+  /*
+  if (condition) {
+    statement;
+  } or if (condition) {
+    statement;
+  } else {
+    statement;
+  }
+
+  if (condition) {
+    statement;
+  } or if (condition) {
+    statement;
+  }
+
+  if (condition) {
+    statement;
+  } else {
+    statement;
+  }
+
+  if (condition) {
+    statement;
+  } or if (condition) {
+    statement;
+  } or if (condition) {
+    statement;
+  } else {
+    statement;
+  }
+
+  if condition
+  statement;
+  */
 }
+} // namespace parser
+} // namespace flow_wing

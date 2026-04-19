@@ -18,7 +18,8 @@
     "vscode": "^1.52.0"
   },
   "activationEvents": [
-    "onLanguage:flowwing"
+    "onLanguage:flowwing",
+    "onStartupFinished"
   ],
   "main": "./client/out/extension",
   "contributes": {
@@ -43,6 +44,13 @@
         "language": "flowwing",
         "scopeName": "source.fg",
         "path": "client/src/syntaxes/fg.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Flow-Wing Dark",
+        "uiTheme": "vs-dark",
+        "path": "client/src/themes/flowwing-dark.json"
       }
     ],
     "configuration": {
@@ -81,14 +89,14 @@
         "FlowWing.compilerPath": {
           "scope": "resource",
           "type": "string",
-          "default": "flowwing",
-          "description": "Path to the Flow-Wing compiler executable."
+          "default": "FlowWing",
+          "description": "Path to the Flow-Wing compiler executable (e.g. FlowWing if in PATH, or absolute path like ./build/sdk/bin/FlowWing)."
         },
         "FlowWing.modulePath": {
           "scope": "resource",
           "type": "string",
-          "default": "flowwing",
-          "description": "Path to the Flow-Wing modules"
+          "default": "",
+          "description": "Path to the Flow-Wing modules (e.g. build/sdk/lib/modules). Leave empty to use workspace build output."
         }
       }
     }
@@ -98,6 +106,8 @@
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "test": "npm run compile && cd server && npm test",
+    "test:debug": "npm run compile && cd server && npm run test:debug",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {

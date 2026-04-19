@@ -1,0 +1,17 @@
+type P = {
+    x: int
+}
+
+type T = {
+    z: P
+    l: deci
+    y: int
+}
+
+var j: T
+
+j.z = {
+    x: 20
+}
+
+print("j: ", j, "\n")

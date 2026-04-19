@@ -1,0 +1,7 @@
+var arr: int[3] = [5, 3, 1]
+var i: int = 0
+while (i < 3 && arr[i] > 0) {
+  println(arr[i])
+  i = i + 1
+}
+println("end")

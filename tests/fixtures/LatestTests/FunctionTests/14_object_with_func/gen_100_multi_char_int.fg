@@ -1,0 +1,8 @@
+type O1_char_m = { v: char }
+type O2_int_m = { v: int }
+fun get_m_char_int() -> O1_char_m[2], O2_int_m[2] {
+  return [{v: 'A'}, {v: 'A'}], [{v: 20}, {v: 20}]
+}
+var r1_char_int: O1_char_m[2], r2_char_int: O2_int_m[2] = get_m_char_int()
+println(r1_char_int[1].v)
+println(r2_char_int[0].v)

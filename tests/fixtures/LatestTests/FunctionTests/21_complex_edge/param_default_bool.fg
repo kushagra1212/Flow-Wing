@@ -1,0 +1,6 @@
+fun flag(on: bool = true) -> bool {
+  return on
+}
+
+println(flag())
+println(flag(false))

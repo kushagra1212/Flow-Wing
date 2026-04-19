@@ -1,0 +1,10 @@
+fun id(n: int) -> int {
+  return n
+}
+
+var t: int = 33
+println(t)
+{
+}
+println(t)
+println(id(t))

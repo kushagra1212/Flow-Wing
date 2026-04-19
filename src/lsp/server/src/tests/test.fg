@@ -1,0 +1,2 @@
+fun funName(a:int, b:deci) -> int { return 2 }
+var x: int = funName(3, 5)

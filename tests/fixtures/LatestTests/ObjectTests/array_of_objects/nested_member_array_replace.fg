@@ -1,0 +1,16 @@
+type T = {
+  a:int 
+  b:deci32,
+  c:[3] 
+}
+var j:[3] = ["Hello", 2, 3]
+
+var st:T = {
+  a: 5,
+  b: 12.5f,
+  c:j
+}
+
+println(st)
+st.c = [1,2,3]
+println(st)

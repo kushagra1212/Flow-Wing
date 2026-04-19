@@ -1,0 +1,6 @@
+Class A
+Class A and true
+Class A or true
+Class A == A
+Class A != B
+Class A == ARef

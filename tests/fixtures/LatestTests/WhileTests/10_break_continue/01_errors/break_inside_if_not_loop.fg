@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: BreakStatementNotAllowedOutsideOfLoop
+var n = 0
+if (n < 5) {
+  println(n)
+  break
+}
+println("end")

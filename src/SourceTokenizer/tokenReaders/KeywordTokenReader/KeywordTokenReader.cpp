@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,58 @@
 
 #include "KeywordTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/SourceTokenizer/tokenReaders/TokenReaderData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+static const std::unordered_map<std::string, lexer::TokenKind> kKeywords = {
+    {"true", lexer::TokenKind::kTrueKeyword},
+    {"false", lexer::TokenKind::kFalseKeyword},
+    {"var", lexer::TokenKind::kVarKeyword},
+    {"if", lexer::TokenKind::kIfKeyword},
+    {"or", lexer::TokenKind::kOrKeyword},
+    {"else", lexer::TokenKind::kElseKeyword},
+    {"while", lexer::TokenKind::kWhileKeyword},
+    {"for", lexer::TokenKind::kForKeyword},
+    {"fun", lexer::TokenKind::kFunctionKeyword},
+    {"to", lexer::TokenKind::kToKeyword},
+    {"continue", lexer::TokenKind::kContinueKeyword},
+    {"break", lexer::TokenKind::kBreakKeyword},
+    {"return", lexer::TokenKind::kReturnKeyword},
+    {"const", lexer::TokenKind::kConstKeyword},
+    {"nthg", lexer::TokenKind::kNthgKeyword},
+    {"int", lexer::TokenKind::kInt32Keyword},
+    {"int8", lexer::TokenKind::kInt8Keyword},
+    {"char", lexer::TokenKind::kCharKeyword},
+    {"int64", lexer::TokenKind::kInt64Keyword},
+    {"bool", lexer::TokenKind::kBoolKeyword},
+    {"str", lexer::TokenKind::kStrKeyword},
+    {"deci", lexer::TokenKind::kDeciKeyword},
+    {"deci32", lexer::TokenKind::kDeci32Keyword},
+    {"null", lexer::TokenKind::kNirastKeyword},
+    {"bring", lexer::TokenKind::kBringKeyword},
+    {"super", lexer::TokenKind::kSuperKeyword},
+    {"expose", lexer::TokenKind::kExposeKeyword},
+    {"from", lexer::TokenKind::kFromKeyword},
+    {"fill", lexer::TokenKind::kFillKeyword},
+    {"type", lexer::TokenKind::kTypeKeyword},
+    {"decl", lexer::TokenKind::kDeclKeyword},
+    {"new", lexer::TokenKind::kNewKeyword},
+    {"class", lexer::TokenKind::kClassKeyword},
+    {"inout", lexer::TokenKind::kInOutKeyword},
+    {"extends", lexer::TokenKind::kExtendsKeyword},
+    {"as", lexer::TokenKind::kAsKeyword},
+    {"module", lexer::TokenKind::kModuleKeyword},
+    {"switch", lexer::TokenKind::kSwitchKeyword},
+    {"case", lexer::TokenKind::kCaseKeyword},
+    {"default", lexer::TokenKind::kDefaultKeyword},
+    {"dyn", lexer::TokenKind::kDynKeyword},
+    // Reserved Keywords
+    {"unknown", lexer::TokenKind::kReservedUnknownKeyword},
+};
+
+std::unique_ptr<syntax::SyntaxToken>
 KeywordTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
 
@@ -36,29 +82,40 @@ KeywordTokenReader::readToken(SourceTokenizer &lexer) {
   const std::string &text =
       lexer.getLine(lexer.lineNumber()).substr(start, length);
 
-  for (const auto &keyword : __gl_FLOW_WING_KEYWORDS) {
+  const lexer::TokenKind &keywordKind = getKeywordKind(text);
 
-    if (text == keyword._tokenName) {
+  switch (keywordKind) {
 
-      if (keyword._tokenType == SyntaxKindUtils::SyntaxKind::TrueKeyword) {
-        return std::make_unique<SyntaxToken<std::any>>(
-            lexer.diagnosticHandler()->getAbsoluteFilePath(),
-            lexer.lineNumber(), keyword._tokenType, start, text, true);
-      }
+  case lexer::TokenKind::kTrueKeyword:
+    return std::make_unique<syntax::SyntaxToken>(
+        keywordKind, text, true,
+        diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
 
-      if (keyword._tokenType == SyntaxKindUtils::SyntaxKind::FalseKeyword) {
-        return std::make_unique<SyntaxToken<std::any>>(
-            lexer.diagnosticHandler()->getAbsoluteFilePath(),
-            lexer.lineNumber(), keyword._tokenType, start, text, false);
-      }
+  case lexer::TokenKind::kFalseKeyword:
+    return std::make_unique<syntax::SyntaxToken>(
+        keywordKind, text, false,
+        diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
 
-      return std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          keyword._tokenType, start, text, text);
-    }
+  case lexer::TokenKind::kIdentifierToken:
+    return std::make_unique<syntax::SyntaxToken>(
+        lexer::TokenKind::kIdentifierToken, text, text,
+        diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
+
+  default:
+    return std::make_unique<syntax::SyntaxToken>(
+        keywordKind, text, text,
+        diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
   }
-
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::IdentifierToken, start, text, text);
 }
+
+lexer::TokenKind
+KeywordTokenReader::getKeywordKind(const std::string &text) const {
+  auto it = kKeywords.find(text);
+  if (it != kKeywords.end()) {
+    return it->second;
+  }
+  return lexer::TokenKind::kIdentifierToken;
+}
+
+} // namespace lexer
+} // namespace flow_wing

@@ -1,0 +1,28 @@
+type Point = {
+  x: int
+  y: int
+}
+
+type Rectangle = {
+  topLeft: Point
+  bottomRight: Point
+}
+
+fun getShape() -> Rectangle {
+  return {
+    topLeft: { x: 0, y: 0 },
+    bottomRight: { x: 100, y: 100 }
+  }
+}
+
+if (getShape().topLeft.x == 0) {
+  println("topleft_x_0")
+} else {
+  println("topleft_x_ne_0")
+}
+
+if (getShape().bottomRight.y > 50) {
+  println("bottomright_y_gt_50")
+} else {
+  println("bottomright_y_le_50")
+}

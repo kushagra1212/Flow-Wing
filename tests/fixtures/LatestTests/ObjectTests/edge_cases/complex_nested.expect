@@ -1,0 +1,1 @@
+{ name: "MyShape", rect: { bottomRight: { x: 100, y: 100 }, topLeft: { x: 0, y: 0 } } }

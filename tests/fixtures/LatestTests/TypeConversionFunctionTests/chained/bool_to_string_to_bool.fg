@@ -1,0 +1,3 @@
+print(Bool(String(true)), "\n")
+print(Bool(String(false)), "\n")
+

@@ -1,0 +1,17 @@
+var a = 0
+while (a < 2) {
+  var b = 0
+  while (b < 2) {
+    var c = 0
+    while (c < 3) {
+      println(c)
+      c = c + 1
+      if (c >= 2) {
+        break
+      }
+    }
+    b = b + 1
+  }
+  a = a + 1
+}
+println("done")

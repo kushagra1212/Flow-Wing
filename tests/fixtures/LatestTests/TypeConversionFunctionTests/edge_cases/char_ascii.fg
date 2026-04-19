@@ -1,0 +1,9 @@
+print(Int32('A'), "\n")
+print(Int32('Z'), "\n")
+print(Int32('a'), "\n")
+print(Int32('z'), "\n")
+print(Int32('0'), "\n")
+print(Int32('9'), "\n")
+print(Int32(' '), "\n")
+print(Int32('\n'), "\n")
+

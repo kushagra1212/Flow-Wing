@@ -17,40 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBlockStatement.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+
+namespace flow_wing {
+namespace binding {
+
 BoundBlockStatement::BoundBlockStatement(
-    const DiagnosticUtils::SourceLocation &location, bool global)
-    : BoundSourceLocation(location) {
-  this->_global = global;
-}
-BoundBlockStatement::BoundBlockStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {
-  BoundBlockStatement(location, false);
+    std::vector<std::unique_ptr<BoundStatement>> statements,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_statements(std::move(statements)) {}
+
+NodeKind BoundBlockStatement::getKind() const {
+  return NodeKind::kBlockStatement;
 }
 
-std::vector<std::unique_ptr<BoundStatement>> &
-BoundBlockStatement::getStatements() {
-  return _statements;
+void BoundBlockStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-void BoundBlockStatement::addStatement(
-    std::unique_ptr<BoundStatement> statement) {
-  this->_statements.push_back(std::move(statement));
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundBlockStatement::getStatements() const {
+  return m_statements;
 }
 
-bool BoundBlockStatement::getGlobal() const { return this->_global; }
-
-BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BlockStatement;
-}
-
-std::vector<BoundNode *> BoundBlockStatement::getChildren() {
-  if (this->_children.size() == 0) {
-    for (const auto &st : this->_statements) {
-      this->_children.push_back((BoundNode *)(st.get()));
-    }
-  }
-  return this->_children;
-}
+} // namespace binding
+} // namespace flow_wing

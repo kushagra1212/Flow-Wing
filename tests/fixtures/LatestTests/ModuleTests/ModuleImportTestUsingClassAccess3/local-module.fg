@@ -1,0 +1,21 @@
+
+module [local]
+
+
+var x:int
+
+
+class A {
+
+type T ={
+    a:int 
+  }
+  var x:T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+  

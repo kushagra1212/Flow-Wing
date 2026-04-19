@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+fun printA() {
+  println("A")
+}
+fun printB() {
+  println("B")
+}
+fun takeInt(x: int) {
+  println(x)
+}
+
+var a = 'A'
+takeInt((a == 'B') ? printA() : printB())

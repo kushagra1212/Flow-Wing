@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,57 +20,37 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include <any>
+#include <vector>
 #include <memory>
+namespace flow_wing {
+namespace binding {
 
 class BoundIndexExpression : public BoundExpression {
-private:
-  std::unique_ptr<BoundLiteralExpression<std::any>> _boundIdentifierExpression;
-  std::vector<std::unique_ptr<BoundExpression>> _boundIndexExpressions;
-  std::unique_ptr<BoundExpression> _variableExpression;
-  bool _isObject = false;
-  bool _isSelf = false;
 
 public:
-  BoundIndexExpression(const DiagnosticUtils::SourceLocation &location,
-                       std::unique_ptr<BoundLiteralExpression<std::any>>
-                           boundIdentifierExpression);
+  BoundIndexExpression(std::unique_ptr<BoundExpression> left_expression,
+                       std::shared_ptr<types::Type> type,
+                       std::vector<std::unique_ptr<BoundExpression>>
+                           dimension_clause_expressions,
+                       const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundIndexExpression() = default;
+
+  // Overrides
+  NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
   // Getters
-  const std::type_info &getType() override;
-  BinderKindUtils::BoundNodeKind getKind() const override;
-  std::vector<BoundNode *> getChildren() override;
+  std::shared_ptr<types::Type> getType() const override;
 
-  std::unique_ptr<BoundLiteralExpression<std::any>> &
-  getBoundIdentifierExpression();
+  // Getters
+  const std::vector<std::unique_ptr<BoundExpression>> &
+  getDimensionClauseExpressions() const;
+  const std::unique_ptr<BoundExpression> &getLeftExpression() const;
 
-  inline const std::vector<std::unique_ptr<BoundExpression>> &
-  getBoundIndexExpressions() const {
-    return this->_boundIndexExpressions;
-  }
-
-  inline auto getVariableExpression() const
-      -> const std::unique_ptr<BoundExpression> & {
-    return _variableExpression;
-  }
-
-  inline auto isObject() const -> bool { return _isObject; }
-  inline auto isSelf() const -> bool { return _isSelf; }
-
-  // Setters
-
-  inline void addBoundIndexExpression(
-      std::unique_ptr<BoundExpression> boundIndexExpression) {
-    this->_boundIndexExpressions.push_back(std::move(boundIndexExpression));
-  }
-
-  inline auto
-  addVariableExpression(std::unique_ptr<BoundExpression> variableExpression)
-      -> void {
-    _isObject = true;
-    _variableExpression = std::move(variableExpression);
-  }
-
-  inline void setIsSelf(bool isSelf) { _isSelf = isSelf; }
+private:
+  std::unique_ptr<BoundExpression> m_left_expression;
+  std::shared_ptr<types::Type> m_type;
+  std::vector<std::unique_ptr<BoundExpression>> m_dimension_clause_expressions;
 };
+} // namespace binding
+} // namespace flow_wing

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,68 +19,43 @@
 
 #pragma once
 
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-class ModuleStatementSyntax : public StatementSyntax {
-  std::unique_ptr<SyntaxToken<std::any>> _moduleKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> _openBracketToken;
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _moduleName;
-  std::unique_ptr<SyntaxToken<std::any>> _closeBracketToken;
+#include <memory>
+namespace flow_wing {
+namespace syntax {
 
-  std::vector<std::unique_ptr<SyntaxNode>> _statements;
+class SyntaxToken;
+
+class ModuleStatementSyntax : public StatementSyntax {
 
 public:
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  ModuleStatementSyntax(
+      const SyntaxToken *module_keyword_token,
+      const SyntaxToken *open_bracket_token,
+      std::unique_ptr<ExpressionSyntax> module_name_identifier_expression,
+      const SyntaxToken *close_bracket_token,
+      std::vector<std::unique_ptr<StatementSyntax>> module_statements,
+      const SyntaxToken *end_of_file_token);
 
-  inline auto
-  addModuleKeyword(std::unique_ptr<SyntaxToken<std::any>> moduleKeyword)
-      -> void {
-    this->_moduleKeyword = std::move(moduleKeyword);
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getModuleNameExpression() const;
+  const std::vector<std::unique_ptr<StatementSyntax>> &
+  getModuleMemberStatements() const;
 
-  inline auto
-  addOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracketToken)
-      -> void {
-    this->_openBracketToken = std::move(openBracketToken);
-  }
+private:
+  const SyntaxToken *m_module_keyword_token;
+  const SyntaxToken *m_open_bracket_token;
+  std::unique_ptr<ExpressionSyntax> m_module_name_identifier_expression;
+  const SyntaxToken *m_close_bracket_token;
+  std::vector<std::unique_ptr<StatementSyntax>> m_module_statements;
+  const SyntaxToken *m_end_of_file_token;
 
-  inline auto
-  addModuleName(std::unique_ptr<LiteralExpressionSyntax<std::any>> moduleName)
-      -> void {
-    this->_moduleName = std::move(moduleName);
-  }
-
-  inline auto
-  addCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracketToken)
-      -> void {
-    this->_closeBracketToken = std::move(closeBracketToken);
-  }
-
-  inline auto addStatement(std::unique_ptr<SyntaxNode> statement) -> void {
-    _statements.push_back(std::move(statement));
-  }
-
-  const inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
-    return _moduleKeyword;
-  }
-
-  inline std::unique_ptr<SyntaxToken<std::any>> &getOpenBracketTokenRef() {
-    return _openBracketToken;
-  }
-
-  inline std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-  getModuleNameRef() {
-    return _moduleName;
-  }
-
-  std::unique_ptr<SyntaxToken<std::any>> &getCloseBracketTokenRef() {
-    return _closeBracketToken;
-  }
-
-  inline auto getStatementsRef()
-      -> const std::vector<std::unique_ptr<SyntaxNode>> & {
-    return _statements;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

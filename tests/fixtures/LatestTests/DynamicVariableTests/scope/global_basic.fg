@@ -1,0 +1,7 @@
+var x = 10
+print(x, "\n")
+{
+  print(x, "\n")
+}
+print(x, "\n")
+

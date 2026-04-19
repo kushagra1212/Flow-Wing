@@ -18,73 +18,135 @@
  */
 
 #include "FunctionTypeExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+
+namespace flow_wing {
+namespace syntax {
 
 FunctionTypeExpressionSyntax::FunctionTypeExpressionSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> type)
-    : TypeExpressionSyntax(std::move(type)) {}
+    const SyntaxToken *open_bracket_token,
+    const SyntaxToken *open_parenthesis_token,
+    std::unordered_map<size_t, const syntax::SyntaxToken *>
+        as_parameter_keywords_table,
+    std::unordered_map<size_t, const syntax::SyntaxToken *> const_keyword_table,
+    std::unordered_map<size_t, const syntax::SyntaxToken *> inout_keyword_table,
+    std::vector<std::unique_ptr<syntax::ExpressionSyntax>> parameter_types,
+    std::vector<const syntax::SyntaxToken *> parameter_comma_tokens,
+    const syntax::SyntaxToken *close_parenthesis_token,
+    const syntax::SyntaxToken *right_arrow_token,
+    const syntax::SyntaxToken *as_return_keyword,
+    std::vector<std::unique_ptr<syntax::ExpressionSyntax>> return_types,
+    const syntax::SyntaxToken *close_bracket_token)
+    : m_open_bracket_token(open_bracket_token),
+      m_open_parenthesis_token(open_parenthesis_token),
+      m_as_parameter_keywords_table(std::move(as_parameter_keywords_table)),
+      m_constant_keyword_table(std::move(const_keyword_table)),
+      m_inout_keyword_table(std::move(inout_keyword_table)),
+      m_parameter_types(std::move(parameter_types)),
+      m_parameter_comma_tokens(std::move(parameter_comma_tokens)),
+      m_close_parenthesis_token(close_parenthesis_token),
+      m_right_arrow_token(right_arrow_token),
+      m_as_return_keyword(as_return_keyword),
+      m_return_types(std::move(return_types)),
+      m_close_bracket_token(close_bracket_token) {}
 
-SyntaxKindUtils::SyntaxKind FunctionTypeExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::FunctionTypeExpression;
+NodeKind FunctionTypeExpressionSyntax::getKind() const {
+  return NodeKind::kFunctionTypeExpression;
 }
 
-const std::vector<SyntaxNode *> &FunctionTypeExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
-
-  if (this->_openBracketToken)
-    _children.emplace_back(_openBracketToken.get());
-
-  if (this->_openParenthesisToken)
-    _children.emplace_back(_openParenthesisToken.get());
-
-  for (auto &parameterType : _parameterTypes)
-    _children.emplace_back(parameterType.get());
-
-  for (auto &asType : _asParametersKeywords) {
-    _children.emplace_back(asType.second.get());
-  }
-
-  if (this->_closeParenthesisToken)
-    _children.emplace_back(_closeParenthesisToken.get());
-
-  if (this->_asKeyword)
-    _children.emplace_back(_asKeyword.get());
-
-  for (auto &returnType : _returnTypes) {
-    _children.push_back(returnType.get());
-  }
-
-  if (this->_closeBracketToken)
-    _children.emplace_back(_closeBracketToken.get());
-
-  return _children;
+void FunctionTypeExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const DiagnosticUtils::SourceLocation
-FunctionTypeExpressionSyntax::getSourceLocation() const {
-
-  if (_openParenthesisToken)
-    return _openParenthesisToken->getSourceLocation();
-
-  for (auto &parameterType : _parameterTypes) {
-    if (parameterType)
-      return parameterType->getSourceLocation();
-  }
-  if (_asParametersKeywords.size() > 0) {
-    return _asParametersKeywords[0].second->getSourceLocation();
-  }
-
-  if (_closeParenthesisToken)
-    return _closeParenthesisToken->getSourceLocation();
-
-  if (_asKeyword)
-    return _asKeyword->getSourceLocation();
-
-  if (_returnTypes.size() > 0) {
-    return _returnTypes[0]->getSourceLocation();
-  }
-
-  return DiagnosticUtils::SourceLocation();
+const std::vector<std::unique_ptr<syntax::ExpressionSyntax>> &
+FunctionTypeExpressionSyntax::getParameterTypes() const {
+  return m_parameter_types;
 }
+
+const std::vector<std::unique_ptr<syntax::ExpressionSyntax>> &
+FunctionTypeExpressionSyntax::getReturnTypes() const {
+  return m_return_types;
+}
+
+const syntax::SyntaxToken *
+FunctionTypeExpressionSyntax::getAsReturnTypeKeyword() const {
+  return m_as_return_keyword;
+}
+
+const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+FunctionTypeExpressionSyntax::getAsParameterKeywordsTable() const {
+  return m_as_parameter_keywords_table;
+}
+
+const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+FunctionTypeExpressionSyntax::getConstantKeywordTable() const {
+  return m_constant_keyword_table;
+}
+
+const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+FunctionTypeExpressionSyntax::getInoutKeywordTable() const {
+  return m_inout_keyword_table;
+}
+
+bool FunctionTypeExpressionSyntax::hasAsReturnType() const {
+  return m_as_return_keyword != nullptr;
+}
+
+const std::vector<const SyntaxNode *> &
+FunctionTypeExpressionSyntax::getChildren() const {
+
+  if (m_children.empty()) {
+
+    for (const auto *node : {
+             static_cast<const SyntaxNode *>(m_open_bracket_token),
+             static_cast<const SyntaxNode *>(m_open_parenthesis_token),
+         }) {
+      if (node)
+        m_children.emplace_back(node);
+    }
+
+    size_t parameter_count = 0;
+    for (auto &parameterType : m_parameter_types) {
+      if (m_constant_keyword_table.count(parameter_count) > 0) {
+        m_children.emplace_back(m_constant_keyword_table.at(parameter_count));
+      }
+
+      if (m_inout_keyword_table.count(parameter_count) > 0) {
+        m_children.emplace_back(m_inout_keyword_table.at(parameter_count));
+      }
+
+      if (m_as_parameter_keywords_table.count(parameter_count) > 0) {
+        m_children.emplace_back(
+            m_as_parameter_keywords_table.at(parameter_count));
+      }
+      parameter_count++;
+      m_children.emplace_back(parameterType.get());
+    }
+
+    for (auto &parameterCommaToken : m_parameter_comma_tokens) {
+      if (parameterCommaToken)
+        m_children.emplace_back(parameterCommaToken);
+    }
+
+    for (const auto *node : {
+             static_cast<const SyntaxNode *>(m_close_parenthesis_token),
+             static_cast<const SyntaxNode *>(m_right_arrow_token),
+             static_cast<const SyntaxNode *>(m_as_return_keyword),
+         }) {
+      if (node)
+        m_children.emplace_back(node);
+    }
+
+    for (auto &returnType : m_return_types) {
+      m_children.push_back(returnType.get());
+    }
+
+    if (m_close_bracket_token)
+      m_children.emplace_back(m_close_bracket_token);
+  }
+
+  return m_children;
+}
+
+} // namespace syntax
+} // namespace flow_wing

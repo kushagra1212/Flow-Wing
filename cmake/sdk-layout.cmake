@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,8 +31,15 @@
 # - Define the custom library targets to be installed ---
 set(SDK_LIBRARY_TARGETS
     built_in_module
-    flowwing_string
-
+    dynamic
+    flowwing_map
+    flowwing_vec
+    flowwing_text
+    flowwing_file
+    flowwing_io
+    flowwing_vortex
+    flowwing_raylib
+    
     # Add other custom library target names here as you create them
     CACHE INTERNAL "List of custom library targets to include in the SDK."
 )

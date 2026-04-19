@@ -19,65 +19,93 @@
 
 #include "SymbolTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/SourceTokenizer/tokenReaders/TokenReaderData.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+static const std::unordered_map<std::string, lexer::TokenKind> kSymbols = {
+    {"+", lexer::TokenKind::kPlusToken},
+    {"-", lexer::TokenKind::kMinusToken},
+    {"*", lexer::TokenKind::kStarToken},
+    {";", lexer::TokenKind::kSemicolonToken},
+    {",", lexer::TokenKind::kCommaToken},
+    {"{", lexer::TokenKind::kOpenBraceToken},
+    {"}", lexer::TokenKind::kCloseBraceToken},
+    {"[", lexer::TokenKind::kOpenBracketToken},
+    {"]", lexer::TokenKind::kCloseBracketToken},
+    {"#", lexer::TokenKind::kHashToken},
+    {"(", lexer::TokenKind::kOpenParenthesisToken},
+    {")", lexer::TokenKind::kCloseParenthesisToken},
+    {"^", lexer::TokenKind::kCaretToken},
+    {"%", lexer::TokenKind::kPercentToken},
+    {"~", lexer::TokenKind::kTildeToken},
+    {":", lexer::TokenKind::kColonToken},
+    {"::", lexer::TokenKind::kColonColonToken},
+    {".", lexer::TokenKind::kDotToken},
+    {"&", lexer::TokenKind::kAmpersandToken},
+    {"&&", lexer::TokenKind::kAmpersandAmpersandToken},
+    {"//", lexer::TokenKind::kSlashSlashToken},
+    {"/", lexer::TokenKind::kSlashToken},
+    {"||", lexer::TokenKind::kPipePipeToken},
+    {"|", lexer::TokenKind::kPipeToken},
+    {"=", lexer::TokenKind::kEqualsToken},
+    {"==", lexer::TokenKind::kEqualsEqualsToken},
+    {"!", lexer::TokenKind::kBangToken},
+    {"!=", lexer::TokenKind::kBangEqualsToken},
+    {"<", lexer::TokenKind::kLessToken},
+    {"<-", lexer::TokenKind::kLeftArrowToken},
+    {"->", lexer::TokenKind::kRightArrowToken},
+    {"<=", lexer::TokenKind::kLessOrEqualsToken},
+    {">", lexer::TokenKind::kGreaterToken},
+    {">=", lexer::TokenKind::kGreaterOrEqualsToken},
+    {"?", lexer::TokenKind::kQuestionToken}};
+
+std::unique_ptr<syntax::SyntaxToken>
 SymbolTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t start = lexer.position();
 
-  const std::string singleCharSymbol(1, lexer.currentChar());
-  const std::string &twoCharSymbol = singleCharSymbol + lexer.peek(1);
+  const std::string single_char_symbol(1, lexer.currentChar());
+  lexer.advancePosition();
+  const std::string &two_char_symbol = single_char_symbol + lexer.currentChar();
 
-  for (size_t i = 0; i < __gl_FLOW_WING_SYMBOLS_SIZE; ++i) {
-    const auto &symbol = __gl_FLOW_WING_SYMBOLS[i];
+  auto token = kSymbols.find(two_char_symbol);
 
-    if (twoCharSymbol == symbol._tokenName) {
-      lexer.advancePosition();
-      lexer.advancePosition();
-      return std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          symbol._tokenType, start, symbol._tokenName, nullptr);
-    }
-  }
-  for (size_t i = 0; i < __gl_FLOW_WING_SYMBOLS_SIZE; ++i) {
-    const auto &symbol = __gl_FLOW_WING_SYMBOLS[i];
-
-    if (singleCharSymbol == symbol._tokenName) {
-      lexer.advancePosition();
-      return std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          symbol._tokenType, start, symbol._tokenName, nullptr);
-    }
+  if (token != kSymbols.end()) {
+    lexer.advancePosition();
+    return std::make_unique<syntax::SyntaxToken>(
+        token->second, two_char_symbol, std::any(),
+        diagnostic::SourceLocation(lexer.lineNumber(), start,
+                                   two_char_symbol.size()));
   }
 
-  return badCharacterToken(lexer, start);
+  token = kSymbols.find(single_char_symbol);
+
+  if (token != kSymbols.end()) {
+    return std::make_unique<syntax::SyntaxToken>(
+        token->second, single_char_symbol, std::any(),
+        diagnostic::SourceLocation(lexer.lineNumber(), start,
+                                   single_char_symbol.size()));
+  }
+
+  return badCharacterToken(lexer, single_char_symbol, start);
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
+std::unique_ptr<syntax::SyntaxToken>
 SymbolTokenReader::badCharacterToken(SourceTokenizer &lexer,
+                                     const std::string &single_char_symbol,
                                      const size_t &start) {
-  const size_t &len = lexer.getLine(lexer.lineNumber()).length() - start;
 
-  const std::string &str = lexer.getLine(lexer.lineNumber()).substr(start, len);
+  std::unique_ptr<syntax::SyntaxToken> badSyntaxToken =
+      std::make_unique<syntax::SyntaxToken>(
+          lexer::TokenKind::kBadToken, single_char_symbol, std::any(),
+          diagnostic::SourceLocation(lexer.lineNumber(), start,
+                                     single_char_symbol.size()));
 
-  lexer.advancePosition();
-
-  std::unique_ptr<SyntaxToken<std::any>> badSyntaxToken =
-      std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::BadToken, start, str, nullptr);
-
-  lexer.diagnosticHandler()->addDiagnostic(
-      Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Lexical, {str},
-                 Utils::getSourceLocation(badSyntaxToken.get()),
-                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterInput));
+  lexer.reportError(flow_wing::diagnostic::DiagnosticCode::kBadCharacterInput,
+                    {single_char_symbol}, badSyntaxToken->getSourceLocation());
 
   return badSyntaxToken;
 }
+} // namespace lexer
+} // namespace flow_wing

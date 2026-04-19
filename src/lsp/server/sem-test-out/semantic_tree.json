@@ -1,0 +1,434 @@
+{
+  "generatedAt": 1773487461886473,
+  "sem": {
+    "symbols": {
+      "0x2": {
+        "kind": "Object",
+        "name": "AllTypes",
+        "type_id": "0x1"
+      },
+      "0x3": {
+        "isConst": false,
+        "kind": "Variable",
+        "name": "x",
+        "type_id": "0x1"
+      },
+      "0xF": {
+        "is_declaration": true,
+        "kind": "Function",
+        "name": "print",
+        "type_id": "0xE"
+      }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "range": {
+        "end": [
+          24,
+          1
+        ],
+        "start": [
+          0,
+          0
+        ]
+      },
+      "statements": [
+        {
+          "kind": "CustomTypeStatement",
+          "range": {
+            "end": [
+              9,
+              1
+            ],
+            "start": [
+              0,
+              0
+            ]
+          },
+          "symbol_ids": [
+            "0x2"
+          ]
+        },
+        {
+          "initializer_expressions": [
+            {
+              "kind": "ObjectExpression",
+              "members": [
+                {
+                  "field_name": "_string_name",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      12,
+                      24
+                    ],
+                    "start": [
+                      12,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "StringLiteralExpression",
+                    "range": {
+                      "end": [
+                        12,
+                        24
+                      ],
+                      "start": [
+                        12,
+                        18
+                      ]
+                    },
+                    "type_id": "0x4",
+                    "value": "Test"
+                  }
+                },
+                {
+                  "field_name": "_int_age",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      13,
+                      16
+                    ],
+                    "start": [
+                      13,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "NumberLiteralExpression",
+                    "range": {
+                      "end": [
+                        13,
+                        16
+                      ],
+                      "start": [
+                        13,
+                        14
+                      ]
+                    },
+                    "type_id": "0x5",
+                    "value": 20
+                  }
+                },
+                {
+                  "field_name": "_int64",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      14,
+                      25
+                    ],
+                    "start": [
+                      14,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "NumberLiteralExpression",
+                    "range": {
+                      "end": [
+                        14,
+                        25
+                      ],
+                      "start": [
+                        14,
+                        12
+                      ]
+                    },
+                    "type_id": "0x6",
+                    "value": 1000000000000
+                  }
+                },
+                {
+                  "field_name": "_int8",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      15,
+                      14
+                    ],
+                    "start": [
+                      15,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "NumberLiteralExpression",
+                    "range": {
+                      "end": [
+                        15,
+                        14
+                      ],
+                      "start": [
+                        15,
+                        11
+                      ]
+                    },
+                    "type_id": "0x5",
+                    "value": 127
+                  }
+                },
+                {
+                  "field_name": "_char",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      16,
+                      14
+                    ],
+                    "start": [
+                      16,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "CharacterLiteralExpression",
+                    "range": {
+                      "end": [
+                        16,
+                        14
+                      ],
+                      "start": [
+                        16,
+                        11
+                      ]
+                    },
+                    "type_id": "0x7",
+                    "value": 65
+                  }
+                },
+                {
+                  "field_name": "_bool",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      17,
+                      15
+                    ],
+                    "start": [
+                      17,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "BooleanLiteralExpression",
+                    "range": {
+                      "end": [
+                        17,
+                        15
+                      ],
+                      "start": [
+                        17,
+                        11
+                      ]
+                    },
+                    "type_id": "0x8",
+                    "value": true
+                  }
+                },
+                {
+                  "field_name": "_deci_age",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      18,
+                      19
+                    ],
+                    "start": [
+                      18,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "DoubleLiteralExpression",
+                    "range": {
+                      "end": [
+                        18,
+                        19
+                      ],
+                      "start": [
+                        18,
+                        15
+                      ]
+                    },
+                    "type_id": "0x9",
+                    "value": 3.14
+                  }
+                },
+                {
+                  "field_name": "_deci32_age",
+                  "kind": "ColonExpression",
+                  "range": {
+                    "end": [
+                      19,
+                      21
+                    ],
+                    "start": [
+                      19,
+                      4
+                    ]
+                  },
+                  "right": {
+                    "kind": "FloatLiteralExpression",
+                    "range": {
+                      "end": [
+                        19,
+                        21
+                      ],
+                      "start": [
+                        19,
+                        17
+                      ]
+                    },
+                    "type_id": "0xA",
+                    "value": 2.5
+                  }
+                }
+              ],
+              "range": {
+                "end": [
+                  20,
+                  1
+                ],
+                "start": [
+                  11,
+                  18
+                ]
+              },
+              "symbol_id": "0x3",
+              "type_id": "0xB"
+            }
+          ],
+          "kind": "VariableDeclaration",
+          "range": {
+            "end": [
+              20,
+              1
+            ],
+            "start": [
+              11,
+              0
+            ]
+          }
+        },
+        {
+          "expression": {
+            "arguments": [
+              {
+                "kind": "IdentifierExpression",
+                "name": "x",
+                "range": {
+                  "end": [
+                    22,
+                    7
+                  ],
+                  "start": [
+                    22,
+                    6
+                  ]
+                },
+                "symbol_id": "0x3"
+              },
+              {
+                "kind": "StringLiteralExpression",
+                "range": {
+                  "end": [
+                    22,
+                    13
+                  ],
+                  "start": [
+                    22,
+                    9
+                  ]
+                },
+                "type_id": "0x4",
+                "value": "\\n"
+              }
+            ],
+            "kind": "CallExpression",
+            "range": {
+              "end": [
+                22,
+                14
+              ],
+              "start": [
+                22,
+                0
+              ]
+            },
+            "symbol_id": "0xF"
+          },
+          "kind": "ExpressionStatement",
+          "range": {
+            "end": [
+              22,
+              14
+            ],
+            "start": [
+              22,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "types": {
+      "0x1": {
+        "kind": "Object",
+        "name": "Object: <AllTypes { _bool: bool, _char: char, _deci32_age: deci32, _deci_age: deci, _int64: int64, _int8: int8, _int_age: int  _string_name: str }>"
+      },
+      "0x4": {
+        "kind": "Primitive",
+        "name": "str"
+      },
+      "0x5": {
+        "kind": "Primitive",
+        "name": "int8"
+      },
+      "0x6": {
+        "kind": "Primitive",
+        "name": "int64"
+      },
+      "0x7": {
+        "kind": "Primitive",
+        "name": "char"
+      },
+      "0x8": {
+        "kind": "Primitive",
+        "name": "bool"
+      },
+      "0x9": {
+        "kind": "Primitive",
+        "name": "deci"
+      },
+      "0xA": {
+        "kind": "Primitive",
+        "name": "deci32"
+      },
+      "0xB": {
+        "kind": "Object",
+        "name": "Object: <object_expression { _bool: bool, _char: char, _deci32_age: deci32, _deci_age: deci, _int64: int64, _int8: int8, _int_age: int8  _string_name: str }>"
+      },
+      "0xC": {
+        "kind": "Primitive",
+        "name": "nthg"
+      },
+      "0xD": {
+        "base_type_id": "0xC",
+        "kind": "ReturnType",
+        "type_convention": "C"
+      },
+      "0xE": {
+        "kind": "Function",
+        "name": "Function: <() -> nthg>",
+        "return_type_ids": [
+          "0xD"
+        ]
+      }
+    }
+  },
+  "source": "/Users/apple/code/per/Flow-Wing/tests/fixtures/LatestTests/ObjectTests/declaration/all_types.fg",
+  "stage": "semantic analysis"
+}

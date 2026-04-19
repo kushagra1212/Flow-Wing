@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 
 #pragma once
 
@@ -49,9 +48,6 @@ std::filesystem::path getModulesPath();
 
 // Gets the path to the pre-built libraries (.so, .bc, etc).
 std::filesystem::path getLibrariesPath();
-
-// Helper to get the full path to the crucial built-in bitcode file.
-std::filesystem::path getBuiltInBCPath();
 
 // Gets the path to the AOT linker.(Clang)
 std::string getAOTLinkerPath();

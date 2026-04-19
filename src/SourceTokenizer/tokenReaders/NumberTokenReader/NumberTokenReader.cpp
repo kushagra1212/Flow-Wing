@@ -19,68 +19,151 @@
 
 #include "NumberTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+std::unique_ptr<syntax::SyntaxToken>
 NumberTokenReader::readToken(SourceTokenizer &lexer) {
-  size_t start = lexer.position();
+  const size_t start_pos = lexer.position();
+  const size_t line_number = lexer.lineNumber();
 
-  while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
-    lexer.advancePosition();
+  bool isHex = false;
+
+  // Check for Hex Prefix '0x' or '0X'
+  if (lexer.currentChar() == '0') {
+    lexer.advancePosition(); // consume '0'
+    if (!lexer.isEOLorEOF() &&
+        (lexer.currentChar() == 'x' || lexer.currentChar() == 'X')) {
+      isHex = true;
+      lexer.advancePosition(); // consume 'x'
+    }
   }
 
-  //  double check
+  if (isHex) {
+    // Hex: 0-9, a-f, A-F
+    while (!lexer.isEOLorEOF() && isxdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+  } else {
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+
+    // Check for float/double dot '.'
+    if ((lexer.currentChar() == '.' || lexer.currentChar() == 'e' ||
+         lexer.currentChar() == 'E')) {
+      return readDecimal(lexer, start_pos);
+    }
+  }
+
+  // Check for int64 suffix 'l'
+  bool is_int64 = false;
+  if (!lexer.isEOLorEOF() && (lexer.currentChar() == 'l')) {
+    lexer.advancePosition();
+    is_int64 = true;
+  }
+
+  const size_t &length = lexer.position() - start_pos;
+  const std::string &text =
+      lexer.getLine(line_number).substr(start_pos, length);
+  auto location =
+      diagnostic::SourceLocation(line_number, start_pos, text.size());
+
+  try {
+    int64_t value;
+    if (isHex) {
+      // Base 16 parsing
+      uint64_t u_val = std::stoull(text, nullptr, 16);
+      value = static_cast<int64_t>(u_val);
+    } else {
+      // Base 10 parsing (Your existing logic)
+      uint64_t u_val = std::stoull(text);
+      if (u_val > 9223372036854775807ULL && u_val != 9223372036854775808ULL) {
+        throw std::out_of_range("Overflow");
+      }
+      value = static_cast<int64_t>(u_val);
+    }
+
+    // Use Int64LiteralToken if 'l' suffix was present
+    auto token_kind = is_int64 ? lexer::TokenKind::kInt64LiteralToken
+                               : lexer::TokenKind::kIntegerLiteralToken;
+
+    return std::make_unique<syntax::SyntaxToken>(token_kind, text, value,
+                                                 location);
+  } catch (const std::out_of_range &) {
+    lexer.reportError(diagnostic::DiagnosticCode::kNumberTooLargeForInt, {text},
+                      location);
+    return std::make_unique<syntax::SyntaxToken>(TokenKind::kBadToken, text,
+                                                 std::any(), location);
+  } catch (const std::invalid_argument &) {
+    lexer.reportError(diagnostic::DiagnosticCode::kBadCharacterInput, {text},
+                      location);
+    return std::make_unique<syntax::SyntaxToken>(TokenKind::kBadToken, text,
+                                                 std::any(), location);
+  }
+}
+
+std::unique_ptr<syntax::SyntaxToken>
+NumberTokenReader::readDecimal(SourceTokenizer &lexer,
+                               const size_t &start_pos) {
+  const size_t line_number = lexer.lineNumber();
 
   if (lexer.currentChar() == '.') {
-    return readDecimal(lexer, start);
+    lexer.advancePosition(); // consume the dot
+
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
   }
 
-  const size_t &length = lexer.position() - start;
+  // Check for scientific notation (e.g., 1.5e10, 1.5E-5)
+  if (lexer.currentChar() == 'e' || lexer.currentChar() == 'E') {
+    lexer.advancePosition(); // consume 'e' or 'E'
+
+    // Optional sign
+    if (lexer.currentChar() == '+' || lexer.currentChar() == '-') {
+      lexer.advancePosition();
+    }
+
+    // Exponent digits
+    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+      lexer.advancePosition();
+    }
+  }
+
+  int8_t is_deci32 = 0;
+
+  if (lexer.currentChar() == 'f') {
+    lexer.advancePosition();
+    is_deci32 = 1;
+  }
+
+  const size_t &length = lexer.position() - start_pos;
   const std::string &text =
-      lexer.getLine(lexer.lineNumber()).substr(start, length);
+      lexer.getLine(line_number).substr(start_pos, length);
+  auto location =
+      diagnostic::SourceLocation(line_number, start_pos, text.size());
 
-  if (SyntaxKindUtils::isNumberTooLarge(text) == true) {
-    std::unique_ptr<SyntaxToken<std::any>> badSyntaxToken =
-        std::make_unique<SyntaxToken<std::any>>(
-            lexer.diagnosticHandler()->getAbsoluteFilePath(),
-            lexer.lineNumber(), SyntaxKindUtils::SyntaxKind::BadToken, start,
-            text, 0);
+  try {
+    if (is_deci32) {
+      float value = std::stof(text);
+      return std::make_unique<syntax::SyntaxToken>(
+          TokenKind::kFloatLiteralToken, text, value, location);
+    } else {
+      double value = std::stod(text);
+      return std::make_unique<syntax::SyntaxToken>(
+          TokenKind::kDoubleLiteralToken, text, value, location);
+    }
 
-    lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Lexical, {text},
-        Utils::getSourceLocation(badSyntaxToken.get()),
-        FLOW_WING::DIAGNOSTIC::DiagnosticCode::NumberTooLargeForInt));
-
-    return (badSyntaxToken);
+  } catch (const std::exception &) {
+    lexer.reportError(diagnostic::DiagnosticCode::kBadCharacterInput, {text},
+                      location);
+    return std::make_unique<syntax::SyntaxToken>(TokenKind::kBadToken, text,
+                                                 std::any(), location);
   }
-
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::NumberToken, start, text, text);
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-NumberTokenReader::readDecimal(SourceTokenizer &lexer, const size_t &start) {
-  lexer.advancePosition();
-  while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
-    lexer.advancePosition();
-  }
-
-  if (lexer.currentChar() == 'd') {
-    lexer.advancePosition();
-  }
-
-  const size_t &length = lexer.position() - start;
-  const std::string &text =
-      lexer.getLine(lexer.lineNumber()).substr(start, length);
-
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::NumberToken, start, text, text);
-}
+} // namespace lexer
+} // namespace flow_wing

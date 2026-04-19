@@ -1,0 +1,5 @@
+print(~0l, "\n")
+print(~1l, "\n")
+/; EXPECT: -1
+/; EXPECT: -2
+

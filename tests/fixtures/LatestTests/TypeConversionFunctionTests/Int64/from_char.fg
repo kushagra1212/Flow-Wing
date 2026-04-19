@@ -1,0 +1,4 @@
+print(Int64('A'), "\n")
+print(Int64('0'), "\n")
+print(Int64('z'), "\n")
+

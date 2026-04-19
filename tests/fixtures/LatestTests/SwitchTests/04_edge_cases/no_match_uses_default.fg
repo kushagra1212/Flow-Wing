@@ -1,0 +1,13 @@
+var a: int = 100
+
+switch a {
+  case 1:{
+    println("one")
+  }
+  case 2:{
+    println("two")
+  }
+  default:{
+    println("No match")
+  }
+}

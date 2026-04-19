@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: CircularReference
+bring "../support_circular_bring/bring_circular_pair_b.fg"
+
+println(0)

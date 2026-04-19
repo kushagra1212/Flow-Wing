@@ -1,0 +1,6 @@
+var x:bool
+var y:bool = true
+print(x && y, "\n")
+print(x || y, "\n")
+print(!x, "\n")
+

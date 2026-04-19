@@ -1,0 +1,16 @@
+bring "text-module.fg"
+
+var padded: text::Text = new text::Text("  hi  ")
+println(padded.trim().get())
+println(padded.getLength())
+println(padded.concat("!").get())
+println(padded.length())
+println(padded.charAt(2))
+
+var empty: text::Text = new text::Text("")
+println(empty.isEmpty())
+println(empty.getLength())
+
+println(text::concat(text::trim("  a  "), "b"))
+println(text::length("abc"))
+println(text::equalsIgnoreCase("FlowWing", "flowwing"))

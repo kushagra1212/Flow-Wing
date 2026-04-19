@@ -1,0 +1,8 @@
+var x:int = 10
+var y:int = 20
+var z:int = 30
+z = y
+y = x
+x = 100
+print(x, " ", y, " ", z, "\n")
+

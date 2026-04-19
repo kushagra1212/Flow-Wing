@@ -1,0 +1,8 @@
+var a: int = 2
+var b: int = 2
+
+if (a == b) {
+  println("equal")
+} else {
+  println("not equal")
+}

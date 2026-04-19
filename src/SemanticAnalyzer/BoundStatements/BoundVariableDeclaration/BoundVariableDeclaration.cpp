@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,47 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundVariableDeclaration.h"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+
+namespace flow_wing {
+namespace binding {
 
 BoundVariableDeclaration::BoundVariableDeclaration(
-    const DiagnosticUtils::SourceLocation &location,
-    const std::string &variableName, bool isConst, bool isExposed)
-    : BoundSourceLocation(location), _variableName(variableName),
-      _isConst(isConst), _isExposed(isExposed) {}
+    std::vector<std::shared_ptr<analysis::Symbol>> symbols,
+    std::vector<std::unique_ptr<BoundExpression>> initializer_expressions,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundDeclarationStatement(location), m_symbols(std::move(symbols)),
+      m_initializer_expressions(std::move(initializer_expressions)) {}
 
-std::unique_ptr<BoundExpression> BoundVariableDeclaration::getInitializer() {
-  return std::move(_initializer);
+NodeKind BoundVariableDeclaration::getKind() const {
+  return NodeKind::kVariableDeclaration;
 }
 
-BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
-  return BinderKindUtils::BoundNodeKind::VariableDeclaration;
+const std::vector<std::shared_ptr<analysis::Symbol>> &
+BoundVariableDeclaration::getSymbols() const {
+  return m_symbols;
 }
 
-BinderKindUtils::MemoryKind BoundVariableDeclaration::getMemoryKind() const {
-  return _memoryKind;
-};
-
-bool BoundVariableDeclaration::isConst() const { return _isConst; }
-
-std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
-  if (_children.empty()) {
-    if (_typeExp)
-      _children.push_back(this->_typeExp.get());
-    if (_identifier)
-      _children.push_back(this->_identifier.get());
-    if (_initializer)
-      _children.push_back(this->_initializer.get());
-  }
-
-  return this->_children;
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundVariableDeclaration::getInitializerExpressions() const {
+  return m_initializer_expressions;
 }
 
-std::unique_ptr<BoundExpression> &
-BoundVariableDeclaration::getInitializerPtr() {
-  return this->_initializer;
+void BoundVariableDeclaration::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::string &BoundVariableDeclaration::getVariableName() const {
-  return _variableName;
-}
+} // namespace binding
+} // namespace flow_wing

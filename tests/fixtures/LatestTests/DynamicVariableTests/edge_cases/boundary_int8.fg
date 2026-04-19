@@ -1,0 +1,5 @@
+var x = 127
+print(x, "\n")
+x = -128
+print(x, "\n")
+

@@ -1,0 +1,6 @@
+var n = 0
+while (n == 0 || false) {
+  println("once")
+  n = 1
+}
+println("done")

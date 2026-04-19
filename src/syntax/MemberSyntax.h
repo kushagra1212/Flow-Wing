@@ -19,7 +19,17 @@
 
 #pragma once
 #include "SyntaxNode.h"
+
+namespace flow_wing {
+namespace syntax {
+
 class MemberSyntax : public SyntaxNode {
 public:
   virtual ~MemberSyntax() = default;
+
+  explicit MemberSyntax(const flow_wing::diagnostic::SourceLocation &location)
+      : SyntaxNode(location) {}
 };
+
+} // namespace syntax
+} // namespace flow_wing

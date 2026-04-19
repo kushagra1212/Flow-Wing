@@ -1,0 +1,8 @@
+bring "support_cnt_module.fg"
+
+fun use(c: cnt::Counter) -> nthg {
+  println(c.bump())
+}
+
+var x: cnt::Counter = new cnt::Counter(5)
+use(x)

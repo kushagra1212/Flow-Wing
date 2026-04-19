@@ -1,0 +1,11 @@
+type Wrapper = {
+  a: int
+  nums: int[3]
+}
+
+fun sumNums(w: Wrapper) -> int {
+  return w.nums[0] + w.nums[1] + w.nums[2]
+}
+
+var w: Wrapper = {a: 0, nums: [1, 2, 3]}
+println(sumNums(w))

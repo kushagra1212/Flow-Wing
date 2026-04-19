@@ -60,15 +60,51 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
   return folder;
 }
 
+function resolveCompilerPath(
+  configPath: string | undefined,
+  workspaceFolders: readonly { uri: { fsPath: string } }[] | undefined
+): string {
+  if (configPath && path.isAbsolute(configPath)) {
+    return configPath;
+  }
+  if (configPath && configPath !== "FlowWing") {
+    return configPath;
+  }
+  // Default "FlowWing" not in PATH - use project root (shortest path), not LatestTests
+  const paths = (workspaceFolders ?? []).map((f) => f.uri.fsPath);
+  const root = paths.sort((a, b) => a.length - b.length)[0];
+  if (root) {
+    return path.join(root, "build", "sdk", "bin", "FlowWing");
+  }
+  return configPath ?? "FlowWing";
+}
+
 export function activate(context: ExtensionContext) {
   const module = context.asAbsolutePath(
     path.join("server", "out", "server.js")
   );
   const outputChannel: OutputChannel = Window.createOutputChannel("flow-wing");
-  const compilerPath =
+  // Defer show so flow-wing output is selected after other extensions (e.g. pip)
+  setTimeout(() => outputChannel.show(), 1500);
+  const configPath =
     Workspace.getConfiguration("FlowWing").get<string>("compilerPath");
-  const modulePath =
+  const sorted = (Workspace.workspaceFolders ?? [])
+    .map((f) => f.uri.fsPath)
+    .sort((a, b) => a.length - b.length);
+  const root = sorted[0];
+  const compilerPath = resolveCompilerPath(
+    configPath,
+    Workspace.workspaceFolders
+  );
+  const rawModulePath =
     Workspace.getConfiguration("FlowWing").get<string>("modulePath");
+  // Empty or legacy "flowwing" default causes ENOENT scandir. Use workspace fallback.
+  const modulePath =
+    rawModulePath && rawModulePath !== "flowwing"
+      ? rawModulePath
+      : root
+        ? path.join(root, "build", "sdk", "lib", "modules")
+        : undefined;
 
   function didOpenTextDocument(document: TextDocument): void {
     // We are only interested in language mode text
@@ -126,6 +162,7 @@ export function activate(context: ExtensionContext) {
         diagnosticCollectionName: "flow-wing",
         workspaceFolder: folder,
         outputChannel: outputChannel,
+        initializationOptions: { compilerPath, modulePath },
       };
       const client = new LanguageClient(
         "flow-wing",

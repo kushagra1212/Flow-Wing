@@ -1,0 +1,20 @@
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 10, y: 20 }
+
+print("outer p1: ", p1, "\n")
+
+{
+    var p2: Point = p1
+    print("inner p2 (ref to outer p1): ", p2, "\n")
+    
+    p2.x = 999
+    p2.y = 888
+    
+    print("inner p2 after modify: ", p2, "\n")
+}
+
+print("outer p1 after scope: ", p1, "\n")

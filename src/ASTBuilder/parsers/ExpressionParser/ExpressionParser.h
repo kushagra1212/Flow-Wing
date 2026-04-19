@@ -21,12 +21,22 @@
 
 #include <memory>
 
-class ParserContext;
+namespace flow_wing {
+namespace syntax {
+
 class ExpressionSyntax;
+
+}
+namespace parser {
+
+class ParserContext;
 
 class ExpressionParser {
 public:
   virtual ~ExpressionParser() = default;
-  virtual std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) = 0;
+
+  virtual std::unique_ptr<syntax::ExpressionSyntax> parse() = 0;
 };
+
+} // namespace parser
+} // namespace flow_wing

@@ -1,0 +1,6 @@
+var x:int = 10
+x = -x
+print(x, "\n")
+x = -x
+print(x, "\n")
+

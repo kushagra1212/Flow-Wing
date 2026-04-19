@@ -1,0 +1,11 @@
+print("Unary Bitwise Not Int32 Tests\n")
+print(~128, "\n")
+print(~255, "\n")
+print(~1000, "\n")
+print(~0, "\n")
+print(~-1, "\n")
+print(~65535, "\n")
+print(~2147483647, "\n")
+print(~~128, "\n")
+print(~~1000, "\n")
+

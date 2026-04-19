@@ -1,0 +1,198 @@
+bring text
+bring json
+bring map
+bring Err
+
+/; =========================================================
+/; FFI Declarations
+/; =========================================================
+fun vortex_server_new() -> as int64 decl
+fun vortex_server_listen(handle: as int64, port: as int) -> as bool decl
+fun vortex_server_accept(handle: as int64) -> as int64 decl
+
+fun vortex_req_method(req_handle: as int64) -> as str decl
+fun vortex_req_path(req_handle: as int64) -> as str decl
+fun vortex_req_body(req_handle: as int64) -> as str decl
+
+fun vortex_res_status(req_handle: as int64, status: as int) -> as nthg decl
+fun vortex_res_header(req_handle: as int64, key: as str, val: as str) -> as nthg decl
+fun vortex_res_send(req_handle: as int64, body: as str) -> as nthg decl
+
+
+
+/; Streaming FFI Declarations
+fun vortex_res_stream_begin(req_handle: as int64, content_type: as str) -> as nthg decl
+fun vortex_res_stream_write(req_handle: as int64, chunk: as str) -> as nthg decl
+fun vortex_res_stream_end(req_handle: as int64) -> as nthg decl
+
+
+
+/; =========================================================
+/; FFI Declarations: Vortex Client
+/; =========================================================
+fun vortex_client_post_stream(url: as str, body: as str) -> as int64 decl
+fun vortex_client_res_ok(handle: as int64) -> as bool decl
+fun vortex_client_read_chunk(handle: as int64) -> as str decl
+fun vortex_client_is_done(handle: as int64) -> as bool decl
+fun vortex_client_close(handle: as int64) -> as nthg decl
+
+module [vortex]
+
+/; =========================================================
+/; Request Class
+/; =========================================================
+class Request {
+  var _handle: int64
+  var method: str
+  var path: str
+  var body: str
+
+  init(handle: int64)  {
+    self._handle = handle
+    self.method = vortex_req_method(handle)
+    self.path = vortex_req_path(handle)
+    self.body = vortex_req_body(handle)
+  }
+
+   getMethod() -> str { return self.method }
+   getPath() -> str { return self.path }
+   getBody() -> str { return self.body }
+}
+
+/; =========================================================
+/; Response Class
+/; =========================================================
+class Response {
+  var _handle: int64
+  var _sent: bool
+  var _streaming: bool  
+
+  init(handle: int64)  {
+    self._handle = handle
+    self._sent = false
+    self._streaming = false
+  }
+
+  /; Method chaining supported
+   status(code: int) -> vortex::Response {
+    vortex_res_status(self._handle, code)
+    return self
+  }
+
+   header(key: str, val: str) -> vortex::Response {
+    vortex_res_header(self._handle, key, val)
+    return self
+  }
+
+   send(body: str) -> Err::Result {
+    if self._sent || self._streaming {
+      return Err::error("Response already sent/streaming.", Err::CODE.FAILED)
+    }
+    vortex_res_send(self._handle, body)
+    self._sent = true
+    return Err::ok()
+  }
+
+   json(node: json::JsonNode) -> Err::Result {
+    self.header("Content-Type", "application/json")
+    return self.send(json::stringify(node))
+  }
+
+    /; --- Stream API ---
+   streamBegin(contentType: str) -> Err::Result {
+    if self._sent || self._streaming {
+      return Err::error("Response already sent/streaming.", Err::CODE.FAILED)
+    }
+    vortex_res_stream_begin(self._handle, contentType)
+    self._streaming = true
+    return Err::ok()
+  }
+
+   streamWrite(chunk: str) -> Err::Result {
+    if !self._streaming {
+      return Err::error("Stream has not been started.", Err::CODE.FAILED)
+    }
+    if self._sent {
+      return Err::error("Stream already ended.", Err::CODE.FAILED)
+    }
+    vortex_res_stream_write(self._handle, chunk)
+    return Err::ok()
+  }
+
+   streamEnd() -> Err::Result {
+    if !self._streaming {
+      return Err::error("Stream has not been started.", Err::CODE.FAILED)
+    }
+    if self._sent {
+      return Err::error("Stream already ended.", Err::CODE.FAILED)
+    }
+    vortex_res_stream_end(self._handle)
+    self._sent = true
+    return Err::ok()
+  }
+}
+
+/; =========================================================
+/; Server Class
+/; =========================================================
+class Server {
+  var _handle: int64
+  var _isListening: bool
+
+  init()  {
+    self._handle = vortex_server_new()
+    self._isListening = false
+  }
+
+   listen(port: int) -> Err::Result {
+    var success = vortex_server_listen(self._handle, port)
+    if !success {
+      return Err::error("Vortex failed to bind to port " + String(port), Err::CODE.FAILED)
+    }
+    self._isListening = true
+    println("Vortex server listening on port " + String(port))
+    return Err::ok()
+  }
+
+  /; Blocks and waits for the next incoming HTTP request
+   accept() -> vortex::Request, vortex::Response {
+    var req_handle = vortex_server_accept(self._handle)
+    
+    var req: vortex::Request = new vortex::Request(req_handle)
+    var res: vortex::Response = new vortex::Response(req_handle)
+    
+    return req, res
+  }
+}
+
+
+
+
+/; =========================================================
+/; Client Class (for outgoing HTTP requests)
+/; =========================================================
+class Client {
+    var _handle: int64
+    var ok: bool
+
+    init(url: str, body: str) -> nthg {
+        self._handle = vortex_client_post_stream(url, body)
+        self.ok = vortex_client_res_ok(self._handle)
+    }
+
+  isOk() -> bool { 
+     return self.ok 
+   }
+
+     readChunk() -> str {
+        return vortex_client_read_chunk(self._handle)
+    }
+
+     isDone() -> bool {
+        return vortex_client_is_done(self._handle)
+    }
+
+     close() -> nthg {
+        vortex_client_close(self._handle)
+    }
+}

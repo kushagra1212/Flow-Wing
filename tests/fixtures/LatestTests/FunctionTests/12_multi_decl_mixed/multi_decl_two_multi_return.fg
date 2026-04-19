@@ -1,0 +1,8 @@
+fun p1() -> int, int { return 1, 2 }
+fun p2() -> int, int { return 3, 4 }
+
+var a: int, b: int, c: int, d: int = p1(), p2()
+println(a)
+println(b)
+println(c)
+println(d)

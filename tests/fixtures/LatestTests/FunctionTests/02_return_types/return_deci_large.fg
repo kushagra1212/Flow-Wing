@@ -1,0 +1,5 @@
+fun big() -> deci {
+  return 1.5e10
+}
+
+println(big())

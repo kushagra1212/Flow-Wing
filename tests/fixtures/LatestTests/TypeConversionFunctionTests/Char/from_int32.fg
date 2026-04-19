@@ -1,0 +1,4 @@
+print(Char(1000), "\n")
+print(Char(255), "\n")
+print(Char(32), "\n")
+

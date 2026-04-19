@@ -1,0 +1,13 @@
+print(10000000000l > 5000000000l, "\n")
+print(10000000000l < 5000000000l, "\n")
+print(10000000000l == 10000000000l, "\n")
+print(10000000000l != 5000000000l, "\n")
+print(10000000000l >= 10000000000l, "\n")
+print(10000000000l <= 10000000000l, "\n")
+/; EXPECT: true
+/; EXPECT: false
+/; EXPECT: true
+/; EXPECT: true
+/; EXPECT: true
+/; EXPECT: true
+

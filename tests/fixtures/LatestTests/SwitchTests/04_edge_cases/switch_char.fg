@@ -1,0 +1,13 @@
+var a: char = 'x'
+
+switch a {
+  case 'x':{
+    println("x")
+  }
+  case 'y':{
+    println("y")
+  }
+  default:{
+    println("default")
+  }
+}

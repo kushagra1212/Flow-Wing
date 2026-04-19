@@ -17,38 +17,33 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BreakStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
-BreakStatementSyntax::BreakStatementSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> breakKeyword) {
-  this->_breakKeyword = std::move(breakKeyword);
+namespace flow_wing {
+namespace syntax {
+
+BreakStatementSyntax::BreakStatementSyntax(const SyntaxToken *break_keyword)
+    : m_break_keyword(break_keyword) {}
+
+NodeKind BreakStatementSyntax::getKind() const {
+  return NodeKind::kBreakStatement;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> BreakStatementSyntax::getBreakKeyword() {
-  return std::move(_breakKeyword);
-}
-SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::BreakStatement;
+void BreakStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::vector<SyntaxNode *> &BreakStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    _children.emplace_back(_breakKeyword.get());
+const std::vector<const SyntaxNode *> &
+BreakStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_break_keyword)
+      m_children.push_back(m_break_keyword);
   }
-
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-BreakStatementSyntax::getSourceLocation() const {
-  return _breakKeyword->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-BreakStatementSyntax::getBreakKeywordPtr() {
-  return _breakKeyword;
-}
+} // namespace syntax
+} // namespace flow_wing

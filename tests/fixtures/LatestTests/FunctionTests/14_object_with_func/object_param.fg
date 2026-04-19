@@ -1,0 +1,12 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun printPoint(p: Point) -> int {
+  print(p, "\n")
+  return p.x
+}
+
+var pt: Point = {x: 3, y: 4}
+printPoint(pt)

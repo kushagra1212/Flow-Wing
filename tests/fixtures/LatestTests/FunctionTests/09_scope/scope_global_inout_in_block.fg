@@ -1,0 +1,11 @@
+fun inc(inout i: int) -> int {
+  i = i + 1
+  return i
+}
+
+var i: int = 0
+{
+  println(inc(i))
+  println(inc(i))
+}
+println(i)

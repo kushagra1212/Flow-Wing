@@ -1,0 +1,15 @@
+var run: bool = true
+
+fun first() -> bool {
+  return run
+}
+
+fun second() -> bool {
+  return true
+}
+
+while (first() && second()) {
+  println("once")
+  run = false
+}
+println("done")

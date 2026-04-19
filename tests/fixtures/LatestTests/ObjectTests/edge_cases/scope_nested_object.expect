@@ -1,0 +1,4 @@
+obj1: { inner: { value: 10 }, name: "outer" }
+scoped obj1: { inner: { value: 100 }, name: "inner scope" }
+scoped obj1 after modify: { inner: { value: 999 }, name: "inner scope" }
+obj1 after scope: { inner: { value: 10 }, name: "outer" }

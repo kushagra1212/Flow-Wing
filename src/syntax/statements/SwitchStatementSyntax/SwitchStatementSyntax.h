@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,68 +19,42 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
 #include <memory>
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
 
 class SwitchStatementSyntax : public StatementSyntax {
-  std::unique_ptr<SyntaxToken<std::any>> _switchToken;
-  std::unique_ptr<ExpressionSyntax> _switchExpression;
-  std::unique_ptr<SyntaxToken<std::any>> _openCurlyToken;
-  std::vector<std::unique_ptr<CaseStatementSyntax>> _caseStatements;
-  std::unique_ptr<SyntaxToken<std::any>> _closeCurlyToken;
 
 public:
-  /*
-    Overrides
-  */
+  SwitchStatementSyntax(
+      const SyntaxToken *switch_keyword,
+      std::unique_ptr<ExpressionSyntax> switch_condition_expression,
+      const SyntaxToken *open_brace_token,
+      std::vector<std::unique_ptr<StatementSyntax>> case_statements,
+      const SyntaxToken *close_brace_token);
 
-  const std::vector<SyntaxNode *> &getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  /*
-    Setters
-  */
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getSwitchConditionExpression() const;
+  const std::vector<std::unique_ptr<StatementSyntax>> &
+  getCaseStatements() const;
 
-  inline auto
-  setSwitchToken(std::unique_ptr<SyntaxToken<std::any>> switchToken) {
-    _switchToken = std::move(switchToken);
-  }
+private:
+  const SyntaxToken *m_switch_keyword;
+  std::unique_ptr<ExpressionSyntax> m_switch_condition_expression;
+  const SyntaxToken *m_open_brace_token;
+  std::vector<std::unique_ptr<StatementSyntax>> m_case_statements;
+  const SyntaxToken *m_close_brace_token;
 
-  inline auto
-  setSwitchExpression(std::unique_ptr<ExpressionSyntax> switchExpression) {
-    _switchExpression = std::move(switchExpression);
-  }
-
-  inline auto
-  setOpenCurlyToken(std::unique_ptr<SyntaxToken<std::any>> openCurlyToken) {
-    _openCurlyToken = std::move(openCurlyToken);
-  }
-
-  inline auto
-  addCaseStatement(std::unique_ptr<CaseStatementSyntax> caseStatement) {
-    _caseStatements.emplace_back(std::move(caseStatement));
-  }
-
-  inline auto
-  setCloseCurlyToken(std::unique_ptr<SyntaxToken<std::any>> closeCurlyToken) {
-    _closeCurlyToken = std::move(closeCurlyToken);
-  }
-
-  /*
-    Getters
-  */
-
-  inline auto getSwitchExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _switchExpression;
-  }
-
-  inline auto getCaseStatementsRef() const
-      -> const std::vector<std::unique_ptr<CaseStatementSyntax>> & {
-    return _caseStatements;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

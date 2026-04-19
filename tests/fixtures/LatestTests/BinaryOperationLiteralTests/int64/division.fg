@@ -1,0 +1,8 @@
+print("Int64 Division Tests (returns decimal)\n")
+print(3000000000 / 1, "\n")
+print(3000000000 / 2, "\n")
+print(3000000000 / 3, "\n")
+print(9000000000 / 4, "\n")
+print(-3000000000 / 2, "\n")
+print(7 / 3000000000, "\n")
+

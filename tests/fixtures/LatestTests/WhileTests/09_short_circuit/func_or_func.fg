@@ -1,0 +1,14 @@
+fun yes() -> bool {
+  return true
+}
+
+fun no() -> bool {
+  return false
+}
+
+var n = 0
+while (no() || yes() && n < 1) {
+  println("once")
+  n = 1
+}
+println("done")

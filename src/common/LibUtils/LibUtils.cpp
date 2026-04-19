@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,63 @@
 
 #include "LibUtils.h"
 
-const char *STATIC_LINKING_LIBRARIES[5] = {"built_in_module", "flowwing_string",
-                                           "gc", "gccpp", "atomic_ops"};
+#include "src/common/utils/PathUtils/PathUtils.h"
+#include "src/utils/LogConfig.h"
 
-const char *DYNAMIC_LINKING_LIBRARIES[2] = {"flowwing_vector", "flowwing_map"};
+namespace {
+
+std::string getRuntimeLibraryForModule(const std::string &file_name) {
+
+  LINKING_DEBUG_LOG("Checking runtime library for module: ", file_name.c_str());
+
+  if (file_name == "text-module.fg") {
+    return "flowwing_text";
+  }
+
+  if (file_name == "map-module.fg") {
+    return "flowwing_map";
+  }
+
+  if (file_name == "vec-module.fg") {
+    return "flowwing_vec";
+  }
+
+  if (file_name == "file-module.fg") {
+    return "flowwing_file";
+  }
+  if (file_name == "io-module.fg") {
+    return "flowwing_io";
+  }
+  if (file_name == "vortex-module.fg") {
+    return "flowwing_vortex";
+  }
+
+  if (file_name == "raylib-module.fg") {
+
+#if defined(__APPLE__)
+    return "flowwing_raylib -framework CoreVideo -framework IOKit -framework "
+           "Cocoa -framework GLUT -framework OpenGL ";
+
+#else
+    return "flowwing_raylib";
+#endif
+  }
+  return "";
+}
+
+} // namespace
+
+const char *STATIC_LINKING_LIBRARIES[4] = {"built_in_module", "dynamic", "gc",
+                                           "atomic_ops"};
+
+std::vector<std::string>
+getRuntimeLibrariesForSourceFile(const std::string &source_file_path) {
+  std::vector<std::string> libraries;
+  const std::string file_name =
+      flow_wing::utils::PathUtils::getFileName(source_file_path);
+  const std::string runtime_library = getRuntimeLibraryForModule(file_name);
+  if (!runtime_library.empty()) {
+    libraries.emplace_back(runtime_library);
+  }
+  return libraries;
+}

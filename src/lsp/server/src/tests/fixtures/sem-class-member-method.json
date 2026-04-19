@@ -1,0 +1,32 @@
+{
+  "sem": {
+    "symbols": {
+      "0xf1": {
+        "kind": "Function",
+        "name": "m",
+        "type_id": "0xft",
+        "parameters": ["0xpa", "0xps"],
+        "hide_trailing_params_for_display": 1
+      },
+      "0xpa": { "kind": "Parameter", "name": "x", "type_id": "0xintt" },
+      "0xps": { "kind": "Parameter", "name": "self", "type_id": "0xAt" }
+    },
+    "types": {
+      "0xintt": { "kind": "Primitive", "name": "int" },
+      "0xAt": { "kind": "Type", "name": "A" },
+      "0xptx": { "kind": "ParameterType", "base_type_id": "0xintt" },
+      "0xpts": { "kind": "ParameterType", "base_type_id": "0xAt" },
+      "0xnthg": { "kind": "Primitive", "name": "nthg" },
+      "0xretnthg": { "kind": "ReturnType", "base_type_id": "0xnthg" },
+      "0xft": {
+        "kind": "Function",
+        "parameter_type_ids": ["0xptx", "0xpts"],
+        "return_type_ids": ["0xretnthg"]
+      }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "statements": []
+    }
+  }
+}

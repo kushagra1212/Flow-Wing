@@ -1,0 +1,7 @@
+var x:bool = true
+print(x, "\n")
+x <- false
+print(x, "\n")
+x <- true
+print(x, "\n")
+

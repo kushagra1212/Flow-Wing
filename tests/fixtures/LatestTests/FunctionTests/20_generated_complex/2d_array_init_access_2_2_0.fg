@@ -1,0 +1,8 @@
+
+fun get2D() -> int[2][2] {
+    var flat: int[2][2]
+    return flat
+}
+var temp: int[2][2] = get2D()
+temp[0][0] = 4
+println(temp[0][0])

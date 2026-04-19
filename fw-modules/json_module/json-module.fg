@@ -1,0 +1,389 @@
+bring text
+
+module [json]
+
+/; =========================================================
+/; JSON AST Elements (Native Linked List)
+/; =========================================================
+
+class JsonNode {
+  /; 0 = Null, 1 = Object, 2 = Array, 3 = String, 4 = Number, 5 = Boolean
+  var json_type: int 
+  
+  var strVal: str
+  var numVal: deci
+  var boolVal: bool
+
+  /; Tree Pointers (Replaces vec::Vec completely!)
+  var key: str
+  var firstChild: json::JsonNode 
+  var nextSibling: json::JsonNode
+  var lastChild: json::JsonNode
+
+  fun init(json_type: int) -> nthg {
+    self.json_type = json_type
+    self.strVal = ""
+    self.numVal = 0.0
+    self.boolVal = false
+    self.key = ""
+    self.firstChild = null
+    self.nextSibling = null
+    self.lastChild = null
+  }
+
+  /; --- Object Helpers ---
+  fun put(k: str, val: json::JsonNode) -> json::JsonNode {
+    if self.json_type == 1 {
+      val.key = k 
+
+
+      
+      if (self.firstChild == null) {
+
+        self.firstChild = val
+        self.lastChild = val
+
+      } 
+      else {
+        var curr: json::JsonNode = self.firstChild
+        var prev: json::JsonNode = null
+        var replaced = false
+        
+        /; Update existing key
+        while curr != null {
+          if curr.key == k {
+            val.nextSibling = curr.nextSibling
+            if prev == null {
+              self.firstChild = val
+            } else {
+              prev.nextSibling = val
+            }
+            if curr == self.lastChild {
+              self.lastChild = val
+            }
+            replaced = true
+            break
+          }
+          prev = curr
+          curr = curr.nextSibling
+        }
+        
+        /; Append new key
+        if replaced == false {
+          val.nextSibling = null
+          self.lastChild.nextSibling = val
+          self.lastChild = val
+        }
+      }
+    }
+    return self
+  }
+
+  fun get(k: str) -> json::JsonNode {
+    if self.json_type == 1 {
+      var curr: json::JsonNode = self.firstChild
+      while curr != null {
+        if curr.key == k {
+          return curr
+        }
+        curr = curr.nextSibling
+      }
+    }
+    return null
+  }
+
+  /; --- Array Helpers ---
+  fun push(val: json::JsonNode) -> json::JsonNode {
+    if self.json_type == 2 {
+      if self.firstChild == null {
+        self.firstChild = val
+        self.lastChild = val
+      } else {
+        self.lastChild.nextSibling = val
+        self.lastChild = val
+      }
+    }
+    return self
+  }
+
+  fun getAt(index: int) -> json::JsonNode {
+    if self.json_type == 2 {
+      var curr: json::JsonNode = self.firstChild
+      var i = 0
+      while curr != null {
+        if i == index {
+          return curr
+        }
+        i = i + 1
+        curr = curr.nextSibling
+      }
+    }
+    return null
+  }
+}
+
+/; =========================================================
+/; Node Factory Functions
+/; =========================================================
+
+fun newNull() -> json::JsonNode { return new json::JsonNode(0) }
+fun newObject() -> json::JsonNode { return new json::JsonNode(1) }
+fun newArray() -> json::JsonNode { return new json::JsonNode(2) }
+
+fun newString(v: str) -> json::JsonNode { 
+  var n: json::JsonNode = new json::JsonNode(3)
+  n.strVal = v
+  return n
+}
+
+fun newNumber(v: deci) -> json::JsonNode {
+  var n: json::JsonNode = new json::JsonNode(4)
+  n.numVal = v
+  return n
+}
+
+fun newBool(v: bool) -> json::JsonNode {
+  var n: json::JsonNode = new json::JsonNode(5)
+  n.boolVal = v
+  return n
+}
+
+/; =========================================================
+/; JSON Parser (Recursive Descent)
+/; =========================================================
+
+class JsonParser {
+  var src: text::Text
+  var len: int
+  var pos: int
+  var hasError: bool
+  var errMsg: str
+
+  fun init(input: str) -> nthg {
+    self.src = new text::Text("")
+    self.src.concat(input)
+    self.len = self.src.getLength()
+    self.pos = 0
+    self.hasError = false
+    self.errMsg = ""
+  }
+
+  fun peek() -> char {
+    if self.pos >= self.len { return '\0' }
+    return self.src.charAt(self.pos)
+  }
+
+  fun advance() -> char {
+    if self.pos >= self.len { return '\0' }
+    var c = self.src.charAt(self.pos)
+    self.pos = self.pos + 1
+    return c
+  }
+
+  fun skipWhitespace() -> nthg {
+    while self.pos < self.len {
+      var c = self.peek()
+      if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+        self.advance()
+      } else {
+        return:
+      }
+    }
+  }
+
+  fun parse() -> json::JsonNode {
+    self.skipWhitespace()
+    if self.pos >= self.len {
+      self.hasError = true
+      self.errMsg = "Empty input"
+      return json::newNull()
+    }
+
+    return self.parseValue()
+  }
+
+  fun parseValue() -> json::JsonNode {
+    self.skipWhitespace()
+    var c = self.peek()
+    
+    if c == '{' { return self.parseObject() }
+    if c == '[' { return self.parseArray() }
+    if c == '"' { return self.parseString() }
+    if c == 't' || c == 'f' { return self.parseBoolean() }
+    if c == 'n' { return self.parseNull() }
+    
+    if (c >= '0' && c <= '9') || c == '-' {
+      return self.parseNumber()
+    }
+    
+    self.hasError = true
+    self.errMsg = "Unexpected character"
+    return json::newNull()
+  }
+
+  fun parseObject() -> json::JsonNode {
+    var obj: json::JsonNode = json::newObject()
+    self.advance()
+    self.skipWhitespace()
+    
+    if self.peek() == '}' {
+      self.advance()
+      return obj
+    }
+
+    while self.pos < self.len {
+
+      self.skipWhitespace()
+      var keyNode: json::JsonNode = self.parseString()
+      var keyStr = keyNode.strVal
+      
+      self.skipWhitespace()
+      if self.advance() != ':' {
+        self.hasError = true
+        self.errMsg = "Expected ':'"
+        break
+      }
+      
+      var val: json::JsonNode = self.parseValue()
+      obj.put(keyStr, val)
+      
+      self.skipWhitespace()
+      var c = self.advance()
+      if c == '}' {
+        break
+      } else if c != ',' {
+        self.hasError = true
+        self.errMsg = "Expected ',' or '}'"
+        break
+      }
+    }
+    return obj
+  }
+
+  fun parseArray() -> json::JsonNode {
+    var arr: json::JsonNode = json::newArray()
+    self.advance() 
+    self.skipWhitespace()
+    
+    if self.peek() == ']' {
+      self.advance()
+      return arr
+    }
+    
+    while self.pos < self.len {
+      var val: json::JsonNode = self.parseValue()
+      arr.push(val)
+      self.skipWhitespace()
+      
+      var c = self.advance()
+      if c == ']' {
+        break
+      } else if c != ',' {
+        self.hasError = true
+        self.errMsg = "Expected ',' or ']'"
+        break
+      }
+    }
+    return arr
+  }
+
+  fun parseString() -> json::JsonNode {
+    self.advance()
+    var builder: text::Text = new text::Text("")
+    
+    while self.pos < self.len {
+
+      var c = self.advance()
+
+      if c == '"' {
+        return json::newString(builder.get())
+      }
+      if c == '\\' {
+        var esc = self.advance()
+        if esc == 'n' { builder.concat("\n") }
+        else if esc == 't' { builder.concat("\t") }
+        else if esc == '"' { builder.concat("\"") }
+        else if esc == '\\' { builder.concat("\\") }
+        else { builder.concat(esc) }
+      } else {
+        builder.concat(String(c))
+      }
+
+    }
+    return json::newString(builder.get())
+  }
+
+  fun parseNumber() -> json::JsonNode {
+    var builder: text::Text = new text::Text("")
+    var c = self.peek()
+    while self.pos < self.len && ((c >= '0' && c <= '9') || c == '.' || c == '-') {
+      builder.concat(String(self.advance()))
+      c = self.peek()
+    }
+    return json::newNumber(Decimal(builder.get()))
+  }
+
+  fun parseBoolean() -> json::JsonNode {
+    var c = self.advance()
+    if c == 't' {
+      self.advance() 
+      self.advance() 
+      self.advance()
+      return json::newBool(true)
+    } else {
+      self.advance() 
+      self.advance() 
+      self.advance() 
+      self.advance()
+      return json::newBool(false)
+    }
+  }
+
+  fun parseNull() -> json::JsonNode {
+    self.advance() 
+    self.advance() 
+    self.advance() 
+    self.advance()
+    return json::newNull()
+  }
+}
+
+fun parse(input: str) -> json::JsonNode {
+  var parser: json::JsonParser = new json::JsonParser(input)
+  return parser.parse()
+}
+
+fun stringify(node: json::JsonNode) -> str {
+  if node == null { return "null" }
+  if node.json_type == 0 { return "null" }
+  if node.json_type == 3 { return "\"" + node.strVal + "\"" }
+  if node.json_type == 4 { return String(node.numVal) }
+  if node.json_type == 5 { return node.boolVal ? "true" : "false" }
+
+  if node.json_type == 2 {
+    var res = "["
+    var curr: json::JsonNode = node.firstChild
+    while curr != null {
+      res = res + json::stringify(curr)
+      if curr.nextSibling != null { res = res + ", " }
+      curr = curr.nextSibling
+    }
+    res = res + "]"
+    return res
+  }
+  
+  if node.json_type == 1 {
+    var res = "{"
+    var curr: json::JsonNode = node.firstChild
+
+    while curr != null {
+      res = res + "\"" + curr.key + "\": " + json::stringify(curr)
+      if curr.nextSibling != null { res = res + ", " }
+      curr = curr.nextSibling
+    }
+    res = res + "}"
+    return res
+  }
+  
+  return "{}"
+}

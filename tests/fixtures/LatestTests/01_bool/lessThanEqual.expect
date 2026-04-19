@@ -1,0 +1,29 @@
+Boolean Less Than Equal
+true
+false
+true
+true
+Decimal Less Than Equal
+true
+true
+false
+true
+Int32 Less Than Equal
+true
+false
+true
+true
+String Less Than Equal
+true
+true
+true
+true
+false
+true
+true
+false
+Character Less Than Equal
+true
+true
+false
+true

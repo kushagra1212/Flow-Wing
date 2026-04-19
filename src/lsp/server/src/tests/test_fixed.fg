@@ -1,0 +1,5 @@
+fun funName(a:int, b:deci) -> int {
+    return 2
+}
+
+println(funNam)

@@ -1,0 +1,9 @@
+var s: str = "hello"
+
+for (var i: int = 0 to 4) {
+  println(s[i])
+}
+
+s[1] = 'a'
+s[3] = 'p'
+println(s)

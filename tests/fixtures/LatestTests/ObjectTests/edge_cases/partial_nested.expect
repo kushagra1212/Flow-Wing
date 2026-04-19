@@ -1,0 +1,6 @@
+Before assignment:
+partial: { address: { city: "Boston", street: "456 Oak Ave" }, name: "Alice" }
+full: { address: null, age: 0, name: "" }
+After assignment:
+partial: { address: { city: "Boston", street: "456 Oak Ave" }, name: "Alice" }
+full: { address: { city: "Boston", street: "456 Oak Ave", zip: 0 }, age: 0, name: "Alice" }

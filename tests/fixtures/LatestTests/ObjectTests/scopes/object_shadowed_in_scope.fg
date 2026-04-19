@@ -1,0 +1,8 @@
+type T = { n:int }
+var obj:T = { n: 1 }
+println(obj)
+{
+    var obj:T = { n: 999 }
+    println(obj)
+}
+println(obj)

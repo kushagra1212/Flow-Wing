@@ -1,0 +1,8 @@
+var arr: int[3] = [10, 20, 30]
+var i = 0
+var sum = 0
+while (i < 3) {
+  sum = sum + arr[i]
+  i = i + 1
+}
+println(sum)

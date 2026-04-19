@@ -1,0 +1,4 @@
+{ a: 2, b: "", c: { d: 0 }, d: [ { d: 0 }, { d: 0 } ] }Hi Printint Nice{ a: 2, b: "", c: { d: 0 }, d: [ { d: 0 }, { d: 0 } ] }02.2
+2
+hi
+0Not printing it Hi Printint Nice{ a: 3, b: "", c: { d: 0 }, d: [ { d: 0 }, { d: 0 } ] }

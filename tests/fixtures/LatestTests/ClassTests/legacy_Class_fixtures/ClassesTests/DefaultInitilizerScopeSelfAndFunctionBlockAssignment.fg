@@ -1,0 +1,36 @@
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init(a:int,b:str,yesD:deci) -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A(2,"Hello",3.3) 
+a.printDefaults()

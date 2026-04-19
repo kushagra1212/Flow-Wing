@@ -1,0 +1,29 @@
+fun getArray() -> int[3] {
+  return [10, 20, 30]
+}
+
+var arr: int[3] = getArray()
+
+switch arr[0] {
+  case 10:{
+    println("ten")
+  }
+  case 20:{
+    println("twenty")
+  }
+  default:{
+    println("default")
+  }
+}
+
+switch arr[1] {
+  case 10:{
+    println("ten")
+  }
+  case 20:{
+    println("twenty")
+  }
+  default:{
+    println("default")
+  }
+}

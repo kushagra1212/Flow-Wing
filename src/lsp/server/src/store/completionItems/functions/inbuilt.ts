@@ -6,13 +6,17 @@ import {
 
 const documentation: Record<
   | "print"
+  | "println"
   | "super"
   | "input"
+  | "Int8"
   | "Int32"
+  | "Int64"
   | "Decimal"
+  | "Decimal32"
   | "String"
   | "Bool"
-  | "Decimal32",
+  | "Char",
   string | MarkupContent
 > = {
   print: {
@@ -26,6 +30,20 @@ The \`print\` function is used to print a message to the console.
 \`\`\`flowwing
 print("Hello, World!")
 print(2, 3, 4,"Hello")
+\`\`\`
+    `,
+  },
+  println: {
+    kind: "markdown",
+    value: `
+**Print Line Function**
+
+The \`println\` function is like \`print\` but also prints a newline at the end.
+
+### Example:
+\`\`\`flowwing
+println("Hello, World!")
+println(2, 3, 4, "Hello")
 \`\`\`
     `,
   },
@@ -62,6 +80,19 @@ var name = input("Enter your name: ")
 - **Usage**: read input from the user
  `,
   },
+  Int8: {
+    kind: "markdown",
+    value: `
+**8-bit Integer Conversion**
+
+The \`Int8\` function converts a value to an 8-bit integer.
+
+### Example:
+\`\`\`flowwing
+var x: int8 = Int8("42")
+\`\`\`
+    `,
+  },
   Int32: {
     kind: "markdown",
     value: `
@@ -72,6 +103,32 @@ The \`Int32\` function is used to convert a value to a 32-bit integer.
 ### Example:
 \`\`\`flowwing
 var number: int = Int32("123")
+\`\`\`
+    `,
+  },
+  Int64: {
+    kind: "markdown",
+    value: `
+**64-bit Integer Conversion**
+
+The \`Int64\` function converts a value to a 64-bit integer.
+
+### Example:
+\`\`\`flowwing
+var n: int64 = Int64("1234567890")
+\`\`\`
+    `,
+  },
+  Char: {
+    kind: "markdown",
+    value: `
+**Character Conversion**
+
+The \`Char\` function converts a value to a character.
+
+### Example:
+\`\`\`flowwing
+var c: char = Char(65)
 \`\`\`
     `,
   },
@@ -161,6 +218,21 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     documentation: documentation.print,
   },
   {
+    label: "println",
+    kind: CompletionItemKind.Function,
+    data: {
+      functionParametersTypes: ["int", "int", "int", "str"],
+      signatures: [
+        {
+          label: "println()",
+          documentation: documentation.println,
+        },
+      ],
+    },
+    detail: "Print with newline",
+    documentation: documentation.println,
+  },
+  {
     label: "input",
     kind: CompletionItemKind.Function,
     data: {
@@ -175,18 +247,60 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     documentation: documentation.input,
   },
   {
+    label: "Int8",
+    kind: CompletionItemKind.Function,
+    data: {
+      signatures: [
+        {
+          label: "Int8(str) -> int8",
+          documentation: documentation.Int8,
+        },
+      ],
+    },
+    detail: "8-bit Integer Conversion",
+    documentation: documentation.Int8,
+  },
+  {
     label: "Int32",
     kind: CompletionItemKind.Function,
     data: {
       signatures: [
         {
-          label: "Int32()",
+          label: "Int32(str) -> int",
           documentation: documentation.Int32,
         },
       ],
     },
     detail: "Integer Conversion",
     documentation: documentation.Int32,
+  },
+  {
+    label: "Int64",
+    kind: CompletionItemKind.Function,
+    data: {
+      signatures: [
+        {
+          label: "Int64(str) -> int64",
+          documentation: documentation.Int64,
+        },
+      ],
+    },
+    detail: "64-bit Integer Conversion",
+    documentation: documentation.Int64,
+  },
+  {
+    label: "Char",
+    kind: CompletionItemKind.Function,
+    data: {
+      signatures: [
+        {
+          label: "Char(int8) -> char",
+          documentation: documentation.Char,
+        },
+      ],
+    },
+    detail: "Character Conversion",
+    documentation: documentation.Char,
   },
   {
     label: "Decimal",

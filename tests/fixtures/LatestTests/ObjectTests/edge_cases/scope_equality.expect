@@ -1,0 +1,4 @@
+outer p1 == p2: true
+inner p1 == p2: true
+inner p1 == p2 after assignment: true
+outer p1 == p2 after scope: true

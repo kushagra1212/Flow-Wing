@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+print(true < 1)

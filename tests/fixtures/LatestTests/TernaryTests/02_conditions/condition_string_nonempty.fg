@@ -1,0 +1,3 @@
+var s: str = "hello"
+
+println(s ? "nonempty" : "empty")

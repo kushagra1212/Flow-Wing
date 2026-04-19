@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: ParentClassIsNotAClass
+type Box = {
+  x: int
+}
+class A extends Box {
+  fun init() -> nthg {
+  }
+}

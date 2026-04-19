@@ -1,0 +1,6 @@
+var x:int8 = 10
+{
+    var x:int8 = 20
+    println(x)
+}
+println(x)

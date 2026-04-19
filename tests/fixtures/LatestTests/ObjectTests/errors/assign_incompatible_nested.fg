@@ -1,0 +1,32 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+type Point = {
+    x: int
+    y: int
+    j:int
+}
+
+type Point3D = {
+    x: int
+    y: int
+    z: int
+}
+
+type Shape = {
+    point: Point
+}
+
+type Shape3D = {
+    point: Point3D
+}
+
+var shape: Shape = {
+    point: {
+        x: 0,
+        y: 0
+    }
+}
+
+var shape3d: Shape3D
+
+shape3d.point = shape.point
+

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,20 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include <memory>
+
+namespace flow_wing {
+namespace parser {
+
 class SwitchStatementParser : public StatementParser {
 
 public:
-  std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+  explicit SwitchStatementParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::StatementSyntax> parse() override;
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

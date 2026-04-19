@@ -1,0 +1,3 @@
+var d = 0
+
+println(d ? "truthy" : "falsy")

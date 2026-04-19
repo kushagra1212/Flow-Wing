@@ -1,0 +1,7 @@
+print(~0, "\n")
+print(~1, "\n")
+print(~127, "\n")
+/; EXPECT: -1
+/; EXPECT: -2
+/; EXPECT: -128
+

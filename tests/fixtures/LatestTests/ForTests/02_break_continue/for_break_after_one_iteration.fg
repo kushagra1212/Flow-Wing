@@ -1,0 +1,5 @@
+for (var i: int = 0 to 5 : 1) {
+  println(i)
+  break
+}
+println("done")

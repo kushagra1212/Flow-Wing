@@ -20,8 +20,29 @@
 #pragma once
 
 #include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include <memory>
+
+namespace flow_wing {
+
+namespace syntax {
+class ExpressionSyntax;
+class SyntaxToken;
+} // namespace syntax
+namespace parser {
+
+class ParserContext;
 class TernaryExpressionParser : public ExpressionParser {
 public:
-  std::unique_ptr<ExpressionSyntax>
-  parseExpression(ParserContext *ctx) override;
+  explicit TernaryExpressionParser(ParserContext *ctx);
+
+  std::unique_ptr<syntax::ExpressionSyntax> parse() override;
+
+  std::unique_ptr<syntax::ExpressionSyntax>
+  parsePostfix(std::unique_ptr<syntax::ExpressionSyntax> condition_expression,
+               const syntax::SyntaxToken *question_token);
+
+private:
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

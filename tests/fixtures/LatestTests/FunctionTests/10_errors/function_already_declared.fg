@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: FunctionAlreadyDeclared
+fun greet() {
+  println("Hello")
+}
+
+fun greet() {
+  println("Hi")
+}
+
+greet()

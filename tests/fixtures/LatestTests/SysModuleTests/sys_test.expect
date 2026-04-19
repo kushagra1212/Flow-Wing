@@ -1,0 +1,6 @@
+--- Sys Module Basic Test ---
+"Has at least 1 argument: true"
+"Arg 0 (program) exists: true"
+"Script directory is not empty: true"
+"Timestamp is valid (> 0): true"
+Basic tests completed successfully.

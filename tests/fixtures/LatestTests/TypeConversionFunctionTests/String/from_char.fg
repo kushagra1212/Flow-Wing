@@ -1,0 +1,5 @@
+print(String('A'), "\n")
+print(String('z'), "\n")
+print(String('0'), "\n")
+print(String(' '), "\n")
+

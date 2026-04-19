@@ -1,0 +1,17 @@
+fun getStr() {
+  return "hi"
+}
+
+var s = getStr()
+
+switch s {
+  case "hi":{
+    println("hi")
+  }
+  case "bye":{
+    println("bye")
+  }
+  default:{
+    println("default")
+  }
+}

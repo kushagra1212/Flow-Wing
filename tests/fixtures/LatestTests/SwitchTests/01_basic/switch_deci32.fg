@@ -1,0 +1,13 @@
+var a: deci32 = 2.5f
+
+switch a {
+  case 2.5f:{
+    println("two five")
+  }
+  case 3.14f:{
+    println("pi")
+  }
+  default:{
+    println("default")
+  }
+}

@@ -1,0 +1,13 @@
+type P_15 = { x: int, y: int }
+type Shape_15 = { pts: P_15[2], id: int }
+fun mod_15(inout s: Shape_15[2]) {
+  s[0].pts[0].x = 150
+  s[1].id = 1500
+}
+var shapes_15: Shape_15[2] = [
+  {pts: [{x: 0, y: 1}, {x: 2, y: 3}], id: 1},
+  {pts: [{x: 4, y: 5}, {x: 6, y: 7}], id: 2}
+]
+mod_15(shapes_15)
+println(shapes_15[0].pts[0].x)
+println(shapes_15[1].id)

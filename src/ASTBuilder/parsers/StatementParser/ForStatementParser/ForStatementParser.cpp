@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,65 +18,86 @@
  */
 
 #include "ForStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/ExpressionStatementParser/ExpressionStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 #include "src/ASTBuilder/parsers/StatementParser/VariableDeclarationParser/VariableDeclarationParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
-#include <memory>
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-ForStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> keyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::ForKeyword);
-  ctx->getCodeFormatterRef()->appendWithSpace();
-  bool hadOpenParenthesis = false;
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-    hadOpenParenthesis = true;
-  }
+ForStatementParser::ForStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  std::unique_ptr<StatementSyntax> statementSyntax = nullptr;
+std::unique_ptr<syntax::StatementSyntax> ForStatementParser::parse() {
+  auto for_keyword = m_ctx->match(lexer::TokenKind::kForKeyword); // for
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::VarKeyword) {
-    std::unique_ptr<VariableDeclarationParser> varDecParser =
-        std::make_unique<VariableDeclarationParser>();
-    // varDecParser->setIsForStatement(true);
-    statementSyntax = varDecParser->parseStatement(ctx);
+  auto open_parenthesis_token =
+      m_ctx->matchIf(lexer::TokenKind::kOpenParenthesisToken); // (
+
+  std::unique_ptr<syntax::StatementSyntax> variable_declaration = nullptr;
+  std::unique_ptr<syntax::ExpressionSyntax> assignment_expression = nullptr;
+
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kVarKeyword) {
+    variable_declaration = std::make_unique<VariableDeclarationParser>(m_ctx)
+                               ->parse(); // var x: int = 5
   } else {
-    statementSyntax =
-        std::make_unique<ExpressionStatementParser>()->parseStatement(ctx);
-  }
-  ctx->getCodeFormatterRef()->appendWithSpace();
-
-  std::unique_ptr<SyntaxToken<std::any>> toKeyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
-  ctx->getCodeFormatterRef()->appendWithSpace();
-
-  std::unique_ptr<ExpressionSyntax> upperBound =
-      PrecedenceAwareExpressionParser::parse(ctx);
-  std::unique_ptr<ExpressionSyntax> step = nullptr;
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    step = PrecedenceAwareExpressionParser::parse(ctx);
+    assignment_expression =
+        std::make_unique<syntax::AssignmentExpressionSyntax>(
+            PrecedenceAwareExpressionParser::parse(m_ctx),
+            m_ctx->match(lexer::TokenKind::kEqualsToken),
+            PrecedenceAwareExpressionParser::parse(m_ctx)); // x = 5
   }
 
-  if (hadOpenParenthesis) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+  auto to_keyword = m_ctx->match(lexer::TokenKind::kToKeyword); // to
+
+  const int colon_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+      lexer::TokenKind::kColonToken);
+  auto upper_bound =
+      PrecedenceAwareExpressionParser::parse(m_ctx, colon_precedence); // 10
+
+  const syntax::SyntaxToken *step_colon_token = nullptr;
+  std::unique_ptr<syntax::ExpressionSyntax> step = nullptr;
+
+  if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kColonToken) {
+    step_colon_token = m_ctx->match(lexer::TokenKind::kColonToken); // :
+    step = PrecedenceAwareExpressionParser::parse(m_ctx);           // 2
   }
-  ctx->getCodeFormatterRef()->appendWithSpace();
 
-  std::unique_ptr<BlockStatementSyntax> statement(
-      static_cast<BlockStatementSyntax *>(
-          std::make_unique<BlockStatementParser>()
-              ->parseStatement(ctx)
-              .release()));
+  auto close_parenthesis_token =
+      open_parenthesis_token
+          ? m_ctx->match(lexer::TokenKind::kCloseParenthesisToken) // )
+          : nullptr;
 
-  return std::make_unique<ForStatementSyntax>(
-      std::move(statementSyntax), std::move(upperBound), std::move(statement),
-      std::move(step));
+  auto body = StatementParserFactory::create(*m_ctx)->parse(); // statement
+
+  return std::make_unique<syntax::ForStatementSyntax>(
+      for_keyword, std::move(open_parenthesis_token),
+      std::move(variable_declaration), std::move(assignment_expression),
+      to_keyword, std::move(upper_bound), std::move(step_colon_token),
+      std::move(step), std::move(close_parenthesis_token), std::move(body));
+
+  /*
+  for (var x: int = 5 to 10 : 2) {
+      print(x);
+    }
+    for (x = 5 to 10) {
+      print(x);
+    }
+    for (x = 5 to 10 : 2) {
+      print(x);
+    }
+
+    for x = 5 to 10 {
+      print(x);
+    }
+  */
 }
+} // namespace parser
+} // namespace flow_wing

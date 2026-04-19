@@ -1,0 +1,13 @@
+fun getA() -> int {
+  return 5
+}
+
+fun getB() -> int {
+  return 3
+}
+
+if (getA() > getB()) {
+  println("a gt b")
+} else {
+  println("a le b")
+}

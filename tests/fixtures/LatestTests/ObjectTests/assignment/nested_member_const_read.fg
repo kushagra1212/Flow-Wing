@@ -1,0 +1,26 @@
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+const rect: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+
+print("Top-left x: ", rect.topLeft.x, "\n")
+print("Top-left y: ", rect.topLeft.y, "\n")
+print("Bottom-right x: ", rect.bottomRight.x, "\n")
+print("Bottom-right y: ", rect.bottomRight.y, "\n")
+print("Full rectangle: ", rect, "\n")

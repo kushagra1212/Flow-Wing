@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,48 +20,36 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include <memory>
 
-// clang-format off
-#include "src/diagnostics/Diagnostic/diagnostic_push.h"
-#include <llvm/IR/IRBuilder.h>
-#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
-// clang-format on
+namespace flow_wing {
+namespace binding {
 
-namespace BinderKindUtils {
-enum BoundBinaryOperatorKind : int;
-}
+class BoundBinaryOperator;
 
 class BoundBinaryExpression : public BoundExpression {
-private:
-  BinderKindUtils::BoundBinaryOperatorKind _op;
-  std::unique_ptr<BoundExpression> _left;
-  std::unique_ptr<BoundExpression> _right;
-  llvm::AllocaInst *_dynamicValueVariableAddress = nullptr;
 
 public:
-  BoundBinaryExpression(const DiagnosticUtils::SourceLocation &location,
-                        std::unique_ptr<BoundExpression> left,
-                        BinderKindUtils::BoundBinaryOperatorKind op,
-                        std::unique_ptr<BoundExpression> right);
+  BoundBinaryExpression(std::unique_ptr<BoundExpression> left,
+                        std::shared_ptr<BoundBinaryOperator> binary_operator,
+                        std::unique_ptr<BoundExpression> right,
+                        const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundBinaryExpression() = default;
 
-  BinderKindUtils::BoundBinaryOperatorKind getOperator();
+  // Overrides
+  NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
-  std::unique_ptr<BoundExpression> getLeft();
+  // Getters
+  std::shared_ptr<types::Type> getType() const override;
+  const std::shared_ptr<BoundBinaryOperator> &getBinaryOperator() const;
+  const std::unique_ptr<BoundExpression> &getLeft() const;
+  const std::unique_ptr<BoundExpression> &getRight() const;
 
-  std::unique_ptr<BoundExpression> getRight();
-
-  const std::type_info &getType() override;
-
-  BinderKindUtils::BoundNodeKind getKind() const override;
-
-  std::vector<BoundNode *> getChildren() override;
-
-  std::unique_ptr<BoundExpression> &getLeftPtr();
-
-  std::unique_ptr<BoundExpression> &getRightPtr();
-
-  llvm::AllocaInst *getDynamicValueVariableAddress();
-
-  void
-  setDynamicValueVariableAddress(llvm::AllocaInst *dynamicValueVariableAddress);
+private:
+  std::unique_ptr<BoundExpression> m_left;
+  std::shared_ptr<BoundBinaryOperator> m_binary_operator;
+  std::unique_ptr<BoundExpression> m_right;
 };
+} // namespace binding
+} // namespace flow_wing

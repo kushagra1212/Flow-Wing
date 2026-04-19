@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+var s: str = "hello"
+var i = 0
+while (s < 5) {
+  i = i + 1
+}
+println(i)

@@ -1,0 +1,3 @@
+const x:int64 = 5l
+print(x, "\n")
+

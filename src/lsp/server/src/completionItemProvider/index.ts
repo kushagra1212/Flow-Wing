@@ -1,16 +1,16 @@
-import { ProgramStructure } from "../ds/stack";
 import {
   CompletionItem,
   CompletionItemKind,
   Position,
+  TextDocuments,
 } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileUtils } from "../utils/fileUtils";
 import {
+  filterCompletionItemsByPrefix,
   formatVarExpr,
   getArrayType,
-  getFileFullPath,
   getImportedFileUri,
-  getModulePath,
   getUnique,
   SuggestHandler,
   userDefinedKeywordsFilter,
@@ -25,8 +25,18 @@ import { FunctionDeclarationCompletionItemGenerationStrategy } from "../completi
 import { CompletionItemGenerationFactory } from "../completionItemGeneration/completionItemGenerationFactory";
 import { IdentifierToken, RootObject, Token } from "../types";
 import { flowWingConfig } from "../config";
-import { validateTextDocument } from "../services/documentService";
-import { documents } from "../server";
+import {
+  getAstPathForDocument,
+  getAstPathForFile,
+  getSemPathForDocument,
+  getSemPathForFile,
+} from "../services/documentService";
+// import { documents } from "../server";
+import {
+  getCompletionItemsFromSem,
+  isSemFormat,
+} from "./semCompletions";
+import { logger } from "../services/loggerService";
 
 export const declareGlobals = (
   program: any,
@@ -76,6 +86,7 @@ type TraverseJsonParams = {
   suggestion: SuggestHandler;
   programCtx: ProgramContext;
   currentTextDocUri: string;
+  docs?: TextDocuments<TextDocument>;
 };
 
 const traverseJson = async ({
@@ -83,6 +94,7 @@ const traverseJson = async ({
   suggestion,
   programCtx,
   currentTextDocUri,
+  docs,
 }: TraverseJsonParams): Promise<CompletionItem[]> => {
   if (Array.isArray(obj)) {
     for (const item of obj) {
@@ -91,8 +103,8 @@ const traverseJson = async ({
         currentTextDocUri: currentTextDocUri,
         programCtx: programCtx,
         suggestion: suggestion,
+        docs,
       });
-      if (res?.length) return wrap(res, programCtx, currentTextDocUri);
     }
   } else if (typeof obj === "object" && obj !== null) {
     if (obj["BringStatementSyntax"]) {
@@ -101,6 +113,7 @@ const traverseJson = async ({
         currentTextDocUri,
         programCtx,
         suggestion,
+        docs,
       });
 
       if (result.length) return wrap(result, programCtx, currentTextDocUri);
@@ -146,7 +159,12 @@ const traverseJson = async ({
             new AllCompletionItemsStrategy()
           ).getCompletionItems({ programCtx: programCtx }) ?? [];
 
-        const result = getUnique(identifierResult, allResult);
+        let result = getUnique(identifierResult, allResult);
+        // Filter by prefix so typing "funNa" suggests "funName" (IdentifierStrategy uses exact match)
+        result = filterCompletionItemsByPrefix(
+          result,
+          identifierToken.value || ""
+        );
         if (result?.length) return wrap(result, programCtx, currentTextDocUri);
       }
     }
@@ -170,6 +188,7 @@ const traverseJson = async ({
         currentTextDocUri: currentTextDocUri,
         programCtx: programCtx,
         suggestion: suggestion,
+        docs,
       });
 
       if (result?.length) return wrap(result, programCtx, currentTextDocUri);
@@ -220,17 +239,35 @@ const wrap = (
 export async function getCompletionItems(
   filePath: string,
   suggestion: SuggestHandler,
-  currentTextDocUri: string
+  currentTextDocUri: string,
+  docs?: TextDocuments<TextDocument>
 ): Promise<CompletionItem[]> {
   try {
-    const syntaxTreeAsString = await fileUtils.readFile(filePath);
-    const programCtx = new ProgramContext(JSON.parse(syntaxTreeAsString));
+    const content = await fileUtils.readFile(filePath);
+    const parsed = JSON.parse(content);
+    logger.debug("completion", "filePath", filePath, "isSem", isSemFormat(parsed));
+
+    // Prefer sem (semantic tree) - has symbols, types, better completions
+    if (isSemFormat(parsed)) {
+      const semItems = getCompletionItemsFromSem(
+        parsed,
+        suggestion,
+        currentTextDocUri
+      );
+      logger.debug("completion", "semItems", semItems.length, "labels", semItems.slice(0, 5).map((i) => i.label));
+      return semItems.length > 0 ? semItems : [];
+    }
+
+    // Fall back to AST format
+    const syntaxTree = parsed.tree ?? parsed;
+    const programCtx = new ProgramContext(syntaxTree);
 
     const result = await traverseJson({
       obj: programCtx.syntaxTree,
       currentTextDocUri: currentTextDocUri,
       programCtx: programCtx,
       suggestion: suggestion,
+      docs,
     });
 
     const finalResult =
@@ -242,7 +279,7 @@ export async function getCompletionItems(
 
     return wrap(finalResult, programCtx, currentTextDocUri);
   } catch (err) {
-    console.error(`Error reading and processing JSON file: ${filePath}`, err);
+    logger.error("completion", "Error reading JSON", filePath, err);
     return [];
   }
 }
@@ -253,14 +290,23 @@ export async function readTokens(
 ): Promise<Token[]> {
   try {
     const tokensAsString = await fileUtils.readFile(filePath);
-    const tokens = JSON.parse(tokensAsString) as Array<Token>;
-    const resTokens = [];
+    const parsed = JSON.parse(tokensAsString);
+    // New compiler format: { tokens, stage, source, ... }; old: direct array
+    const rawTokens = (parsed.tokens ?? parsed) as any[];
+    const resTokens: Token[] = [];
 
-    for (const token of tokens) {
+    for (const raw of rawTokens) {
+      // Map new format (lexeme, range.start) or old format (value, lineNumber, columnNumber)
+      const token: Token = {
+        value: raw.lexeme ?? raw.value ?? "",
+        lineNumber: raw.range?.start ? raw.range.start[0] : (raw.lineNumber ?? 0),
+        columnNumber: raw.range?.start ? raw.range.start[1] : (raw.columnNumber ?? 0),
+      };
+
       if (
         token.lineNumber < position.line ||
         (token.lineNumber <= position.line &&
-          token.columnNumber < position.character)
+          token.columnNumber <= position.character)
       ) {
         resTokens.push(token);
       } else {
@@ -453,11 +499,13 @@ const handleBringStatement = async ({
   programCtx,
   suggestion,
   currentTextDocUri,
+  docs,
 }: {
   obj: any;
   programCtx: ProgramContext;
   suggestion: SuggestHandler;
   currentTextDocUri: string;
+  docs?: TextDocuments<TextDocument>;
 }) => {
   const bringkeyword = obj["BringStatementSyntax"]?.[0]?.[
     "BringKeyword"
@@ -521,15 +569,27 @@ const handleBringStatement = async ({
         currentTextDocUri
       );
       if (importedFileURI && importedFileURI !== "") {
-        await validateTextDocument(documents.get(importedFileURI), null);
+        const doc = docs?.get(importedFileURI);
+        let treePath: string | null = null;
+        if (doc) {
+          treePath =
+            (await getSemPathForDocument(doc)) ??
+            (await getAstPathForDocument(doc));
+        } else {
+          try {
+            const content = await fileUtils.readFile(relPath);
+            treePath =
+              (await getSemPathForFile(importedFileURI, content)) ??
+              (await getAstPathForFile(importedFileURI, content));
+          } catch {
+            /* file not found */
+          }
+        }
+        if (!treePath) return [];
 
         let result = (
           await getCompletionItems(
-            fileUtils.getTempFilePath({
-              fileName:
-                getFileFullPath(importedFileURI) +
-                flowWingConfig.temp.syntaxFileExt,
-            }),
+            treePath,
             {
               data: {
                 isDot: false,

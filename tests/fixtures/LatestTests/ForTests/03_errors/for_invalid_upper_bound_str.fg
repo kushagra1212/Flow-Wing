@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidUpperBoundTypeForForLoop
+for (var i: int = 0 to "bad" : 1) {
+  println(i)
+}

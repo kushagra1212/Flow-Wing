@@ -1,0 +1,22 @@
+type Address = {
+    street: str
+    city: str
+}
+
+type Person = {
+    name: str
+    age: int
+    address: Address
+}
+
+var p: Person = {
+    name: "John",
+    age: 30,
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+
+print(p, "\n")
+

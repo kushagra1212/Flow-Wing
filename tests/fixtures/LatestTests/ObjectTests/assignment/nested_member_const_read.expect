@@ -1,0 +1,5 @@
+Top-left x: 0
+Top-left y: 0
+Bottom-right x: 10
+Bottom-right y: 10
+Full rectangle: { bottomRight: { x: 10, y: 10 }, topLeft: { x: 0, y: 0 } }

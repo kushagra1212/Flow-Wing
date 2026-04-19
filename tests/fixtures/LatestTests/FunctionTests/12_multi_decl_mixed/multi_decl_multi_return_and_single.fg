@@ -1,0 +1,12 @@
+fun getPoint() -> int, deci {
+  return 3, 1.5
+}
+
+fun getTag() -> str {
+  return "ok"
+}
+
+var a: int, b: deci, c: str = getPoint(), getTag()
+println(a)
+println(b)
+println(c)

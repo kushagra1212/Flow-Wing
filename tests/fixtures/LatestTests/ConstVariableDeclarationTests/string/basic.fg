@@ -1,0 +1,3 @@
+const x:str = "Hello"
+print(x, "\n")
+

@@ -1,0 +1,13 @@
+type P_7 = { x: int, y: int }
+type Shape_7 = { pts: P_7[2], id: int }
+fun mod_7(inout s: Shape_7[2]) {
+  s[0].pts[0].x = 70
+  s[1].id = 700
+}
+var shapes_7: Shape_7[2] = [
+  {pts: [{x: 0, y: 1}, {x: 2, y: 3}], id: 1},
+  {pts: [{x: 4, y: 5}, {x: 6, y: 7}], id: 2}
+]
+mod_7(shapes_7)
+println(shapes_7[0].pts[0].x)
+println(shapes_7[1].id)

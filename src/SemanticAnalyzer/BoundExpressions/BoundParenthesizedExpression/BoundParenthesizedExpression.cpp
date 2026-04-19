@@ -17,35 +17,33 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "BoundParenthesizedExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "BoundParenthesizedExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+
+namespace flow_wing {
+namespace binding {
 
 BoundParenthesizedExpression::BoundParenthesizedExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundExpression> expression)
-    : BoundExpression(location) {
-  this->_expression = std::move(expression);
+    std::unique_ptr<BoundExpression> expression,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_expression(std::move(expression)) {}
 
-  this->_children.push_back(this->_expression.get());
+NodeKind BoundParenthesizedExpression::getKind() const {
+  return NodeKind::kParenthesizedExpression;
 }
 
-const std::type_info &BoundParenthesizedExpression::getType() {
-  return _expression->getType();
+void BoundParenthesizedExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<BoundExpression> BoundParenthesizedExpression::getExpression() {
-  return std::move(_expression);
+std::shared_ptr<types::Type> BoundParenthesizedExpression::getType() const {
+  return m_expression->getType();
 }
 
-BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ParenthesizedExpression;
+const std::unique_ptr<BoundExpression> &
+BoundParenthesizedExpression::getExpression() const {
+  return m_expression;
 }
 
-std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
-  return this->_children;
-}
-
-std::unique_ptr<BoundExpression> &
-BoundParenthesizedExpression::getExpressionPtr() {
-  return this->_expression;
-}
+} // namespace binding
+} // namespace flow_wing

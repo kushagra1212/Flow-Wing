@@ -1,0 +1,3 @@
+print(Int8(true), "\n")
+print(Int8(false), "\n")
+

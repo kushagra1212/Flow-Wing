@@ -1,0 +1,4 @@
+print(1e+10, "\n")
+print(1e+5, "\n")
+print(2e+3, "\n")
+

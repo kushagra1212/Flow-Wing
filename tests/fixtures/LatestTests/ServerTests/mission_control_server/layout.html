@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="3">
+    <title>Orion SpaceOS - {{title}}</title>
+    <style>
+        body { background: #050505; color: #00ffcc; font-family: 'Courier New', monospace; margin: 0; display: flex; }
+        .sidebar { width: 200px; background: #111; height: 100vh; padding: 20px 0; border-right: 1px solid #00ffcc; }
+        .sidebar h2 { text-align: center; text-shadow: 0 0 10px #00ffcc; margin-bottom: 30px;}
+        .nav-link { display: block; padding: 15px 20px; color: #00ffcc; text-decoration: none; font-weight: bold; border-left: 3px solid transparent; transition: 0.2s; }
+        .nav-link:hover, .nav-link.{{active_class}} { background: rgba(0,255,204,0.1); border-left: 3px solid #00ffcc; text-shadow: 0 0 5px #00ffcc; }
+        .content { flex: 1; padding: 40px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
+        
+        /* Dashboard Styles */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #111; border: 1px solid #00ffcc; padding: 20px; box-shadow: 0 0 15px rgba(0,255,204,0.1); border-radius: 5px; }
+        .stat { font-size: 1.2em; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .bar-bg { background: #333; width: 50%; height: 20px; border-radius: 10px; overflow: hidden; }
+        .bar-fill { background: #00ffcc; height: 100%; transition: width 0.5s; }
+        .alert { color: #ff3366 !important; text-shadow: 0 0 10px #ff3366 !important; }
+        .ok { color: #00ffcc; }
+        input[type="text"] { background: #000; border: 1px solid #00ffcc; color: #00ffcc; padding: 10px; width: 65%; font-family: inherit; }
+        button { background: #00ffcc; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; font-family: inherit; }
+        button:hover { background: #fff; box-shadow: 0 0 10px #fff; }
+        
+        /* Crew & Logs Styles */
+        .crew-card { background: #111; border: 1px solid #444; padding: 20px; margin-bottom: 15px; border-radius: 5px; }
+        .crew-card.cmdr { border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        .crew-card h3 { margin-top: 0; color: #fff; }
+        .log-entry { padding: 10px; border-bottom: 1px dashed #333; color: #aaa; }
+        .log-entry span { color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>🚀 SpaceOS</h2>
+        <a href="/" class="nav-link {{home_active}}">Dashboard</a>
+        <a href="/crew" class="nav-link {{crew_active}}">Crew Roster</a>
+        <a href="/logs" class="nav-link {{logs_active}}">Mission Logs</a>
+    </div>
+    <div class="content">
+        {{content}}
+    </div>
+</body>
+</html>

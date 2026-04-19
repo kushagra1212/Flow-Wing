@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: LiteralCannotBePassedToInoutParameter
+fun append(inout s: str, t: str) {
+  s = s + t
+}
+
+append("hello", " world")

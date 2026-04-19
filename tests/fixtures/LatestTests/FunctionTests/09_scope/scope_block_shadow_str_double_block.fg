@@ -1,0 +1,15 @@
+fun tag(s: str) -> str {
+  return "[" + s + "]"
+}
+
+var s: str = "global"
+println(s)
+{
+  var s: str = tag("inner")
+  println(s)
+}
+{
+  var s: str = tag("second")
+  println(s)
+}
+println(s)

@@ -22,29 +22,40 @@
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
 
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
+
 class FillExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<ExpressionSyntax> _sizeToFillExpression;
-  std::unique_ptr<ExpressionSyntax> _elementExpression;
 
 public:
+  FillExpressionSyntax(
+      const syntax::SyntaxToken *open_bracket,
+      std::unique_ptr<ExpressionSyntax> size_to_fill_expression,
+      const syntax::SyntaxToken *fill_keyword,
+      std::unique_ptr<ExpressionSyntax> element_expression,
+      const syntax::SyntaxToken *close_bracket);
+
   // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  // Setters
-
-  void setSizeToFillExpression(
-      std::unique_ptr<ExpressionSyntax> sizeToFillExpression);
-
-  void
-  setElementExpression(std::unique_ptr<ExpressionSyntax> elementExpression);
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  auto getSizeToFillExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> &;
+  const std::unique_ptr<ExpressionSyntax> &getSizeToFillExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getElementExpression() const;
 
-  auto getElementExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> &;
+private:
+  const syntax::SyntaxToken *m_open_bracket;
+  std::unique_ptr<ExpressionSyntax>
+      m_size_to_fill_expression; // number literal expression
+  const syntax::SyntaxToken *m_fill_keyword;
+  std::unique_ptr<ExpressionSyntax> m_element_expression;
+  const syntax::SyntaxToken *m_close_bracket;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

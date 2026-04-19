@@ -1,0 +1,24 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 25
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 30
+}
+
+var p3: Person = {
+    name: "Charlie",
+    age: 35
+}
+
+print("p1: ", p1, "\n")
+print("p2: ", p2, "\n")
+print("p3: ", p3, "\n")
+

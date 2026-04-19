@@ -1,0 +1,5 @@
+print(0l + 0l, "\n")
+print(0l * 10000000000l, "\n")
+/; EXPECT: 0
+/; EXPECT: 0
+

@@ -1,0 +1,9 @@
+fun printA() {
+  println("A")
+}
+fun printB() {
+  println("B")
+}
+
+var a = 'A'
+a == 'B' ? printA() : printB()

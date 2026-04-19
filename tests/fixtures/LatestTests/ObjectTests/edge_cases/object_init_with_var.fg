@@ -1,0 +1,12 @@
+type T = {
+    x: int
+}
+
+var t1: T = { x: 10 }
+
+print("t1: ", t1, "\n")
+
+var t2: T
+print("t2: ", t2, "\n")
+t2 = { x: 10 }
+print("t2: ", t2, "\n")

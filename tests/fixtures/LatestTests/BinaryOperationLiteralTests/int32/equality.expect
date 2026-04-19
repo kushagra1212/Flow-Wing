@@ -1,0 +1,10 @@
+Int32 Equality Tests (values outside int8 range)
+true
+false
+true
+false
+true
+false
+true
+true
+true

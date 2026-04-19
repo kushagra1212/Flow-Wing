@@ -1,0 +1,4 @@
+Const outer.inner.value (read-only): 10
+Mutable inner.value (before): 20
+Mutable inner.value (after): 30
+Const outer.inner.value (still unchanged): 10

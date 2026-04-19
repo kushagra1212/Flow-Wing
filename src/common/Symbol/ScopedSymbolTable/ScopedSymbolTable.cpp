@@ -1,0 +1,139 @@
+/*
+ * FlowWing Compiler
+ * Copyright (C) 2023-2026 Kushagra Rathore
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "ScopedSymbolTable.hpp"
+#include "src/common/Symbol/FunctionSymbol.hpp"
+
+namespace flow_wing {
+namespace analysis {
+
+ScopedSymbolTable::ScopedSymbolTable() {
+  // entering the global scope
+  enterScope();
+}
+
+ScopedSymbolTable::ScopedSymbolTable(std::shared_ptr<ScopedSymbolTable> parent)
+    : m_parent(std::move(parent)) {
+  // entering the global scope
+  enterScope();
+}
+
+void ScopedSymbolTable::enterScope() {
+  m_scope_stack.emplace_back(std::make_unique<SymbolTable>());
+}
+
+void ScopedSymbolTable::leaveScope() {
+  if (m_scope_stack.size() > 1) { // not popping the global scope
+    m_scope_stack.pop_back();
+  }
+}
+
+bool ScopedSymbolTable::define(std::shared_ptr<Symbol> symbol) {
+  auto &current_scope = *m_scope_stack.back();
+  auto [it, inserted] = current_scope.try_emplace(symbol->getName(), symbol);
+  return inserted;
+}
+
+bool ScopedSymbolTable::defineInEnclosingScope(std::shared_ptr<Symbol> symbol) {
+  if (m_scope_stack.size() < 2)
+    return false;
+  auto &parent_scope = *m_scope_stack[m_scope_stack.size() - 2];
+  auto [it, inserted] = parent_scope.try_emplace(symbol->getName(), symbol);
+  return inserted;
+}
+
+void ScopedSymbolTable::pushBreakScope() { ++m_break_scope_depth; }
+
+void ScopedSymbolTable::popBreakScope() {
+  if (m_break_scope_depth > 0)
+    --m_break_scope_depth;
+}
+
+bool ScopedSymbolTable::isInBreakScope() const {
+  return m_break_scope_depth > 0;
+}
+
+bool ScopedSymbolTable::isInReturnScope() const {
+  return m_current_function_symbol != nullptr;
+}
+
+void ScopedSymbolTable::setCurrentFunctionSymbol(
+    const FunctionSymbol *function) {
+  m_current_function_symbol = function;
+}
+
+void ScopedSymbolTable::lookupSymbol(
+    std::function<bool(const Symbol *symbol)> predicate,
+    SymbolKind kind) const {
+  for (auto it = m_scope_stack.rbegin(); it != m_scope_stack.rend(); ++it) {
+    auto &scope = **it;
+    for (auto &[name, symbol] : scope)
+      if (symbol->getKind() == kind)
+        predicate(symbol.get());
+  }
+}
+
+const FunctionSymbol *ScopedSymbolTable::getCurrentFunctionSymbol() const {
+  return m_current_function_symbol;
+}
+
+std::shared_ptr<Symbol>
+ScopedSymbolTable::lookup(const std::string &name) const {
+  // iterating from the top of the stack (current scope) down to the bottom
+  // (global scope)
+  for (auto it = m_scope_stack.rbegin(); it != m_scope_stack.rend(); ++it) {
+    auto &scope = **it;
+    if (auto symbol_it = scope.find(name); symbol_it != scope.end()) {
+      return symbol_it->second;
+    }
+  }
+
+  if (m_parent) {
+    return m_parent->lookup(name);
+  }
+
+  return nullptr;
+}
+
+std::shared_ptr<Symbol>
+ScopedSymbolTable::lookupInGlobalScope(const std::string &name) const {
+  if (m_scope_stack.empty()) {
+    return nullptr;
+  }
+  auto &global_scope = *m_scope_stack.front();
+  if (auto symbol_it = global_scope.find(name); symbol_it != global_scope.end()) {
+    return symbol_it->second;
+  }
+  return nullptr;
+}
+
+void ScopedSymbolTable::forEachGlobalSymbol(
+    const std::function<void(const std::string &name,
+                             const std::shared_ptr<Symbol> &symbol)> &fn)
+    const {
+  if (m_scope_stack.empty()) {
+    return;
+  }
+  for (const auto &entry : *m_scope_stack.front()) {
+    fn(entry.first, entry.second);
+  }
+}
+
+} // namespace analysis
+} // namespace flow_wing

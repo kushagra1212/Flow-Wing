@@ -1,0 +1,26 @@
+type Person = {
+    name: str
+    age: int
+    height: deci
+    weight: deci
+}
+
+var p: Person = {
+    name: "John",
+    age: 30,
+    height: 5.10,
+    weight: 70.5
+}
+
+print("Initial: ", p, "\n")
+
+p.age = 31
+p.height = 6.0
+
+print("After partial update: ", p, "\n")
+
+p.name = "Jane"
+p.weight = 65.0
+
+print("After more updates: ", p, "\n")
+

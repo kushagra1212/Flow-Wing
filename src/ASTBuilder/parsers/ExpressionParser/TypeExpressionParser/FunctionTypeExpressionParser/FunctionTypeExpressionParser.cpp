@@ -18,88 +18,122 @@
  */
 
 #include "FunctionTypeExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include <memory>
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
+#include <unordered_map>
+#include <vector>
 
-std::unique_ptr<ExpressionSyntax>
-FunctionTypeExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<FunctionTypeExpressionSyntax> funcTypeExpression =
-      std::make_unique<FunctionTypeExpressionSyntax>(
-          std::make_unique<SyntaxToken<std::any>>(
-              ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
-              SyntaxKindUtils::SyntaxKind::NBU_FUNCTION_TYPE, 0,
-              "NBU_FUNCTION_TYPE", "NBU_FUNCTION_TYPE"));
+namespace flow_wing {
+namespace parser {
 
-  funcTypeExpression->setOpenBracketToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
+FunctionTypeExpressionParser::FunctionTypeExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  funcTypeExpression->setOpenParenthesisToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
+std::unique_ptr<syntax::ExpressionSyntax>
+FunctionTypeExpressionParser::parse() {
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto open_bracket_token =
+      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // [
+
+  auto open_parenthesis_token =
+      m_ctx->match(lexer::TokenKind::kOpenParenthesisToken); // (
+
   size_t parameterCount = 0;
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
-         ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+  std::vector<std::unique_ptr<syntax::ExpressionSyntax>> parameter_types;
+  std::vector<const syntax::SyntaxToken *> parameter_comma_tokens;
+  std::unordered_map<size_t, const syntax::SyntaxToken *>
+      as_parameter_keywords_table, constant_keyword_table, inout_keyword_table;
+
+  while (m_ctx->getCurrentTokenKind() !=
+             lexer::TokenKind::kCloseParenthesisToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+
     if (parameterCount) {
-      ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-      ctx->getCodeFormatterRef()->appendWithSpace();
+      parameter_comma_tokens.push_back(
+          m_ctx->match(lexer::TokenKind::kCommaToken)); // ,
     }
 
-    if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
-      funcTypeExpression->addAsParameterKeyword(
-          parameterCount, ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
-      ctx->getCodeFormatterRef()->appendWithSpace();
+    const syntax::SyntaxToken *as_keyword = nullptr, *const_keyword = nullptr,
+                              *inout_keyword = nullptr;
+
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kConstKeyword) {
+      const_keyword = m_ctx->match(lexer::TokenKind::kConstKeyword); // const
+      constant_keyword_table.insert({parameterCount, const_keyword});
     }
 
-    std::unique_ptr<TypeExpressionSyntax> typeExp(
-        static_cast<TypeExpressionSyntax *>(
-            std::make_unique<TypeExpressionParser>()
-                ->parseExpression(ctx)
-                .release()));
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kInOutKeyword) {
+      inout_keyword = m_ctx->match(lexer::TokenKind::kInOutKeyword); // inout
+      inout_keyword_table.insert({parameterCount, inout_keyword});
+    }
 
-    funcTypeExpression->addParameterType(std::move(typeExp));
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kAsKeyword) {
+      as_keyword = m_ctx->match(lexer::TokenKind::kAsKeyword); // as
+      as_parameter_keywords_table.insert({parameterCount, as_keyword});
+    }
+
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCommaToken) {
+      parameter_types.push_back(nullptr);
+    } else {
+      // parameter type to avoid missing module name prefix
+      parameter_types.push_back(
+          std::make_unique<parser::TypeExpressionParser>(m_ctx)
+              ->parse()); // [parameter_type] or [parameter_type,
+                          // parameter_type] or [module_name::parameter_type]
+    }
 
     parameterCount++;
   }
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto close_parenthesis_token =
+      m_ctx->match(lexer::TokenKind::kCloseParenthesisToken); // )
 
-  funcTypeExpression->setCloseParenthesisToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
+  auto right_arrow_token = m_ctx->matchIf(lexer::TokenKind::kRightArrowToken);
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
-  ctx->match(SyntaxKindUtils::SyntaxKind::MinusToken);
-  ctx->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  const syntax::SyntaxToken *as_return_keyword = nullptr;
+  std::vector<std::unique_ptr<syntax::ExpressionSyntax>> return_types;
+  std::vector<const syntax::SyntaxToken *> return_comma_tokens;
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
-    funcTypeExpression->setAsKeyword(
-        ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  if (right_arrow_token) {
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kAsKeyword) {
+      as_return_keyword = m_ctx->match(lexer::TokenKind::kAsKeyword); // as
+
+      return_types.push_back(
+          std::make_unique<parser::TypeExpressionParser>(m_ctx)
+              ->parse()); // [return_type]
+    } else {
+
+      size_t return_count = 0;
+      while (m_ctx->getCurrentTokenKind() !=
+                 lexer::TokenKind::kCloseBracketToken &&
+             m_ctx->getCurrentTokenKind() !=
+                 lexer::TokenKind::kEndOfFileToken) {
+        if (return_count) {
+          return_comma_tokens.push_back(
+              m_ctx->match(lexer::TokenKind::kCommaToken)); // ,
+        }
+
+        return_types.push_back(
+            std::make_unique<parser::TypeExpressionParser>(m_ctx)
+                ->parse()); // [return_type]
+
+        return_count++;
+      }
+    }
+  } else {
+    return_types.push_back(nullptr);
   }
 
-  do {
-    if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
-      funcTypeExpression->addSeparator(
-          ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken));
-      ctx->getCodeFormatterRef()->appendWithSpace();
-    }
+  auto close_bracket_token =
+      m_ctx->match(lexer::TokenKind::kCloseBracketToken); // ]
 
-    funcTypeExpression->addReturnType(std::unique_ptr<TypeExpressionSyntax>(
-        (static_cast<TypeExpressionSyntax *>(
-            std::make_unique<TypeExpressionParser>()
-                ->parseExpression(ctx)
-                .release()))));
-
-  } while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
-
-  funcTypeExpression->setCloseBracketToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
-  ctx->getCodeFormatterRef()->appendWithSpace();
-
-  return funcTypeExpression;
+  return std::make_unique<syntax::FunctionTypeExpressionSyntax>(
+      open_bracket_token, open_parenthesis_token, as_parameter_keywords_table,
+      constant_keyword_table, inout_keyword_table, std::move(parameter_types),
+      parameter_comma_tokens, close_parenthesis_token, right_arrow_token,
+      as_return_keyword, std::move(return_types), close_bracket_token);
 }
+} // namespace parser
+} // namespace flow_wing

@@ -1,0 +1,11 @@
+var outer = 0
+while (outer < 2) {
+  var inner = 0
+  while (inner < 2) {
+    println(outer)
+    println(inner)
+    inner = inner + 1
+  }
+  outer = outer + 1
+}
+println("done")

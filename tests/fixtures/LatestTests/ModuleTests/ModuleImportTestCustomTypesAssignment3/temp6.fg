@@ -1,0 +1,12 @@
+
+bring local
+
+
+
+local::x = {a:3}
+print(local::x)
+local::main2()
+
+local::x = {a:3}
+print(local::x)
+  

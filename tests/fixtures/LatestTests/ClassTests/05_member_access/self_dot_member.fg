@@ -1,0 +1,14 @@
+class A {
+  var x: int
+  var y: int
+  fun init(x: int, y: int) -> nthg {
+    self.x = x
+    self.y = y
+  }
+  fun sum() -> int {
+    return self.x + self.y
+  }
+}
+
+var a: A = new A(3, 7)
+println(a.sum())

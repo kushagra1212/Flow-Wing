@@ -1,0 +1,10 @@
+type Box = {
+  count: int
+}
+
+var b: Box = { count: 0 }
+while (b.count < 3) {
+  println(b.count)
+  b.count = b.count + 1
+}
+println("done")

@@ -1,9 +1,6 @@
 import { _Connection, TextDocuments } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import {
-  formatFlowWingFile,
-  validateTextDocument,
-} from "../services/documentService";
+import { formatFlowWingFile } from "../services/documentService";
 
 export const onDocumentFormatting = async (
   documents: TextDocuments<TextDocument>,

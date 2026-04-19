@@ -1,0 +1,6 @@
+var d = 0
+var n = 0
+while (d) {
+  n = n + 1
+}
+println(n)

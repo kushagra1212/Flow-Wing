@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,41 +19,38 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
 #include <memory>
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken;
-class ExpressionSyntax;
-class BlockStatementSyntax;
+class SyntaxToken;
 
 class OrIfStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> orKeyword;
-  std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
-  std::unique_ptr<ExpressionSyntax> condition;
-  std::unique_ptr<BlockStatementSyntax> statement;
 
 public:
-  OrIfStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> orKeyword,
-                      std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
-                      std::unique_ptr<ExpressionSyntax> condition,
-                      std::unique_ptr<BlockStatementSyntax> statement);
+  OrIfStatementSyntax(const SyntaxToken *or_keyword,
+                      const SyntaxToken *if_keyword,
+                      std::unique_ptr<ExpressionSyntax> condition_expression,
+                      std::unique_ptr<StatementSyntax> statement);
 
-  std::unique_ptr<SyntaxToken<std::any>> getOrKeyword();
-  std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();
-  std::unique_ptr<ExpressionSyntax> getCondition();
-  std::unique_ptr<BlockStatementSyntax> getStatement();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getConditionExpression() const;
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOrKeywordPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
-  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
-  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
+private:
+  const SyntaxToken *m_or_keyword;
+  const SyntaxToken *m_if_keyword;
+  std::unique_ptr<ExpressionSyntax> m_condition_expression;
+  std::unique_ptr<StatementSyntax> m_statement;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

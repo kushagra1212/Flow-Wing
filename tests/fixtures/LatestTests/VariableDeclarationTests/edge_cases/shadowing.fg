@@ -1,0 +1,8 @@
+var x:int = 10
+print(x, "\n")
+{
+  var x:int = 20
+  print(x, "\n")
+}
+print(x, "\n")
+

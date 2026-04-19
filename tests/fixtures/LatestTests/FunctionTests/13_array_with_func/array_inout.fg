@@ -1,0 +1,9 @@
+fun fillFirst(inout arr: int[3], val: int) -> int {
+  arr[0] = val
+  return val
+}
+
+var a: int[3] = [0, 0, 0]
+println(a)
+fillFirst(a, 99)
+println(a)

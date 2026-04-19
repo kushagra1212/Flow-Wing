@@ -2,7 +2,6 @@
 .DS_Store
 build/
 test-build/
-debug/
 new-test.txt
 .cache/
 **/jit-compiler*/**build*/
@@ -11,6 +10,7 @@ new-test.txt
 temp
 compile_commands.json
 .fw_dependencies/
+.fw_dependencies_debug/
 .fw_dependencies_release_bak/
 .fw_dependencies_debug_bak/
 .vs

@@ -1,0 +1,6 @@
+var i = 3
+while (i) {
+  println(i)
+  i = i - 1
+}
+println("zero")

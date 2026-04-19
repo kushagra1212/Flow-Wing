@@ -1,0 +1,11 @@
+
+fun printVal(val: int) {
+    println(val)
+}
+
+var a: int = 100
+{
+    var a: int = 200
+    printVal(a)
+}
+printVal(a)

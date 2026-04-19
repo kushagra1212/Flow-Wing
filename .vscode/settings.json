@@ -136,7 +136,7 @@
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
-  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
   "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
@@ -146,12 +146,13 @@
   "cmake.ignoreCMakeListsMissing": true,
   "FlowWing": {
     "maxNumberOfProblems": 100,
-    "compilerPath": "/Users/apple/code/per/Flow-Wing/build/aot-debug-dev/FlowWing"
+    "modulePath": "/Users/apple/code/per/Flow-Wing/build/sdk/lib/modules",
+    "compilerPath": "/Users/apple/code/per/Flow-Wing/build/sdk/bin/FlowWing"
   },
   "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
   "clangd.arguments": [
     "--compile-commands-dir=${workspaceFolder}",
     "--query-driver=${command:cmake.compilerPath}"
   ],
-  "cSpell.words": ["Kushagra", "Rathore"]
+  "cSpell.words": ["cmdl", "flowwing", "Kushagra", "Nirast", "Nthg", "Rathore"]
 }

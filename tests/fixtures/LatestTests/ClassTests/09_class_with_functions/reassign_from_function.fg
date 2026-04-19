@@ -1,0 +1,15 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+
+fun getA() -> A {
+  return new A(21)
+}
+
+var a: A = getA()
+println(a.x)
+a = getA()
+println(a.x)

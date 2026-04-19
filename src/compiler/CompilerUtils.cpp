@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,20 +86,18 @@ createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
 #if defined(__APPLE__)
   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-#elif defined(__linux__) 
+#elif defined(__linux__)
   TheModule->setTargetTriple(
       llvm::Triple::normalize(llvm::sys::getDefaultTargetTriple()));
 // #else
 //   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #endif
 
-
-DEBUG_LOG("Created LLVM Module with target triple: ",
-          TheModule->getTargetTriple());
+  DEBUG_LOG("Created LLVM Module with target triple: ",
+            TheModule->getTargetTriple());
 
   return TheModule;
 }
-
 
 std::unique_ptr<llvm::Module>
 getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,

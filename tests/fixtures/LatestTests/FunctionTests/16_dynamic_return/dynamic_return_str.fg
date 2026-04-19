@@ -1,0 +1,6 @@
+fun getMessage() {
+  return "hello"
+}
+
+var s: str = getMessage()
+println(s)

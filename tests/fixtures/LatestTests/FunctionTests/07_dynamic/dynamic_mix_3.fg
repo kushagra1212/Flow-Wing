@@ -1,0 +1,16 @@
+var a: [4] = [1, "two", 3.0, true]
+
+fun callBackPrint( a: [4]) -> nthg {
+  println(a)
+  a[2] = "Hello World"
+  println(a)
+}
+
+fun printA(inout a: [4],callback: [([4]) -> nthg]) -> nthg {
+  println(a)
+  a = [4, "four", 4.0, false]
+ callback(a)
+}
+
+printA(a,callBackPrint)
+println(a)    

@@ -1,0 +1,7 @@
+var global: int = 5
+
+println(global > 0 ? "positive" : "non-positive")
+
+var g2: bool = true
+
+println(g2 ? "yes" : "no")

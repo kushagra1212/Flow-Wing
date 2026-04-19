@@ -1,0 +1,7 @@
+var a: int = 7
+
+switch a {
+  default:{
+    println("only default")
+  }
+}

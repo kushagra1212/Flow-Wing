@@ -1,0 +1,22 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+type Level3 = {
+    value: int
+}
+
+type Level2 = {
+    level3: Level3
+}
+
+type Level1 = {
+    level2: Level2
+}
+
+const obj: Level1 = {
+    level2: {
+        level3: {
+            value: 42
+        }
+    }
+}
+
+obj.level2.level3.value = 100

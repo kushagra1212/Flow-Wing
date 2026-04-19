@@ -1,0 +1,6 @@
+fun firstTwo(arr: str[2]) -> str {
+  return arr[0] + arr[1]
+}
+
+var a: str[2] = ["Hello", "World"]
+println(firstTwo(a))

@@ -1,0 +1,10 @@
+print("Deci32 (Float) Inequality Tests\n")
+print(0.0f != 0.0f, "\n")
+print(1.0f != 1.0f, "\n")
+print(1.0f != 0.0f, "\n")
+print(0.0f != 1.0f, "\n")
+print(3.14f != 3.14f, "\n")
+print(3.14f != 3.15f, "\n")
+print(-1.5f != -1.5f, "\n")
+print(-1.5f != 1.5f, "\n")
+

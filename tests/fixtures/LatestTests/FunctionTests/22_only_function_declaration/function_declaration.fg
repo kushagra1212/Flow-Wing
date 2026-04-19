@@ -1,0 +1,1 @@
+fun strReplace(str1: as str, oldSub: as str, newSub: as int) -> as deci decl

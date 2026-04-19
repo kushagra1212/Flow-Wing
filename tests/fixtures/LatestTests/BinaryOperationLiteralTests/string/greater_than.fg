@@ -1,0 +1,12 @@
+print("String Greater Than Tests\n")
+print("" > "", "\n")
+print("" > "a", "\n")
+print("a" > "", "\n")
+print("a" > "a", "\n")
+print("a" > "b", "\n")
+print("b" > "a", "\n")
+print("abc" > "abd", "\n")
+print("abcd" > "abc", "\n")
+print("a" > "A", "\n")
+print("Z" > "a", "\n")
+

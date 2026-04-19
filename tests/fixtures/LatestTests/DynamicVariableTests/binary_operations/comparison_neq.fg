@@ -1,0 +1,6 @@
+var x = 5
+var y = x != 3
+print(y, "\n")
+var z = x != 5
+print(z, "\n")
+

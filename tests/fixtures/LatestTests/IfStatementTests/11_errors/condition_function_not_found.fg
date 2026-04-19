@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: FunctionNotFound
+if (nonexistentFunc()) {
+  println("x")
+}

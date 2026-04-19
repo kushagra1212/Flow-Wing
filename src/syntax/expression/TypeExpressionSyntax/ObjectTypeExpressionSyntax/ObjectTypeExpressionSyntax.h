@@ -19,30 +19,35 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include <any>
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include <memory>
 
-class ObjectTypeExpressionSyntax : public TypeExpressionSyntax {
-private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _objectTypeIdentifier;
+namespace flow_wing {
+
+namespace syntax {
+
+class ObjectTypeExpressionSyntax : public ExpressionSyntax {
 
 public:
-  ObjectTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
+  ObjectTypeExpressionSyntax(
+      std::unique_ptr<IdentifierExpressionSyntax> object_identifier_expression);
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto setObjectTypeIdentifier(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> objectTypeIdentifier)
-      -> void {
-    this->_objectTypeIdentifier = std::move(objectTypeIdentifier);
-  }
+  // Getters
+  const std::unique_ptr<IdentifierExpressionSyntax> &
+  getObjectIdentifier() const;
 
-  inline auto getObjectTypeIdentifierRef()
-      -> const std::unique_ptr<LiteralExpressionSyntax<std::any>> & {
-    return this->_objectTypeIdentifier;
-  }
+private:
+  std::unique_ptr<IdentifierExpressionSyntax> m_object_identifier_expression;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

@@ -1,0 +1,3 @@
+var x:deci32
+print(x, "\n")
+

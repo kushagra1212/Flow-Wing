@@ -1,0 +1,20 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+type Type1 = {
+    a: int
+    b: str
+}
+
+type Type2 = {
+    x: deci
+    y: bool
+}
+
+var t1: Type1 = {
+    a: 10,
+    b: "hello"
+}
+
+var t2: Type2
+
+t2 = t1
+

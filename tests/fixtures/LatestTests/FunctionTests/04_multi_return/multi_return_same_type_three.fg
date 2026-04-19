@@ -1,0 +1,7 @@
+fun threeInts() -> int, int, int {
+  return 10, 20, 30
+}
+
+var x: int, y: int, z: int = threeInts()
+println(x + y + z)
+println(z)

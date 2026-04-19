@@ -1,0 +1,16 @@
+var x: int = 1
+var a: int = 1
+
+switch a {
+  case 1:{
+    var x: int = 2
+    println(x)
+  }
+  case 2:{
+    println(x)
+  }
+  default:{
+    println(x)
+  }
+}
+println(x)

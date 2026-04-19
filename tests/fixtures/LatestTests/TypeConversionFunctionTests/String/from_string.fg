@@ -1,0 +1,4 @@
+print(String("Hello World"), "\n")
+print(String(""), "\n")
+print(String("123"), "\n")
+

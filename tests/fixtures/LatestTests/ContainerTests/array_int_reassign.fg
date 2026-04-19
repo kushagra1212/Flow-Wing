@@ -1,0 +1,8 @@
+var x:int[2] = [1, 2]
+var j = 5
+x[1] = j
+println("x = ", x)
+println("j = ", j)
+j = 10
+println("x = ", x)
+println("j = ", j)

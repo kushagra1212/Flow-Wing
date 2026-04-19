@@ -1,0 +1,3 @@
+bring {exported_only} from "../support_choosy_lib/single_int_var.fg"
+
+println(exported_only)

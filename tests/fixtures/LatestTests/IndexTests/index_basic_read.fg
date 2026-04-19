@@ -1,0 +1,4 @@
+var a:int[5] = [10, 20, 30, 40, 50]
+println(a[0])
+println(a[2])
+println(a[4])

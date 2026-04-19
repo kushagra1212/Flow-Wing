@@ -1,0 +1,22 @@
+var global = 0
+
+fun outer() {
+  var i = 0
+  while (i < 2) {
+    var j = 0
+    while (j < 2) {
+      println(global)
+      println(j)
+      j = j + 1
+      global = global + 1
+      if (global >= 2) {
+        break
+      }
+    }
+    i = i + 1
+  }
+  println("end")
+}
+
+outer()
+println(global)

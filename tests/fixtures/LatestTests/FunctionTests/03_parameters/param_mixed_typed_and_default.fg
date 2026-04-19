@@ -1,0 +1,6 @@
+fun mix(x: int, y: deci = 2.5) -> deci {
+  return x * y
+}
+
+println(mix(2))
+println(mix(4, 1.0))

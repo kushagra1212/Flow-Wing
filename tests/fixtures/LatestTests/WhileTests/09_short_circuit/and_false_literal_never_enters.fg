@@ -1,0 +1,4 @@
+while (false && true) {
+  println("body")
+}
+println("done")

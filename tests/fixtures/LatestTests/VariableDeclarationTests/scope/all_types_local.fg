@@ -1,0 +1,11 @@
+{
+  var a:int8 = 10
+  var b:int = 100
+  var c:int64 = 1000l
+  var d:deci = 1.1
+  var e:bool = true
+  var f:str = "Hello"
+  var g:char = 'a'
+  print(a, " ", b, " ", c, " ", d, " ", e, " ", f, " ", g, "\n")
+}
+

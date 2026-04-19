@@ -1,0 +1,7 @@
+fun getDynamic() {
+  return 99
+}
+
+var x = getDynamic() ? "truthy" : "falsy"
+
+println(x)

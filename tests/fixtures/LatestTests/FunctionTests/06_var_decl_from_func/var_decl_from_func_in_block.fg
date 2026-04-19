@@ -1,0 +1,11 @@
+fun getX() -> int {
+  return 100
+}
+
+var g: int = 0
+{
+  var local: int = getX()
+  println(local)
+  println(g)
+}
+println(g)

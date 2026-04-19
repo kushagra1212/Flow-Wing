@@ -1,0 +1,8 @@
+print(Bool(1), "\n")
+print(Bool(-1), "\n")
+print(Bool(100), "\n")
+print(Bool(0.001), "\n")
+print(Bool(-0.001), "\n")
+print(Bool('A'), "\n")
+print(Bool("hello"), "\n")
+

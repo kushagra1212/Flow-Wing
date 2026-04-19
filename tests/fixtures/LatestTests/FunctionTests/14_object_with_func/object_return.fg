@@ -1,0 +1,12 @@
+type Person = {
+  name: str
+  age: int
+}
+
+fun makePerson(n: str, a: int) -> Person {
+  var p: Person = {name: n, age: a}
+  return p
+}
+
+var p: Person = makePerson("Alice", 30)
+print(p, "\n")

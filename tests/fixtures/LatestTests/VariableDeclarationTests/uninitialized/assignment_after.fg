@@ -1,0 +1,5 @@
+var x:int
+print(x, "\n")
+x = 42
+print(x, "\n")
+

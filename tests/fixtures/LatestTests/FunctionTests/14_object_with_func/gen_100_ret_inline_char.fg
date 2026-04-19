@@ -1,0 +1,5 @@
+type Obj_char_i = { v: char }
+fun get_i_char() -> Obj_char_i[3] { return [{v: 'A'}, {v: 'B'}, {v: 'C'}] }
+println(get_i_char()[0].v)
+println(get_i_char()[1].v)
+println(get_i_char()[2].v)

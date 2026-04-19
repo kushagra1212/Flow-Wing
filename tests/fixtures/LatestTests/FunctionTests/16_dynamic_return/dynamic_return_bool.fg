@@ -1,0 +1,6 @@
+fun getFlag() {
+  return true
+}
+
+var b: bool = getFlag()
+println(b)

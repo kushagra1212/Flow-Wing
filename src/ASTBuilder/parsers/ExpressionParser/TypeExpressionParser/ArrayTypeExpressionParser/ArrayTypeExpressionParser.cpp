@@ -18,80 +18,47 @@
  */
 
 #include "ArrayTypeExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/PrimitiveTypeExpressionParser/PrimitiveTypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/DimensionClauseExpressionParser/DimensionClauseExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/common/constants/FlowWingUtilsConstants.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/DimensionClauseExpressionSyntax/DimensionClauseExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
-#include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
-#include <memory>
+#include <vector>
 
-std::unique_ptr<ExpressionSyntax>
-ArrayTypeExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<ArrayTypeExpressionSyntax> arrayTypeExpression =
-      std::make_unique<ArrayTypeExpressionSyntax>(
-          std::make_unique<SyntaxToken<std::any>>(
-              ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
-              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE, 0, "NBU_ARRAY_TYPE",
-              "NBU_ARRAY_TYPE"));
+namespace flow_wing {
+namespace parser {
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken &&
-      ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
-      ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
-    std::unique_ptr<SyntaxToken<std::any>> iden =
-        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+ArrayTypeExpressionParser::ArrayTypeExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+std::unique_ptr<syntax::ExpressionSyntax>
+ArrayTypeExpressionParser::parsePostfix(
+    std::unique_ptr<syntax::ExpressionSyntax> underlying_type) {
 
-    std::unique_ptr<ObjectTypeExpressionSyntax> objectType(
-        static_cast<ObjectTypeExpressionSyntax *>(
-            std::make_unique<ObjectTypeExpressionParser>()
-                ->parseExpression(ctx)
-                .release()));
+  auto open_bracket_token =
+      m_ctx->match(lexer::TokenKind::kOpenBracketToken); // [
 
-    objectType->getObjectTypeIdentifierRef()->getTokenPtr()->setValue(
-        std::any_cast<std::string>(iden->getValue()) +
-        FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
-        std::any_cast<std::string>(objectType->getObjectTypeIdentifierRef()
-                                       ->getTokenPtr()
-                                       ->getValue()));
-    objectType->getObjectTypeIdentifierRef()->getTokenPtr()->setText(
-        (iden->getText()) + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
-        (objectType->getObjectTypeIdentifierRef()->getTokenPtr()->getText()));
-    arrayTypeExpression->setNonTrivialElementType(std::move(objectType));
-  } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-    arrayTypeExpression->setNonTrivialElementType(
-        std::unique_ptr<ObjectTypeExpressionSyntax>(
-            (static_cast<ObjectTypeExpressionSyntax *>(
-                std::make_unique<ObjectTypeExpressionParser>()
-                    ->parseExpression(ctx)
-                    .release()))));
+  std::vector<std::unique_ptr<syntax::DimensionClauseExpressionSyntax>>
+      dimensions; // [2]
 
-  } else {
-    arrayTypeExpression->setElementType(
-        std::make_unique<PrimitiveTypeExpressionParser>()->parseExpression(
-            ctx));
+  dimensions.push_back(
+      std::make_unique<parser::DimensionClauseExpressionParser>(m_ctx)
+          ->parsePostfix(open_bracket_token));
+
+  while (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kOpenBracketToken) {
+    dimensions.push_back(
+        std::make_unique<parser::DimensionClauseExpressionParser>(m_ctx)
+            ->parseClause()); // [2]
   }
 
-  while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
-
-    std::unique_ptr<SyntaxToken<std::any>> numToken =
-        ctx->match(SyntaxKindUtils::SyntaxKind::NumberToken);
-
-    std::any value = numToken->getValue();
-
-    arrayTypeExpression->addDimension(
-        std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(numToken),
-                                                            value));
-
-    ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-  }
-
-  return arrayTypeExpression;
+  return std::make_unique<syntax::ArrayTypeExpressionSyntax>(
+      std::move(underlying_type),
+      std::move(dimensions)); // int[2][3] or objectType[2][3]
 }
+
+std::unique_ptr<syntax::ExpressionSyntax> ArrayTypeExpressionParser::parse() {
+  return nullptr;
+}
+
+} // namespace parser
+} // namespace flow_wing

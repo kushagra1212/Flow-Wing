@@ -1,0 +1,10 @@
+var x:int = 10
+var y:int = 20
+{
+  var z:int = x + y
+  print(z, "\n")
+  x = 100
+  z = x + y
+  print(z, "\n")
+}
+

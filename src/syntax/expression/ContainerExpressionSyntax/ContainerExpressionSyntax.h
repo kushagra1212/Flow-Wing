@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,38 +21,37 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include <any>
 #include <memory>
-#include <vector>
+
+namespace flow_wing {
+namespace syntax {
 
 class ContainerExpressionSyntax : public ExpressionSyntax {
-private:
-  std::vector<std::unique_ptr<ExpressionSyntax>> _elements;
-  std::unique_ptr<SyntaxToken<std::any>> _openBracket;
-  std::unique_ptr<SyntaxToken<std::any>> _closeBracket;
 
 public:
-  // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  ContainerExpressionSyntax(const syntax::SyntaxToken *open_bracket,
+                            std::unique_ptr<ExpressionSyntax> value_expression,
+                            const syntax::SyntaxToken *close_bracket);
 
-  // Setters
-  auto setElement(std::unique_ptr<ExpressionSyntax> element) -> void;
+  ContainerExpressionSyntax(const syntax::SyntaxToken *open_bracket,
+                            const syntax::SyntaxToken *close_bracket);
+
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
   // Getters
-  auto getElementsRef() const
-      -> const std::vector<std::unique_ptr<ExpressionSyntax>> &;
+  const std::unique_ptr<ExpressionSyntax> &getValueExpression() const;
 
-  inline auto
-  setOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracket)
-      -> void {
-    _openBracket = std::move(openBracket);
-  }
+private:
+  const syntax::SyntaxToken *m_open_bracket;
+  std::unique_ptr<ExpressionSyntax> m_value_expression;
+  const syntax::SyntaxToken *m_close_bracket;
 
-  inline auto
-  setCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracket)
-      -> void {
-    _closeBracket = std::move(closeBracket);
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

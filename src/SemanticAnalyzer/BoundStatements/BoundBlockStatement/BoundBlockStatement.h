@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,30 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/common/Common.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
-#include "src/SemanticAnalyzer/BoundNode.h"
-#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include <vector>
+#include <memory>
+namespace flow_wing {
+namespace binding {
 
-class BoundBlockStatement : public BoundStatement, public BoundSourceLocation {
-private:
-  std::vector<std::unique_ptr<BoundStatement>> _statements;
-  bool _global;
+class BoundBlockStatement : public BoundStatement {
 
 public:
-  BoundBlockStatement(const DiagnosticUtils::SourceLocation &location,
-                      bool global);
-  BoundBlockStatement(const DiagnosticUtils::SourceLocation &location);
+  BoundBlockStatement(std::vector<std::unique_ptr<BoundStatement>> statements,
+                      const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundBlockStatement() = default;
 
-  std::vector<std::unique_ptr<BoundStatement>> &getStatements();
-  void addStatement(std::unique_ptr<BoundStatement> statement);
-  bool getGlobal() const;
+  // Overrides
+  NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
+  // Getters
+  const std::vector<std::unique_ptr<BoundStatement>> &getStatements() const;
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
-
-  std::vector<BoundNode *> getChildren() override;
+private:
+  std::vector<std::unique_ptr<BoundStatement>> m_statements;
 };
+} // namespace binding
+} // namespace flow_wing

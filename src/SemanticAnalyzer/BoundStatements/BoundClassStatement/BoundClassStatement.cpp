@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,30 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundClassStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
-#include "BoundClassStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundClassStatement::BoundClassStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::shared_ptr<analysis::Symbol> class_symbol,
+    std::vector<std::unique_ptr<BoundStatement>> class_member_statements,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_class_symbol(std::move(class_symbol)),
+      m_class_member_statements(std::move(class_member_statements)) {}
 
-BinderKindUtils::BoundNodeKind BoundClassStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ClassStatement;
+NodeKind BoundClassStatement::getKind() const {
+  return NodeKind::kClassStatement;
 }
 
-std::vector<BoundNode *> BoundClassStatement::getChildren() {
-  if (this->_children.empty()) {
-
-    for (auto &m : _customTypes) {
-      _children.push_back(m.get());
-    }
-
-    for (auto &m : _memberVariables) {
-      _children.push_back(m.get());
-    }
-    for (auto &m : _memberFunctions) {
-      _children.push_back(m.get());
-    }
-  }
-  return this->_children;
+void BoundClassStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
+
+const std::shared_ptr<analysis::Symbol> &
+BoundClassStatement::getClassSymbol() const {
+  return m_class_symbol;
+}
+
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundClassStatement::getClassMemberStatements() const {
+  return m_class_member_statements;
+}
+
+} // namespace binding
+} // namespace flow_wing

@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile # Be explicit
       target: test-aot # Specifies to build up to the 'test-aot' stage in the Dockerfile.
-    command: make test-aot
+    command: make test-aot ARGS="--filter=LatestTests --keep-going --parallel"
 
   # Service for running Just-in-Time (JIT) tests.
   test-jit:
@@ -40,7 +40,7 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile # Be explicit
       target: test-jit
-    command: make test-jit
+    command: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
   # Base REPL service for development.
   repl-dev:

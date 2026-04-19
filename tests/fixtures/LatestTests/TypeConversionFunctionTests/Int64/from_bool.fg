@@ -1,0 +1,3 @@
+print(Int64(true), "\n")
+print(Int64(false), "\n")
+

@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InvalidVariableDeclarationTypeForForLoopVariableDeclaration
+for (var x: str = "a" to "c" : "b") {
+  println(x)
+}

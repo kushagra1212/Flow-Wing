@@ -1,0 +1,10 @@
+var c: char = 'a'
+var n = 0
+while (c) {
+  println(n)
+  n = n + 1
+  if (n >= 1) {
+    c = '\0'
+  }
+}
+println("done")

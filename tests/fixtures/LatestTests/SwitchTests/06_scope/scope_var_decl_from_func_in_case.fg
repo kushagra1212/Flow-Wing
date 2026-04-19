@@ -1,0 +1,15 @@
+fun getVal() -> int {
+  return 42
+}
+
+var a: int = 1
+
+switch a {
+  case 1:{
+    var y: int = getVal()
+    println(y)
+  }
+  default:{
+    println(0)
+  }
+}

@@ -20,52 +20,40 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include <any>
 #include <memory>
-#include <vector>
 
-template <typename T> class LiteralExpressionSyntax;
+namespace flow_wing {
+namespace syntax {
+
+class LiteralExpressionSyntax;
 
 class CallExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifier;
-  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
-  std::vector<std::unique_ptr<ExpressionSyntax>> _arguments;
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
-  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
-  std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
-  bool _hasNewKeyword = false;
 
 public:
-  CallExpressionSyntax(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifier);
+  CallExpressionSyntax(std::unique_ptr<ExpressionSyntax> identifier,
+                       const syntax::SyntaxToken *open_parenthesis_token,
+                       std::unique_ptr<ExpressionSyntax> argument_expression,
+                       const syntax::SyntaxToken *close_parenthesis_token);
 
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> getIdentifier();
-  std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
-  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
+  // Overrides
 
-  void addArgument(std::unique_ptr<ExpressionSyntax> argument);
-  void addSeparator(std::unique_ptr<SyntaxToken<std::any>> separator);
-  void setOpenParenthesisToken(
-      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
-  void setCloseParenthesisToken(
-      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto setNewKeyword(std::unique_ptr<SyntaxToken<std::any>> newKeyword) {
-    _newKeyword = std::move(newKeyword);
-    _hasNewKeyword = true;
-  }
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getIdentifier() const;
+  const std::unique_ptr<ExpressionSyntax> &getArgumentExpression() const;
 
-  inline auto hasNewKeyword() { return _hasNewKeyword; }
+private:
+  std::unique_ptr<ExpressionSyntax> m_identifier;
+  const syntax::SyntaxToken *m_open_parenthesis_token;
+  std::unique_ptr<ExpressionSyntax> m_argument_expression;
+  std::vector<const syntax::SyntaxToken *> m_separators;
+  const syntax::SyntaxToken *m_close_parenthesis_token;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparators();
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIdentifierPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

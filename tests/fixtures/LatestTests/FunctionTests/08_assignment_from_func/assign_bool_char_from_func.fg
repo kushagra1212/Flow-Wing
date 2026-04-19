@@ -1,0 +1,11 @@
+fun flags() -> bool, char {
+  return true, 'X'
+}
+
+var ok: bool = false
+var ch: char = ' '
+println(ok)
+println(ch)
+ok, ch = flags()
+println(ok)
+println(ch)

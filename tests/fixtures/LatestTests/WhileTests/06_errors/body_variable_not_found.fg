@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+var x = 0
+while (x < 5) {
+  y = y + 1
+}
+println(x)

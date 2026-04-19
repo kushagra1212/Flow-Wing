@@ -1,0 +1,142 @@
+
+bring Err
+bring file
+bring text 
+
+println("=========================================================")
+println("          FLOWWING FILE SYSTEM COMPREHENSIVE TESTS       ")
+println("=========================================================\n")
+
+var testPath = "flowwing_test_output.txt"
+var emptyTestPath = "flowwing_empty_test.txt"
+
+println("--- Test 1: Writing and Reading Static Texts ---")
+var writeOk: bool, writeErr: Err::Result = file::writeText(testPath, "Hello, FlowWing File System!\n")
+if writeErr.isErr() { println("ERROR: " + writeErr.getMessage()) } else { println("Successfully wrote to file.") }
+
+var appOk: bool, appErr: Err::Result = file::appendText(testPath, "This is an appended line.\n")
+if appErr.isErr() { println("ERROR: " + appErr.getMessage()) } else { println("Successfully appended to file.") }
+
+var content: str, readErr: Err::Result = file::readText(testPath)
+if readErr.isOk() {
+  println("File Contents:\n" + content)
+}
+
+println("--- Test 2: Checking Existence & Error Handling ---")
+println("Does test file exist? " + String(file::exists(testPath)))
+println("Does fake file exist? " + String(file::exists("missing_file_404.txt")))
+
+var badData: str, badErr: Err::Result = file::readText("missing_file_404.txt")
+if badErr.isErr() {
+  println("Expected Error Caught (Read missing): " + badErr.getMessage())
+}
+
+var delFakeOk: bool, delFakeErr: Err::Result = file::delete("missing_file_404.txt")
+if delFakeErr.isErr() {
+  println("Expected Error Caught (Delete missing): " + delFakeErr.getMessage())
+}
+
+
+println("\n--- Test 3: Stateful Line-by-Line Reading ---")
+var lineFile: file::File = new file::File(testPath)
+var openErr: Err::Result = lineFile.open("r")
+
+if openErr.isOk() {
+  println("Reading line by line:")
+  var lineCount = 1
+  
+  while true {
+    var line: str, eofErr: Err::Result = lineFile.readLine()
+    if eofErr.isErr() {
+      println("Reached EOF.")
+      break
+    }
+    println("Line " + String(lineCount) + ": " + line)
+    lineCount = lineCount + 1
+  }
+  lineFile.close()
+  println("File closed successfully.")
+}
+
+println("\n--- Test 4: Edge Cases - Empty Files & Strings ---")
+/; Write empty string
+var emptyWOk: bool, emptyWErr: Err::Result = file::writeText(emptyTestPath, "")
+if emptyWErr.isOk() { println("Successfully created empty file.") }
+
+/; Read empty file statically
+var emptyData: str, emptyRErr: Err::Result = file::readText(emptyTestPath)
+if emptyRErr.isOk() {
+  println("Read empty file statically. Content length: " + String(text::getLength(emptyData))) /; Assuming String has length
+}
+
+/; Read empty file statefully
+var emptyFile: file::File = new file::File(emptyTestPath)
+emptyFile.open("r")
+var emptyLine: str, emptyLineErr: Err::Result = emptyFile.readLine()
+if emptyLineErr.isErr() {
+  println("Expected Error Caught (Read line on empty file): " + emptyLineErr.getMessage())
+}
+emptyFile.close()
+
+println("\n--- Test 5: Edge Cases - Invalid Paths ---")
+var badPathOk: bool, badPathErr: Err::Result = file::writeText("", "Should fail")
+if badPathErr.isErr() {
+  println("Expected Error Caught (Write to empty path): " + badPathErr.getMessage())
+}
+
+println("\n--- Test 6: Edge Cases - Stateful Class Misuse ---")
+var misuseFile: file::File = new file::File(testPath)
+
+/; 6a. Read before open
+var readBeforeOpen: str, errReadBefore: Err::Result = misuseFile.readLine()
+if errReadBefore.isErr() {
+  println("Expected Error Caught (Read before open): " + errReadBefore.getMessage())
+}
+
+/; 6b. Invalid mode
+var errBadMode: Err::Result = misuseFile.open("z")
+if errBadMode.isErr() {
+  println("Expected Error Caught (Invalid open mode): " + errBadMode.getMessage())
+}
+
+/; 6c. Double open
+var errOpen1: Err::Result = misuseFile.open("r")
+var errOpen2: Err::Result = misuseFile.open("r")
+if errOpen2.isErr() {
+  println("Expected Error Caught (Double open): " + errOpen2.getMessage())
+}
+
+/; 6d. Read after close
+misuseFile.close()
+var errReadAfter: Err::Result = misuseFile.close() /; Double close should be safe per your code
+println("Double close is safe: " + String(errReadAfter.isOk()))
+
+var readAfterClose: str, errReadAfterClose: Err::Result = misuseFile.readLine()
+if errReadAfterClose.isErr() {
+  println("Expected Error Caught (Read after close): " + errReadAfterClose.getMessage())
+}
+
+
+println("\n--- Test 7: Edge Cases - Append to Non-existent File ---")
+var newAppPath = "flowwing_new_append.txt"
+var newAppOk: bool, newAppErr: Err::Result = file::appendText(newAppPath, "Created via append.")
+if newAppErr.isOk() {
+  println("Successfully created new file via append.")
+}
+var readNewApp: str, readNewAppErr: Err::Result = file::readText(newAppPath)
+if readNewAppErr.isOk() {
+  println("Content of appended file: " + readNewApp)
+}
+
+println("\n--- Test 8: Cleanup ---")
+var del1: bool, e1: Err::Result = file::delete(testPath)
+var del2: bool, e2: Err::Result = file::delete(emptyTestPath)
+var del3: bool, e3: Err::Result = file::delete(newAppPath)
+
+if e1.isOk() && e2.isOk() && e3.isOk() {
+  println("All test files cleaned up successfully.")
+}
+
+println("\n=========================================================")
+println("                     TESTS COMPLETE                      ")
+println("=========================================================")

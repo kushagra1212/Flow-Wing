@@ -1,0 +1,4 @@
+print(Decimal32(1000), "\n")
+print(Decimal32(-1000), "\n")
+print(Decimal32(0), "\n")
+

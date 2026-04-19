@@ -1,0 +1,5 @@
+p1.age: 20
+p2.age: 25
+p1.age + p2.age: 45
+p1.age * 2: 40
+p2.age - p1.age: 5

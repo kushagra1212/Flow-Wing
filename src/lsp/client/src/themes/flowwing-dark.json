@@ -1,0 +1,47 @@
+{
+  "name": "Flow-Wing Dark",
+  "type": "dark",
+  "colors": {},
+  "tokenColors": [
+    {
+      "scope": ["keyword.control.fg", "keyword.declaration.fg", "keyword.other.fg", "keyword.control.import.fg"],
+      "settings": { "foreground": "#569CD6" }
+    },
+    {
+      "scope": ["storage.type.primitive.fg", "storage.modifier.fg"],
+      "settings": { "foreground": "#4EC9B0" }
+    },
+    {
+      "scope": ["entity.name.type.fg", "entity.name.function.fg", "entity.name.function.call.fg"],
+      "settings": { "foreground": "#DCDCAA" }
+    },
+    {
+      "scope": ["string.quoted.double.fg", "string.quoted.template.fg", "constant.character.fg"],
+      "settings": { "foreground": "#CE9178" }
+    },
+    {
+      "scope": ["constant.numeric.integer.fg", "constant.numeric.float.fg", "constant.numeric.hex.fg"],
+      "settings": { "foreground": "#B5CEA8" }
+    },
+    {
+      "scope": ["constant.language.boolean.fg", "constant.language.null.fg"],
+      "settings": { "foreground": "#569CD6" }
+    },
+    {
+      "scope": ["keyword.operator.arithmetic.fg", "keyword.operator.comparison.fg", "keyword.operator.logical.fg", "keyword.operator.assignment.fg", "keyword.operator.arrow.fg", "keyword.operator.member.fg", "keyword.operator.namespace.fg"],
+      "settings": { "foreground": "#D4D4D4" }
+    },
+    {
+      "scope": ["comment.line.double-slash.fg", "comment.block.fg"],
+      "settings": { "foreground": "#6A9955", "fontStyle": "italic" }
+    },
+    {
+      "scope": ["variable.language.self.fg", "variable.language.super.fg"],
+      "settings": { "foreground": "#9CDCFE" }
+    },
+    {
+      "scope": ["constant.character.escape.fg"],
+      "settings": { "foreground": "#D7BA7D" }
+    }
+  ]
+}

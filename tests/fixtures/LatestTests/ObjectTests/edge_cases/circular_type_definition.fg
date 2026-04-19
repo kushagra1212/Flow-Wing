@@ -1,0 +1,12 @@
+type A = {
+    b: B
+}
+
+type B = {
+    a: A
+}
+var a1: A = {b:{}}
+var x: B = {a: a1}
+println(x)
+x.a.b = x 
+println(x)

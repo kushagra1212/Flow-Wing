@@ -1,0 +1,2 @@
+var x: deci = 2 + 5
+print(x, "\n")

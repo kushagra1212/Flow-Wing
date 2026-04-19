@@ -1,0 +1,7 @@
+fun printAny(val: int) -> int {
+  println(val)
+  return val
+}
+
+var x = 42
+printAny(x)

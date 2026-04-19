@@ -1,0 +1,16 @@
+
+expose var x:int = 2
+
+expose type TB = {
+    s:str 
+  }
+
+expose type T  ={
+    a:int,
+    b:TB[2]
+}
+
+expose var k:T = {}
+
+expose var j:T[2] 
+

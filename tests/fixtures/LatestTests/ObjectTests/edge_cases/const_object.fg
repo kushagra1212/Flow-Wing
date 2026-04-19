@@ -1,0 +1,14 @@
+type Person = {
+    name: str
+    age: int
+}
+
+const p: Person = {
+    name: "John",
+    age: 30
+}
+
+print("Const person: ", p, "\n")
+print("Name: ", p.name, "\n")
+print("Age: ", p.age, "\n")
+

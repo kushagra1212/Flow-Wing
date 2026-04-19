@@ -1,0 +1,16 @@
+fun testSwitch() -> str {
+  var a: int = 1
+  switch a {
+    case 1:{
+      return "one"
+    }
+    case 2:{
+      return "two"
+    }
+    default:{
+      return "default"
+    }
+  }
+}
+
+println(testSwitch())

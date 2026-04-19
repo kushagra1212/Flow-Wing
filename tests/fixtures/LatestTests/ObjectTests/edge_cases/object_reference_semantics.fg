@@ -1,0 +1,19 @@
+type T = {
+    x: int
+    y: deci
+}
+
+var t1: T = { x: 10, y: 10.10 }
+print("t1: ", t1, "\n")
+
+var t2: T = t1
+print("t2: ", t2, "\n")
+
+print("t1 == t2: ", t1 == t2, "\n")
+
+t2.x = 100
+t2.y = 100.100
+
+print("After modifying t2:\n")
+print("t1: ", t1, "\n")
+print("t2: ", t2, "\n")

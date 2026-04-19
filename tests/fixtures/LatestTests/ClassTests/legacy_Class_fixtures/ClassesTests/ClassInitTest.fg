@@ -1,0 +1,24 @@
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10,"Nice")
+
+
+a.test(2,5.3)

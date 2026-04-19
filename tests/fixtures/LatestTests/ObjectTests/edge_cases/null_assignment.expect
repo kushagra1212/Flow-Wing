@@ -1,0 +1,6 @@
+t1 == null: false
+t1 != null: true
+t1 == null: false
+t1 != null: true
+t1 == null: true
+t1 != null: false

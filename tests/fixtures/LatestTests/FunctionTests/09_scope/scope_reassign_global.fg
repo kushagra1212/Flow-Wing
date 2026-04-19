@@ -1,0 +1,10 @@
+fun getValue() -> int {
+  return 50
+}
+
+var a: int = 10
+{
+  a = getValue()
+  println(a)
+}
+println(a)

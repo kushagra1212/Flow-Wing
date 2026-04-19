@@ -1,0 +1,9 @@
+fun isEven(n: int) -> bool {
+  return n == 2
+}
+
+if (isEven(2)) {
+  println("even")
+} else {
+  println("odd")
+}

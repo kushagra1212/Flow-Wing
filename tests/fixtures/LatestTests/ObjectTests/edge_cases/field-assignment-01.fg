@@ -1,0 +1,24 @@
+type P = {
+    x:int
+}
+type T = {
+    y:int
+    z: P 
+}
+
+var t: T = {
+    y: 10,
+    z: {
+        x: 20
+    }
+}
+
+
+var j:T 
+
+
+j.z = t.z
+
+print(j, "\n")
+print(t, "\n")
+

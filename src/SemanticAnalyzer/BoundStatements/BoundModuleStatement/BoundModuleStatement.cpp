@@ -1,50 +1,36 @@
 /*
- * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Flow-Wing Compiler
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundModuleStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
-#include "BoundModuleStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundModuleStatement::BoundModuleStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::vector<std::unique_ptr<BoundStatement>> statements,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_statements(std::move(statements)) {}
 
-BinderKindUtils::BoundNodeKind BoundModuleStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundModuleStatement;
+NodeKind BoundModuleStatement::getKind() const {
+  return NodeKind::kModuleStatement;
 }
 
-std::vector<BoundNode *> BoundModuleStatement::getChildren() {
-  if (this->_children.empty()) {
-
-    for (auto &m : _customTypeStatements) {
-      _children.push_back(m.get());
-    }
-
-    for (auto &m : _variableDeclarationStatements) {
-      _children.push_back(m.get());
-    }
-    for (auto &m : _functionStatements) {
-      _children.push_back(m.get());
-    }
-
-    for (auto &m : _classStatements) {
-      _children.push_back(m.get());
-    }
-  }
-  return this->_children;
+void BoundModuleStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
+
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundModuleStatement::getStatements() const {
+  return m_statements;
+}
+
+} // namespace binding
+} // namespace flow_wing

@@ -1,0 +1,9 @@
+type Point = {x: int, y: int}
+
+fun getPoints() -> Point[2] {
+  var pts: Point[2] = [{x: 10, y: 20}, {x: 30, y: 40}]
+  return pts
+}
+
+println(getPoints()[1].y)
+println(getPoints()[0].x)

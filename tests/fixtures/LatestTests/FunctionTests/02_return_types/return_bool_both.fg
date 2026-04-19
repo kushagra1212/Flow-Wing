@@ -1,0 +1,10 @@
+fun yes() -> bool {
+  return true
+}
+
+fun no() -> bool {
+  return false
+}
+
+println(yes())
+println(no())

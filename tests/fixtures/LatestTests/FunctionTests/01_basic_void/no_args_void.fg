@@ -1,0 +1,7 @@
+fun greet() -> int {
+  print("Hello World")
+  print("\n")
+  return 0
+}
+
+greet()

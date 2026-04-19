@@ -1,0 +1,8 @@
+print("String and Decimal Mixed Operations\n")
+print("Pi: " + 3.14, "\n")
+print(3.14 + " is pi", "\n")
+print("Float: " + 3.14f, "\n")
+print(3.14f + " is float", "\n")
+print("Zero: " + 0.0, "\n")
+print(0.0 + " is zero", "\n")
+

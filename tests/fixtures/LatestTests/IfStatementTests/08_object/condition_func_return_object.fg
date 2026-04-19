@@ -1,0 +1,14 @@
+type Point = {
+  x: int
+  y: int
+}
+
+fun getPoint() -> Point {
+  return { x: 1, y: 2 }
+}
+
+if (getPoint()) {
+  println("nonnull")
+} else {
+  println("null")
+}

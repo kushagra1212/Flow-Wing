@@ -1,0 +1,13 @@
+fun valA() -> int { return 11 }
+fun valB() -> int { return 22 }
+
+var k: int = 0
+{
+  var k: int = valA()
+  println(k)
+}
+{
+  var k: int = valB()
+  println(k)
+}
+println(k)

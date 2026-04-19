@@ -1,0 +1,11 @@
+fun sumN(n: int) -> int {
+  var s: int = 0
+  for (var i: int = 1 to n : 1) {
+    s = s + i
+  }
+  return s
+}
+
+println(sumN(10))
+println(sumN(0))
+println("done")

@@ -1,0 +1,15 @@
+fun pair() -> int, str {
+  return 88, "block"
+}
+
+var a: int = 1
+var b: str = "global"
+println(a)
+println(b)
+{
+  var a: int, b: str = pair()
+  println(a)
+  println(b)
+}
+println(a)
+println(b)

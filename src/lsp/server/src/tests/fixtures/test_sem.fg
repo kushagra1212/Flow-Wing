@@ -1,0 +1,5 @@
+type B = { b: int }
+type A = { a: int, b: B }
+var c: A = {a: 2, b: {b: 5}}
+fun test(inout a2: A) { a2.b.b = 5 }
+test({b: {b:1}, a:5})

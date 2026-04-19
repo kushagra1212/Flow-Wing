@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,41 +17,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundWhileStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
-#include "BoundWhileStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundWhileStatement::BoundWhileStatement(
-
-    const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundExpression> condition,
-    std::unique_ptr<BoundStatement> body)
-    : BoundSourceLocation(location), _condition(std::move(condition)),
-      _body(std::move(body)) {
+    std::unique_ptr<BoundStatement> statement,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_condition(std::move(condition)),
+      m_statement(std::move(statement)) {}
 
-  this->_children.push_back(this->_condition.get());
-  this->_children.push_back(this->_body.get());
+BoundWhileStatement::~BoundWhileStatement() = default;
+
+NodeKind BoundWhileStatement::getKind() const {
+  return NodeKind::kWhileStatement;
 }
 
-std::unique_ptr<BoundExpression> BoundWhileStatement::getCondition() {
-  return std::move(_condition);
+const std::unique_ptr<BoundExpression> &
+BoundWhileStatement::getCondition() const {
+  return m_condition;
 }
 
-std::unique_ptr<BoundStatement> BoundWhileStatement::getBody() {
-  return std::move(_body);
+const std::unique_ptr<BoundStatement> &
+BoundWhileStatement::getStatement() const {
+  return m_statement;
 }
 
-BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() const {
-
-  return BinderKindUtils::BoundNodeKind::WhileStatement;
+void BoundWhileStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::vector<BoundNode *> BoundWhileStatement::getChildren() {
-  return this->_children;
-}
-
-std::unique_ptr<BoundExpression> &BoundWhileStatement::getConditionPtr() {
-  return this->_condition;
-}
-std::unique_ptr<BoundStatement> &BoundWhileStatement::getBodyPtr() {
-  return this->_body;
-}
+} // namespace binding
+} // namespace flow_wing

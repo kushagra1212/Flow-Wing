@@ -1,0 +1,14 @@
+fun run() {
+  var x = 0
+  while (x < 5) {
+    x = x + 1
+    if (x == 2) {
+      continue
+    }
+    println(x)
+  }
+  println("out")
+}
+
+run()
+println("done")

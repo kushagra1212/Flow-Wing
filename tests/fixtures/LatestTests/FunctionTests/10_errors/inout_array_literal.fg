@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: LiteralCannotBePassedToInoutParameter
+fun mutate(inout arr: int[2]) {
+  arr[0] = 99
+}
+
+mutate([1, 2])

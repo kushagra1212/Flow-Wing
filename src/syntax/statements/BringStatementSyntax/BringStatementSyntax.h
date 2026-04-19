@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,75 +19,47 @@
 
 #pragma once
 
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/CompilationUnitSyntax.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
 #include <memory>
-#include <vector>
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken;
-template <typename T> class LiteralExpressionSyntax;
-class CompilationUnitSyntax;
+class SyntaxToken;
 
-namespace FlowWing {
-class DiagnosticHandler;
-}
+class StringLiteralExpressionSyntax;
+
 class BringStatementSyntax : public StatementSyntax {
-  std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
-  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler;
-  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
-  std::unique_ptr<SyntaxToken<std::any>> _pathToken;
-  std::string absoluteFilePath;
-  std::string relativeFilePath;
-  std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
-  std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
-  bool _isModuleImport = false;
-  std::string _moduleName = "";
 
 public:
-  void
-  addExpression(std::unique_ptr<LiteralExpressionSyntax<std::any>> expression);
-  void addBringKeyword(std::unique_ptr<SyntaxToken<std::any>> bringKeyword);
+  BringStatementSyntax(
+      const SyntaxToken *bring_keyword_token,
+      const SyntaxToken *open_brace_token,
+      std::vector<std::unique_ptr<ExpressionSyntax>> identifier_expressions,
+      const SyntaxToken *close_brace_token,
+      const SyntaxToken *from_keyword_token,
+      std::unique_ptr<StringLiteralExpressionSyntax> string_literal_expression);
 
-  void addOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken);
-  void addPathToken(std::unique_ptr<SyntaxToken<std::any>> pathToken);
-  void setAbsoluteFilePath(const std::string &absoluteFilePath);
-  void setDiagnosticHandler(
-      std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler);
-  void setRelativeFilePath(const std::string &relativeFilePath);
-  void
-  setCompilationUnit(std::unique_ptr<CompilationUnitSyntax> compilationUnit);
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
 
-  const std::string &getAbsoluteFilePath() const;
+  const std::vector<std::unique_ptr<ExpressionSyntax>> &
+  getIdentifierExpressions() const;
+  const std::unique_ptr<StringLiteralExpressionSyntax> &
+  getStringLiteralExpression() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_bring_keyword_token;
+  const SyntaxToken *m_open_brace_token;
+  std::vector<std::unique_ptr<ExpressionSyntax>> m_identifier_expressions;
+  const SyntaxToken *m_close_brace_token;
+  const SyntaxToken *m_from_keyword_token;
+  std::unique_ptr<StringLiteralExpressionSyntax> m_string_literal_expression;
 
-  const std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> &
-  getExpressionsPtr();
-  const std::unique_ptr<CompilationUnitSyntax> &getCompilationUnitPtr();
-
-  inline auto setModuleName(const std::string &moduleName) -> void {
-    _moduleName = moduleName;
-  }
-
-  bool getIsChoosyImportPtr();
-  const std::string &getAbsoluteFilePathPtr();
-  std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
-  const std::string &getRelativeFilePathPtr();
-  const std::unique_ptr<SyntaxToken<std::any>> &getBringKeywordPtr();
-
-  const std::unique_ptr<SyntaxToken<std::any>> &getPathTokenPtr();
-
-  inline auto setIsModuleImport(const bool &isModuleImport) -> void {
-    _isModuleImport = isModuleImport;
-  }
-
-  inline auto getIsModuleImport() -> bool { return _isModuleImport; }
-
-  inline auto getModuleName() -> std::string { return _moduleName; }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

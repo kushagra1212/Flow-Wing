@@ -1,0 +1,19 @@
+bring text
+
+var s: text::Text = new text::Text("  Flow Wing  ")
+println(s.getLength())
+println(s.trim().get())
+println(s.getLength())
+println(s.toUpper().get())
+println(s.toLower().get())
+println(s.reverse().get())
+
+var t: text::Text = new text::Text("ab")
+println(t.concat("cd").get())
+println(t.length())
+println(t.charAt(2))
+
+var u: text::Text = new text::Text("MiXeD")
+println(u.equalsIgnoreCase("mixed"))
+println(u.clear().getLength())
+println(u.isEmpty())

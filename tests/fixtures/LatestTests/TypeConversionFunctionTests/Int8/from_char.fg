@@ -1,0 +1,4 @@
+print(Int8('A'), "\n")
+print(Int8('0'), "\n")
+print(Int8('z'), "\n")
+

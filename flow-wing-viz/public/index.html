@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Flow-Wing Inspector</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css"
+    />
+    <!-- CodeMirror Fold Addon CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.css"
+    />
+    <!-- CodeMirror Search Addon CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/matchesonscrollbar.min.css"
+    />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <!-- CodeMirror Fold Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js"></script>
+    <!-- CodeMirror Edit Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+    <!-- CodeMirror Search Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/scroll/annotatescrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/matchesonscrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/jump-to-line.min.js"></script>
+    <!-- CodeMirror JavaScript/JSON Mode -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script>
+      // Ensure CodeMirror is loaded before defining mode
+      if (typeof CodeMirror === "undefined") {
+        console.error("CodeMirror not loaded!");
+      }
+      // Custom Flow-Wing mode for CodeMirror with enhanced syntax highlighting
+      CodeMirror.defineMode("flowwing", function (config, parserConfig) {
+        const keywords = {
+          type: true,
+          var: true,
+          if: true,
+          else: true,
+          while: true,
+          for: true,
+          return: true,
+          function: true,
+          true: true,
+          false: true,
+          null: true,
+          str: true,
+          int: true,
+          int8: true,
+          int16: true,
+          int32: true,
+          int64: true,
+          uint8: true,
+          uint16: true,
+          uint32: true,
+          uint64: true,
+          float32: true,
+          float64: true,
+          bool: true,
+          print: true,
+          let: true,
+          const: true,
+          mut: true,
+          struct: true,
+          enum: true,
+          match: true,
+          case: true,
+          default: true,
+          break: true,
+          continue: true,
+          import: true,
+          export: true,
+          as: true,
+        };
+
+        const operators = /[=+\-*/%<>!&|?:]/;
+        const brackets = /[\[\]{}\(\)]/;
+
+        function tokenBase(stream, state) {
+          // Skip whitespace
+          if (stream.eatSpace()) return null;
+
+          // Handle comments
+          if (stream.match("//")) {
+            stream.skipToEnd();
+            return "comment";
+          }
+
+          if (stream.match("/*")) {
+            state.tokenize = tokenComment;
+            return tokenComment(stream, state);
+          }
+
+          const ch = stream.next();
+
+          // Handle strings
+          if (ch === '"' || ch === "'") {
+            state.tokenize = tokenString(ch);
+            return state.tokenize(stream, state);
+          }
+
+          // Handle brackets
+          if (brackets.test(ch)) {
+            return "bracket";
+          }
+
+          // Handle operators
+          if (operators.test(ch)) {
+            stream.eatWhile(operators);
+            return "operator";
+          }
+
+          // Handle numbers (including hex, binary, float)
+          if (/[0-9]/.test(ch)) {
+            stream.eatWhile(/[0-9]/);
+            if (stream.eat(".")) {
+              stream.eatWhile(/[0-9]/);
+              if (stream.eat(/[eE]/)) {
+                stream.eat(/[+\-]/);
+                stream.eatWhile(/[0-9]/);
+              }
+              return "number";
+            }
+            if (stream.match(/^[xX][0-9a-fA-F]+/)) {
+              return "number";
+            }
+            if (stream.match(/^[bB][01]+/)) {
+              return "number";
+            }
+            return "number";
+          }
+
+          // Handle identifiers and keywords
+          if (/[\w$]/.test(ch)) {
+            stream.eatWhile(/[\w$]/);
+            const word = stream.current();
+            if (keywords.hasOwnProperty(word)) {
+              return "keyword";
+            }
+            return "variable";
+          }
+
+          // Handle punctuation
+          if (/[;:.,]/.test(ch)) {
+            return "punctuation";
+          }
+
+          return null;
+        }
+
+        function tokenString(quote) {
+          return function (stream, state) {
+            let escaped = false,
+              next;
+            while ((next = stream.next()) != null) {
+              if (next === quote && !escaped) {
+                state.tokenize = tokenBase;
+                break;
+              }
+              escaped = !escaped && next === "\\";
+            }
+            return "string";
+          };
+        }
+
+        function tokenComment(stream, state) {
+          let maybeEnd = false;
+          while (true) {
+            if (maybeEnd && stream.match("*/")) {
+              state.tokenize = tokenBase;
+              break;
+            }
+            maybeEnd = stream.next() === "*";
+            if (!maybeEnd && stream.eol()) {
+              state.tokenize = tokenBase;
+              break;
+            }
+          }
+          return "comment";
+        }
+
+        return {
+          startState: function () {
+            return { tokenize: tokenBase };
+          },
+          token: function (stream, state) {
+            if (stream.eol()) {
+              state.tokenize = tokenBase;
+            }
+            const style = state.tokenize(stream, state);
+            return style;
+          },
+          lineComment: "//",
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+        };
+      });
+
+      // Register the mode with MIME type
+      if (typeof CodeMirror !== "undefined") {
+        CodeMirror.defineMIME("text/x-flowwing", "flowwing");
+        console.log("Flow-Wing mode registered successfully");
+      } else {
+        console.error("CodeMirror not available for mode registration");
+      }
+
+      // LLVM IR mode for CodeMirror
+      CodeMirror.defineMode("llvm", function (config, parserConfig) {
+        const keywords = {
+          define: true,
+          declare: true,
+          global: true,
+          constant: true,
+          private: true,
+          internal: true,
+          linkonce: true,
+          linkonce_odr: true,
+          weak: true,
+          weak_odr: true,
+          appending: true,
+          extern_weak: true,
+          common: true,
+          extern: true,
+          available_externally: true,
+          dllimport: true,
+          dllexport: true,
+          thread_local: true,
+          localdynamic: true,
+          initialexec: true,
+          localexec: true,
+          unnamed_addr: true,
+          local_unnamed_addr: true,
+          default: true,
+          hidden: true,
+          protected: true,
+          extern_weak: true,
+          external: true,
+          zeroinitializer: true,
+          undef: true,
+          null: true,
+          to: true,
+          tail: true,
+          musttail: true,
+          notail: true,
+          target: true,
+          triple: true,
+          datalayout: true,
+          attributes: true,
+          module: true,
+          asm: true,
+          sideeffect: true,
+          alignstack: true,
+          inteldialect: true,
+          gc: true,
+          prefix: true,
+          prologue: true,
+          personality: true,
+          c: true,
+          volatile: true,
+          inbounds: true,
+          align: true,
+          addrspace: true,
+          section: true,
+          partition: true,
+          comdat: true,
+          unnamed_addr: true,
+          local_unnamed_addr: true,
+          dso_local: true,
+          dso_preemptable: true,
+          type: true,
+          opaque: true,
+          struct: true,
+          i8: true,
+          i16: true,
+          i32: true,
+          i64: true,
+          i128: true,
+          half: true,
+          float: true,
+          double: true,
+          fp128: true,
+          x86_fp80: true,
+          ppc_fp128: true,
+          void: true,
+          label: true,
+          metadata: true,
+          x86_mmx: true,
+          token: true,
+          alloca: true,
+          load: true,
+          store: true,
+          fence: true,
+          cmpxchg: true,
+          atomicrmw: true,
+          getelementptr: true,
+          trunc: true,
+          zext: true,
+          sext: true,
+          fptrunc: true,
+          fpext: true,
+          fptoui: true,
+          fptosi: true,
+          uitofp: true,
+          sitofp: true,
+          ptrtoint: true,
+          inttoptr: true,
+          bitcast: true,
+          addrspacecast: true,
+          icmp: true,
+          fcmp: true,
+          phi: true,
+          select: true,
+          call: true,
+          va_arg: true,
+          landingpad: true,
+          catchpad: true,
+          cleanuppad: true,
+          ret: true,
+          br: true,
+          switch: true,
+          indirectbr: true,
+          invoke: true,
+          callbr: true,
+          resume: true,
+          catchswitch: true,
+          catchret: true,
+          cleanupret: true,
+          unreachable: true,
+          add: true,
+          fadd: true,
+          sub: true,
+          fsub: true,
+          mul: true,
+          fmul: true,
+          udiv: true,
+          sdiv: true,
+          fdiv: true,
+          urem: true,
+          srem: true,
+          frem: true,
+          shl: true,
+          lshr: true,
+          ashr: true,
+          and: true,
+          or: true,
+          xor: true,
+          extractvalue: true,
+          insertvalue: true,
+          shufflevector: true,
+          extractelement: true,
+          insertelement: true,
+        };
+
+        const operators = /[=+\-*/%<>!&|?:]/;
+        const brackets = /[\[\]{}\(\)]/;
+
+        function tokenBase(stream, state) {
+          // Skip whitespace
+          if (stream.eatSpace()) return null;
+
+          // Handle comments
+          if (stream.match(";")) {
+            stream.skipToEnd();
+            return "comment";
+          }
+
+          const ch = stream.next();
+
+          // Handle strings
+          if (ch === '"') {
+            let escaped = false;
+            let next;
+            while ((next = stream.next()) != null) {
+              if (next === '"' && !escaped) break;
+              escaped = !escaped && next === "\\";
+            }
+            return "string";
+          }
+
+          // Handle brackets
+          if (brackets.test(ch)) {
+            return "bracket";
+          }
+
+          // Handle operators
+          if (operators.test(ch)) {
+            stream.eatWhile(operators);
+            return "operator";
+          }
+
+          // Handle numbers (hex, decimal, float)
+          if (/[0-9]/.test(ch)) {
+            if (ch === "0" && stream.eat(/[xX]/)) {
+              stream.eatWhile(/[0-9a-fA-F]/);
+              return "number";
+            }
+            stream.eatWhile(/[0-9]/);
+            if (stream.eat(".")) {
+              stream.eatWhile(/[0-9]/);
+              if (stream.eat(/[eE]/)) {
+                stream.eat(/[+\-]/);
+                stream.eatWhile(/[0-9]/);
+              }
+              return "number";
+            }
+            return "number";
+          }
+
+          // Handle identifiers and keywords
+          if (/[\w$@%.-]/.test(ch)) {
+            stream.eatWhile(/[\w$@%.-]/);
+            const word = stream.current();
+            if (keywords.hasOwnProperty(word)) {
+              return "keyword";
+            }
+            // Check for variable/register names (@name, %name)
+            if (word.startsWith("@") || word.startsWith("%")) {
+              return "variable-2";
+            }
+            // Check for type names (i32, i64, etc.)
+            if (
+              /^i\d+$/.test(word) ||
+              /^(half|float|double|fp128|x86_fp80|ppc_fp128|void|label|metadata|x86_mmx|token)$/.test(
+                word,
+              )
+            ) {
+              return "atom";
+            }
+            return "variable";
+          }
+
+          // Handle punctuation
+          if (/[;:.,]/.test(ch)) {
+            return "punctuation";
+          }
+
+          return null;
+        }
+
+        return {
+          startState: function () {
+            return { tokenize: tokenBase };
+          },
+          token: function (stream, state) {
+            if (stream.eol()) {
+              state.tokenize = tokenBase;
+            }
+            const style = state.tokenize(stream, state);
+            return style;
+          },
+          lineComment: ";",
+        };
+      });
+
+      // Register LLVM mode
+      if (typeof CodeMirror !== "undefined") {
+        CodeMirror.defineMIME("text/x-llvm", "llvm");
+        console.log("LLVM IR mode registered successfully");
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="logo">FW</span>
+        <span>Flow-Wing</span>
+        <span class="badge">Inspector</span>
+      </div>
+      <div class="controls">
+        <button class="tab-btn active" data-view="tokens">Tokens</button>
+        <button class="tab-btn" data-view="ast">AST</button>
+        <button class="tab-btn" data-view="semantic">Semantic</button>
+        <button class="tab-btn" data-view="llvm-ir">IR</button>
+        <button class="tab-btn" data-view="logs">Logs</button>
+      </div>
+      <div class="status" id="status-bar">Ready</div>
+    </header>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Settings</h3>
+          <button class="modal-close" id="settings-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-item">
+            <label for="binary-path">Flow-Wing Binary Path:</label>
+            <input
+              type="text"
+              id="binary-path"
+              placeholder="/path/to/Flow-Wing"
+              class="setting-input"
+            />
+            <small>Path to the Flow-Wing compiler binary</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" id="settings-save">Save</button>
+          <button class="btn-secondary" id="settings-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <main>
+      <section class="pane source-pane">
+        <div class="pane-header">
+          <span>Source Code</span>
+          <div class="editor-controls">
+            <button id="edit-toggle" class="icon-btn" title="Toggle Edit Mode">
+              <span>✏️</span>
+            </button>
+            <button id="settings-btn" class="icon-btn" title="Settings">
+              <span>⚙️</span>
+            </button>
+            <button id="run-btn" class="run-btn" title="Run Code">
+              <span>▶️</span> Run
+            </button>
+          </div>
+        </div>
+        <div id="code-editor" class="code-editor"></div>
+        <div id="output-panel" class="output-panel" style="display: none">
+          <div class="output-header">
+            <span>Output</span>
+            <button id="output-close" class="output-close" title="Close Output">
+              ×
+            </button>
+          </div>
+          <div class="output-resizer" id="output-resizer"></div>
+          <div id="output-content" class="output-content"></div>
+          <button
+            id="scroll-to-bottom-btn"
+            class="scroll-to-bottom-btn"
+            title="Scroll to bottom"
+          >
+            ↓
+          </button>
+        </div>
+        <div class="resizer resizer-left" data-pane="source"></div>
+      </section>
+
+      <section class="pane viz-pane">
+        <div class="pane-header">
+          <span id="viz-title">Abstract Syntax Tree</span>
+          <div class="viz-header-controls">
+            <button
+              id="json-toggle"
+              class="icon-btn json-toggle-btn"
+              title="Toggle JSON View"
+            >
+              <span>{ }</span>
+            </button>
+          </div>
+        </div>
+        <div id="viz-container"></div>
+        <div
+          id="json-editor-container"
+          class="json-editor-container"
+          style="display: none"
+        >
+          <div class="json-editor-toolbar">
+            <button
+              id="json-copy-btn"
+              class="json-toolbar-btn"
+              title="Copy JSON"
+            >
+              <span>📋</span> Copy
+            </button>
+            <button
+              id="json-format-btn"
+              class="json-toolbar-btn"
+              title="Format JSON"
+            >
+              <span>✨</span> Format
+            </button>
+            <button
+              id="json-collapse-btn"
+              class="json-toolbar-btn"
+              title="Collapse All"
+            >
+              <span>📁</span> Collapse
+            </button>
+            <button
+              id="json-expand-btn"
+              class="json-toolbar-btn"
+              title="Expand All"
+            >
+              <span>📂</span> Expand
+            </button>
+            <div class="json-search-container">
+              <input
+                type="text"
+                id="json-search-input"
+                class="json-search-input"
+                placeholder="Search in JSON..."
+              />
+              <span id="json-search-count" class="json-search-count"></span>
+            </div>
+          </div>
+          <div id="json-editor"></div>
+        </div>
+        <div class="resizer resizer-left" data-pane="viz"></div>
+      </section>
+
+      <section class="pane details-pane">
+        <div class="pane-header">Node Details</div>
+        <div id="details-content" class="details-content">
+          <div class="empty-state">
+            Hover over code or tree nodes to see details
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+print(Char("A"), "\n")
+print(Char("é"), "\n")
+print(Char("中"), "\n")
+print(Char("🚀"), "\n")
+

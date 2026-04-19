@@ -1,0 +1,11 @@
+var x = 10
+var y = "hello"
+var z = true
+print(x, " ", y, " ", z, "\n")
+{
+  print(x, " ", y, " ", z, "\n")
+  var w = 3.14
+  print(w, "\n")
+}
+print(x, " ", y, " ", z, "\n")
+

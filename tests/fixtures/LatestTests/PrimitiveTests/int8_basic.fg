@@ -1,0 +1,5 @@
+var x:int8 = 127
+var y:int8 = -5
+println(x)
+println(y)
+println(x + y)

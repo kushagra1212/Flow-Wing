@@ -1,0 +1,13 @@
+type Person = {
+    name: str
+    age: int
+}
+
+const p: Person = {
+    name: "John",
+    age: 30
+}
+
+print("Name: ", p.name, "\n")
+print("Age: ", p.age, "\n")
+print("Full object: ", p, "\n")

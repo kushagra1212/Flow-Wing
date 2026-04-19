@@ -1,0 +1,22 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+var rect: Rectangle = {
+    topLeft: {
+        x: "not a number",
+        y: 0
+    },
+    bottomRight: {
+        x: 100,
+        y: 100
+    }
+}
+

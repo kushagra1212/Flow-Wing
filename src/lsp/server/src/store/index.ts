@@ -4,6 +4,7 @@ import { typesCompletionItems } from "./completionItems/keywords/types";
 import { variableDeclareCompletionItems } from "./completionItems/keywords/var";
 import { conditionalCompletionItems } from "./completionItems/keywords/conditional";
 import { otherCompletionItems } from "./completionItems/keywords/other";
+import { inBuiltFunctionsCompletionItems } from "./completionItems/functions/inbuilt";
 
 export const keywordsCompletionItems: CompletionItem[] = [
   ...typesCompletionItems,
@@ -11,6 +12,6 @@ export const keywordsCompletionItems: CompletionItem[] = [
   ...constantDeclareCompletionItems,
   ...conditionalCompletionItems,
   ...otherCompletionItems,
-  // ...inBuiltFunctionsCompletionItems,
-  // ...punctuationCompletionItems,
 ];
+
+export { inBuiltFunctionsCompletionItems };

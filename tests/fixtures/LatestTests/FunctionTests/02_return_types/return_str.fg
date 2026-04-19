@@ -1,0 +1,6 @@
+fun getStr() -> str {
+  return "Hello Flow-Wing"
+}
+
+var s: str = getStr()
+println(s)

@@ -1,0 +1,7 @@
+for (var i: int = 1 to 4 : 1) {
+  var double: int = i * 2
+  var sum: int = i + 10
+  println(double)
+  println(sum)
+}
+println("done")

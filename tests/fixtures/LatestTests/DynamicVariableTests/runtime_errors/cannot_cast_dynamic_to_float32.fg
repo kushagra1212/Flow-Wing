@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: Cannot cast Dynamic value to Float
+var z: deci32 = 3.14f
+print(z, "\n")
+
+var x = 5.5
+print(x, "\n")
+z = x
+print(z, "\n")
+var k = "Hello"
+z = k
+print(z, "\n")
+

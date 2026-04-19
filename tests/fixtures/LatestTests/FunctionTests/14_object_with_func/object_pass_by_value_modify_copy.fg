@@ -1,0 +1,13 @@
+type T = {
+  a: int
+}
+
+fun modifyCopy(d: T) -> T {
+  d.a = 21
+  return d
+}
+
+var b: T = {a: 10}
+var d: T = modifyCopy(b)
+println(b.a)
+println(d.a)

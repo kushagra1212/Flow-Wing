@@ -1,0 +1,6 @@
+Before:
+p1.name: Alice, p1.age: 20
+p2.name: Bob, p2.age: 25
+After member-to-member assignment:
+p1.name: Bob, p1.age: 25
+p2.name: Bob, p2.age: 25

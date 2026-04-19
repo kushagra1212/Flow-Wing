@@ -1,0 +1,11 @@
+var x: int = 3
+
+if (x == 1) {
+  println("one")
+} or if (x == 2) {
+  println("two")
+} or if (x == 3) {
+  println("three")
+} else {
+  println("other")
+}

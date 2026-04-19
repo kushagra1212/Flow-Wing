@@ -1,0 +1,25 @@
+type Person = {
+    name: str
+    age: int
+}
+
+const source: Person = {
+    name: "Alice",
+    age: 30
+}
+
+var dest: Person = {
+    name: "Bob",
+    age: 25
+}
+
+print("Before assignment:\n")
+print("source: ", source, "\n")
+print("dest: ", dest, "\n")
+
+dest.name = source.name
+dest.age = source.age
+
+print("After assignment:\n")
+print("source: ", source, "\n")
+print("dest: ", dest, "\n")

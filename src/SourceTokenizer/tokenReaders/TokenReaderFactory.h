@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include <memory>
+
+namespace flow_wing {
+namespace lexer {
 
 class TokenReader;
 class SourceTokenizer;
@@ -30,3 +32,6 @@ public:
   static std::unique_ptr<TokenReader>
   createTokenReader(const SourceTokenizer &lexer);
 };
+
+} // namespace lexer
+} // namespace flow_wing

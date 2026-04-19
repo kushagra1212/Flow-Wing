@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,27 +18,32 @@
  */
 
 #pragma once
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxNode.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+
 #include "src/syntax/statements/StatementSyntax.h"
+#include <memory>
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
+
 class ElseClauseSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _elseKeyword;
-  std::unique_ptr<BlockStatementSyntax> _statement;
 
 public:
-  ElseClauseSyntax(std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
-                   std::unique_ptr<BlockStatementSyntax> statement);
+  ElseClauseSyntax(const SyntaxToken *else_keyword,
+                   std::unique_ptr<StatementSyntax> statement);
 
-  std::unique_ptr<SyntaxToken<std::any>> getElseKeyword();
-  std::unique_ptr<BlockStatementSyntax> getStatement();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_else_keyword;
+  std::unique_ptr<StatementSyntax> m_statement;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getElseKeywordRef();
-  std::unique_ptr<BlockStatementSyntax> &getStatementRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

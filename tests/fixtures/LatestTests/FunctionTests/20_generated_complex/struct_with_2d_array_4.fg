@@ -1,0 +1,12 @@
+
+type Matrix_4 = { rows: int[5][2], valid: bool }
+fun getMatrix(v: int) -> Matrix_4 {
+    var m: Matrix_4
+    m.valid = true
+    m.rows[0][0] = v
+    return m
+}
+
+var mat: Matrix_4 = getMatrix(400)
+println(mat.valid)
+println(mat.rows[0][0])

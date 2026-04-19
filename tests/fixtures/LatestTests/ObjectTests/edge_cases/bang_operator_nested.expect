@@ -1,0 +1,16 @@
+t3 == t4: false
+t3 != t4: true
+t3.x == t4.x: false
+t3.x != t4.x: true
+!t1: false
+!t1.x: false
+!t2: false
+!t2.x: false
+t3.x: { x: 10 }
+!t3.x: false
+t3.x: null
+!t3.x: true
+t3: { x: null }
+!t3: false
+t3 == null: false
+t3.x == null: true

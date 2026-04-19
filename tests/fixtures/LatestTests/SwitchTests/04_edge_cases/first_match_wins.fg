@@ -1,0 +1,13 @@
+var a: int = 1
+
+switch a {
+  case 1:{
+    println("first")
+  }
+  case 1:{
+    println("second")
+  }
+  default:{
+    println("default")
+  }
+}

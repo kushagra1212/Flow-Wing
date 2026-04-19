@@ -1,0 +1,7 @@
+fun makeArray() -> int[3] {
+  var arr: int[3] = [7, 8, 9]
+  return arr
+}
+
+var result: int[3] = makeArray()
+println(result)

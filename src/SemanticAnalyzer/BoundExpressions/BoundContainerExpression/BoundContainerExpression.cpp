@@ -17,49 +17,57 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "BoundContainerExpression.h"
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "BoundContainerExpression.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include <cassert>
+
+namespace flow_wing {
+namespace binding {
+
+BoundContainerExpressionElement::BoundContainerExpressionElement(
+    std::unique_ptr<BoundExpression> expression)
+    : m_expression(std::move(expression)) {}
+
+void BoundContainerExpressionElement::addIndex(size_t index) {
+  m_indices.push_front(index);
+}
+
+const std::deque<size_t> &BoundContainerExpressionElement::getIndices() const {
+  return m_indices;
+}
+
+std::unique_ptr<BoundExpression> &
+BoundContainerExpressionElement::getExpression() {
+  return m_expression;
+}
 
 BoundContainerExpression::BoundContainerExpression(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundExpression(location) {}
+    std::vector<std::unique_ptr<BoundContainerExpressionElement>> elements,
+    std::shared_ptr<types::ArrayType> type, bool is_default_value,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundExpression(location), m_elements(std::move(elements)),
+      m_type(std::move(type)), m_is_default_value(is_default_value) {}
 
-/*
-  OVERRIDES
-*/
-
-const std::type_info &BoundContainerExpression::getType() {
-  return typeid(std::vector<std::unique_ptr<BoundExpression>>);
+NodeKind BoundContainerExpression::getKind() const {
+  return NodeKind::kContainerExpression;
 }
 
-BinderKindUtils::BoundNodeKind BoundContainerExpression::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundContainerExpression;
+void BoundContainerExpression::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::vector<BoundNode *> BoundContainerExpression::getChildren() {
-  if (_children.size() > 0)
-    return _children;
-
-  for (auto &element : this->_elements)
-    _children.push_back(element.get());
-
-  return _children;
+std::shared_ptr<types::Type> BoundContainerExpression::getType() const {
+  return m_type;
 }
 
-/*
-  SETTERS
-*/
-
-void BoundContainerExpression::setElement(
-    std::unique_ptr<BoundExpression> element) {
-  this->_elements.push_back(std::move(element));
+bool BoundContainerExpression::isDefaultValue() const {
+  return m_is_default_value;
 }
 
-/*
-  GETTERS
-*/
-
-auto BoundContainerExpression::getElementsRef() const
-    -> const std::vector<std::unique_ptr<BoundExpression>> & {
-  return this->_elements;
+std::vector<std::unique_ptr<BoundContainerExpressionElement>> &
+BoundContainerExpression::getElements() {
+  return m_elements;
 }
+
+} // namespace binding
+} // namespace flow_wing

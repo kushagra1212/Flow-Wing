@@ -1,0 +1,7 @@
+fun emptyStr() -> str {
+  return ""
+}
+
+var s: str = emptyStr()
+println("len")
+println(s)

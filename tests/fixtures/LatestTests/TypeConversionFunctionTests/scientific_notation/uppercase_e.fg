@@ -1,0 +1,5 @@
+print(1E10, "\n")
+print(1E5, "\n")
+print(5E-2, "\n")
+print(2E+3, "\n")
+

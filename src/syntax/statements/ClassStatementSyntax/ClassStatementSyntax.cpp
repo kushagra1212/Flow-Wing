@@ -18,88 +18,74 @@
  */
 
 #include "ClassStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 
-ClassStatementSyntax::ClassStatementSyntax() {}
-SyntaxKindUtils::SyntaxKind ClassStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ClassStatement;
+namespace flow_wing {
+namespace syntax {
+
+ClassStatementSyntax::ClassStatementSyntax(
+    const SyntaxToken *class_keyword_token,
+    std::unique_ptr<ExpressionSyntax> class_name_identifier_expr,
+    const SyntaxToken *extends_keyword_token,
+    std::unique_ptr<ExpressionSyntax> parent_class_identifier_expr,
+    const SyntaxToken *open_brace_token,
+    std::vector<std::unique_ptr<StatementSyntax>> class_member_statements,
+    const SyntaxToken *close_brace_token)
+    : m_class_keyword_token(class_keyword_token),
+      m_class_name_identifier_expr(std::move(class_name_identifier_expr)),
+      m_extends_keyword_token(extends_keyword_token),
+      m_parent_class_identifier_expr(std::move(parent_class_identifier_expr)),
+      m_open_brace_token(open_brace_token),
+      m_class_member_statements(std::move(class_member_statements)),
+      m_close_brace_token(close_brace_token) {}
+
+syntax::NodeKind ClassStatementSyntax::getKind() const {
+  return NodeKind::kClassStatement;
 }
 
-const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-
-    if (_exposeKeyword)
-      _children.push_back(_exposeKeyword.get());
-
-    if (_classKeyword)
-      _children.push_back(_classKeyword.get());
-
-    if (_classNameIdentifier)
-      _children.push_back(_classNameIdentifier.get());
-
-    if (_extendsKeyword)
-      _children.push_back(_extendsKeyword.get());
-
-    if (_parentClassNameIdentifier)
-      _children.push_back(_parentClassNameIdentifier.get());
-
-    if (_classOpenBraceToken)
-      _children.push_back(_classOpenBraceToken.get());
-
-    for (const auto &type : _customTypeStatements) {
-      _children.push_back(type.get());
-    }
-
-    for (const auto &m : _classDataMembers) {
-      _children.push_back(m.get());
-    }
-    for (const auto &m : _classMemberFunctions) {
-      _children.push_back(m.get());
-    }
-
-    if (_classCloseBraceToken)
-      _children.push_back(_classCloseBraceToken.get());
-  }
-
-  return this->_children;
+void ClassStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const DiagnosticUtils::SourceLocation
-ClassStatementSyntax::getSourceLocation() const {
-
-  if (_exposeKeyword)
-    return _exposeKeyword->getSourceLocation();
-
-  if (_classKeyword)
-    return _classKeyword->getSourceLocation();
-
-  if (_classNameIdentifier)
-    return _classNameIdentifier->getSourceLocation();
-
-  if (_extendsKeyword)
-    return _extendsKeyword->getSourceLocation();
-
-  if (_parentClassNameIdentifier)
-    return _parentClassNameIdentifier->getSourceLocation();
-
-  if (_classOpenBraceToken)
-    return _classOpenBraceToken->getSourceLocation();
-
-  if (_customTypeStatements.size() > 0) {
-    return _customTypeStatements[0]->getSourceLocation();
-  }
-
-  if (_classDataMembers.size() > 0) {
-    return _classDataMembers[0]->getSourceLocation();
-  }
-
-  if (_classMemberFunctions.size() > 0) {
-    return _classMemberFunctions[0]->getSourceLocation();
-  }
-
-  if (_classCloseBraceToken)
-    return _classCloseBraceToken->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
+const std::unique_ptr<ExpressionSyntax> &
+ClassStatementSyntax::getClassNameIdentifierExpr() const {
+  return m_class_name_identifier_expr;
 }
+
+const std::unique_ptr<ExpressionSyntax> &
+ClassStatementSyntax::getParentClassIdentifierExpr() const {
+  return m_parent_class_identifier_expr;
+}
+
+const std::vector<std::unique_ptr<StatementSyntax>> &
+ClassStatementSyntax::getClassMemberStatements() const {
+  return m_class_member_statements;
+}
+
+const std::vector<const SyntaxNode *> &
+ClassStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_class_keyword_token),
+          static_cast<const SyntaxNode *>(m_class_name_identifier_expr.get()),
+          static_cast<const SyntaxNode *>(m_extends_keyword_token),
+          static_cast<const SyntaxNode *>(m_parent_class_identifier_expr.get()),
+          static_cast<const SyntaxNode *>(m_open_brace_token)}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
+    for (const auto &node : m_class_member_statements) {
+      if (node) {
+        m_children.push_back(node.get());
+      }
+    }
+
+    if (m_close_brace_token) {
+      m_children.push_back(m_close_brace_token);
+    }
+  }
+  return m_children;
+}
+} // namespace syntax
+} // namespace flow_wing

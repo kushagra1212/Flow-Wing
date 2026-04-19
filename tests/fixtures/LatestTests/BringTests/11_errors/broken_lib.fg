@@ -1,0 +1,2 @@
+/; EXPECT_ERROR: VariableNotFound
+this is not valid flowwing

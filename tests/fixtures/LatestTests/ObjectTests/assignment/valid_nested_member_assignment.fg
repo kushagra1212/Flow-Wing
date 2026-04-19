@@ -1,0 +1,29 @@
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+var rect: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+
+print("Before assignment:\n")
+print("rect.topLeft: ", rect.topLeft, "\n")
+
+rect.topLeft.x = 5
+rect.topLeft.y = 5
+
+print("After assignment:\n")
+print("rect.topLeft: ", rect.topLeft, "\n")

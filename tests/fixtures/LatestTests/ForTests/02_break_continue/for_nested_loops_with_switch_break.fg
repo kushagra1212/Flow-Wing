@@ -1,0 +1,18 @@
+for (var i: int = 0 to 2 : 1) {
+  for (var j: int = 0 to 2 : 1) {
+    switch j {
+      case 0: {
+        println(0)
+      }
+      case 1: {
+        println(1)
+        break
+      }
+      default: {
+        println(2)
+      }
+    }
+  }
+  println(i)
+}
+println("done")

@@ -1,0 +1,7 @@
+type T = {
+    x: int
+}
+
+var t1: T = null
+
+print("t1: ", t1, "\n")

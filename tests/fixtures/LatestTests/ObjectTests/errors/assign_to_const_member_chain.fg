@@ -1,0 +1,20 @@
+/; EXPECT_ERROR: InvalidAssignmentToConstantVariable
+type Address = {
+    street: str
+    city: str
+}
+
+type Person = {
+    name: str
+    address: Address
+}
+
+const person: Person = {
+    name: "John",
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+
+person.address.street = "456 Oak Ave"

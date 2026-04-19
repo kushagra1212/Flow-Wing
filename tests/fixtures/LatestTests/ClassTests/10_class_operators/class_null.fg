@@ -1,0 +1,45 @@
+class C {
+    var b:A 
+    init() -> nthg {
+        println("c init called")
+        self.b = null
+    }
+}
+class A {
+
+    var b:A 
+    var c:C
+    var d:C
+  init() -> nthg {
+    println("a init called")
+    self.b = null
+    self.d = new C()    
+  }
+}
+
+var a: A = new A()
+var c: C = new C()
+
+if(c.b != null) {
+    println("b is not null")
+} else {
+    println("b is null")
+}
+
+if(a.b != null) {
+    println("b is not null")
+} else {
+    println("b is null")
+}
+
+if(a.c != null) {
+    println("c is not null")
+} else {
+    println("c is null")
+}
+
+if(a.d != null) {
+    println("d is not null")
+} else {
+    println("d is null")
+}

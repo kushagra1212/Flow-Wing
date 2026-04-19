@@ -1,0 +1,13 @@
+print("Int8 Multiplication Tests\n")
+print(0 * 0, "\n")
+print(1 * 0, "\n")
+print(0 * 1, "\n")
+print(1 * 1, "\n")
+print(5 * 3, "\n")
+print(10 * 10, "\n")
+print(-1 * 1, "\n")
+print(-5 * 3, "\n")
+print(-10 * -10, "\n")
+print(2 * 3 * 4, "\n")
+print(-2 * -3 * -4, "\n")
+

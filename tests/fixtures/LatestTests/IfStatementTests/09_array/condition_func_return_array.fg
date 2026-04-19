@@ -1,0 +1,9 @@
+fun getArray() -> int[3] {
+  return [1, 2, 3]
+}
+
+if (getArray()) {
+  println("nonnull")
+} else {
+  println("null")
+}

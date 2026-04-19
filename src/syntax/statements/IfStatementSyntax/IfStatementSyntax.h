@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,53 +19,47 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/ElseClauseSyntax/ElseClauseSyntax.h"
 #include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-
-#include <any>
 #include <memory>
-#include <vector>
+namespace flow_wing {
+namespace syntax {
 
-template <typename T> class SyntaxToken;
-class ExpressionSyntax;
-class BlockStatementSyntax;
-class ElseClauseSyntax;
-class OrIfStatementSyntax;
+class SyntaxToken;
 
 class IfStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
-  std::unique_ptr<ExpressionSyntax> condition;
-  std::unique_ptr<BlockStatementSyntax> statement;
-  std::unique_ptr<ElseClauseSyntax> elseClause;
-
-  std::vector<std::unique_ptr<OrIfStatementSyntax>> orIfStatements;
 
 public:
-  IfStatementSyntax();
+  IfStatementSyntax(
+      const SyntaxToken *if_keyword,
+      std::unique_ptr<ExpressionSyntax> condition_expression,
+      std::unique_ptr<StatementSyntax> statement,
+      std::vector<std::unique_ptr<OrIfStatementSyntax>> or_if_statements,
+      std::unique_ptr<ElseClauseSyntax> else_clause);
 
-  std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();
-  std::unique_ptr<ExpressionSyntax> getCondition();
-  std::unique_ptr<BlockStatementSyntax> getStatement();
-  std::unique_ptr<ElseClauseSyntax> getElseClause();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  void addIfKeyword(std::unique_ptr<SyntaxToken<std::any>> ifKeyword);
-  void addCondition(std::unique_ptr<ExpressionSyntax> condition);
-  void addStatement(std::unique_ptr<BlockStatementSyntax> statement);
-  void addOrIfStatement(std::unique_ptr<OrIfStatementSyntax> orIfStatement);
-  void addElseClause(std::unique_ptr<ElseClauseSyntax> elseClause);
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getConditionExpression() const;
+  const std::unique_ptr<StatementSyntax> &getStatement() const;
+  const std::vector<std::unique_ptr<OrIfStatementSyntax>> &
+  getOrIfStatements() const;
+  const std::unique_ptr<ElseClauseSyntax> &getElseClause() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_if_keyword;
+  std::unique_ptr<ExpressionSyntax> m_condition_expression;
+  std::unique_ptr<StatementSyntax> m_statement;
+  std::vector<std::unique_ptr<OrIfStatementSyntax>> m_or_if_statements;
+  std::unique_ptr<ElseClauseSyntax> m_else_clause;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordRef();
-  std::unique_ptr<ExpressionSyntax> &getConditionRef();
-  std::unique_ptr<BlockStatementSyntax> &getStatementRef();
-  std::unique_ptr<ElseClauseSyntax> &getElseClauseRef();
-  std::vector<std::unique_ptr<OrIfStatementSyntax>> &getOrIfStatementsRef();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

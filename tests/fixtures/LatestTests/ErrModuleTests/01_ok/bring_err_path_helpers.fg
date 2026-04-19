@@ -1,0 +1,16 @@
+bring "Err-module.fg"
+
+fun attempt(flag: bool) -> int, Err::Result {
+  if flag {
+    return 7, Err::ok("count ready")
+  }
+  return 0, Err::error("count missing", Err::CODE.NOT_FOUND)
+}
+
+var count: int, err: Err::Result = attempt(true)
+println(count)
+println(err.toString())
+println(err.withMessage("checked").toString())
+println(err.withCode(Err::CODE.FAILED).isErr())
+println(err.clearDetails().hasDetails())
+println(Err::isOk(err))

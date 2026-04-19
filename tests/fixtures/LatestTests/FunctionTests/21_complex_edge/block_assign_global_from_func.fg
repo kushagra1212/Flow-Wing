@@ -1,0 +1,9 @@
+fun supply() -> int { return 42 }
+
+var g: int = 0
+println(g)
+{
+  g = supply()
+  println(g)
+}
+println(g)

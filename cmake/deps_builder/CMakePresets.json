@@ -8,28 +8,22 @@
 
   "configurePresets": [
     {
-      "name": "base",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/../../.fw_dependencies/build",
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../../.fw_dependencies/install"
-      }
-    },
-    {
       "name": "deps-install-debug",
-      "inherits": "base",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../../.fw_dependencies_debug/build",
       "displayName": "Install Dependencies (Debug)",
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../../.fw_dependencies_debug/install",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
-
     {
       "name": "deps-install-release",
-      "inherits": "base",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../../.fw_dependencies/build",
       "displayName": "Install Dependencies (Release)",
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../../.fw_dependencies/install",
         "CMAKE_BUILD_TYPE": "Release"
       }
     }

@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+if (true) {
+  println("ok")
+} or if (bad_var) {
+  println("x")
+}

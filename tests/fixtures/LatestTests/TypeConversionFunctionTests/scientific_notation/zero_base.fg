@@ -1,0 +1,4 @@
+print(0e10, "\n")
+print(0e-10, "\n")
+print(0.0e5, "\n")
+

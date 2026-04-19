@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30,
+    extra: "field"
+}
+

@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: Bitwise NOT cannot be applied to decimals
+var x = 5.5
+var y = ~x
+print(y, "\n")
+

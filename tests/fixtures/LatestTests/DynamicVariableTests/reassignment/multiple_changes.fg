@@ -1,0 +1,13 @@
+var x = 2
+print(x, "\n")
+x = 3.14
+print(x, "\n")
+x = "test"
+print(x, "\n")
+x = true
+print(x, "\n")
+x = 'z'
+print(x, "\n")
+x = 100l
+print(x, "\n")
+

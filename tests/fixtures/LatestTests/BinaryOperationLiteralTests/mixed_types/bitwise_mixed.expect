@@ -1,0 +1,19 @@
+Mixed Integer Bitwise Tests
+Int8 & Int32:
+15
+15
+0
+Int8 | Int32:
+271
+271
+255
+Int8 ^ Int32:
+240
+240
+255
+Int32 & Int64:
+0
+0
+Int32 | Int64:
+3000000255
+3000000255

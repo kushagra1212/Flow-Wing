@@ -1,0 +1,28 @@
+type Person = {
+  name: str
+  age: int
+}
+
+fun getPerson() -> Person {
+    var p: Person = {
+        name: "John",
+        age: 30
+    }
+    return p
+}
+
+println(getPerson().name)
+println(getPerson().age)
+
+var pAge = getPerson().age
+println(pAge)
+
+var p2: Person = getPerson()
+println(p2.name)
+
+p2.name = "Jane"
+println(p2.name)
+
+var p3: Person = getPerson()
+p3.age = getPerson().age + 10
+println(p3.age)

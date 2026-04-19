@@ -1,0 +1,8 @@
+Initial:
+small: { a: 10 }
+medium: { a: 0, b: "" }
+large: { a: 0, b: "", c: 0 }
+After assignments:
+small: { a: 10 }
+medium: { a: 10, b: "" }
+large: { a: 10, b: "", c: 0 }

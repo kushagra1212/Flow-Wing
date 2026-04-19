@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,72 +17,49 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundIfStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
-#include "BoundIfStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundIfStatement::BoundIfStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::unique_ptr<BoundExpression> if_condition,
+    std::unique_ptr<BoundStatement> if_statement,
+    std::vector<std::unique_ptr<BoundExpression>> or_if_conditions,
+    std::vector<std::unique_ptr<BoundStatement>> or_if_statements,
+    std::unique_ptr<BoundStatement> else_clause,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_if_condition(std::move(if_condition)),
+      m_if_statement(std::move(if_statement)),
+      m_or_if_conditions(std::move(or_if_conditions)),
+      m_or_if_statements(std::move(or_if_statements)),
+      m_else_clause(std::move(else_clause)) {}
 
-std::unique_ptr<BoundExpression> BoundIfStatement::getCondition() {
-  return std::move(_condition);
+NodeKind BoundIfStatement::getKind() const { return NodeKind::kIfStatement; }
+
+const std::unique_ptr<BoundExpression> &
+BoundIfStatement::getIfCondition() const {
+  return m_if_condition;
 }
-
-std::unique_ptr<BoundStatement> BoundIfStatement::getThenStatement() {
-  return std::move(_thenStatement);
+const std::unique_ptr<BoundStatement> &
+BoundIfStatement::getIfStatement() const {
+  return m_if_statement;
 }
-
-std::unique_ptr<BoundStatement> BoundIfStatement::getElseStatement() {
-  return std::move(_elseStatement);
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundIfStatement::getOrIfConditions() const {
+  return m_or_if_conditions;
 }
-BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::IfStatement;
+const std::vector<std::unique_ptr<BoundStatement>> &
+BoundIfStatement::getOrIfStatements() const {
+  return m_or_if_statements;
 }
-
-std::vector<BoundNode *> BoundIfStatement::getChildren() {
-  this->_children.push_back(this->_condition.get());
-  this->_children.push_back(this->_thenStatement.get());
-
-  for (auto &orIfStatement : this->_orIfStatements) {
-    this->_children.push_back(orIfStatement.get());
-  }
-
-  if (this->_elseStatement.get())
-    this->_children.push_back(this->_elseStatement.get());
-
-  return this->_children;
+const std::unique_ptr<BoundStatement> &BoundIfStatement::getElseClause() const {
+  return m_else_clause;
 }
-
-std::unique_ptr<BoundExpression> &BoundIfStatement::getConditionPtr() {
-  return this->_condition;
-}
-std::unique_ptr<BoundStatement> &BoundIfStatement::getThenStatementPtr() {
-  return this->_thenStatement;
-}
-std::unique_ptr<BoundStatement> &BoundIfStatement::getElseStatementPtr() {
-  return this->_elseStatement;
+void BoundIfStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::vector<std::unique_ptr<BoundOrIfStatement>> &
-BoundIfStatement::getOrIfStatementsPtr() {
-  return this->_orIfStatements;
-}
-
-void BoundIfStatement::addCondition(
-    std::unique_ptr<BoundExpression> condition) {
-  this->_condition = std::move(condition);
-}
-
-void BoundIfStatement::addThenStatement(
-    std::unique_ptr<BoundStatement> thenStatement) {
-  this->_thenStatement = std::move(thenStatement);
-}
-
-void BoundIfStatement::addOrIfStatement(
-    std::unique_ptr<BoundOrIfStatement> orIfStatement) {
-  this->_orIfStatements.push_back(std::move(orIfStatement));
-}
-void BoundIfStatement::addElseStatement(
-    std::unique_ptr<BoundStatement> elseStatement) {
-  this->_elseStatement = std::move(elseStatement);
-}
+} // namespace binding
+} // namespace flow_wing

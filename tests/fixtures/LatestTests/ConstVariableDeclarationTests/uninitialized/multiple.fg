@@ -1,0 +1,8 @@
+const x:int8 = 0
+const y:int = 0
+const z:deci = 0
+const z2:deci32 = 0
+const w:bool = false
+const c:char = '\0'
+print(x, " ", y, " ", z, " ", z2, " ", w, " ", c, "\n")
+

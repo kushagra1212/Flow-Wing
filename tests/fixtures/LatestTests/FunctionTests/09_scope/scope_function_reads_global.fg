@@ -1,0 +1,9 @@
+var g: int = 42
+
+fun show() -> int {
+  return g
+}
+
+println(show())
+g = 99
+println(show())

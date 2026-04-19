@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: MemberAccessOnNonObjectVariable
+var x: int = 10
+var y = x.field
+

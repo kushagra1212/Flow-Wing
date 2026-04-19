@@ -17,71 +17,53 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "OrIfStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+
+namespace flow_wing {
+namespace syntax {
 
 OrIfStatementSyntax::OrIfStatementSyntax(
-    std::unique_ptr<SyntaxToken<std::any>> orKeyword,
-    std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
-    std::unique_ptr<ExpressionSyntax> condition,
-    std::unique_ptr<BlockStatementSyntax> statement) {
-  this->orKeyword = std::move(orKeyword);
-  this->ifKeyword = std::move(ifKeyword);
-  this->condition = std::move(condition);
-  this->statement = std::move(statement);
+    const SyntaxToken *or_keyword, const SyntaxToken *if_keyword,
+    std::unique_ptr<ExpressionSyntax> condition_expression,
+    std::unique_ptr<StatementSyntax> statement)
+    : m_or_keyword(or_keyword), m_if_keyword(if_keyword),
+      m_condition_expression(std::move(condition_expression)),
+      m_statement(std::move(statement)) {}
+
+NodeKind OrIfStatementSyntax::getKind() const {
+  return NodeKind::kOrIfStatement;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> OrIfStatementSyntax::getIfKeyword() {
-  return std::move(ifKeyword);
+void OrIfStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<ExpressionSyntax> OrIfStatementSyntax::getCondition() {
-  return std::move(condition);
+const std::unique_ptr<ExpressionSyntax> &
+OrIfStatementSyntax::getConditionExpression() const {
+  return m_condition_expression;
 }
-
-std::unique_ptr<BlockStatementSyntax> OrIfStatementSyntax::getStatement() {
-  return std::move(statement);
+const std::unique_ptr<StatementSyntax> &
+OrIfStatementSyntax::getStatement() const {
+  return m_statement;
 }
+const std::vector<const SyntaxNode *> &
+OrIfStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
 
-std::unique_ptr<SyntaxToken<std::any>> OrIfStatementSyntax::getOrKeyword() {
-  return std::move(orKeyword);
-}
-
-SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::OrIfStatement;
-}
-
-const DiagnosticUtils::SourceLocation
-OrIfStatementSyntax::getSourceLocation() const {
-  return this->ifKeyword->getSourceLocation();
-}
-
-const std::vector<SyntaxNode *> &OrIfStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-
-    _children.push_back(this->orKeyword.get());
-    _children.push_back(this->ifKeyword.get());
-    _children.push_back(this->condition.get());
-    _children.push_back(this->statement.get());
+    for (const auto &node :
+         {static_cast<const SyntaxNode *>(m_or_keyword),
+          static_cast<const SyntaxNode *>(m_if_keyword),
+          static_cast<const SyntaxNode *>(m_condition_expression.get()),
+          static_cast<const SyntaxNode *>(m_statement.get())}) {
+      if (node)
+        m_children.push_back(node);
+    }
   }
-
-  return this->_children;
+  return m_children;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> &OrIfStatementSyntax::getIfKeywordPtr() {
-  return this->ifKeyword;
-}
-std::unique_ptr<ExpressionSyntax> &OrIfStatementSyntax::getConditionPtr() {
-  return this->condition;
-}
-std::unique_ptr<BlockStatementSyntax> &OrIfStatementSyntax::getStatementPtr() {
-  return this->statement;
-}
-std::unique_ptr<SyntaxToken<std::any>> &OrIfStatementSyntax::getOrKeywordPtr() {
-  return this->orKeyword;
-}
+} // namespace syntax
+} // namespace flow_wing

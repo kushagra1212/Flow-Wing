@@ -1,0 +1,24 @@
+/; EXPECT_ERROR: MemberNotFoundInObject
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+var rect: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 100,
+        y: 100
+    }
+}
+
+var z = rect.topLeft.z
+

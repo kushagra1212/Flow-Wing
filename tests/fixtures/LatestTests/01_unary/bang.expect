@@ -1,0 +1,51 @@
+Bang Prefix Operator for Int
+false
+false
+true
+Bang Prefix Operator for Double
+false
+false
+false
+true
+Bang Prefix Operator for Float
+false
+false
+false
+true
+Bang Prefix Operator for String
+false
+false
+false
+false
+true
+Bang Prefix Operator for Boolean
+false
+true
+true
+false
+false
+false
+true
+true
+true
+false
+Bang Prefix Operator for Char
+false
+false
+false
+false
+true
+true
+false
+false
+Bang Prefix Operator for Nir
+true
+Bang Bang Prefix Operator for Int
+true
+true
+false
+Bang Bang Prefix Operator for Double
+true
+true
+true
+false

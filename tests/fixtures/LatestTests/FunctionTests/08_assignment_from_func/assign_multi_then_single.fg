@@ -1,0 +1,18 @@
+fun pair() -> int, int {
+  return 10, 20
+}
+
+fun one() -> int {
+  return 999
+}
+
+var a: int = 0
+var b: int = 0
+println(a)
+println(b)
+a, b = pair()
+println(a)
+println(b)
+a = one()
+println(a)
+println(b)

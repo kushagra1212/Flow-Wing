@@ -1,0 +1,13 @@
+var _int = 100000222222
+println(Int64(_int))
+var _deci = 10.5344345333333
+println(Int64(_deci))
+var _deci32 = 10.5344345333333f
+println(Int64(_deci32))
+
+var _char = 'x'
+println(Int64(_char))
+var _int64 = 1000000000000
+println(Int64(_int64))
+var _int8 = 127
+println(Int64(_int8))

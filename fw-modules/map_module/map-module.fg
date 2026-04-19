@@ -1,0 +1,65 @@
+
+
+/; FFI Declarations
+fun dyn_map_new() -> as int64 decl
+fun dyn_map_set(map_handle: as int64, key: as str, value) -> as nthg decl
+fun dyn_map_get_or( map_handle: as int64, key: as str, fallback) ->  dyn decl
+fun dyn_map_remove(map_handle: as int64, key: as str) -> as bool decl
+fun dyn_map_contains(map_handle: as int64, key: as str) -> as bool decl
+fun dyn_map_size(map_handle: as int64) -> as int decl
+fun dyn_map_clear(map_handle: as int64) -> as nthg decl
+
+module [map]
+
+class Map {
+  var _handle: int64
+
+  init() -> nthg {
+    self._handle = dyn_map_new()
+  }
+
+  /; Accepts any dynamic value natively
+  fun set(key: str, value) -> map::Map {
+    dyn_map_set(self._handle, key, value)
+    return self
+  }
+
+  fun insert(key: str, value) -> map::Map {
+    return self.set(key, value)
+  }
+
+  /; Uses a nirast (null/nil) value as a default fallback if the key doesn't exist
+  fun get(key: str)  {
+    var fallback = null /; Assuming 'null' creates a DYN_TAG_NIRAST
+    return dyn_map_get_or(self._handle, key, fallback)
+  }
+
+  fun getOr(key: str, fallback)  {
+    return dyn_map_get_or(self._handle, key, fallback)
+  }
+
+  fun has(key: str) -> bool {
+    return dyn_map_contains(self._handle, key)
+  }
+
+  fun contains(key: str) -> bool {
+    return self.has(key)
+  }
+
+  fun remove(key: str) -> bool {
+    return dyn_map_remove(self._handle, key)
+  }
+
+  fun size() -> int {
+    return dyn_map_size(self._handle)
+  }
+
+  fun isEmpty() -> bool {
+    return self.size() == 0
+  }
+
+  fun clear() -> map::Map {
+    dyn_map_clear(self._handle)
+    return self
+  }
+}

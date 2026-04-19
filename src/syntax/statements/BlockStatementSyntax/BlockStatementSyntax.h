@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,32 +20,33 @@
 #pragma once
 
 #include "src/syntax/statements/StatementSyntax.h"
-#include <any>
 #include <memory>
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
+
+class SyntaxToken;
 
 class BlockStatementSyntax : public StatementSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
-  std::vector<std::unique_ptr<StatementSyntax>> _statements;
-  std::unique_ptr<SyntaxToken<std::any>> _closeBraceToken;
 
 public:
-  BlockStatementSyntax();
+  BlockStatementSyntax(const SyntaxToken *open_brace_token,
+                       std::vector<std::unique_ptr<StatementSyntax>> statements,
+                       const SyntaxToken *close_brace_token);
 
-  void addStatement(std::unique_ptr<StatementSyntax> statement);
-  void setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken);
-  void
-  setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken);
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  std::unique_ptr<SyntaxToken<std::any>> getOpenBraceToken();
-  std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
-  std::unique_ptr<SyntaxToken<std::any>> getCloseBraceToken();
+  // Getters
+  const std::vector<std::unique_ptr<StatementSyntax>> &getStatements() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+private:
+  const SyntaxToken *m_open_brace_token;
+  std::vector<std::unique_ptr<StatementSyntax>> m_statements;
+  const SyntaxToken *m_close_brace_token;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOpenBraceTokenPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getCloseBraceTokenPtr();
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

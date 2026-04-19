@@ -1,0 +1,10 @@
+for (var i: int = 0 to 2 : 1) {
+  for (var j: int = 0 to 2 : 1) {
+    if (j == 1) {
+      continue
+    }
+    println(i)
+    println(j)
+  }
+}
+println("done")

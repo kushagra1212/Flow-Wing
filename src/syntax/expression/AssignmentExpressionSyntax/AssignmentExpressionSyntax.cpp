@@ -18,57 +18,62 @@
  */
 
 #include "AssignmentExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
+#include <cstddef>
+
+namespace flow_wing {
+namespace syntax {
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    std::unique_ptr<ExpressionSyntax> left,
-    SyntaxKindUtils::SyntaxKind operatorToken,
-    std::unique_ptr<ExpressionSyntax> right, bool needDefaultInitialize)
-    : _left(std::move(left)), _right(std::move(right)),
-      _operatorTokenKind(operatorToken),
-      _needDefaultInitialize(needDefaultInitialize) {}
+    std::unique_ptr<ExpressionSyntax> left, const SyntaxToken *operator_token,
+    std::unique_ptr<ExpressionSyntax> right)
+    : m_left(std::move(left)), m_operator_token(operator_token),
+      m_right(std::move(right)) {}
 
-SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
+// Overrides
+
+NodeKind AssignmentExpressionSyntax::getKind() const {
+  return NodeKind::kAssignmentExpression;
 }
 
-const std::vector<SyntaxNode *> &AssignmentExpressionSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    if (_left)
-      this->_children.push_back(_left.get());
+void AssignmentExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-    if (_right)
-      this->_children.push_back(_right.get());
+// Boolean Queries
+bool AssignmentExpressionSyntax::isFullReAssignment() const {
+  return m_operator_token->getTokenKind() == lexer::TokenKind::kLeftArrowToken;
+}
+
+// Getters
+const std::unique_ptr<ExpressionSyntax> &
+AssignmentExpressionSyntax::getLeft() const {
+  return m_left;
+}
+const std::unique_ptr<ExpressionSyntax> &
+AssignmentExpressionSyntax::getRight() const {
+  return m_right;
+}
+
+const SyntaxToken *AssignmentExpressionSyntax::getOperatorToken() const {
+  return m_operator_token;
+}
+
+const std::vector<const SyntaxNode *> &
+AssignmentExpressionSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto *node : {static_cast<const SyntaxNode *>(m_left.get()),
+                             static_cast<const SyntaxNode *>(m_operator_token),
+                             static_cast<const SyntaxNode *>(m_right.get())}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
   }
 
-  return this->_children;
-}
-const DiagnosticUtils::SourceLocation
-AssignmentExpressionSyntax::getSourceLocation() const {
-  if (_left)
-    return _left->getSourceLocation();
-
-  if (_right)
-    return _right->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
+  return m_children;
 }
 
-std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
-  return std::move(this->_right);
-}
-
-std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getLeft() {
-  return std::move(this->_left);
-}
-
-std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightRef() {
-  return this->_right;
-}
-
-std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getLeftRef() {
-  return this->_left;
-}
+} // namespace syntax
+} // namespace flow_wing

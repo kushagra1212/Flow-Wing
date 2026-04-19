@@ -1,0 +1,14 @@
+fun getArr() -> int[3] {
+  return [1, 2, 3]
+}
+
+var i = 0
+var arr: int[3] = getArr()
+while (arr[0]) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    arr = [0]
+  }
+}
+println("done")

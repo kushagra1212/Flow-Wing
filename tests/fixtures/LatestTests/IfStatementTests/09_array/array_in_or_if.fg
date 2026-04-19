@@ -1,0 +1,10 @@
+var a: int[1] = [1]
+var b: int[1] = [2]
+
+if (a) {
+  println("a")
+} or if (b) {
+  println("b")
+} else {
+  println("both null")
+}

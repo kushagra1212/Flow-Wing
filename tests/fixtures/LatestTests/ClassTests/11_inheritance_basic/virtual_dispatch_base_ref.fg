@@ -1,0 +1,14 @@
+class Base {
+  fun tag() -> nthg {
+    println("Base")
+  }
+}
+
+class Derived extends Base {
+  fun tag() -> nthg {
+    println("Derived")
+  }
+}
+
+var b: Base = new Derived()
+b.tag()

@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: FileContainsErrors
+bring {x} from "broken_lib.fg"
+
+println(0)

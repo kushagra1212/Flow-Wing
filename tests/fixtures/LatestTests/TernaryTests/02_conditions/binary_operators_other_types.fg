@@ -1,0 +1,7 @@
+println((1 > 2) ? "Hello" : "Bye")
+println(("Hl" == "hl") ? "Hello" : "Bye")
+println(("Hl" == "Hl") ? "Hello" : "Bye")
+println((2.2 == 2.2) ? "Hello" : "Bye")
+println((2.2 != 2.2) ? "Hello" : "Bye")
+println((false == false) ? "Hello" : "Bye")
+println((false == true) ? "Hello" : "Bye")

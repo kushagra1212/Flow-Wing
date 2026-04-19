@@ -17,70 +17,50 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "BlockStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
 #include "src/syntax/SyntaxToken.h"
 
-BlockStatementSyntax::BlockStatementSyntax() {}
+namespace flow_wing {
+namespace syntax {
 
-std::unique_ptr<SyntaxToken<std::any>>
-BlockStatementSyntax::getOpenBraceToken() {
-  return std::move(this->_openBraceToken);
+BlockStatementSyntax::BlockStatementSyntax(
+    const SyntaxToken *open_brace_token,
+    std::vector<std::unique_ptr<StatementSyntax>> statements,
+    const SyntaxToken *close_brace_token)
+    : m_open_brace_token(open_brace_token), m_statements(std::move(statements)),
+      m_close_brace_token(close_brace_token) {}
+
+NodeKind BlockStatementSyntax::getKind() const {
+  return NodeKind::kBlockStatement;
 }
 
-std::vector<std::unique_ptr<StatementSyntax>> &
-BlockStatementSyntax::getStatements() {
-  return this->_statements;
+void BlockStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-BlockStatementSyntax::getCloseBraceToken() {
-  return std::move(this->_closeBraceToken);
+const std::vector<std::unique_ptr<StatementSyntax>> &
+BlockStatementSyntax::getStatements() const {
+  return m_statements;
 }
 
-void BlockStatementSyntax::addStatement(
-    std::unique_ptr<StatementSyntax> statement) {
-  this->_statements.push_back(std::move(statement));
-}
+const std::vector<const SyntaxNode *> &
+BlockStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    if (m_open_brace_token)
+      m_children.push_back(m_open_brace_token);
 
-void BlockStatementSyntax::setOpenBraceToken(
-    std::unique_ptr<SyntaxToken<std::any>> openBraceToken) {
-  this->_openBraceToken = std::move(openBraceToken);
-}
-
-void BlockStatementSyntax::setCloseBraceToken(
-    std::unique_ptr<SyntaxToken<std::any>> closeBraceToken) {
-  this->_closeBraceToken = std::move(closeBraceToken);
-}
-
-SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::BlockStatement;
-}
-
-const std::vector<SyntaxNode *> &BlockStatementSyntax::getChildren() {
-  if (this->_children.empty()) {
-    // Add children
-    this->_children.emplace_back(this->_openBraceToken.get());
-    for (const auto &statement : this->getStatements()) {
-      this->_children.emplace_back(statement.get());
+    for (const auto &statement : m_statements) {
+      if (statement)
+        m_children.push_back(statement.get());
     }
-    this->_children.emplace_back(this->_closeBraceToken.get());
+
+    if (m_close_brace_token)
+      m_children.push_back(m_close_brace_token);
   }
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-BlockStatementSyntax::getSourceLocation() const {
-  return this->_openBraceToken->getSourceLocation();
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-BlockStatementSyntax::getOpenBraceTokenPtr() {
-  return this->_openBraceToken;
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-BlockStatementSyntax::getCloseBraceTokenPtr() {
-  return this->_closeBraceToken;
-}
+} // namespace syntax
+} // namespace flow_wing

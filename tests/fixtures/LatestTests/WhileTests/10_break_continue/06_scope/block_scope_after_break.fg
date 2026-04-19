@@ -1,0 +1,11 @@
+var x = 0
+while (x < 3) {
+  var inner = 0
+  x = x + 1
+  inner = x
+  if (x == 2) {
+    break
+  }
+  println(inner)
+}
+println(x)

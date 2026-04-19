@@ -1,0 +1,11 @@
+fun nextVal() -> int {
+  return 1
+}
+
+var sum = 0
+var i = 0
+while (i < 3) {
+  sum = sum + nextVal()
+  i = i + 1
+}
+println(sum)

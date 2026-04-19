@@ -1,0 +1,14 @@
+type T = {
+    x: int
+    y: deci
+}
+
+type Nested = {
+    z: int
+    t1: T
+    n2: Nested
+}
+
+var n1: Nested
+
+print("n1: ", n1, "\n")

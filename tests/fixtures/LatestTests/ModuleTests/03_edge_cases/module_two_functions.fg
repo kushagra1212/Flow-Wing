@@ -1,0 +1,9 @@
+module [maths]
+
+fun triple(x: int) -> int {
+  return x * 3
+}
+
+fun addThenTriple(a: int, b: int) -> int {
+  return triple(a + b)
+}

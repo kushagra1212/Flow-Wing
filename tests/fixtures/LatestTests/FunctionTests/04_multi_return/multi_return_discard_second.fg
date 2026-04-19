@@ -1,0 +1,8 @@
+fun two() -> int, str {
+  return 100, "ignored"
+}
+
+var a: int, b: str = two()
+println(a)
+b = "used"
+println(b)

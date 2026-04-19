@@ -1,0 +1,6 @@
+fun noRet() {
+  println(42)
+}
+
+noRet()
+noRet()

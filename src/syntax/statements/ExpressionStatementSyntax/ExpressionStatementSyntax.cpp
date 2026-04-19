@@ -17,37 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "ExpressionStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
+#include "ExpressionStatementSyntax.hpp"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
+
+namespace flow_wing {
+namespace syntax {
 
 ExpressionStatementSyntax::ExpressionStatementSyntax(
-    std::unique_ptr<ExpressionSyntax> expression) {
-  this->_expression = std::move(expression);
+    std::unique_ptr<ExpressionSyntax> expression)
+    : m_expression(std::move(expression)) {}
+
+NodeKind ExpressionStatementSyntax::getKind() const {
+  return NodeKind::kExpressionStatement;
 }
 
-std::unique_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
-  return std::move(this->_expression);
-}
-std::unique_ptr<ExpressionSyntax> &
-ExpressionStatementSyntax::getExpressionPtr() {
-  return this->_expression;
-}
-SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
+void ExpressionStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const std::vector<SyntaxNode *> &ExpressionStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    // Add children
-    _children.push_back(_expression.get());
+const std::unique_ptr<ExpressionSyntax> &
+ExpressionStatementSyntax::getExpression() const {
+  return m_expression;
+}
+
+const std::vector<const SyntaxNode *> &
+ExpressionStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    m_children.push_back(m_expression.get());
   }
-
-  return this->_children;
+  return m_children;
 }
 
-const DiagnosticUtils::SourceLocation
-ExpressionStatementSyntax::getSourceLocation() const {
-  return this->_expression->getSourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

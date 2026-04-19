@@ -1,0 +1,21 @@
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 20
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 25
+}
+
+print("p1.age: ", p1.age, "\n")
+print("p2.age: ", p2.age, "\n")
+print("p1.age + p2.age: ", p1.age + p2.age, "\n")
+print("p1.age * 2: ", p1.age * 2, "\n")
+print("p2.age - p1.age: ", p2.age - p1.age, "\n")
+

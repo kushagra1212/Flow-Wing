@@ -21,62 +21,42 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include <any>
 #include <memory>
-class TernaryExpressionSyntax : public ExpressionSyntax {
-  std::unique_ptr<SyntaxToken<std::any>> _questionToken;
-  std::unique_ptr<SyntaxToken<std::any>> _colonToken;
 
-  std::unique_ptr<ExpressionSyntax> _conditionExpression;
-  std::unique_ptr<ExpressionSyntax> _trueExpression;
-  std::unique_ptr<ExpressionSyntax> _falseExpression;
+namespace flow_wing {
+
+namespace syntax {
+
+class TernaryExpressionSyntax : public ExpressionSyntax {
 
 public:
-  TernaryExpressionSyntax() = default;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  TernaryExpressionSyntax(
+      std::unique_ptr<ExpressionSyntax> condition_expression,
+      const SyntaxToken *question_token,
+      std::unique_ptr<ExpressionSyntax> true_expression,
+      const SyntaxToken *colon_token,
+      std::unique_ptr<ExpressionSyntax> false_expression);
 
-  inline auto
-  addConditionExpression(std::unique_ptr<ExpressionSyntax> conditionExpression)
-      -> void {
-    _conditionExpression = std::move(conditionExpression);
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getConditionExpression() const;
+  const SyntaxToken *getQuestionToken() const;
+  const std::unique_ptr<ExpressionSyntax> &getTrueExpression() const;
+  const std::unique_ptr<ExpressionSyntax> &getFalseExpression() const;
 
-  inline auto
-  addQuestionToken(std::unique_ptr<SyntaxToken<std::any>> questionToken)
-      -> void {
-    _questionToken = std::move(questionToken);
-  }
+private:
+  std::unique_ptr<ExpressionSyntax> m_condition_expression;
+  const SyntaxToken *m_question_token;
+  std::unique_ptr<ExpressionSyntax> m_true_expression;
+  const SyntaxToken *m_colon_token;
+  std::unique_ptr<ExpressionSyntax> m_false_expression;
 
-  inline auto
-  addTrueExpression(std::unique_ptr<ExpressionSyntax> trueExpression) -> void {
-    _trueExpression = std::move(trueExpression);
-  }
-
-  inline auto addColonToken(std::unique_ptr<SyntaxToken<std::any>> colonToken)
-      -> void {
-    _colonToken = std::move(colonToken);
-  }
-
-  inline auto
-  addFalseExpression(std::unique_ptr<ExpressionSyntax> falseExpression)
-      -> void {
-    _falseExpression = std::move(falseExpression);
-  }
-
-  inline auto getConditionExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _conditionExpression;
-  }
-
-  inline auto getTrueExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _trueExpression;
-  }
-
-  inline auto getFalseExpressionRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _falseExpression;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+
+} // namespace flow_wing

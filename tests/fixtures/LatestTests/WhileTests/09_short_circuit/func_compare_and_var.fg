@@ -1,0 +1,14 @@
+fun getLimit() -> int {
+  return 2
+}
+
+var i = 0
+var flag = true
+while (i < getLimit() && flag) {
+  println(i)
+  i = i + 1
+  if (i >= 2) {
+    flag = false
+  }
+}
+println("done")

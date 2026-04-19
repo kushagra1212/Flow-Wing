@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,94 +20,74 @@
 #pragma once
 
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
-class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
-private:
-  std::vector<std::unique_ptr<TypeExpressionSyntax>> _parameterTypes;
-  std::vector<std::unique_ptr<TypeExpressionSyntax>> _returnTypes;
-  std::vector<std::pair<uint64_t, std::unique_ptr<SyntaxToken<std::any>>>>
-      _asParametersKeywords;
-  std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
+namespace flow_wing {
+namespace syntax {
 
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
-  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
-  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
-  std::unique_ptr<SyntaxToken<std::any>> _openBracketToken;
-  std::unique_ptr<SyntaxToken<std::any>> _closeBracketToken;
+class FunctionTypeExpressionSyntax : public ExpressionSyntax {
 
 public:
-  FunctionTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  FunctionTypeExpressionSyntax(
+      const SyntaxToken *open_bracket_token,
+      const SyntaxToken *open_parenthesis_token,
+      std::unordered_map<size_t, const syntax::SyntaxToken *>
+          as_parameter_keywords_table,
+      std::unordered_map<size_t, const syntax::SyntaxToken *>
+          const_keyword_table,
+      std::unordered_map<size_t, const syntax::SyntaxToken *>
+          inout_keyword_table,
+      std::vector<std::unique_ptr<syntax::ExpressionSyntax>> parameter_types,
+      std::vector<const syntax::SyntaxToken *> parameter_comma_tokens,
+      const syntax::SyntaxToken *close_parenthesis_token,
+      const syntax::SyntaxToken *right_arrow_token,
+      const syntax::SyntaxToken *as_return_keyword,
+      std::vector<std::unique_ptr<syntax::ExpressionSyntax>> return_types,
+      const syntax::SyntaxToken *close_bracket_token);
 
-  inline auto
-  addParameterType(std::unique_ptr<TypeExpressionSyntax> parameterType)
-      -> void {
-    _parameterTypes.push_back(std::move(parameterType));
-  }
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  inline auto addReturnType(std::unique_ptr<TypeExpressionSyntax> returnType)
-      -> void {
-    _returnTypes.push_back(std::move(returnType));
-  }
+  // Getters
+  const std::vector<std::unique_ptr<syntax::ExpressionSyntax>> &
+  getParameterTypes() const;
+  const std::vector<std::unique_ptr<syntax::ExpressionSyntax>> &
+  getReturnTypes() const;
+  const syntax::SyntaxToken *getAsReturnTypeKeyword() const;
+  const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+  getAsParameterKeywordsTable() const;
+  const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+  getConstantKeywordTable() const;
+  const std::unordered_map<size_t, const syntax::SyntaxToken *> &
+  getInoutKeywordTable() const;
 
-  inline auto addAsParameterKeyword(
-      uint64_t index, std::unique_ptr<SyntaxToken<std::any>> asParameterKeyword)
-      -> void {
-    _asParametersKeywords.push_back({index, std::move(asParameterKeyword)});
-  }
+  // Boolean queries
+  bool hasAsReturnType() const;
 
-  inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword)
-      -> void {
-    _asKeyword = std::move(asKeyword);
-  }
+private:
+  const SyntaxToken *m_open_bracket_token;
+  const SyntaxToken *m_open_parenthesis_token;
+  std::unordered_map<size_t, const syntax::SyntaxToken *>
+      m_as_parameter_keywords_table;
+  std::unordered_map<size_t, const syntax::SyntaxToken *>
+      m_constant_keyword_table;
+  std::unordered_map<size_t, const syntax::SyntaxToken *> m_inout_keyword_table;
 
-  inline auto setOpenParenthesisToken(
-      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken) -> void {
-    _openParenthesisToken = std::move(openParenthesisToken);
-  }
+  std::vector<std::unique_ptr<syntax::ExpressionSyntax>> m_parameter_types;
+  std::vector<const syntax::SyntaxToken *> m_parameter_comma_tokens;
+  const syntax::SyntaxToken *m_close_parenthesis_token;
+  const syntax::SyntaxToken *m_right_arrow_token;
+  const syntax::SyntaxToken *m_as_return_keyword;
+  std::vector<std::unique_ptr<syntax::ExpressionSyntax>> m_return_types;
+  const syntax::SyntaxToken *m_close_bracket_token;
 
-  inline auto
-  setOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracketToken)
-      -> void {
-    _openBracketToken = std::move(openBracketToken);
-  }
-
-  inline auto
-  setCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracketToken)
-      -> void {
-    _closeBracketToken = std::move(closeBracketToken);
-  }
-
-  inline auto setCloseParenthesisToken(
-      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken) -> void {
-    _closeParenthesisToken = std::move(closeParenthesisToken);
-  }
-
-  inline auto addSeparator(std::unique_ptr<SyntaxToken<std::any>> separator) {
-    _separators.push_back(std::move(separator));
-  }
-
-  inline auto getReturnTypesRef() const
-      -> const std::vector<std::unique_ptr<TypeExpressionSyntax>> & {
-    return _returnTypes;
-  }
-
-  inline auto getParameterTypesRef() const
-      -> const std::vector<std::unique_ptr<TypeExpressionSyntax>> & {
-    return _parameterTypes;
-  }
-
-  inline auto getAsKeywordRef() const
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _asKeyword;
-  }
-
-  inline auto getAsParametersKeywordsRef() const -> const std::vector<
-      std::pair<uint64_t, std::unique_ptr<SyntaxToken<std::any>>>> & {
-    return _asParametersKeywords;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+
+} // namespace syntax
+} // namespace flow_wing

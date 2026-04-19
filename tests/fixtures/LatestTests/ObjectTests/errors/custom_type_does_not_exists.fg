@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: CustomTypeNotFound
+type Node = {
+    value: int
+    next: Node3
+}

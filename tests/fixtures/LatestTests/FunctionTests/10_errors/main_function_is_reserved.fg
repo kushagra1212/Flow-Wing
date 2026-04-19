@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: FunctionNamedMain
+fun main() -> nthg {
+  var a:  str = "Hello, World!"
+}
+
+main()

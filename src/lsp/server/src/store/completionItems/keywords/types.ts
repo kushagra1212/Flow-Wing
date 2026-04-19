@@ -164,16 +164,16 @@ var x:int8 = Int8(42)
     },
   },
   {
-    label: "Nir",
+    label: "null",
     kind: CompletionItemKind.Keyword,
-    data: "Nir",
-    detail: "Nir Keyword",
+    data: "null",
+    detail: "Null Keyword",
     documentation: {
       kind: "markdown",
       value: `
-**Nir Keyword** 
+**Null Keyword** 
 
-The \`Nir\` datatype represents the null or Nirast value, often used as a return type for functions that can return null values.
+The \`null\` datatype represents the null or null value, often used as a return type for functions that can return null values.
 
 ### Example Usage:
 \`\`\`flowwing

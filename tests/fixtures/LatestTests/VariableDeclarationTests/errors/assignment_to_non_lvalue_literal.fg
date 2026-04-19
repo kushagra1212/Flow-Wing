@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: AssignmentToNonLValue
+var x:int = 10
+print(x, "\n")
+5 = x
+

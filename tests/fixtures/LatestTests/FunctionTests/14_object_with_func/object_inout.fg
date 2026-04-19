@@ -1,0 +1,15 @@
+type Counter = {
+  value: int
+}
+
+fun increment(inout c: Counter) -> int {
+  c.value = c.value + 1
+  return c.value
+}
+
+var cnt: Counter = {value: 0}
+print(cnt, "\n")
+increment(cnt)
+print(cnt, "\n")
+increment(cnt)
+print(cnt, "\n")

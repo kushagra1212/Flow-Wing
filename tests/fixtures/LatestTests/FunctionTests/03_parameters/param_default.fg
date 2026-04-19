@@ -1,0 +1,6 @@
+fun greet(name: str = "World") -> str {
+  return "Hello " + name
+}
+
+println(greet())
+println(greet("Flow-Wing"))

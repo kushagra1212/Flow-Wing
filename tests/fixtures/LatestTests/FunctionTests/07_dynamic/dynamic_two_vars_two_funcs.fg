@@ -1,0 +1,12 @@
+fun getNum() -> int {
+  return 7
+}
+
+fun getLabel() -> str {
+  return "count"
+}
+
+var n = getNum()
+var s = getLabel()
+println(n)
+println(s)

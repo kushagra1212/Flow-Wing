@@ -1,0 +1,12 @@
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+}
+
+var obj: A = new A()
+println(obj.a)
+println(obj.b)
+println(obj.d)
+println(obj.e)

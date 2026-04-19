@@ -18,63 +18,61 @@
  */
 
 #include "FillExpressionSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
 
-/*
-    OVERRIDES
+namespace flow_wing {
+namespace syntax {
 
-*/
+FillExpressionSyntax::FillExpressionSyntax(
+    const syntax::SyntaxToken *open_bracket,
+    std::unique_ptr<ExpressionSyntax> size_to_fill_expression,
+    const syntax::SyntaxToken *fill_keyword,
+    std::unique_ptr<ExpressionSyntax> element_expression,
+    const syntax::SyntaxToken *close_bracket)
+    : m_open_bracket(open_bracket),
+      m_size_to_fill_expression(std::move(size_to_fill_expression)),
+      m_fill_keyword(fill_keyword),
+      m_element_expression(std::move(element_expression)),
+      m_close_bracket(close_bracket) {}
 
-SyntaxKindUtils::SyntaxKind FillExpressionSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::FillExpression;
+NodeKind FillExpressionSyntax::getKind() const {
+  return NodeKind::kFillExpression;
 }
 
-const std::vector<SyntaxNode *> &FillExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
-
-  _children.push_back(_sizeToFillExpression.get());
-  _children.push_back(_elementExpression.get());
-
-  return _children;
+void FillExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
 }
 
-const DiagnosticUtils::SourceLocation
-FillExpressionSyntax::getSourceLocation() const {
-  if (this->_sizeToFillExpression)
-    return this->_sizeToFillExpression->getSourceLocation();
-
-  if (this->_elementExpression)
-    return this->_elementExpression->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
+const std::unique_ptr<ExpressionSyntax> &
+FillExpressionSyntax::getSizeToFillExpression() const {
+  return m_size_to_fill_expression;
 }
 
-/*
-    SETTERS
-*/
-
-void FillExpressionSyntax::setSizeToFillExpression(
-    std::unique_ptr<ExpressionSyntax> sizeToFillExpression) {
-  this->_sizeToFillExpression = std::move(sizeToFillExpression);
+const std::unique_ptr<ExpressionSyntax> &
+FillExpressionSyntax::getElementExpression() const {
+  return m_element_expression;
 }
 
-void FillExpressionSyntax::setElementExpression(
-    std::unique_ptr<ExpressionSyntax> elementExpression) {
-  this->_elementExpression = std::move(elementExpression);
+const std::vector<const SyntaxNode *> &
+FillExpressionSyntax::getChildren() const {
+
+  if (m_children.empty()) {
+
+    for (const auto *node :
+         {static_cast<const SyntaxNode *>(m_open_bracket),
+          static_cast<const SyntaxNode *>(m_size_to_fill_expression.get()),
+          static_cast<const SyntaxNode *>(m_fill_keyword),
+          static_cast<const SyntaxNode *>(m_element_expression.get()),
+          static_cast<const SyntaxNode *>(m_close_bracket)}) {
+      if (node) {
+        m_children.push_back(node);
+      }
+    }
+  }
+
+  return m_children;
 }
 
-/*
-    GETTERS
-*/
-
-auto FillExpressionSyntax::getSizeToFillExpressionRef() const
-    -> const std::unique_ptr<ExpressionSyntax> & {
-  return this->_sizeToFillExpression;
-}
-
-auto FillExpressionSyntax::getElementExpressionRef() const
-    -> const std::unique_ptr<ExpressionSyntax> & {
-  return this->_elementExpression;
-}
+} // namespace syntax
+} // namespace flow_wing

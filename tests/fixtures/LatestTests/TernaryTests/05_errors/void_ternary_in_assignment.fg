@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+fun printA() {
+  println("A")
+}
+fun printB() {
+  println("B")
+}
+
+var a = 'A'
+var x: int = 0
+x = (a == 'B') ? printA() : printB()
+println(x)

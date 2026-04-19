@@ -1,0 +1,11 @@
+print("String Equality Tests\n")
+print("" == "", "\n")
+print("Hello" == "Hello", "\n")
+print("Hello" == "World", "\n")
+print("World" == "Hello", "\n")
+print("hello" == "Hello", "\n")
+print("abc" == "abc", "\n")
+print("abc" == "ABC", "\n")
+print(" " == " ", "\n")
+print("  " == " ", "\n")
+

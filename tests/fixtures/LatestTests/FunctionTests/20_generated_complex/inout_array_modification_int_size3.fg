@@ -1,0 +1,8 @@
+
+fun mutateArray(inout arr: int[3], idx: int, v: int) {
+    arr[idx] = v
+}
+
+var data: int[3] = [0, 1, 2]
+mutateArray(data, 2, 20)
+println(data[2])

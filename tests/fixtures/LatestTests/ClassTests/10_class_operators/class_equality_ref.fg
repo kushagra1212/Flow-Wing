@@ -1,0 +1,20 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+
+var a: A = new A(2)
+var b: A = new A(2)
+var aRef: A = a
+
+if (a == a) {
+  println("a == a")
+}
+if (a != b) {
+  println("a != b")
+}
+if (a == aRef) {
+  println("a == aRef")
+}

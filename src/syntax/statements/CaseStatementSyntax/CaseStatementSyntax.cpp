@@ -17,52 +17,53 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "CaseStatementSyntax.h"
-#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/ASTVisitor/ASTVisitor.hpp"
+#include "src/syntax/SyntaxToken.h"
 
-const std::vector<SyntaxNode *> &CaseStatementSyntax::getChildren() {
-  if (_children.empty()) {
-    if (_caseToken)
-      _children.emplace_back(_caseToken.get());
+namespace flow_wing {
+namespace syntax {
 
-    if (_defaultToken)
-      _children.emplace_back(_defaultToken.get());
+CaseStatementSyntax::CaseStatementSyntax(
+    const SyntaxToken *case_token,
+    std::unique_ptr<ExpressionSyntax> case_expression,
+    const SyntaxToken *colon_token, std::unique_ptr<StatementSyntax> statement)
+    : m_case_token(case_token), m_case_expression(std::move(case_expression)),
+      m_colon_token(colon_token), m_statement(std::move(statement)) {}
 
-    if (_caseExpression)
-      _children.emplace_back(_caseExpression.get());
+NodeKind CaseStatementSyntax::getKind() const {
+  return NodeKind::kCaseStatement;
+}
 
-    if (_colonToken)
-      _children.emplace_back(_colonToken.get());
+void CaseStatementSyntax::accept(visitor::ASTVisitor *visitor) {
+  visitor->visit(this);
+}
 
-    if (_blockStatement)
-      _children.emplace_back(_blockStatement.get());
+const std::unique_ptr<ExpressionSyntax> &
+CaseStatementSyntax::getCaseExpression() const {
+  return m_case_expression;
+}
+
+const std::unique_ptr<StatementSyntax> &
+CaseStatementSyntax::getStatement() const {
+  return m_statement;
+}
+
+const std::vector<const SyntaxNode *> &
+CaseStatementSyntax::getChildren() const {
+  if (m_children.empty()) {
+    for (const auto &child :
+         {static_cast<const SyntaxNode *>(m_case_token),
+          static_cast<const SyntaxNode *>(m_case_expression.get()),
+          static_cast<const SyntaxNode *>(m_colon_token),
+          static_cast<const SyntaxNode *>(m_statement.get())}) {
+      if (child)
+        m_children.push_back(child);
+    }
   }
-
-  return this->_children;
+  return m_children;
 }
 
-SyntaxKindUtils::SyntaxKind CaseStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::CaseStatementSyntax;
-}
-
-const DiagnosticUtils::SourceLocation
-CaseStatementSyntax::getSourceLocation() const {
-
-  if (_caseToken)
-    return _caseToken->getSourceLocation();
-
-  if (_defaultToken)
-    return _defaultToken->getSourceLocation();
-
-  if (_caseExpression)
-    return _caseExpression->getSourceLocation();
-
-  if (_colonToken)
-    return _colonToken->getSourceLocation();
-
-  if (_blockStatement)
-    return _blockStatement->getSourceLocation();
-
-  return DiagnosticUtils::SourceLocation();
-}
+} // namespace syntax
+} // namespace flow_wing

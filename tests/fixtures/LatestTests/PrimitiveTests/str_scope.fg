@@ -1,0 +1,6 @@
+var s:str = "global"
+{
+    var s:str = "local"
+    println(s)
+}
+println(s)

@@ -1,0 +1,15 @@
+fun getArray() -> int[3] {
+  return [1, 2, 3]
+}
+
+if (getArray()[0] == 1) {
+  println("idx0_eq_1")
+} else {
+  println("idx0_ne_1")
+}
+
+if (getArray()[2] > 2) {
+  println("idx2_gt_2")
+} else {
+  println("idx2_le_2")
+}

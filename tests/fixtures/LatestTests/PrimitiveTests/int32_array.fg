@@ -1,0 +1,4 @@
+var a:int[3] = [100, 200, 300]
+println(a)
+a[1] = -999
+println(a)

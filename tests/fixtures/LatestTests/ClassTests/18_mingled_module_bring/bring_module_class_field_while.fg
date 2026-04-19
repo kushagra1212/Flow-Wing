@@ -1,0 +1,15 @@
+bring "support_cnt_module.fg"
+
+class Holder {
+  var c: cnt::Counter
+  fun init() -> nthg {
+    self.c = new cnt::Counter(0)
+  }
+}
+
+var h: Holder = new Holder()
+var i: int = 0
+while (i < 3) {
+  println(h.c.bump())
+  i = i + 1
+}

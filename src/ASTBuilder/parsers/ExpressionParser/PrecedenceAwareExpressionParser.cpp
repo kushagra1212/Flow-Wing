@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,62 +18,155 @@
  */
 
 #include "PrecedenceAwareExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CallExpressionParser/CallExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IndexExpressionParser/IndexExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/MemberAccessExpressionParser/MemberAccessExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ModuleAccessExpressionParser/ModuleAccessExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrimaryExpressionParserFactory.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/TernaryExpressionParser/TernaryExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/syntax/OperatorPrecedence/OperatorPrecedence.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 #include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
-#include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
+#include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
+#include <cassert>
 
-std::unique_ptr<ExpressionSyntax>
+namespace flow_wing {
+namespace parser {
+
+std::unique_ptr<syntax::ExpressionSyntax>
 PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
-                                       int parentPrecedence) {
-  std::unique_ptr<ExpressionSyntax> left = nullptr;
-  int unaryOperatorPrecedence = ctx->getCurrent()->getUnaryOperatorPrecedence();
+                                       int parent_precedence) {
+  std::unique_ptr<syntax::ExpressionSyntax> left;
+  int prefix_precedence = syntax::OperatorPrecedence::getPrefixPrecedence(
+      ctx->getCurrentTokenKind());
 
-  if (unaryOperatorPrecedence != 0 &&
-      unaryOperatorPrecedence >= parentPrecedence) {
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        ctx->match(ctx->getKind());
-    std::unique_ptr<ExpressionSyntax> operand =
-        PrecedenceAwareExpressionParser::parse(ctx, unaryOperatorPrecedence);
-    left = std::make_unique<UnaryExpressionSyntax>(std::move(operatorToken),
-                                                   std::move(operand));
+  if (prefix_precedence != 0 && prefix_precedence >= parent_precedence) {
+    // --- Handle Prefix Operators ---
 
+    auto operator_token = ctx->nextToken();
+    auto operand = parse(ctx, prefix_precedence);
+
+    switch (operator_token->getTokenKind()) {
+    case lexer::TokenKind::kNewKeyword:
+      left = std::make_unique<syntax::NewExpressionSyntax>(operator_token,
+                                                           std::move(operand));
+      break;
+
+    default:
+      left = std::make_unique<syntax::UnaryExpressionSyntax>(
+          operator_token, std::move(operand));
+      break;
+    }
   } else {
-    left = PrimaryExpressionParserFactory::createPrimaryExpressionParser(
-               ctx->getKind())
-               ->parseExpression(ctx);
+    // --- Handle Primary Expressions ---
+    left =
+        PrimaryExpressionParserFactory::create(ctx, ctx->getCurrentTokenKind())
+            ->parse();
   }
 
   while (true) {
-    int precedence = ctx->getCurrent()->getBinaryOperatorPrecedence();
-    if (precedence == 0 || precedence <= parentPrecedence) {
-      break;
+    int postfix_precedence = syntax::OperatorPrecedence::getPostfixPrecedence(
+        ctx->getCurrentTokenKind());
+    int infix_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+        ctx->getCurrentTokenKind());
+
+    if (postfix_precedence != 0 && postfix_precedence > parent_precedence) {
+      // --- Handle Postfix Operators ---
+      // not parsing '(' as call postfix when it is after a newline (e.g.
+      // "3\n(expr)" should not be 3(expr)).
+      if (ctx->getCurrentTokenKind() ==
+          lexer::TokenKind::kOpenParenthesisToken) {
+        const auto *cur = ctx->getCurrent();
+        if (cur && cur->hasLeadingEndOfLine())
+          break;
+      }
+
+      switch (ctx->getCurrentTokenKind()) {
+      case lexer::TokenKind::kColonColonToken:
+        left = std::make_unique<parser::ModuleAccessExpressionParser>(ctx)
+                   ->parsePostfix(std::move(left));
+        break;
+      case lexer::TokenKind::kDotToken:
+        left = std::make_unique<parser::MemberAccessExpressionParser>(ctx)
+                   ->parsePostfix(std::move(left));
+        break;
+      case lexer::TokenKind::kOpenParenthesisToken:
+        left =
+            std::make_unique<parser::CallExpressionParser>(ctx)->parsePostfix(
+                std::move(left));
+        break;
+      case lexer::TokenKind::kOpenBracketToken:
+        left =
+            std::make_unique<parser::IndexExpressionParser>(ctx)->parsePostfix(
+                std::move(left));
+        break;
+      default:
+        assert(false &&
+               "Unexpected token kind for PrecedenceAwareExpressionParser");
+        break;
+      }
+
+      continue;
+
+    } else if (infix_precedence != 0 && infix_precedence > parent_precedence) {
+      // --- Handle Infix Operators ---
+      auto operator_token = ctx->nextToken();
+
+      switch (operator_token->getTokenKind()) {
+
+      case lexer::TokenKind::kQuestionToken: {
+        left = std::make_unique<TernaryExpressionParser>(ctx)->parsePostfix(
+            std::move(left), operator_token);
+        break;
+      }
+
+      case lexer::TokenKind::kEqualsToken:
+      case lexer::TokenKind::kLeftArrowToken: {
+        auto right = parse(ctx);
+        left = std::make_unique<syntax::AssignmentExpressionSyntax>(
+            std::move(left), operator_token, std::move(right));
+        break;
+      }
+      case lexer::TokenKind::kColonToken: {
+        auto right = parseAssignmentExpression(ctx);
+        left = std::make_unique<syntax::ColonExpressionSyntax>(
+            std::move(left), operator_token, std::move(right));
+        break;
+      }
+
+      default: {
+
+        //  LEFT-ASSOCIATIVE ((var1, var2), var3)
+        auto right = parse(ctx, infix_precedence);
+        left = std::make_unique<syntax::BinaryExpressionSyntax>(
+            std::move(left), operator_token, std::move(right));
+        break;
+      }
+      }
+
+      continue;
     }
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        ctx->match(ctx->getKind());
-    ctx->getCodeFormatterRef()->appendWithSpace();
 
-    std::unique_ptr<ExpressionSyntax> right =
-        PrecedenceAwareExpressionParser::parse(ctx, precedence);
-
-    left = std::make_unique<BinaryExpressionSyntax>(
-        std::move(left), std::move(operatorToken), std::move(right));
-  }
-
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::QuestionToken) {
-    auto ternaryExpression =
-        std::make_unique<TernaryExpressionParser>()->parseExpression(ctx);
-
-    static_cast<TernaryExpressionSyntax *>(ternaryExpression.get())
-        ->addConditionExpression(std::move(left));
-
-    left = std::move(ternaryExpression);
+    break;
   }
 
   return left;
 }
+
+std::unique_ptr<syntax::ExpressionSyntax>
+PrecedenceAwareExpressionParser::parseAssignmentExpression(ParserContext *ctx) {
+
+  int comma_precedence = syntax::OperatorPrecedence::getInfixPrecedence(
+      lexer::TokenKind::kCommaToken);
+
+  return parse(ctx, comma_precedence);
+}
+} // namespace parser
+} // namespace flow_wing

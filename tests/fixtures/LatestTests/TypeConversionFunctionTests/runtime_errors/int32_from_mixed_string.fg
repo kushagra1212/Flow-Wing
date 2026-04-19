@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: Runtime Error: Invalid input for Int conversion.
+print(Int32("123abc"))
+

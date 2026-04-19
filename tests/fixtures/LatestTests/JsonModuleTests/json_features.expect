@@ -1,0 +1,44 @@
+--- Test 1: Building a JSON Object Programmatically ---
+Programmatic JSON -> String:
+"{"name": "FlowWing", "version": 1.5, "isCompiled": true, "nullValue": null, "features": ["Fast", "Dynamic", "Safe"]}"
+
+--- Test 2: Parsing JSON Strings ---
+Parsed User: Kushagra
+Parsed ID: 42
+Parsed First Score: 95.5
+
+--- Test 3: Formatting and Re-Stringifying ---
+Re-Stringified output:
+"{"user": "Kushagra", "id": 42, "active": true, "scores": [95.5, 82, 100]}"
+
+--- Test 4: Handling Malformed JSON ---
+Parsed Bad JSON: {}
+Multiline string: Test
+"
+ {
+    "name": "John",
+    "age": 30,
+    "city": "New York"
+ }
+"
+{"name": "John", "age": 30, "city": "New York"}
+
+--- Test 5: Deeply Nested Structures ---
+Parsed Deep JSON: {"level1": {"level2": {"level3": [1, [2, 3], {"deepKey": "deepValue"}]}}}
+Extracted deep value: deepValue
+
+--- Test 6: Array Manipulations and Bounds ---
+Array contents: [10, 20, 30]
+Index 1: 20
+Index 5 (OutOfBounds): null
+
+--- Test 7: Object Key Updates (Overwriting) ---
+Before Update: {"keyA": "initial", "keyB": 100}
+After Update: {"keyA": "updated_value!", "keyB": 100}
+
+--- Test 8: Escaped Characters in Strings ---
+Parsed Escaped String: {"text": "Line1
+Line2	Tabbed "Quotes""}
+
+--- Test 9: Empty Structures ---
+Parsed Empty Structures: {"emptyObj": {}, "emptyArr": []}

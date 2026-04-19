@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,16 @@
 #pragma once
 
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
+#include <memory>
+
+namespace flow_wing {
+namespace lexer {
 
 class MultiLineCommentTokenReader : public TokenReader {
 
 public:
-  std::unique_ptr<SyntaxToken<std::any>>
+  std::unique_ptr<syntax::SyntaxToken>
   readToken(SourceTokenizer &lexer) override;
 };
+} // namespace lexer
+} // namespace flow_wing

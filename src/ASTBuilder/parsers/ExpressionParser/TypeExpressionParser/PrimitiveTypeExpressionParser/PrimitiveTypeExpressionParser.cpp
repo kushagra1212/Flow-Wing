@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,68 +19,62 @@
 
 #include "PrimitiveTypeExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/BoolTypeExpressionSyntax/BoolTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/CharTypeExpressionSyntax/CharTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/Deci32TypeExpressionSyntax/Deci32TypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/DeciTypeExpressionSyntax/DeciTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/DynTypeExpressionSyntax/DynTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/Int32TypeExpressionSyntax/Int32TypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/Int64TypeExpressionSyntax/Int64TypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/Int8TypeExpressionSyntax/Int8TypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/NthgTypeExpressionSyntax/NthgTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/StrTypeExpressionSyntax/StrTypeExpressionSyntax.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
-PrimitiveTypeExpressionParser::parseExpression(ParserContext *ctx) {
-  switch (ctx->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::Int32Keyword);
-  }
+namespace flow_wing {
+namespace parser {
 
-  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::Int64Keyword);
-  }
+PrimitiveTypeExpressionParser::PrimitiveTypeExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::Deci32Keyword);
-  }
-
-  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::Int8Keyword);
-  }
-
-  case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::DeciKeyword);
-  }
-
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::StrKeyword);
-  }
-
-  case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::BoolKeyword);
-  }
-  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE);
-  }
-  case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
-    return ctx->match(SyntaxKindUtils::SyntaxKind::NthgKeyword);
-  }
-
+std::unique_ptr<syntax::ExpressionSyntax>
+PrimitiveTypeExpressionParser::parse() {
+  switch (m_ctx->getCurrentTokenKind()) {
+    // Handle Primitive Type Expressions
+  case lexer::TokenKind::kInt8Keyword:
+    return std::make_unique<syntax::Int8TypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kInt8Keyword)); // int8
+  case lexer::TokenKind::kCharKeyword:
+    return std::make_unique<syntax::CharTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kCharKeyword)); // char
+  case lexer::TokenKind::kInt32Keyword:
+    return std::make_unique<syntax::Int32TypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kInt32Keyword)); // int
+  case lexer::TokenKind::kInt64Keyword:
+    return std::make_unique<syntax::Int64TypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kInt64Keyword)); // int64
+  case lexer::TokenKind::kDeciKeyword:
+    return std::make_unique<syntax::DeciTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kDeciKeyword)); // deci
+  case lexer::TokenKind::kDeci32Keyword:
+    return std::make_unique<syntax::Deci32TypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kDeci32Keyword)); // deci32
+  case lexer::TokenKind::kStrKeyword:
+    return std::make_unique<syntax::StrTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kStrKeyword)); // str
+  case lexer::TokenKind::kBoolKeyword:
+    return std::make_unique<syntax::BoolTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kBoolKeyword)); // bool
+  case lexer::TokenKind::kNthgKeyword:
+    return std::make_unique<syntax::NthgTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kNthgKeyword)); // nthg
+        case lexer::TokenKind::kDynKeyword:
+    return std::make_unique<syntax::DynTypeExpressionSyntax>(
+        m_ctx->match(lexer::TokenKind::kDynKeyword)); // dyn
   default:
-    break;
+    return nullptr;
   }
-
-  ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-      DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Syntactic,
-      {SyntaxKindUtils::to_string(ctx->getKind()),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int32Keyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::DeciKeyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Deci32Keyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int64Keyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StrKeyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::BoolKeyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::NthgKeyword),
-       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int8Keyword)},
-      Utils::getSourceLocation(ctx->getCurrent()),
-      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedTypeExpression));
-
-  return nullptr;
 }
+
+} // namespace parser
+} // namespace flow_wing

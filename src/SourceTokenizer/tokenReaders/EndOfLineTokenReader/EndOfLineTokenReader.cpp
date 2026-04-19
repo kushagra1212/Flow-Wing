@@ -19,21 +19,20 @@
 
 #include "EndOfLineTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+std::unique_ptr<syntax::SyntaxToken>
 EndOfLineTokenReader::readToken(SourceTokenizer &lexer) {
-  std::unique_ptr<SyntaxToken<std::any>> endOfLineToken =
-      std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::EndOfLineToken, lexer.position(), "", 0);
 
-  if (lexer.currentChar() == '\n')
-    lexer.advancePosition();
-  else
-    lexer.advanceLine();
+  lexer.advanceLine();
 
-  return (endOfLineToken);
+  return std::make_unique<syntax::SyntaxToken>(
+      lexer::TokenKind::kEndOfLineToken, "\n", std::any(),
+      diagnostic::SourceLocation(lexer.lineNumber(), lexer.position(), 1));
+  ;
 }
+} // namespace lexer
+} // namespace flow_wing

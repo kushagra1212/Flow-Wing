@@ -1,0 +1,106 @@
+
+bring json
+
+println("--- Test 1: Building a JSON Object Programmatically ---")
+var myJson: json::JsonNode = json::newObject()
+myJson.put("name", json::newString("FlowWing"))
+      .put("version", json::newNumber(1.5))
+      .put("isCompiled", json::newBool(true))
+      .put("nullValue", json::newNull())
+
+var featuresArr: json::JsonNode = json::newArray()
+featuresArr.push(json::newString("Fast"))
+           .push(json::newString("Dynamic"))
+           .push(json::newString("Safe"))
+
+myJson.put("features", featuresArr)
+
+var serializedStr = json::stringify(myJson)
+println("Programmatic JSON -> String:")
+println(serializedStr)
+
+
+println("\n--- Test 2: Parsing JSON Strings ---")
+var rawJson: str = "{ \"user\": \"Kushagra\", \"id\": 42, \"active\": true, \"scores\": [95.5, 82.0, 100.0] }"
+
+var parsedAst: json::JsonNode = json::parse(rawJson)
+
+var userNode: json::JsonNode = parsedAst.get("user")
+var idNode: json::JsonNode = parsedAst.get("id")
+
+println("Parsed User: " + userNode.strVal)
+println("Parsed ID: " + String(idNode.numVal))
+
+var scoresArr: json::JsonNode = parsedAst.get("scores")
+var firstScore: json::JsonNode = scoresArr.getAt(0)
+println("Parsed First Score: " + String(firstScore.numVal))
+
+
+println("\n--- Test 3: Formatting and Re-Stringifying ---")
+var reStr = json::stringify(parsedAst)
+println("Re-Stringified output:")
+println(reStr)
+
+println("\n--- Test 4: Handling Malformed JSON ---")
+var badJson = "{ \"missing_quote: true }"
+var badAst: json::JsonNode = json::parse(badJson)
+println("Parsed Bad JSON: " + json::stringify(badAst))
+
+println("Multiline string: Test" )
+var templateString = `
+ {
+    "name": "John",
+    "age": 30,
+    "city": "New York"
+ }
+`
+
+
+println(templateString)
+
+var parsedJson: json::JsonNode = json::parse(templateString)
+
+
+println(json::stringify(parsedJson))
+
+
+println("\n--- Test 5: Deeply Nested Structures ---")
+var deepJsonStr = "{ \"level1\": { \"level2\": { \"level3\": [ 1, [2, 3], {\"deepKey\": \"deepValue\"} ] } } }"
+var deepAst: json::JsonNode = json::parse(deepJsonStr)
+println("Parsed Deep JSON: " + json::stringify(deepAst))
+
+var l1: json::JsonNode = deepAst.get("level1")
+var l2: json::JsonNode = l1.get("level2")
+var l3: json::JsonNode = l2.get("level3")
+var innerObj: json::JsonNode = l3.getAt(2)
+println("Extracted deep value: " + innerObj.get("deepKey").strVal)
+
+println("\n--- Test 6: Array Manipulations and Bounds ---")
+var testArr: json::JsonNode = json::newArray()
+testArr.push(json::newNumber(10.0))
+       .push(json::newNumber(20.0))
+       .push(json::newNumber(30.0))
+
+println("Array contents: " + json::stringify(testArr))
+println("Index 1: " + String(testArr.getAt(1).numVal))
+println("Index 5 (OutOfBounds): " + json::stringify(testArr.getAt(5)))
+
+println("\n--- Test 7: Object Key Updates (Overwriting) ---")
+var updateObj: json::JsonNode = json::newObject()
+updateObj.put("keyA", json::newString("initial"))
+         .put("keyB", json::newNumber(100.0))
+println("Before Update: " + json::stringify(updateObj))
+
+/; Update existing key to test the while-loop replacement logic
+updateObj.put("keyA", json::newString("updated_value!"))
+println("After Update: " + json::stringify(updateObj))
+
+println("\n--- Test 8: Escaped Characters in Strings ---")
+/; The string has escaped newlines, tabs, and quotes.
+var escStr = "{ \"text\": \"Line1\\nLine2\\tTabbed \\\"Quotes\\\"\" }"
+var escAst: json::JsonNode = json::parse(escStr)
+println("Parsed Escaped String: " + json::stringify(escAst))
+
+println("\n--- Test 9: Empty Structures ---")
+var emptyAst: json::JsonNode = json::parse(" { \"emptyObj\": {  }, \"emptyArr\": [  ] } ")
+println("Parsed Empty Structures: " + json::stringify(emptyAst))

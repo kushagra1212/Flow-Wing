@@ -1,0 +1,6 @@
+Before assignment:
+source: { age: 30, name: "Alice" }
+dest: { age: 25, name: "Bob" }
+After assignment:
+source: { age: 30, name: "Alice" }
+dest: { age: 30, name: "Alice" }

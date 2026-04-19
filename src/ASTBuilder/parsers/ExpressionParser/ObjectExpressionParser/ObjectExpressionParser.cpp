@@ -1,78 +1,92 @@
 /*
+
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+
+ * Copyright (C) 2023-2026 Kushagra Rathore
+
  *
+
  * This program is free software; you can redistribute it and/or modify
+
  * it under the terms of the GNU General Public License as published by
+
  * the Free Software Foundation; either version 2 of the License, or
+
  * (at your option) any later version.
+
  *
+
  * This program is distributed in the hope that it will be useful,
+
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+
  * GNU General Public License for more details.
+
  *
+
  * You should have received a copy of the GNU General Public License along
+
  * with this program; if not, write to the Free Software Foundation, Inc.,
+
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
  */
 
 #include "ObjectExpressionParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
+#include "src/syntax/expression/ErrorExpressionSyntax/ErrorExpressionSyntax.hpp"
+#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 
-std::unique_ptr<ExpressionSyntax>
-ObjectExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<ObjectExpressionSyntax> objES =
-      std::make_unique<ObjectExpressionSyntax>();
-  objES->setOpenBraceToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
-  ctx->getCodeFormatterRef()->appendNewLine();
+namespace flow_wing {
 
-  ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
+namespace parser {
 
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
-         ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+ObjectExpressionParser::ObjectExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
 
-    ctx->getCodeFormatterRef()->append(
-        ctx->getCodeFormatterRef()->getIndentAmount());
+std::unique_ptr<syntax::ExpressionSyntax> ObjectExpressionParser::parse() {
 
-    std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
-        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+  auto open_brace_token = m_ctx->match(lexer::TokenKind::kOpenBraceToken); // {
 
-    std::any val = idenfierToken->getValue();
+  std::unique_ptr<syntax::ExpressionSyntax> accumulated_expr = nullptr;
 
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> idenfierExp =
-        std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(idenfierToken), val);
+  // {}
 
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
+  if (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken) {
 
-    std::unique_ptr<ExpressionSyntax> expression =
-        PrecedenceAwareExpressionParser::parse(ctx);
+    accumulated_expr =
+        PrecedenceAwareExpressionParser::parseAssignmentExpression(m_ctx);
 
-    objES->addAttribute(std::move(idenfierExp), std::move(expression));
+    while (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCommaToken &&
+           m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
+           m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
 
-    if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
-      ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-      ctx->getCodeFormatterRef()->appendNewLine();
+      auto comma_token = m_ctx->match(lexer::TokenKind::kCommaToken); //  ,
+
+      if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kCloseBraceToken) {
+        break;
+      }
+
+      auto next_expr =
+          PrecedenceAwareExpressionParser::parseAssignmentExpression(m_ctx);
+
+      accumulated_expr = std::make_unique<syntax::BinaryExpressionSyntax>(
+          std::move(accumulated_expr), comma_token, std::move(next_expr));
     }
   }
-  ctx->getCodeFormatterRef()->appendNewLine();
 
-  ctx->getCodeFormatterRef()->setIndentAmount(
-      ctx->getCodeFormatterRef()->getIndentAmount().substr(
-          0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
-                 (sizeof(TAB_SPACE) - 1)));
+  auto close_brace_token =
+      m_ctx->match(lexer::TokenKind::kCloseBraceToken); // }
 
-  ctx->getCodeFormatterRef()->append(
-      ctx->getCodeFormatterRef()->getIndentAmount());
-
-  objES->setCloseBraceToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
-
-  return objES;
+  return std::make_unique<syntax::ObjectExpressionSyntax>(
+      std::move(open_brace_token), std::move(accumulated_expr),
+      std::move(close_brace_token));
 }
+
+} // namespace parser
+
+} // namespace flow_wing

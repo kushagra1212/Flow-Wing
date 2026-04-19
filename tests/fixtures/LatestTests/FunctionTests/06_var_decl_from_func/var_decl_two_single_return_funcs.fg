@@ -1,0 +1,11 @@
+fun getSum(a: int, b: int) -> int {
+  return a + b
+}
+
+fun getProduct(a: int, b: int) -> int {
+  return a * b
+}
+
+var s: int, p: int = getSum(3, 4), getProduct(3, 4)
+println(s)
+println(p)

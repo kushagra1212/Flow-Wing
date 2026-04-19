@@ -1,0 +1,4 @@
+var x: int = 10
+var y = x
+print(y, "\n")
+

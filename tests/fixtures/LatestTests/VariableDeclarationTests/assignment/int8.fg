@@ -1,0 +1,4 @@
+var x:int8
+x = 42
+print(x, "\n")
+

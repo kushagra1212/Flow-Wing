@@ -3,8 +3,6 @@ name: Build and Test on All Platforms
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   ## ------------------ macOS Jobs (Apple Silicon) ------------------ ##
@@ -16,35 +14,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-
-      - name: Install Tools
-        run: brew install ninja ccache automake autoconf libtool llvm@17
-
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
         with:
-          # This is the directory where dependencies are built and installed.
           path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          lookup-only: true
+
+      - name: Select Xcode Version
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: brew install ninja ccache automake autoconf libtool llvm@17
 
       - name: Set Compiler Environment
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: |
           echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
 
       - name: Install Dependencies
-        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
 
-  macos_arm64_test_aot:
-    name: Test AOT on macOS (Apple Silicon)
+  macos_arm64_test:
+    name: Test AOT & JIT on macOS (Apple Silicon)
     runs-on: macos-14
-    needs: macos_arm64_build_deps # <-- This job waits for the build-deps job to succeed
+    needs: macos_arm64_build_deps
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,46 +71,34 @@ jobs:
         run: |
           echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
           echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
 
-      - name: Build and Test
-        run: make test-aot
+      # Removed --parallel from AOT
+      - name: Build and Test AOT
+        run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
-  macos_arm64_test_jit:
-    name: Test JIT on macOS (Apple Silicon)
-    runs-on: macos-14
-    needs: macos_arm64_build_deps # <-- This job waits for the build-deps job to succeed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Runs even if AOT fails, ensuring we get JIT status too
+      - name: Build and Test JIT
+        if: success() || failure()
+        run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
-      - name: Select Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-
-      - name: Install Tools
-        run: brew install ninja ccache automake autoconf libtool llvm@17
-
-      - name: Restore Dependencies from Cache
-        id: cache-deps
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: .fw_dependencies
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          node-version: "20"
 
-      - name: Fail if cache not found
-        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
-        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+      - name: Enable Yarn
+        run: corepack enable
 
-      - name: Set Compiler Environment
-        run: |
-          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
-          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
 
-      - name: Build and Test
-        run: make test-jit
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing" >> $GITHUB_ENV
+
+      - name: Run LSP tests
+        run: make lsp-test
 
   ## ------------------ Windows Jobs (x86_64) ------------------ ##
 
@@ -117,14 +106,11 @@ jobs:
     name: Build and Cache Dependencies for Windows (x86_64)
     runs-on: windows-latest
     steps:
+      - name: Enable longpaths
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install Build Tools
-        run: choco install -y 7zip make
-
-      - name: Set up MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Cache Dependencies
         id: cache-deps
@@ -132,16 +118,28 @@ jobs:
         with:
           path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          lookup-only: true
+
+      - name: Install Build Tools
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: choco install -y 7zip make
+
+      - name: Set up MSVC Developer Command Prompt
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install Dependencies
-        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: make deps-install-release
 
-  windows_x86_64_test_aot:
+  windows_x86_64_test:
     name: Test AOT on Windows (x86_64)
     runs-on: windows-latest
-    needs: windows_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
+    needs: windows_x86_64_build_deps
     steps:
+      - name: Enable longpaths
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -162,8 +160,26 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
-      - name: Build and Test
-        run: make test-aot
+      # Removed --parallel from AOT
+      - name: Build and Test AOT
+        run: make test-aot ARGS="--filter=LatestTests --keep-going"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Yarn
+        run: corepack enable
+
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
+
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing.exe" >> $GITHUB_ENV
+
+      - name: Run LSP tests
+        run: make lsp-test
 
   ## ------------------ Linux Jobs (x86_64) ------------------ ##
 
@@ -174,30 +190,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
-
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
         with:
           path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          lookup-only: true
+
+      - name: Install Tools
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Install Dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         env:
           CC: clang-17
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
-        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
-  linux_x86_64_test_aot:
-    name: Test AOT on Linux (x86_64)
+  linux_x86_64_test:
+    name: Test AOT & JIT on Linux (x86_64)
     runs-on: ubuntu-latest
-    needs: linux_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
+    needs: linux_x86_64_build_deps
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -205,7 +223,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Restore Dependencies from Cache
         id: cache-deps
@@ -218,40 +236,36 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
-      - name: Build and Test
+      # Removed --parallel from AOT
+      - name: Build and Test AOT
         env:
           CC: clang-17
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
-        run: make test-aot
+        run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
-  linux_x86_64_test_jit:
-    name: Test JIT on Linux (x86_64)
-    runs-on: ubuntu-latest
-    needs: linux_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Runs even if AOT fails, ensuring we get JIT status too
+      - name: Build and Test JIT
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
 
-      - name: Install Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget
-
-      - name: Restore Dependencies from Cache
-        id: cache-deps
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: .fw_dependencies
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          node-version: "20"
 
-      - name: Fail if cache not found
-        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
-        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+      - name: Enable Yarn
+        run: corepack enable
 
-      - name: Build and Test
-        env:
-          CC: clang-17
-          CXX: clang++-17
-          LDFLAGS: -fuse-ld=lld
-        run: make test-jit
+      - name: Install LSP dependencies
+        run: cd src/lsp && yarn install
+
+      - name: Set compiler path for LSP tests
+        run: echo "FLOWWING_COMPILER_PATH=${{ github.workspace }}/build/sdk/bin/FlowWing" >> $GITHUB_ENV
+
+      - name: Run LSP tests
+        run: make lsp-test

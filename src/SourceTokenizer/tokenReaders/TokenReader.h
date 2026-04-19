@@ -19,15 +19,22 @@
 
 #pragma once
 
-#include <any>
 #include <memory>
 
-class SourceTokenizer;
-template <typename T> class SyntaxToken;
+namespace flow_wing {
+namespace syntax {
 
+class SyntaxToken;
+} // namespace syntax
+namespace lexer {
+
+class SourceTokenizer;
 class TokenReader {
 public:
   virtual ~TokenReader() = default;
-  virtual std::unique_ptr<SyntaxToken<std::any>>
+  virtual std::unique_ptr<syntax::SyntaxToken>
   readToken(SourceTokenizer &lexer) = 0;
 };
+
+} // namespace lexer
+} // namespace flow_wing

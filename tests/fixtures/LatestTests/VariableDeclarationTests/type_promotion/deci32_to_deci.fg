@@ -1,0 +1,3 @@
+var x:deci = 3.14f
+print(x, "\n")
+

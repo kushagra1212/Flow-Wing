@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int32.
+var dyn2:[3] = [1, "two", true]
+var typed:int[3] = [10, 20, 30]
+println(dyn2)
+println(typed)
+typed[0] = dyn2[1]
+println(typed[0])

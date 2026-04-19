@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+var x:int8 = 5
+x = 10000000000l
+

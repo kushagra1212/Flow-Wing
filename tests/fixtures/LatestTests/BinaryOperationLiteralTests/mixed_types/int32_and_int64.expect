@@ -1,0 +1,20 @@
+Int32 and Int64 Mixed Operations
+Addition:
+3001000000
+3001000000
+5147483647
+Subtraction:
+-2999000000
+2999000000
+Multiplication:
+3000000000000
+-3000000000000
+Division:
+0.000333333333333
+3000
+Integer Division:
+0
+3000
+Modulo:
+1000000
+0

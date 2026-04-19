@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: ContinueStatementNotAllowedOutsideOfLoop
+var x = 0
+if (true) {
+  continue
+}
+println(x)

@@ -1,0 +1,7 @@
+var a: int = 3
+
+if (a == 2) {
+  println("a is 2")
+} else {
+  println("a is not 2")
+}

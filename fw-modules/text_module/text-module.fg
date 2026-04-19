@@ -1,0 +1,183 @@
+
+fun strLength(str1: as str) -> as int decl
+fun strToUpper(str1: as str) -> as str decl
+fun strToLower(str1: as str) -> as str decl
+fun strReverse(str1: as str) -> as str decl
+fun strTrim(str1: as str) -> as str decl
+fun strReplace(str1: as str, target: as str, replacement: as str) -> as str decl
+
+module [text]
+
+
+
+fun getLength( str1: str) -> int {
+    return strLength(str1)
+}
+
+fun toUpper( str1: str) -> str {
+    return strToUpper(str1)
+}
+
+fun toLower( str1: str) -> str {
+    return strToLower(str1)
+}
+
+fun reverse( str1: str) -> str {
+    return strReverse(str1)
+}
+
+fun trim( str1: str) -> str {
+    return strTrim(str1)
+}
+
+fun replace( str1: str, target: str, replacement: str) -> str {
+    return strReplace(str1, target, replacement)
+}
+
+fun concat( first: str, second: str) -> str {
+    return first + second
+}
+
+fun charAt( str1: str, index: int) -> char {
+    return str1[index]
+}
+
+fun length( str1: str) -> int {
+    return getLength(str1)
+}
+
+fun isEmpty( str1: str) -> bool {
+    return getLength(str1) == 0
+}
+
+fun equalsIgnoreCase( str1: str, str2: str) -> bool {
+    return toLower(str1) == toLower(str2)
+}
+
+fun substring(source: str, start: int, end: int) -> str {
+  var result: str = ""
+  var i = start
+  while i < end {
+    result = result + source[i]
+    i = i + 1
+  }
+  return result
+}
+
+/; Finds the first occurrence of a target substring. Returns -1 if not found.
+fun indexOf(source: str, target: str) -> int {
+  var srcLen = text::length(source)
+  var tgtLen = text::length(target)
+  if tgtLen == 0 { return 0 }
+  if srcLen < tgtLen { return -1 }
+
+  var i = 0
+  while i <= (srcLen - tgtLen) {
+    var match = true
+    var j = 0
+    while j < tgtLen {
+      if source[i + j] != target[j] {
+        match = false
+        break
+      }
+      j = j + 1
+    }
+    if match { return i }
+    i = i + 1
+  }
+  return -1
+}
+
+
+class Text {
+  var _buffer: str
+  var _len: int
+
+  init(source: str) -> nthg {
+    self._buffer = source
+    self._len = getLength(source)
+  }
+
+  fun refreshLength() -> nthg {
+    self._len = getLength(self._buffer)
+  }
+
+  fun getLength() -> int {
+    return self._len
+  }
+
+  fun length() -> int {
+    return self.getLength()
+  }
+
+  fun toUpper() -> text::Text {
+    self._buffer = toUpper(self._buffer)
+    self.refreshLength()
+    return self
+  }
+
+  fun toLower() -> text::Text {
+    self._buffer = toLower(self._buffer)
+    self.refreshLength()
+    return self
+  }
+
+  fun reverse() -> text::Text {
+    self._buffer = reverse(self._buffer)
+    self.refreshLength()
+    return self
+  } 
+
+  fun at(index: int) -> char {
+    return charAt(self._buffer, index)
+  }
+
+  fun charAt(index: int) -> char {
+    return self.at(index)
+  }
+
+  fun trim() -> text::Text {
+    self._buffer = trim(self._buffer)
+    self.refreshLength()
+    return self
+  }
+
+  fun replace(target: str, replacement: str) -> text::Text {
+    self._buffer = replace(self._buffer, target, replacement)
+    self.refreshLength()
+    return self
+  }
+
+  fun concat(suffix: str) -> text::Text {
+    self._buffer = concat(self._buffer, suffix)
+    self.refreshLength()
+    return self
+  }
+
+  fun clear() -> text::Text {
+    self._buffer = ""
+    self._len = 0
+    return self
+  }
+
+  fun isEmpty() -> bool {
+    return self._len == 0
+  }
+
+  fun equalsIgnoreCase(other: str) -> bool {
+    return equalsIgnoreCase(self._buffer, other)
+  }
+
+  indexOf(target: str) -> int {
+    return indexOf(self._buffer, target)
+  }
+
+  substring(start: int, end: int) -> text::Text {
+    var substr = substring(self._buffer, start, end)
+    return new text::Text(substr)
+  }
+
+  fun get() -> str {
+    return self._buffer
+  }
+}

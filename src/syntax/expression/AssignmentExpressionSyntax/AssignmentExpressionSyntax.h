@@ -22,36 +22,36 @@
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
 
-class ExpressionSyntax;
+namespace flow_wing {
+namespace syntax {
+class SyntaxToken;
 
 class AssignmentExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<ExpressionSyntax> _left;
-  std::unique_ptr<ExpressionSyntax> _right;
-  SyntaxKindUtils::SyntaxKind _operatorTokenKind;
-  bool _needDefaultInitialize = false;
 
 public:
   AssignmentExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
-                             SyntaxKindUtils::SyntaxKind operatorTokenKind,
-                             std::unique_ptr<ExpressionSyntax> right,
-                             bool needDefaultInitialize = false);
+                             const SyntaxToken *operator_token,
+                             std::unique_ptr<ExpressionSyntax> right);
 
-  std::unique_ptr<ExpressionSyntax> getRight();
-  std::unique_ptr<ExpressionSyntax> getLeft();
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  // Boolean Queries
+  bool isFullReAssignment() const;
 
-  std::unique_ptr<ExpressionSyntax> &getRightRef();
-  std::unique_ptr<ExpressionSyntax> &getLeftRef();
+  // Getters
+  const std::unique_ptr<ExpressionSyntax> &getLeft() const;
+  const std::unique_ptr<ExpressionSyntax> &getRight() const;
+  const SyntaxToken *getOperatorToken() const;
 
-  auto inline getNeedDefaultInitialization() -> bool {
-    return _needDefaultInitialize;
-  }
+private:
+  std::unique_ptr<ExpressionSyntax> m_left;
+  const SyntaxToken *m_operator_token;
+  std::unique_ptr<ExpressionSyntax> m_right;
 
-  inline auto getOperatorTokenKind() const -> SyntaxKindUtils::SyntaxKind {
-    return _operatorTokenKind;
-  }
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

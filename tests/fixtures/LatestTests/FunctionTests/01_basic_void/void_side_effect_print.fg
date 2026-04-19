@@ -1,0 +1,7 @@
+fun say(msg: str) -> nthg {
+  println(msg)
+}
+
+say("A")
+say("B")
+println("C")

@@ -1,0 +1,16 @@
+/; EXPECT_ERROR: TooManyInitializerExpressions
+type Person = {
+    name: str
+    age: int
+}
+
+var p1, p2: Person = {
+    name: "John",
+    age: 30
+}, {
+    name: "Jane",
+    age: 25
+}, {
+    name: "Extra",
+    age: 20
+}

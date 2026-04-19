@@ -1,0 +1,15 @@
+print("Complex Concatenation Operation\n")
+print("Hello" + "World" + "Hello", "\n")
+print("Hello" + "World" + "Hello" + "World", "\n")
+
+
+print("Contact different types in single operation\n")
+print("Hello" + 2 + "World" + true + "Hello", "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a', "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a' + 'b', "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a' + 'b' + "\n", "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a' + 'b' + "\n" + "\t", "\n")

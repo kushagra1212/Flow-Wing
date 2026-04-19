@@ -1,0 +1,7 @@
+fun first() -> int { return 10 }
+fun last() -> int { return 30 }
+
+var a: int, b: int, c: int = first(), 20, last()
+println(a)
+println(b)
+println(c)

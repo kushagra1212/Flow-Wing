@@ -1,0 +1,9 @@
+var a: int = 5
+
+if (a == 2) {
+  println("a is 2")
+} else if (a == 3) {
+  println("a is 3")
+} else {
+  println("a is other")
+}

@@ -1,0 +1,56 @@
+{
+  "sem": {
+    "symbols": {
+      "0x4": {
+        "kind": "Function",
+        "name": "num",
+        "type_id": "0x3"
+      },
+      "0x7": {
+        "kind": "Variable",
+        "name": "x",
+        "type_id": "0x6"
+      },
+      "0xB": {
+        "kind": "Function",
+        "name": "println",
+        "type_id": "0xA"
+      }
+    },
+    "types": {
+      "0x1": { "kind": "Primitive", "name": "int" },
+      "0x2": { "kind": "ReturnType", "base_type_id": "0x1" },
+      "0x3": { "kind": "Function", "return_type_ids": ["0x2"] },
+      "0x6": { "kind": "Primitive", "name": "dynamic" },
+      "0x8": { "kind": "Primitive", "name": "nthg" },
+      "0x9": { "kind": "ReturnType", "base_type_id": "0x8" },
+      "0xA": { "kind": "Function", "return_type_ids": ["0x9"] }
+    },
+    "tree": {
+      "kind": "CompilationUnit",
+      "statements": [
+        {
+          "kind": "FunctionStatement",
+          "symbol_id": "0x4",
+          "range": { "start": [0, 0], "end": [2, 1] }
+        },
+        {
+          "kind": "ExpressionStatement",
+          "expression": {
+            "kind": "CallExpression",
+            "symbol_id": "0xB",
+            "arguments": [
+              {
+                "kind": "IdentifierExpression",
+                "name": "x",
+                "symbol_id": "0x7",
+                "range": { "start": [5, 8], "end": [5, 9] }
+              }
+            ],
+            "range": { "start": [5, 0], "end": [5, 10] }
+          }
+        }
+      ]
+    }
+  }
+}

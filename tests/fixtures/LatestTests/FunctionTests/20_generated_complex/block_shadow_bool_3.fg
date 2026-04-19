@@ -1,0 +1,11 @@
+
+fun printVal(val: bool) {
+    println(val)
+}
+
+var a: bool = true
+{
+    var a: bool = false
+    printVal(a)
+}
+printVal(a)

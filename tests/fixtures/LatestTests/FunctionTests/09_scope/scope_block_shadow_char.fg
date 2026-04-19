@@ -1,0 +1,11 @@
+fun getChar() -> char {
+  return 'X'
+}
+
+var c: char = 'A'
+println(c)
+{
+  var c: char = getChar()
+  println(c)
+}
+println(c)

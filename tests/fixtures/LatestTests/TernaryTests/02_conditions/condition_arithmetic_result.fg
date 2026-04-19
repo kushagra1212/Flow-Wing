@@ -1,0 +1,4 @@
+var a: int = 3
+var b: int = 2
+
+println((a - b) ? "nonzero" : "zero")

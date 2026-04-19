@@ -1,0 +1,13 @@
+var a: bool = true
+var b: bool = true
+var c: bool = true
+var d: bool = true
+while (a && b && (c || d)) {
+  println("x")
+  if (d) {
+    d = false
+  } else {
+    c = false
+  }
+}
+println("done")

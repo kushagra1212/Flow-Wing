@@ -1,0 +1,5 @@
+print(1.5e10, "\n")
+print(3.14e5, "\n")
+print(2.5e-3, "\n")
+print(9.99e0, "\n")
+

@@ -1,0 +1,4 @@
+print(Int8(128), "\n")
+print(Int8(256), "\n")
+print(Int8(-129), "\n")
+

@@ -1,0 +1,10 @@
+var a = 42
+var b = 3.14
+var c = "hello"
+var d = true
+var e = 'x'
+println(a)
+println(b)
+println(c)
+println(d)
+println(e)

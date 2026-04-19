@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,87 +20,52 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include <any>
-#include <map>
-// clang-format off
-#include "src/diagnostics/Diagnostic/diagnostic_push.h"
-#include <llvm/IR/DerivedTypes.h>
-#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
-// clang-format on
+#include <cstddef>
+#include <memory>
+#include <vector>
 
-class BoundExpression;
-template <typename T> class BoundLiteralExpression;
+namespace flow_wing {
+namespace analysis {
+class FunctionSymbol;
+} // namespace analysis
+namespace binding {
 
 class BoundCallExpression : public BoundExpression {
-private:
-  std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
-  std::vector<std::unique_ptr<BoundExpression>> _arguments;
-  std::vector<BoundExpression *> _argumentPtrList;
-  std::map<uint64_t, std::pair<llvm::Value *, llvm::Type *>> _argumentsMap;
-  std::string _callerName = "";
-  std::vector<llvm::Type *> _returnTypeList;
-  bool _hasNewKeyword = false;
-  bool _isSuperFunctionCall = false;
 
 public:
-  BoundCallExpression(const DiagnosticUtils::SourceLocation &location);
+  BoundCallExpression(analysis::FunctionSymbol *symbol,
+                      std::vector<std::unique_ptr<BoundExpression>> arguments,
+                      const flow_wing::diagnostic::SourceLocation &location);
+  ~BoundCallExpression() = default;
 
-  const std::type_info &getType() override;
-  BinderKindUtils::BoundNodeKind getKind() const override;
-  std::vector<BoundNode *> getChildren() override;
+  // Overrides
+  NodeKind getKind() const override;
+  void accept(visitor::BoundTreeVisitor *visitor) override;
 
-  void addArgument(std::unique_ptr<BoundExpression> argument);
-  void setCallerIdentifier(
-      std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier);
+  // Getters
+  std::shared_ptr<types::Type> getType() const override;
+  bool isMultipleType() const override;
+  std::vector<std::shared_ptr<types::Type>> getMultipleTypes() const override;
+  const analysis::FunctionSymbol *getSymbol() const;
 
-  const std::vector<std::unique_ptr<BoundExpression>> &getArgumentsRef() const;
-  std::unique_ptr<BoundLiteralExpression<std::any>> &getCallerIdentifierPtr();
-  inline auto getCallerNameRef() const -> const std::string & {
-    return _callerName;
+  const std::vector<std::unique_ptr<BoundExpression>> &getArguments() const;
+
+  bool getUseVirtualDispatch() const { return m_use_virtual_dispatch; }
+  std::size_t getVirtualSlot() const { return m_virtual_slot; }
+  void setVirtualDispatch(bool use, std::size_t slot) {
+    m_use_virtual_dispatch = use;
+    m_virtual_slot = slot;
   }
 
-  inline auto setHasNewKeyword(bool hasNewKeyword) -> void {
-    _hasNewKeyword = hasNewKeyword;
-  }
+  void setImplicitReceiverLast(bool v) { m_implicit_receiver_last = v; }
+  bool getImplicitReceiverLast() const { return m_implicit_receiver_last; }
 
-  inline auto hasNewKeyword() const -> bool { return _hasNewKeyword; }
-
-  inline auto setCallerName(std::string name) -> void { _callerName = name; }
-
-  inline auto setArgumentAlloca(uint64_t index,
-                                std::pair<llvm::Value *, llvm::Type *> value)
-      -> void {
-    _argumentsMap[index] = value;
-  }
-
-  inline auto addReturnTypeToList(llvm::Type *returnType) -> void {
-    _returnTypeList.push_back(returnType);
-  }
-
-  inline auto getArgumentPtrList() -> std::vector<BoundExpression *> & {
-    return _argumentPtrList;
-  }
-
-  inline auto getReturnTypeList() const -> const std::vector<llvm::Type *> & {
-    return _returnTypeList;
-  }
-
-  inline auto setSuperFunctionCall(bool isSuperFunctionCall) -> void {
-    _isSuperFunctionCall = isSuperFunctionCall;
-  }
-
-  inline auto getIsSuperFunctionCall() const -> bool {
-    return _isSuperFunctionCall;
-  }
-
-  inline auto getArgumentAlloca(uint64_t index)
-      -> std::pair<llvm::Value *, llvm::Type *> {
-    return _argumentsMap[index];
-  }
-
-  inline auto doesArgumentAllocaExist(uint64_t index) -> bool {
-    return _argumentsMap.find(index) != _argumentsMap.end() &&
-           _argumentsMap[index].first != nullptr &&
-           _argumentsMap[index].second != nullptr;
-  }
+private:
+  analysis::FunctionSymbol *m_symbol;
+  std::vector<std::unique_ptr<BoundExpression>> m_arguments;
+  bool m_use_virtual_dispatch = false;
+  std::size_t m_virtual_slot = 0;
+  bool m_implicit_receiver_last = false;
 };
+} // namespace binding
+} // namespace flow_wing

@@ -1,0 +1,6 @@
+type Obj_deci_r = { v: deci }
+fun get_r_deci() -> Obj_deci_r[3] { return [{v: 10.5}, {v: 20.5}, {v: 30.5}] }
+var a: Obj_deci_r[3] = get_r_deci()
+println(a[0].v)
+println(a[1].v)
+println(a[2].v)

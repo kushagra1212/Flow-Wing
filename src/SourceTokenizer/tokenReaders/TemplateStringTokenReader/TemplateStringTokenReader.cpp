@@ -19,14 +19,13 @@
 
 #include "TemplateStringTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
-#include "src/diagnostics/Diagnostic/Diagnostic.h"
-#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/SyntaxToken.h"
-#include "src/utils/Utils.h"
 
-std::unique_ptr<SyntaxToken<std::any>>
+namespace flow_wing {
+namespace lexer {
+
+std::unique_ptr<syntax::SyntaxToken>
 TemplateStringTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
   std::string text = "", valueText = "";
@@ -47,33 +46,30 @@ TemplateStringTokenReader::readToken(SourceTokenizer &lexer) {
   }
 
   if (lexer.currentChar() != '`') {
-    return unTerminatedTemplateStringToken(lexer, start);
+    return unTerminatedTemplateStringToken(lexer, text, start);
   }
 
   text += lexer.currentChar();
   lexer.advancePosition();
 
-  return std::make_unique<SyntaxToken<std::any>>(
-      lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-      SyntaxKindUtils::SyntaxKind::StringToken, start, text,
-
-      valueText);
+  return std::make_unique<syntax::SyntaxToken>(
+      TokenKind::kTemplateStringLiteralToken, text, valueText,
+      diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
+std::unique_ptr<syntax::SyntaxToken>
 TemplateStringTokenReader::unTerminatedTemplateStringToken(
-    SourceTokenizer &lexer, const size_t &start) {
-  std::unique_ptr<SyntaxToken<std::any>> unTerminatedToken =
-      std::make_unique<SyntaxToken<std::any>>(
-          lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::BadToken, start, "", 0);
+    SourceTokenizer &lexer, const std::string &text, const size_t &start) {
+  std::unique_ptr<syntax::SyntaxToken> un_terminated_token =
+      std::make_unique<syntax::SyntaxToken>(
+          TokenKind::kBadToken, text, std::any(),
+          diagnostic::SourceLocation(lexer.lineNumber(), start, text.size()));
 
-  lexer.diagnosticHandler()->addDiagnostic(
-      Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Lexical, {},
-                 Utils::getSourceLocation(unTerminatedToken.get()),
-                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::
-                     UnTerminatedTemplateStringLiteral));
+  lexer.reportError(
+      flow_wing::diagnostic::DiagnosticCode::kUnterminatedTemplateStringLiteral,
+      {}, un_terminated_token->getSourceLocation());
 
-  return (unTerminatedToken);
+  return un_terminated_token;
 }
+} // namespace lexer
+} // namespace flow_wing

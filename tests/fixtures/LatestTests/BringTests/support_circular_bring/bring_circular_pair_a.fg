@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: CircularReference
+/; Circular-bring support: side A of an intentional A<->B cycle (see pair B).
+/; Includes types, globals, and a function so the graph looks like real split modules.
+bring "bring_circular_pair_b.fg"
+
+type SideARecord = { owner_id: int, revision: int }
+
+var a_partition_rows: int = 10
+
+fun a_row_hint() -> int {
+  return a_partition_rows
+}

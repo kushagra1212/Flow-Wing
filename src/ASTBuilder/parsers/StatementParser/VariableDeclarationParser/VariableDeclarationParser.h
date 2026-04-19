@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,23 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
-#include "src/ASTBuilder/parsers/StatementParser/MultipleVariableDeclarationParser/MultipleVariableDeclarationParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
-#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include <memory>
+
+namespace flow_wing {
+namespace parser {
 
 class VariableDeclarationParser : public StatementParser {
 
 public:
-  std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+  explicit VariableDeclarationParser(ParserContext *ctx);
 
-  void setIsForStatement(bool isForStatement);
+  std::unique_ptr<syntax::StatementSyntax> parse() override;
 
 private:
-  bool m_isForStatement = false;
+  ParserContext *m_ctx;
 };
+} // namespace parser
+} // namespace flow_wing

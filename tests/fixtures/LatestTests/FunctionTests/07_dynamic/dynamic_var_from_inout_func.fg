@@ -1,0 +1,11 @@
+fun test2(inout a: int, b: str = "Hello") -> int {
+  println("Hello World", a, b)
+  a = 20
+  return 1
+}
+
+var a: int = 10
+
+var x = test2(a, "hello2")
+println(a)
+println(x)

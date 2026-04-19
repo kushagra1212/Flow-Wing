@@ -1,0 +1,11 @@
+fun add(inout n: int, m: int) {
+  n = n + m
+}
+
+var g: int = 10
+{
+  println(g)
+  add(g, 5)
+  println(g)
+}
+println(g)

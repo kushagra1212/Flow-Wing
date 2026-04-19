@@ -1,0 +1,13 @@
+var x = 10
+print(x, "\n")
+x = "hello"
+print(x, "\n")
+x = 3.14
+print(x, "\n")
+x = true
+print(x, "\n")
+x = 'x'
+print(x, "\n")
+x = 100l
+print(x, "\n")
+

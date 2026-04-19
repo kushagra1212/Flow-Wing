@@ -1,0 +1,10 @@
+class A {
+  var x: int
+  fun init(x: int) -> nthg {
+    self.x = x
+  }
+}
+var a: A = new A(10)
+for (var i: int = 0 to 2) {
+  println(a.x + i)
+}

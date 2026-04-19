@@ -1,0 +1,6 @@
+const MAX:int = 100
+{
+    var x:int = MAX + 1
+    println(x)
+}
+println(MAX)

@@ -1,0 +1,3 @@
+var x:str = String(10)
+print(x, "\n")
+

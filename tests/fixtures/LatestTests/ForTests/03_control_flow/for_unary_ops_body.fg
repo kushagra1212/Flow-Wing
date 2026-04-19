@@ -1,0 +1,7 @@
+for (var i: int = 0 to 2 : 1) {
+  var neg: int = -i
+  println(neg)
+  var pos: int = +i
+  println(pos)
+}
+println("done")

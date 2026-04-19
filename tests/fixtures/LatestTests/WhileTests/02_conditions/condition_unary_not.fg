@@ -1,0 +1,7 @@
+var flag = true
+var n = 0
+while (!(n >= 2)) {
+  println(n)
+  n = n + 1
+}
+println("done")

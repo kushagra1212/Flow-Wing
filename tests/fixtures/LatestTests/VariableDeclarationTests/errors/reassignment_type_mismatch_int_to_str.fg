@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+var x:str = "Hello"
+x <- 42
+

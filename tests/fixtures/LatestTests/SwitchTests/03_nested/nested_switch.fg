@@ -1,0 +1,25 @@
+var a: int = 1
+
+switch a {
+  case 1:{
+    println("outer one")
+    var b: int = 2
+    switch b {
+      case 1:{
+        println("inner one")
+      }
+      case 2:{
+        println("inner two")
+      }
+      default:{
+        println("inner default")
+      }
+    }
+  }
+  case 2:{
+    println("outer two")
+  }
+  default:{
+    println("outer default")
+  }
+}

@@ -1,0 +1,7 @@
+Vortex server listening on port 9433
+SpaceOS File-Driven SSR Engine initialized on port 9433
+"-> GET /"
+"-> GET /crew"
+"-> GET /logs"
+"-> POST /api/command"
+Server shutting down cleanly.

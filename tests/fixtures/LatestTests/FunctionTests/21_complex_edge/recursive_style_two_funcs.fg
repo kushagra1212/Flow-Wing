@@ -1,0 +1,5 @@
+fun b() -> int { return 2 }
+fun a() -> int { return 1 + b() }
+
+println(a())
+println(b())

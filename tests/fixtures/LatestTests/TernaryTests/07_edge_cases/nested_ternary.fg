@@ -1,0 +1,4 @@
+var a: bool = true
+var b: bool = false
+
+println(a ? (b ? "a-t-b-t" : "a-t-b-f") : (b ? "a-f-b-t" : "a-f-b-f"))

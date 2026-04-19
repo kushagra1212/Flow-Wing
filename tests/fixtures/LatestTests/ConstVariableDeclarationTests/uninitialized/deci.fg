@@ -1,0 +1,2 @@
+const x:deci = 0
+print(x, "\n")

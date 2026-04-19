@@ -1,0 +1,20 @@
+print("Double Subtraction\n")
+print(1.3 - 1.2, "\n")
+print(1.3 - 2.2, "\n")
+
+
+print("Double / Int Subtraction\n")
+print(1.3 - 1, "\n")
+print(2 - 1.3, "\n")
+
+print("Float Subtraction\n")
+print(1.3f - 1.2f, "\n")
+print(1.3f - 2.2f, "\n")
+
+print("Float / Int Subtraction\n")
+print(1.3f - 1, "\n")
+print(2 - 1.3f, "\n")
+
+print("Double / Float Subtraction\n")
+print(1.3 - 1.2f, "\n")
+print(2.2 - 1.3f, "\n")

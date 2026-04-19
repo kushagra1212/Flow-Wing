@@ -1,0 +1,7 @@
+fun getValue() -> int {
+  return 7
+}
+
+var s: str, n: int = "prefix", getValue()
+println(s)
+println(n)

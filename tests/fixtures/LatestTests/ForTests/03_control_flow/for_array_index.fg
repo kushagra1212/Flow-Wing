@@ -1,0 +1,5 @@
+var arr: int[3] = [10, 20, 30]
+for (var i: int = 0 to 2 : 1) {
+  println(arr[i])
+}
+println("done")

@@ -25,8 +25,15 @@
 # =============================================================================
 
 # Tell find_package() where to look for our pre-built libraries.
-# This is the most important line.
-set(DEPS_INSTALL_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies/install)
+# Use separate directories for Debug and Release builds.
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(DEPS_INSTALL_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies_debug/install)
+    message(STATUS "Using DEBUG dependencies from: ${DEPS_INSTALL_DIR}")
+else()
+    set(DEPS_INSTALL_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies/install)
+    message(STATUS "Using RELEASE dependencies from: ${DEPS_INSTALL_DIR}")
+endif()
+
 set(DEPS_INCLUDE_DIR ${DEPS_INSTALL_DIR}/include)
 list(APPEND CMAKE_PREFIX_PATH ${DEPS_INSTALL_DIR})
 

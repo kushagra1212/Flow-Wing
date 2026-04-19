@@ -19,32 +19,26 @@
 
 #pragma once
 
+#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
-#include <any>
+
+namespace flow_wing {
+namespace syntax {
 
 class NirastExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _nirastExpression;
 
 public:
-  NirastExpressionSyntax(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> nirastExpression);
+  NirastExpressionSyntax(const SyntaxToken *token);
 
-  /*
-    Overrides
-  */
+  // Overrides
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
+  // Getters
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  /*
-    Getters
-  */
-
-  inline auto getNirastExpressionRef() const
-      -> const std::unique_ptr<LiteralExpressionSyntax<std::any>> & {
-    return _nirastExpression;
-  }
+private:
+  const SyntaxToken *m_token;
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

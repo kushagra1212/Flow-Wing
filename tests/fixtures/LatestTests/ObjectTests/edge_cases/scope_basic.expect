@@ -1,0 +1,3 @@
+outer p1: { x: 10, y: 20 }
+inner p1: { x: 100, y: 200 }
+outer p1 after scope: { x: 10, y: 20 }

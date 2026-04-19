@@ -1,0 +1,11 @@
+/; EXPECT_ERROR:  Cannot cast Dynamic value to Int32.
+var z: int = 22
+print(z, "\n")
+
+var x =  55
+print(x, "\n")
+z = x
+print(z, "\n")
+var k = "Hello"
+z = k
+print(z, "\n")

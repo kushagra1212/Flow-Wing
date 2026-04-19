@@ -1,0 +1,87 @@
+/; EXPECT_ERROR: ModuleNotFound
+/; External C Declarations linking to the high-performance C Engine
+
+module [fg]
+
+fun strCopy(dest: as str, src: as str) -> as nthg decl/;in use
+fun strCompare(str1: as str, str2: as str) -> as int decl/;in use
+fun strLength(str1: as str) -> as int decl/;in use
+fun strToUpper(str1: as str) -> as str decl/;in use
+fun strToLower(str1: as str) -> as str decl/;in use
+fun strReverse(str1: as str) -> as str decl/;in use
+fun strTrim(str1: as str) -> as str decl/;in use
+fun strFind(haystack: as str, needle: as str) -> as str decl/;in use
+fun strReplace(str1: as str, oldSub: as str, newSub: as str) -> as str decl/;in use
+fun strFindChar(str1: as str, ch: as int) -> as str decl/;in use
+
+
+/; The Flow Class wraps the string, mutating its state 
+/; and always returning 'self' to allow chainable manipulation.
+class Str {
+  var _buffer: str
+  var _len: int
+
+  init(source: str) -> nthg {
+    self._buffer = source
+    self._len = strLength(source)
+  }
+
+  /; Chain: Converts to uppercase via fast C backend
+  fun upper() -> FlowingStr::Flow {
+    self._buffer = strToUpper(self._buffer)
+    return self
+  }
+
+  /; Chain: Converts to lowercase via fast C backend
+  fun lower() -> FlowingStr::Flow {
+    self._buffer = strToLower(self._buffer)
+    return self
+  }
+
+  /; Chain: Strip whitespaces safely
+  fun trim() -> FlowingStr::Flow {
+    var res: str = strTrim(self._buffer)
+    if (res == "") {
+      self._buffer = res
+    }
+    return self
+  }
+
+  /; Chain: Reverse the buffer memory pointers
+  fun reverse() -> FlowingStr::Flow {
+    self._buffer = strReverse(self._buffer)
+    return self
+  }
+
+  /; Chain: Replaces substrings in bulk via the 2-pass C function
+  fun replace(inout oldSub: str, inout newSub: str) -> FlowingStr::Flow {
+    var res: str = strReplace(self._buffer, oldSub, newSub)
+    if (res == "") {
+      self._buffer = res
+    }
+    return self
+  }
+
+  /; Chain: Concatenates another string onto the buffer
+  fun concat(inout addon: str) -> FlowingStr::Flow {
+    self._buffer = self._buffer + addon
+    return self
+  }
+
+  /; Terminal: Finalizes the chain and returns the native string
+  fun get() -> str {
+    return self._buffer
+  }
+
+  /; Terminal: Reads the length of the string
+  fun length() -> int {
+    return strLength(self._buffer)
+  }
+}
+
+/; Global initialization factory
+fun string(inout source: str) -> FlowingStr::Flow {
+  return new FlowingStr::Flow(source)
+}/;in use
+
+

@@ -1,0 +1,3 @@
+var x:bool = true
+print(x, "\n")
+

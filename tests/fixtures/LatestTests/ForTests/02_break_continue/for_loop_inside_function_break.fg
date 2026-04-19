@@ -1,0 +1,12 @@
+fun run() {
+  for (var i: int = 0 to 5 : 1) {
+    println(i)
+    if (i == 3) {
+      break
+    }
+  }
+  println("out")
+}
+
+run()
+println("done")

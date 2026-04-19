@@ -1,0 +1,5 @@
+var a:int[2][2] = [[1, 2], [3, 4]]
+println(a[0][0])
+println(a[0][1])
+println(a[1][0])
+println(a[1][1])

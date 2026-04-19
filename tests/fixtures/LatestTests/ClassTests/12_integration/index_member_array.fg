@@ -1,0 +1,9 @@
+class A {
+  var x: int[2]
+  fun init(x: int[2]) -> nthg {
+    self.x[1] = x[1]
+  }
+}
+
+var a: A = new A([2, 3])
+println(a.x)

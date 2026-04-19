@@ -1,0 +1,28 @@
+type Inner = {
+    value: int
+}
+
+type Outer = {
+    name: str
+    inner: Inner
+}
+
+var obj1: Outer = {
+    name: "outer",
+    inner: { value: 10 }
+}
+
+print("obj1: ", obj1, "\n")
+
+{
+    var obj1: Outer = {
+        name: "inner scope",
+        inner: { value: 100 }
+    }
+    print("scoped obj1: ", obj1, "\n")
+    
+    obj1.inner.value = 999
+    print("scoped obj1 after modify: ", obj1, "\n")
+}
+
+print("obj1 after scope: ", obj1, "\n")

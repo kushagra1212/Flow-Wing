@@ -18,16 +18,26 @@
  */
 
 #include "ExpressionStatementParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrimaryExpressionParserFactory.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.hpp"
 #include "src/syntax/statements/StatementSyntax.h"
 
-std::unique_ptr<StatementSyntax>
-ExpressionStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<ExpressionSyntax> expression =
-      PrecedenceAwareExpressionParser::parse(ctx);
+namespace flow_wing {
+namespace parser {
 
-  return std::make_unique<ExpressionStatementSyntax>(std::move(expression));
+ExpressionStatementParser::ExpressionStatementParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
+
+std::unique_ptr<syntax::StatementSyntax> ExpressionStatementParser::parse() {
+
+  auto expression = PrecedenceAwareExpressionParser::parse(m_ctx, 0);
+
+  return std::make_unique<syntax::ExpressionStatementSyntax>(
+      std::move(expression));
 }
+} // namespace parser
+} // namespace flow_wing

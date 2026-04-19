@@ -1,0 +1,7 @@
+type Point = { x:int, y:int }
+var pts:Point[2] = [{x:0,y:0}, {x:0,y:0}]
+pts[0].x = 10
+pts[0].y = 20
+pts[1].x = 30
+pts[1].y = 40
+println(pts)

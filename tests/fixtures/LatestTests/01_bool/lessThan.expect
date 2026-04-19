@@ -1,0 +1,28 @@
+Boolean Less Than
+false
+false
+true
+false
+Decimal Less Than
+false
+true
+false
+false
+Int32 Less Than
+false
+false
+true
+false
+String Less Than
+false
+true
+true
+false
+false
+true
+false
+Character Less Than
+false
+true
+false
+false

@@ -1,0 +1,12 @@
+type T = {
+  val: int
+}
+
+var arr: T[2] = [{val: 1}, {val: 2}]
+fun makePair() -> T[2] {
+  return arr
+}
+
+var a: T[2] = makePair()
+println(a[0].val)
+println(a[1].val)

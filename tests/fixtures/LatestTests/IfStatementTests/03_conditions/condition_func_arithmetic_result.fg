@@ -1,0 +1,13 @@
+fun getA() -> int {
+  return 10
+}
+
+fun getB() -> int {
+  return 4
+}
+
+if (getA() - getB()) {
+  println("nonzero")
+} else {
+  println("zero")
+}

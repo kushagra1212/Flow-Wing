@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+type T = { a:int, b:str }
+var arr:T[2] = [{a:5}, {b:"hi"}]
+println(arr)

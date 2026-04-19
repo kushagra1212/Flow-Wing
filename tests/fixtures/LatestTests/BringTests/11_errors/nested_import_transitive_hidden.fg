@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: VariableNotFound
+bring "../include_for_nested_chain/nested_mid.fg"
+
+println(nested_leaf_val)

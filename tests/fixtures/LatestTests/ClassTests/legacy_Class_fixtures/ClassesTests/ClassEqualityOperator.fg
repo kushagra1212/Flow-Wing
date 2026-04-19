@@ -1,0 +1,50 @@
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+var b:A = new A(2)
+var aRef:A = a
+if(a) {
+  print("Class A","\n")
+}
+
+if(a && true) {
+  print("Class A and true","\n")
+}
+
+if(a && false) {
+  print("Class A and false","\n")
+}
+
+if(a || true) {
+  print("Class A or true","\n")
+}
+
+if(a == a){
+  print("Class A == A","\n")
+}
+
+if(a != a){
+  print("Class A != A","\n")
+}
+
+
+if(a == b){
+  print("Class A == B","\n")
+}
+
+if(a != b){
+  print("Class A != B","\n")
+}
+
+if(a == aRef){
+  print("Class A == ARef","\n")
+}
+
+if(a != aRef){
+  print("Class A != ARef","\n")
+}

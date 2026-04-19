@@ -1,0 +1,6 @@
+fun earlyReturn(a: int) -> str {
+  return "positive"
+}
+
+println(earlyReturn(5))
+println(earlyReturn(-1))

@@ -1,0 +1,6 @@
+var x = 5
+var y = "Hello"
+var z = 3.2f
+var w:bool = true
+var a:str[5] = [x, y, z, w]
+print(a)

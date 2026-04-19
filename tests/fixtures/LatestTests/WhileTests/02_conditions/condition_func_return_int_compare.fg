@@ -1,0 +1,10 @@
+fun getLimit() -> int {
+  return 3
+}
+
+var i = 0
+while (i < getLimit()) {
+  println(i)
+  i = i + 1
+}
+println("end")

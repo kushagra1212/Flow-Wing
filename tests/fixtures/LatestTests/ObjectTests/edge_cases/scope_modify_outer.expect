@@ -1,0 +1,3 @@
+before scope p1: { x: 10, y: 20 }
+inside scope p1: { x: 100, y: 200 }
+after scope p1: { x: 100, y: 200 }

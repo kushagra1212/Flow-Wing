@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,39 @@ add_custom_target(version
 
 # --- Source File Configuration ---
 set(MAIN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-file(GLOB_RECURSE EXECUTABLE_SOURCES "${MAIN_SRC_DIR}/**.cpp")
+
+file(GLOB_RECURSE SYNTAX_BINDER_SOURCES "${MAIN_SRC_DIR}/SourceTokenizer/**.cpp")
+file(GLOB_RECURSE AST_BUILDER_SOURCES "${MAIN_SRC_DIR}/ASTBuilder/**.cpp")
+file(GLOB_RECURSE AST_VISITOR_SOURCES "${MAIN_SRC_DIR}/ASTVisitor/**.cpp")
+file(GLOB_RECURSE SEMANTIC_ANALYZER_SOURCES "${MAIN_SRC_DIR}/SemanticAnalyzer/**.cpp")
+file(GLOB_RECURSE SYNTAX_SOURCE_FILES "${MAIN_SRC_DIR}/syntax/**.cpp")
+file(GLOB_RECURSE COMMON_SOURCES "${MAIN_SRC_DIR}/common/**.cpp")
+file(GLOB_RECURSE SERIALIZATION_SOURCES "${MAIN_SRC_DIR}/compiler/Serialization/**.cpp")
+file(GLOB_RECURSE IR_GEN_SOURCES "${MAIN_SRC_DIR}/IRGen/**.cpp")
+file(GLOB_RECURSE COMPILER_PIPELINE_SOURCES "${MAIN_SRC_DIR}/compiler/pipeline/**.cpp")
+file(GLOB_RECURSE COMPILER_DIAGNOSTICS_SOURCES "${MAIN_SRC_DIR}/compiler/diagnostics/**.cpp")
+file(GLOB_RECURSE COMPILER_OPTIONS_SOURCES "${MAIN_SRC_DIR}/compiler/CompilerOptions/**.cpp")
+file(GLOB_RECURSE LINKER_SOURCES "${MAIN_SRC_DIR}/compiler/Linker/**.cpp")
+
+set(COMPILER_SOURCES
+    "${MAIN_SRC_DIR}/compiler/main.cpp"
+    ${COMPILER_PIPELINE_SOURCES}
+    ${COMPILER_DIAGNOSTICS_SOURCES}
+    ${COMPILER_OPTIONS_SOURCES}
+    ${SERIALIZATION_SOURCES}
+    ${IR_GEN_SOURCES}
+    ${LINKER_SOURCES}
+)
+
+list(APPEND EXECUTABLE_SOURCES
+    "${SYNTAX_BINDER_SOURCES}"
+    "${AST_BUILDER_SOURCES}"
+    "${AST_VISITOR_SOURCES}"
+    "${SEMANTIC_ANALYZER_SOURCES}"
+    "${SYNTAX_SOURCE_FILES}"
+    "${COMMON_SOURCES}"
+    "${COMPILER_SOURCES}"
+)
 
 if(TESTS_ENABLED)
     set(MAIN_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -162,17 +194,36 @@ if(NOT BUILD_AOT)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,-all_load"
             "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
+            "-Wl,-force_load,$<TARGET_FILE:dynamic>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_map>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_vec>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_text>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_file>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_io>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
-            "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
+            "-framework CoreFoundation"
+            "-framework IOKit"
+            "-framework Cocoa"
+            "-framework OpenGL"
+            "-framework CoreVideo"
         )
     elseif(UNIX)
         # This is the corrected section for Linux
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,--whole-archive"
             built_in_module
+            dynamic
+            flowwing_map
+            flowwing_text
+            flowwing_vec
+            flowwing_file
+            flowwing_io
+            flowwing_vortex
+            flowwing_raylib
             "${DEPS_LIB_DIR}/libgc.a"
-            "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
             "-Wl,--no-whole-archive"
 
@@ -185,6 +236,14 @@ if(NOT BUILD_AOT)
        # On Windows (MSVC), force inclusion of all static lib objects
          target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             built_in_module
+            dynamic
+            flowwing_map
+            flowwing_text
+            flowwing_vec
+            flowwing_file
+            flowwing_io
+            flowwing_vortex
+            flowwing_raylib
             "${DEPS_LIB_DIR}/gc.lib"
             "${DEPS_LIB_DIR}/gccpp.lib"
             "${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -192,6 +251,14 @@ if(NOT BUILD_AOT)
 
         target_link_options(${EXECUTABLE_NAME} PRIVATE
             "/WHOLEARCHIVE:$<TARGET_FILE:built_in_module>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:dynamic>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_map>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_text>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vec>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_file>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_io>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vortex>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_raylib>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -215,6 +282,19 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     "AOT_LINKER_PATH=\"${AOT_LINKER_PATH}\""
     "PROJECT_DIR=\"${CMAKE_SOURCE_DIR}\""
 )
+
+# Install prefix baked into compiler binary for module/library resolution
+if(FLOWWING_INSTALL_PREFIX)
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+        "FLOWWING_INSTALL_PREFIX=\"${FLOWWING_INSTALL_PREFIX}\""
+    )
+    message(STATUS "FlowWing install prefix baked into binary: ${FLOWWING_INSTALL_PREFIX}")
+else()
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+        "FLOWWING_INSTALL_PREFIX=\"\""
+    )
+    message(STATUS "No install prefix specified; compiler will use relative paths.")
+endif()
 
 if(TESTS_ENABLED)
     # Define the SDK path relative to the project root. This must match the Makefile.

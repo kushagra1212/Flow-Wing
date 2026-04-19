@@ -1,0 +1,3 @@
+Initial: { age: 30, height: 5.1, name: "John", weight: 70.5 }
+After partial update: { age: 31, height: 6, name: "John", weight: 70.5 }
+After more updates: { age: 31, height: 6, name: "Jane", weight: 65 }

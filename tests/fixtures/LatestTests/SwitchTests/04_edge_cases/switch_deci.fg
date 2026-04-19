@@ -1,0 +1,13 @@
+var a: deci = 2.5
+
+switch a {
+  case 2.5:{
+    println("two point five")
+  }
+  case 3.14:{
+    println("pi")
+  }
+  default:{
+    println("default")
+  }
+}

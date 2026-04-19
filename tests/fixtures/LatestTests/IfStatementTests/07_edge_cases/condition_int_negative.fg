@@ -1,0 +1,7 @@
+var x: int = -1
+
+if (x) {
+  println("truthy")
+} else {
+  println("falsy")
+}

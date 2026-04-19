@@ -1,0 +1,215 @@
+{
+  "generatedAt": 1773480990780532,
+  "source": "/Users/apple/code/per/Flow-Wing/src/lsp/server/src/tests/junk_test.fg",
+  "stage": "parsing",
+  "tree": {
+    "kind": "CompilationUnit",
+    "range": {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    "statements": [
+      {
+        "expression": {
+          "expression": {
+            "expression": {
+              "expression": {
+                "kind": "IdentifierExpression",
+                "range": {
+                  "end": [
+                    0,
+                    8
+                  ],
+                  "start": [
+                    0,
+                    4
+                  ]
+                },
+                "value": "JUNK"
+              },
+              "kind": "UnaryExpression",
+              "operator": "!",
+              "range": {
+                "end": [
+                  0,
+                  8
+                ],
+                "start": [
+                  0,
+                  2
+                ]
+              }
+            },
+            "kind": "UnaryExpression",
+            "operator": "!",
+            "range": {
+              "end": [
+                0,
+                8
+              ],
+              "start": [
+                0,
+                1
+              ]
+            }
+          },
+          "kind": "UnaryExpression",
+          "operator": "!",
+          "range": {
+            "end": [
+              0,
+              8
+            ],
+            "start": [
+              0,
+              0
+            ]
+          }
+        },
+        "kind": "ExpressionStatement",
+        "range": {
+          "end": [
+            0,
+            8
+          ],
+          "start": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "expression": {
+          "expression": {
+            "expression": {
+              "expression": {
+                "expression": {
+                  "expression": {
+                    "expression": {
+                      "code": "UnexpectedToken",
+                      "help": "",
+                      "kind": "ErrorExpression",
+                      "level": "Error",
+                      "location": {
+                        "end": [
+                          1,
+                          1
+                        ],
+                        "start": [
+                          1,
+                          0
+                        ]
+                      },
+                      "message": "Unexpected token '<\u001b[1;33mEndOfFileToken\u001b[1;37m>'. Expected '<\u001b[1;33mValid Expression or Statement\u001b[1;37m>'.",
+                      "note": "",
+                      "range": {
+                        "end": [
+                          1,
+                          1
+                        ],
+                        "start": [
+                          1,
+                          0
+                        ]
+                      },
+                      "skipped_tokens": [
+                        "<EndOfFileToken>"
+                      ],
+                      "type": "Syntactic"
+                    },
+                    "kind": "ParenthesizedExpression",
+                    "range": {
+                      "end": [
+                        1,
+                        1
+                      ],
+                      "start": [
+                        0,
+                        15
+                      ]
+                    }
+                  },
+                  "kind": "ParenthesizedExpression",
+                  "range": {
+                    "end": [
+                      1,
+                      1
+                    ],
+                    "start": [
+                      0,
+                      14
+                    ]
+                  }
+                },
+                "kind": "ParenthesizedExpression",
+                "range": {
+                  "end": [
+                    1,
+                    1
+                  ],
+                  "start": [
+                    0,
+                    13
+                  ]
+                }
+              },
+              "kind": "UnaryExpression",
+              "operator": "!",
+              "range": {
+                "end": [
+                  1,
+                  1
+                ],
+                "start": [
+                  0,
+                  11
+                ]
+              }
+            },
+            "kind": "UnaryExpression",
+            "operator": "!",
+            "range": {
+              "end": [
+                1,
+                1
+              ],
+              "start": [
+                0,
+                10
+              ]
+            }
+          },
+          "kind": "UnaryExpression",
+          "operator": "!",
+          "range": {
+            "end": [
+              1,
+              1
+            ],
+            "start": [
+              0,
+              9
+            ]
+          }
+        },
+        "kind": "ExpressionStatement",
+        "range": {
+          "end": [
+            1,
+            1
+          ],
+          "start": [
+            0,
+            9
+          ]
+        }
+      }
+    ]
+  }
+}

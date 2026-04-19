@@ -1,0 +1,29 @@
+print("Boolean Equality\n")
+print(true == true, "\n")
+print(true == false, "\n")
+print(false == true, "\n")
+print(false == false, "\n")
+
+print("Decimal Equality\n")
+print(1.0 == 1.0, "\n")
+print(1.0 == 2.0, "\n")
+print(2.0 == 1.0, "\n")
+print(2.0 == 2.0, "\n")
+
+print("Nir Equality\n")
+print(null == null, "\n")
+
+print("Int32 Equality\n")
+print(2 == 2, "\n")
+
+print("String Equality\n")
+print("Hello" == "Hello", "\n")
+print("Hello" == "World", "\n")
+print("World" == "Hello", "\n")
+print("World" == "World", "\n")
+
+print("Character Equality\n")
+print('a' == 'a', "\n")
+print('a' == 'b', "\n")
+print('b' == 'a', "\n")
+print('b' == 'b', "\n")

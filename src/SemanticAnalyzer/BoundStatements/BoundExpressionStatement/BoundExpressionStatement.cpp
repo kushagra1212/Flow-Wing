@@ -17,33 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundExpressionStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 
-#include "BoundExpressionStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundExpressionStatement::BoundExpressionStatement(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundExpression> expression)
-    : BoundSourceLocation(location) {
+    std::unique_ptr<BoundExpression> expression,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location), m_expression(std::move(expression)) {}
 
-  this->_expression = std::move(expression);
-
-  // Add children
-
-  this->_children.push_back(this->_expression.get());
+NodeKind BoundExpressionStatement::getKind() const {
+  return NodeKind::kExpressionStatement;
 }
 
-std::unique_ptr<BoundExpression> BoundExpressionStatement::getExpression() {
-  return std::move(_expression);
+void BoundExpressionStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
 }
 
-BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ExpressionStatement;
+const std::unique_ptr<BoundExpression> &
+BoundExpressionStatement::getExpression() const {
+  return m_expression;
 }
 
-std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
-  return this->_children;
-}
-
-std::unique_ptr<BoundExpression> &BoundExpressionStatement::getExpressionPtr() {
-  return this->_expression;
-}
+} // namespace binding
+} // namespace flow_wing

@@ -1,0 +1,6 @@
+Before assignment:
+x: { _bool: false, _char: '', _deci32_age: 0, _deci_age: 0, _int64: 0, _int8: 0, _int_age: 0, _string_name: "" }
+y: { _int64: 0, _int_age: 20, _string_name: "John" }
+After assignment:
+x: { _bool: false, _char: '', _deci32_age: 0, _deci_age: 0, _int64: 0, _int8: 0, _int_age: 20, _string_name: "John" }
+y: { _int64: 0, _int_age: 20, _string_name: "John" }

@@ -1,0 +1,12 @@
+fun inc(inout n: int) {
+  n = n + 1
+}
+
+var g: int = 0
+{
+  inc(g)
+  println(g)
+  inc(g)
+  println(g)
+}
+println(g)

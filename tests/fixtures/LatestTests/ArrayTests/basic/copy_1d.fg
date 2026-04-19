@@ -1,0 +1,4 @@
+var a:int[2] = [1, 2]
+println(a)
+var b:int[2] = a
+println(b)

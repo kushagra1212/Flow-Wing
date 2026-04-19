@@ -1,0 +1,20 @@
+print("Complex Concatenation Operation\n")
+print("Hello" + "World" + "Hello", "\n")
+print("Hello" + "World" + "Hello" + "World", "\n")
+
+
+print("Contact different types in single operation\n")
+print("Hello" + 2 + "World" + true + "Hello", "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false, "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a', "\n")
+print("Hello" + 2 + "World" + true + "Hello" + 2.0 + 2.2f + 2.5 + false + 'a' + 'b', "\n")
+
+
+print(0*(1+2.2)+1.1*2.3f+"S"+1*2+2*0.01+"1111"+"hello"=="1.10000000000000S20.000000000000001111hello")
+print("\n")
+print(0*(1+1)+1.1*1+"S"+1*2+1*0.01+"1111"+"hello")
+print("Ex:1\n")
+print(0*(1+2.2)+1.1*2.3f+"S"+1*2+2*0.01+"1111"+"hello" == "2.52999994754791S20.021111hello")

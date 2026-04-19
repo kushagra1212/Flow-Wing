@@ -1,0 +1,3 @@
+print(+0xFFFFFFFFl, "\n")
+/; EXPECT: 4294967295
+

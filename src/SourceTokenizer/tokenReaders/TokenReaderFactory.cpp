@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,12 +33,15 @@
 #include "WhiteSpaceTokenReader/WhiteSpaceTokenReader.h"
 #include "src/SourceTokenizer/SourceTokenizer.h"
 
+namespace flow_wing {
+namespace lexer {
+
 std::unique_ptr<TokenReader>
 TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
   if (lexer.isEOF())
     return std::make_unique<EndOfFileTokenReader>();
 
-  if (lexer.isEOL() || lexer.currentChar() == '\n')
+  if (lexer.isEOL())
     return std::make_unique<EndOfLineTokenReader>();
 
   if (isspace(lexer.currentChar()))
@@ -47,7 +50,7 @@ TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
   if (isdigit(lexer.currentChar()))
     return std::make_unique<NumberTokenReader>();
 
-  if (isalpha(lexer.currentChar()))
+  if (isalpha(lexer.currentChar()) || lexer.currentChar() == '_')
     return std::make_unique<KeywordTokenReader>();
 
   if (lexer.currentChar() == '\'')
@@ -67,3 +70,6 @@ TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
 
   return std::make_unique<SymbolTokenReader>();
 }
+
+} // namespace lexer
+} // namespace flow_wing

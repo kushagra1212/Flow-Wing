@@ -1,0 +1,20 @@
+fun countDigits(n: int) -> int {
+  if (n == 0) {
+    return 1
+  }
+  var c: int = 0
+  var x: int = n
+  if (x < 0) {
+    x = -x
+  }
+  while (x > 0) {
+    c = c + 1
+    x = x // 10
+  }
+  return c
+}
+
+println(countDigits(12345))
+println(countDigits(0))
+println(countDigits(9))
+println("done")

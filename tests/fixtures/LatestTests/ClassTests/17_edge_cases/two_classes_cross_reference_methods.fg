@@ -1,0 +1,17 @@
+class A {
+  fun init() -> nthg {}
+  fun tag() -> int {
+    return 1
+  }
+}
+
+class B {
+  fun init() -> nthg {}
+  fun fromA(a: A) -> int {
+    return a.tag() + 10
+  }
+}
+
+var a: A = new A()
+var b: B = new B()
+println(b.fromA(a))

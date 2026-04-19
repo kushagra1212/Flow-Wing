@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: FunctionAlreadyDeclared
+class A {
+  fun init() -> nthg {}
+  fun f() -> int {
+    return 1
+  }
+  fun f() -> int {
+    return 2
+  }
+}

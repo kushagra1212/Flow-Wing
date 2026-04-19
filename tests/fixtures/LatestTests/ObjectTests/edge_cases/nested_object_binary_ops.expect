@@ -1,0 +1,3 @@
+rect1: { bottomRight: { x: 10, y: 10 }, topLeft: { x: 0, y: 0 } }
+rect2: { bottomRight: { x: 15, y: 15 }, topLeft: { x: 5, y: 5 } }
+result (rect1 + rect2): { bottomRight: { x: 25, y: 25 }, topLeft: { x: 5, y: 5 } }

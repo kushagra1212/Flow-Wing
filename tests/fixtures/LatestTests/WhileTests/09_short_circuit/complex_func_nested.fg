@@ -1,0 +1,18 @@
+fun outer(n: int) -> bool {
+  return n < 2
+}
+
+fun left() -> bool {
+  return false
+}
+
+fun right() -> bool {
+  return true
+}
+
+var i = 0
+while (outer(i) && (left() || right())) {
+  println(i)
+  i = i + 1
+}
+println("done")

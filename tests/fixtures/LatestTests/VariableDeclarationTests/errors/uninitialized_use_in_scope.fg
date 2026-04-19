@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: VariableNotFound
+{
+  print(x, "\n")
+}
+var x:int = 10
+

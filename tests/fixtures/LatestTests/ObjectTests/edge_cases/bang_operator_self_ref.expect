@@ -1,0 +1,6 @@
+node1: { next: null, value: 1 }
+node2: { next: { next: null, value: 1 }, value: 2 }
+!node1: false
+!node2: false
+!node1.next: true
+!node2.next: false

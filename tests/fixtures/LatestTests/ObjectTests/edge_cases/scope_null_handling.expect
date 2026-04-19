@@ -1,0 +1,7 @@
+before scope p1: { x: 10, y: 20 }
+p1 == null: false
+inside scope p1: null
+p1 == null: true
+inside scope p1 after reassign: { x: 100, y: 200 }
+after scope p1: { x: 100, y: 200 }
+p1 == null: false

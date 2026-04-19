@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,47 +20,33 @@
 #pragma once
 
 #include "src/syntax/SyntaxToken.h"
-#include "src/syntax/expression/AttributeExpressionSyntax/AttributeExpressionSyntax.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
 
+namespace flow_wing {
+namespace syntax {
+
 class ObjectExpressionSyntax : public ExpressionSyntax {
-private:
-  std::vector<std::unique_ptr<AttributeExpressionSyntax>> _attributes;
-  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
-  std::unique_ptr<SyntaxToken<std::any>> _closeBraceToken;
 
 public:
+  ObjectExpressionSyntax(const SyntaxToken *open_brace_token,
+                         std::unique_ptr<ExpressionSyntax> colon_expression,
+                         const SyntaxToken *close_brace_token);
+
   // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  // Setters
-  inline auto
-  addAttribute(std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
-               std::unique_ptr<ExpressionSyntax> value) -> void {
-    std::unique_ptr<AttributeExpressionSyntax> attribute =
-        std::make_unique<AttributeExpressionSyntax>();
-
-    attribute->setAttribute(std::move(key), std::move(value));
-    _attributes.push_back(std::move(attribute));
-  }
-
+  NodeKind getKind() const override;
+  const std::vector<const SyntaxNode *> &getChildren() const override;
+  void accept(visitor::ASTVisitor *visitor) override;
   // Getters
-  auto getAttributes()
-      -> const std::vector<std::unique_ptr<AttributeExpressionSyntax>> & {
-    return _attributes;
-  }
 
-  auto setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken)
-      -> void {
-    _openBraceToken = std::move(openBraceToken);
-  }
+  const std::unique_ptr<ExpressionSyntax> &getColonExpression() const;
 
-  auto
-  setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken)
-      -> void {
-    _closeBraceToken = std::move(closeBraceToken);
-  }
+private:
+  const SyntaxToken *m_open_brace_token;
+  std::unique_ptr<ExpressionSyntax> m_colon_expression;
+  const SyntaxToken *m_close_brace_token;
+
+  mutable std::vector<const SyntaxNode *> m_children;
 };
+} // namespace syntax
+} // namespace flow_wing

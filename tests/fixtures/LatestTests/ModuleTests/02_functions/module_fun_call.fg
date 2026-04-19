@@ -1,0 +1,7 @@
+module [lib]
+
+fun getN() -> int {
+  return 7
+}
+
+println(lib::getN())

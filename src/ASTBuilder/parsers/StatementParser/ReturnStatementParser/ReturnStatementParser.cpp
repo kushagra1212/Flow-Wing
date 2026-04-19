@@ -18,51 +18,28 @@
  */
 
 #include "ReturnStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+namespace flow_wing {
+namespace parser {
 
-std::unique_ptr<StatementSyntax>
-ReturnStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SyntaxToken<std::any>> returnKeyword =
-      ctx->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
-  ctx->setIsInsideReturnStatement(true);
-  std::unique_ptr<ReturnStatementSyntax> returnStatement =
-      std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword));
+ReturnStatementParser::ReturnStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  auto parseStatementLambda = [&]() {
-    do {
+std::unique_ptr<syntax::StatementSyntax> ReturnStatementParser::parse() {
+  auto return_keyword = m_ctx->match(lexer::TokenKind::kReturnKeyword);
 
-      if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
-        ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-        ctx->getCodeFormatterRef()->appendWithSpace();
-      }
+  auto colon_token = m_ctx->matchIf(lexer::TokenKind::kColonToken);
 
-      std::unique_ptr<ExpressionSyntax> expression =
-          PrecedenceAwareExpressionParser::parse(ctx);
+  std::unique_ptr<syntax::ExpressionSyntax> return_expression = nullptr;
 
-      returnStatement->addReturnExpression(std::move(expression));
-
-    } while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
-  };
-
-  ctx->getCodeFormatterRef()->appendWithSpace();
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
-    ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    parseStatementLambda();
-    ctx->getCodeFormatterRef()->appendWithSpace();
-    ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-
-  } else if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::ColonToken) {
-    parseStatementLambda();
-  } else {
-    ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+  if (colon_token == nullptr) {
+    return_expression = PrecedenceAwareExpressionParser::parse(m_ctx);
   }
 
-  ctx->setIsInsideReturnStatement(false);
-  return returnStatement;
+  return std::make_unique<syntax::ReturnStatementSyntax>(
+      return_keyword, colon_token, std::move(return_expression));
 }
+} // namespace parser
+} // namespace flow_wing

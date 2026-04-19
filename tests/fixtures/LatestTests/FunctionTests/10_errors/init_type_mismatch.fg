@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+fun getText() -> str {
+  return "hello"
+}
+
+var x: int = getText()

@@ -1,0 +1,6 @@
+fun getStr() -> str {
+  return "dynamic"
+}
+
+var s = getStr()
+println(s)

@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: ParentClassNotFound
+class A extends UnknownBase {
+  fun init() -> nthg {
+  }
+}

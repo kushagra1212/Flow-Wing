@@ -1,0 +1,12 @@
+
+/; Tests that sys::exit properly terminates the program
+/; Any code placed after sys::exit(0) should never execute.
+bring sys
+
+println("Starting execution...")
+println("Calling sys::exit(0)...")
+
+sys::exit(0)
+
+/; This line should not be evaluated, meaning it won't appear in the .expect file
+println("FAIL: This code executed after exit!")

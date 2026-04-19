@@ -1,0 +1,7 @@
+var t:bool = true
+var f:bool = false
+println(t)
+println(f)
+println(t && f)
+println(t || f)
+println(!t)

@@ -1,0 +1,6 @@
+fun notVal(b: bool) -> bool {
+  return !b
+}
+
+println(notVal(true))
+println(notVal(false))

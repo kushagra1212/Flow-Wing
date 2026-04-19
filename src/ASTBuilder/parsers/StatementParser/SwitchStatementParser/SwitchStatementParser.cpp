@@ -18,56 +18,45 @@
  */
 
 #include "SwitchStatementParser.h"
-#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 #include "src/ASTBuilder/parsers/StatementParser/CaseStatementParser/CaseStatementParser.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
-#include <memory>
 
-std::unique_ptr<StatementSyntax>
-SwitchStatementParser::parseStatement(ParserContext *ctx) {
-  std::unique_ptr<SwitchStatementSyntax> switchStatement =
-      std::make_unique<SwitchStatementSyntax>();
-  switchStatement->setSwitchToken(
-      (ctx->match(SyntaxKindUtils::SyntaxKind::SwitchKeyword)));
+namespace flow_wing {
+namespace parser {
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+SwitchStatementParser::SwitchStatementParser(ParserContext *ctx) : m_ctx(ctx) {}
 
-  switchStatement->setSwitchExpression(
-      PrecedenceAwareExpressionParser::parse(ctx));
+std::unique_ptr<syntax::StatementSyntax> SwitchStatementParser::parse() {
 
-  ctx->getCodeFormatterRef()->appendWithSpace();
+  auto switch_keyword =
+      m_ctx->match(lexer::TokenKind::kSwitchKeyword); // switch
 
-  switchStatement->setOpenCurlyToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
+  auto switch_condition_expression =
+      PrecedenceAwareExpressionParser::parse(m_ctx); // switch_condition
 
-  ctx->getCodeFormatterRef()->appendNewLine();
+  auto open_brace_token = m_ctx->match(lexer::TokenKind::kOpenBraceToken); // {
 
-  ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
+  auto case_statements =
+      std::vector<std::unique_ptr<syntax::StatementSyntax>>();
 
-  while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
-         ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    ctx->getCodeFormatterRef()->append(
-        ctx->getCodeFormatterRef()->getIndentAmount());
-    std::unique_ptr<CaseStatementSyntax> caseStatement(
-        static_cast<CaseStatementSyntax *>(
-            std::make_unique<CaseStatementParser>()
-                ->parseStatement(ctx)
-                .release()));
+  auto case_statement_parser = std::make_unique<CaseStatementParser>(m_ctx);
 
-    switchStatement->addCaseStatement(std::move(caseStatement));
+  while (m_ctx->getCurrentTokenKind() != lexer::TokenKind::kCloseBraceToken &&
+         m_ctx->getCurrentTokenKind() != lexer::TokenKind::kEndOfFileToken) {
+    auto case_statement = case_statement_parser->parse(); // case_statement
+
+    case_statements.push_back(std::move(case_statement));
   }
 
-  ctx->getCodeFormatterRef()->setIndentAmount(
-      ctx->getCodeFormatterRef()->getIndentAmount().substr(
-          0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
-                 (sizeof(TAB_SPACE) - 1)));
-  switchStatement->setCloseCurlyToken(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
+  auto close_brace_token =
+      m_ctx->match(lexer::TokenKind::kCloseBraceToken); // }
 
-  ctx->getCodeFormatterRef()->appendNewLine();
-
-  return std::move(switchStatement);
+  return std::make_unique<syntax::SwitchStatementSyntax>(
+      switch_keyword, std::move(switch_condition_expression), open_brace_token,
+      std::move(case_statements), close_brace_token);
 }
+} // namespace parser
+} // namespace flow_wing

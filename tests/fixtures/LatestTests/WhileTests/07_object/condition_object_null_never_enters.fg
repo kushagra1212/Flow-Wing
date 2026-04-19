@@ -1,0 +1,10 @@
+type T = {
+  v: int
+}
+
+var o: T = null
+var n = 0
+while (o) {
+  n = n + 1
+}
+println(n)

@@ -1,0 +1,28 @@
+class B {
+    init()->nthg {
+
+      }
+  }
+class A {
+
+  var x:int 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getA() -> A {
+    return new A(12)    
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+var b:A = a.getA()
+
+var ba:B = a.getB()
+print(a.x)
+print(b.x)

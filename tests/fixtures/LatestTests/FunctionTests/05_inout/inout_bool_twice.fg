@@ -1,0 +1,10 @@
+fun flip(inout b: bool) {
+  b = !b
+}
+
+var f: bool = false
+println(f)
+flip(f)
+println(f)
+flip(f)
+println(f)

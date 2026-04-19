@@ -18,22 +18,19 @@
  */
 
 #include "NirastExpressionParser.h"
-#include "src/ASTBuilder/parsers/ExpressionParser/LiteralExpressionParserUtils/LiteralExpressionParserUtils.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
-#include "src/syntax/SyntaxKindUtils.h"
-#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 #include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
-#include <memory>
 
-std::unique_ptr<ExpressionSyntax>
-NirastExpressionParser::parseExpression(ParserContext *ctx) {
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> litExpr(
-      static_cast<LiteralExpressionSyntax<std::any> *>(
-          LiteralExpressionParserUtils::parseExpression(
-              ctx, SyntaxKindUtils::SyntaxKind::NirastKeyword)
-              .release()));
+namespace flow_wing {
+namespace parser {
 
-  return std::make_unique<NirastExpressionSyntax>(std::move(litExpr));
+NirastExpressionParser::NirastExpressionParser(ParserContext *ctx)
+    : m_ctx(ctx) {}
+
+std::unique_ptr<syntax::ExpressionSyntax> NirastExpressionParser::parse() {
+  return std::make_unique<syntax::NirastExpressionSyntax>(
+      m_ctx->match(lexer::TokenKind::kNirastKeyword)); // Nir
 }
+} // namespace parser
+} // namespace flow_wing

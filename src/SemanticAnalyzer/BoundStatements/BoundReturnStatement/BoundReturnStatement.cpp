@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "BoundReturnStatement.hpp"
+#include "src/BoundTreeVisitor/BoundTreeVisitor.hpp"
 
-#include "BoundReturnStatement.h"
+namespace flow_wing {
+namespace binding {
 
 BoundReturnStatement::BoundReturnStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    std::vector<std::unique_ptr<BoundExpression>> return_expressions,
+    const analysis::FunctionSymbol *function_symbol,
+    const flow_wing::diagnostic::SourceLocation &location)
+    : BoundStatement(location),
+      m_return_expressions(std::move(return_expressions)),
+      m_function_symbol(function_symbol) {}
 
-BinderKindUtils::BoundNodeKind BoundReturnStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::ReturnStatement;
+NodeKind BoundReturnStatement::getKind() const {
+  return NodeKind::kReturnStatement;
 }
-std::vector<BoundNode *> BoundReturnStatement::getChildren() {
-  if (this->_children.empty()) {
-    for (auto &expr : this->_returnExpressionList) {
-      this->_children.push_back(expr.get());
-    }
-  }
 
-  return this->_children;
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundReturnStatement::getReturnExpressions() const {
+  return m_return_expressions;
 }
+
+const analysis::FunctionSymbol *
+BoundReturnStatement::getFunctionSymbol() const {
+  return m_function_symbol;
+}
+
+void BoundReturnStatement::accept(visitor::BoundTreeVisitor *visitor) {
+  visitor->visit(this);
+}
+
+} // namespace binding
+} // namespace flow_wing

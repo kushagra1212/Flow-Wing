@@ -1,0 +1,23 @@
+Int8 and Int32 Mixed Operations
+Addition:
+1010
+1010
+255
+872
+Subtraction:
+-990
+990
+-1
+Multiplication:
+10000
+10000
+-10000
+Division:
+0.01
+100
+Integer Division:
+0
+100
+Modulo:
+10
+0
