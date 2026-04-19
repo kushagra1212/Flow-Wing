@@ -285,8 +285,13 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
 
 # Install prefix baked into compiler binary for module/library resolution
 if(FLOWWING_INSTALL_PREFIX)
+    set(_FLOWWING_INSTALL_PREFIX_DEFINE "${FLOWWING_INSTALL_PREFIX}")
+    if(WIN32)
+        # MSVC treats backslashes in "..." macro string literals as escapes (e.g. \P, \F); use /.
+        string(REPLACE "\\" "/" _FLOWWING_INSTALL_PREFIX_DEFINE "${_FLOWWING_INSTALL_PREFIX_DEFINE}")
+    endif()
     target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
-        "FLOWWING_INSTALL_PREFIX=\"${FLOWWING_INSTALL_PREFIX}\""
+        "FLOWWING_INSTALL_PREFIX=\"${_FLOWWING_INSTALL_PREFIX_DEFINE}\""
     )
     message(STATUS "FlowWing install prefix baked into binary: ${FLOWWING_INSTALL_PREFIX}")
 else()
