@@ -105,8 +105,10 @@ git config user.email "$GIT_AUTHOR_EMAIL"
 git checkout -b "bump-flowwing-$VERSION"
 git add FlowWing.rb
 git commit -m "FlowWing $VERSION"
-# Actions sets up a credential helper that uses GITHUB_TOKEN (github-actions[bot]) for github.com;
-# that token cannot push to another repo. Use the PAT in-url + disable helper for this push.
+# actions/checkout injects http.https://github.com/.extraheader (GITHUB_TOKEN). That wins over
+# credentials in the remote URL and authenticates as github-actions[bot], which cannot push to
+# another repo. Unset it so the PAT in the push URL is used.
+git config --local --unset-all "http.https://github.com/.extraheader" 2>/dev/null || true
 GIT_TERMINAL_PROMPT=0 git -c credential.helper= push \
   "https://x-access-token:${TOKEN}@github.com/${TAP_OWNER}/homebrew-flowwing.git" \
   "bump-flowwing-$VERSION" --force

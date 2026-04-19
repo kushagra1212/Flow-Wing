@@ -288,7 +288,8 @@ jobs:
   publish-chocolatey:
     name: Publish to Chocolatey
     needs: upload
-    runs-on: ubuntu-latest
+    # choco is the Chocolatey CLI and is available on Windows images, not on ubuntu-latest.
+    runs-on: windows-latest
     continue-on-error: true
     steps:
       - name: Checkout repository
@@ -298,11 +299,18 @@ jobs:
           fetch-tags: true
           fetch-depth: 0
 
+      - name: Install jq (JSON for release API)
+        shell: pwsh
+        run: choco install jq -y
+
       - name: Publish to Chocolatey
+        shell: bash
         env:
           TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
           RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
         run: |
+          # Chocolatey shims + Git usrbin (sha256sum, etc.) for Git Bash
+          export PATH="/c/ProgramData/chocolatey/bin:/c/Program Files/Git/usr/bin:$PATH"
           chmod +x .github/workflows/scripts/package-chocolatey.sh
           .github/workflows/scripts/package-chocolatey.sh \
             "${TAG}" \
