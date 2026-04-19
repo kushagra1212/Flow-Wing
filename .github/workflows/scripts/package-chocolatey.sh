@@ -6,16 +6,18 @@ set -e
 #   $2: release_url - GitHub release HTML URL
 #   $3: api_key - Chocolatey API key
 
-VERSION="$1"
+RAW_VERSION="$1"
+VERSION="${RAW_VERSION#v}"  # strip leading 'v' for Chocolatey semver compatibility
 RELEASE_URL="$2"
 API_KEY="$3"
 
 echo "=== Publishing to Chocolatey ==="
-echo "Version: $VERSION"
+echo "Raw version: $RAW_VERSION"
+echo "Version (for package): $VERSION"
 echo "Release URL: $RELEASE_URL"
 
 # Get the Windows download URL
-WINDOWS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
+WINDOWS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/${RAW_VERSION}" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
 
 if [ -z "$WINDOWS_URL" ]; then
   echo "Warning: Could not find Windows artifact for Chocolatey package."
@@ -58,37 +60,20 @@ NUSPEC_EOF
 
 cat > flowwing/tools/chocolateyinstall.ps1 << 'PS1_EOF'
 $package = 'flowwing'
-$version = '$VERSION'
+$version = '$VERSION_PLACEHOLDER'
 $url = 'WINDOWS_URL_PLACEHOLDER'
 $checksum = 'WINDOWS_SHA256_PLACEHOLDER'
-$checksumType = 'sha256'
-$installDir = Join-Path $env:ProgramFiles "FlowWing\$version"
-
-Install-ChocolateyZipPackage -PackageName "$package" `
-  -Url "$url" `
-  -UnzipLocation "$installDir" `
-  -Checksum "$checksum" `
-  -ChecksumType "$checksumType"
-
-# Add to PATH
-$binPath = Join-Path $installDir 'bin'
-$null = [System.Environment]::SetEnvironmentVariable('PATH', "$env:PATH;$binPath", 'Machine')
-
-# Create start menu shortcut
-$shortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\FlowWing.lnk'
-Install-ChocolateyShortcut -ShortcutFilePath $shortcutPath `
-  -TargetPath (Join-Path $installDir 'bin\FlowWing.exe') `
-  -WorkDir $installDir
 PS1_EOF
 
 # Replace placeholders (URLs contain / so sed 's///' breaks; use Python)
-WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" python3 << 'PY'
+WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" WV="$VERSION" python3 << 'PY'
 from pathlib import Path
 import os
 p = Path("flowwing/tools/chocolateyinstall.ps1")
 t = p.read_text()
 t = t.replace("WINDOWS_URL_PLACEHOLDER", os.environ["WU"])
 t = t.replace("WINDOWS_SHA256_PLACEHOLDER", os.environ["WS"])
+t = t.replace("$VERSION_PLACEHOLDER", os.environ["WV"])
 p.write_text(t)
 PY
 
