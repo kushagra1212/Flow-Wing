@@ -248,14 +248,13 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   }
   auto JIT = std::move(*JITExpected);
 
-  // LLJIT attaches a DynamicLibrarySearchGenerator::GetForCurrentProcess to
-  // MainJITDylib by default, which consults
-  // llvm::sys::DynamicLibrary::SearchForAddressOfSymbol before falling back
-  // to dlsym / GetProcAddress.  Pre-populating the explicit-symbols map
-  // with every FlowWing runtime function guarantees JIT resolution even on
-  // Windows, where /WHOLEARCHIVE'd static-lib symbols are not exposed in
-  // the .exe's export directory (see JITRuntimeSymbols.hpp for rationale).
-  flow_wing::ir_gen::jit_utils::registerRuntimeSymbols();
+  // Install FlowWing runtime symbols as absolute definitions in
+  // MainJITDylib.  LLJIT's default DynamicLibrarySearchGenerator goes
+  // through dlsym / GetProcAddress, which on Windows cannot see
+  // /WHOLEARCHIVE'd static-lib symbols (they're not in the PE export
+  // directory).  Defining them here guarantees resolution on every
+  // platform — see JITRuntimeSymbols.hpp for the full rationale.
+  flow_wing::ir_gen::jit_utils::registerRuntimeSymbols(*JIT);
 
   // 3. Create a ThreadSafeContext.
   // ORC JIT requires modules to be wrapped in ThreadSafeModule for thread

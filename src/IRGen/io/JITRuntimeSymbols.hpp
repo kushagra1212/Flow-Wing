@@ -10,29 +10,46 @@
 
 #pragma once
 
+// clang-format off
+#include "src/common/diagnostics/diagnostic_push.h"
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include "src/common/diagnostics/diagnostic_pop.h"
+// clang-format on
+
 namespace flow_wing::ir_gen::jit_utils {
 
 /**
- * @brief Make the FlowWing C runtime symbols (fg_*, dyn_list_*, dyn_map_*,
- *        file_*, io_*, sys_*, vortex_*, str*) findable by LLJIT's default
- *        DynamicLibrarySearchGenerator.
+ * @brief Install the FlowWing C runtime symbols (fg_*, dyn_list_*, dyn_map_*,
+ *        file_*, io_*, vortex_*, str*) as absolute definitions inside the
+ *        JIT's MainJITDylib.
  *
- * On Linux the compiler build links FlowWing-jit with
- * `-Wl,--export-dynamic`, on macOS `dlsym(RTLD_DEFAULT)` is already able to
- * see all whole-archive'd symbols, so those platforms work out of the box.
+ * Why not just rely on LLJIT's default
+ * `DynamicLibrarySearchGenerator::GetForCurrentProcess`?
  *
- * On Windows (MSVC) however, symbols from a `/WHOLEARCHIVE`'d static lib
- * are *not* placed into the .exe's export directory, so
- * `GetProcAddress(nullptr, "fg_pf")` returns NULL and the JIT fails at
- * link time with `Symbols not found: [ fg_pf, dyn_list_new, ... ]`.
+ *   The default generator ultimately calls
+ *   `llvm::sys::DynamicLibrary::getAddressOfSymbol`, which on every platform
+ *   goes through `dlsym(RTLD_DEFAULT, ...)` / `GetProcAddress(nullptr, ...)`
+ *   and — per the header's own docs — does NOT consult symbols registered
+ *   via `llvm::sys::DynamicLibrary::AddSymbol`.
  *
- * To sidestep that, this function pushes every known runtime symbol into
- * `llvm::sys::DynamicLibrary::AddSymbol`, which LLVM's
- * `DynamicLibrarySearchGenerator::GetForCurrentProcess` consults *before*
- * falling back to `GetProcAddress`.  The call is idempotent and safe to
- * invoke on every JIT entry.  The source of truth for the symbol list is
- * `JITRuntimeSymbols.def`.
+ *   * On macOS / Linux the compiler links with `-force_load` /
+ *     `--whole-archive` + (on Linux) `--export-dynamic`, so the runtime
+ *     functions end up in the dynamic symbol table and `dlsym` finds them.
+ *
+ *   * On Windows, symbols brought in via `/WHOLEARCHIVE` are NOT placed in
+ *     the PE export directory, so `GetProcAddress(nullptr, "fg_pf")`
+ *     returns NULL and ORC reports
+ *     `Symbols not found: [ fg_pf, dyn_list_new, ... ]`.
+ *
+ * Defining the addresses as absolute symbols inside MainJITDylib bypasses
+ * that whole path: ORC resolves them from the materialization unit we hand
+ * it before it ever asks the process-wide dynamic library generator.  The
+ * source of truth for the symbol list is `JITRuntimeSymbols.def`.
+ *
+ * In AOT builds this is a no-op — the runtime libs aren't linked into the
+ * compiler binary, so taking `&fg_pf` would be an unresolved external.  The
+ * `.cpp` guards all runtime references with `#ifdef JIT_MODE`.
  */
-void registerRuntimeSymbols();
+void registerRuntimeSymbols(llvm::orc::LLJIT &JIT);
 
 } // namespace flow_wing::ir_gen::jit_utils
