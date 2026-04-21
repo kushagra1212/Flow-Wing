@@ -57,6 +57,11 @@ public:
 
   // Gets the path to the fg modules (.fg files).
   static std::filesystem::path getModulesPath() {
+    if (const char *env = std::getenv("FLOWWING_MODULES_PATH")) {
+      if (env[0] != '\0') {
+        return std::filesystem::path(env);
+      }
+    }
     auto exePath = getExecutablePath();
 #if defined(__APPLE__)
     if (exePath.string().find(".app/Contents/MacOS") != std::string::npos) {
@@ -73,6 +78,24 @@ public:
 
     if (std::string(TEST_SDK_PATH) != "") {
       return std::filesystem::path(TEST_SDK_PATH) / FLOWWING_PLATFORM_LIB_DIR;
+    }
+
+    // e.g. macOS .app wrapper: FLOWWING_LIB_PATH=<SDK>/lib (parent of
+    // lib/<platform>/). Also accepts the platform lib dir itself (same path
+    // getLibrariesPath() would return).
+    if (const char *env = std::getenv("FLOWWING_LIB_PATH")) {
+      if (env[0] != '\0') {
+        const std::filesystem::path lib_root(env);
+        const std::filesystem::path plat_rel(FLOWWING_PLATFORM_LIB_DIR);
+        std::error_code ec;
+        const std::filesystem::path resolved = lib_root / plat_rel.filename();
+        if (std::filesystem::is_directory(resolved, ec) && !ec) {
+          return resolved;
+        }
+        if (std::filesystem::is_directory(lib_root, ec) && !ec) {
+          return lib_root;
+        }
+      }
     }
 
 #if defined(__APPLE__)
@@ -98,8 +121,38 @@ public:
     return exePath.parent_path().parent_path() / FLOWWING_PLATFORM_LIB_DIR;
   }
 
-  // Gets the path to the AOT linker.(Clang)
-  static std::string getAOTLinkerPath() { return AOT_LINKER_PATH; }
+  // Gets the path to the AOT linker.
+  //
+  // On Unix-like systems the linker we invoke is clang++ acting as a driver.
+  // On Windows the linker we invoke is lld-link.exe (consumes MSVC-style
+  // /OUT:, /LIBPATH:, lib.lib flags). Both binaries ship in the SDK bin/
+  // directory next to FlowWing.exe, which lets us produce zero-dependency
+  // AOT binaries without requiring the user to install MSVC Build Tools.
+  static std::string getAOTLinkerPath() {
+    auto exe = getExecutablePath();
+#if defined(_WIN32)
+    // Prefer bundled lld-link.exe; fall back to an adjacent link.exe if
+    // someone repackaged us alongside MSVC's linker.
+    const std::filesystem::path candidates[] = {
+        exe.parent_path() / "lld-link.exe",
+        exe.parent_path() / "link.exe",
+    };
+#else
+    const std::filesystem::path candidates[] = {
+        exe.parent_path() / "clang++",
+    };
+#endif
+
+    for (const auto &candidate : candidates) {
+      if (std::filesystem::exists(candidate)) {
+        return candidate.string();
+      }
+    }
+
+    // Fall back to the compile-time constant for dev builds or when the
+    // tool is available on PATH (lld-link.exe / clang++ on a dev box).
+    return AOT_LINKER_PATH;
+  }
 };
 
 } // namespace io

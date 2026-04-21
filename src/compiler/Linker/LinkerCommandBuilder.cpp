@@ -59,9 +59,26 @@ std::string LinkerCommandBuilder::generateLinkCommand() {
 // ========================================================
 
 void LinkerCommandBuilder::addLinkerBinary(std::vector<std::string> &args) {
-  std::string linker = AOT_LINKER_PATH;
+  // Linker selection is platform-specific, but in all cases we prefer a
+  // bundled binary sitting next to the FlowWing executable so that end-user
+  // installs (Homebrew / apt / DMG / PKG / NSIS / Chocolatey) don't depend on
+  // a compile-time absolute path from the CI runner.
+  //
+  // * Unix (Linux / macOS): use a bundled clang++ as the driver (emits GCC-
+  //   style flags like -L, -l, -Wl,-w).
+  //
+  // * Windows: use a bundled lld-link.exe — it consumes MSVC-style flags
+  //   (/OUT:, /LIBPATH:, /SUBSYSTEM:CONSOLE, ucrt.lib, ...), so no source
+  //   changes are needed to switch away from link.exe. Shipping lld-link.exe
+  //   in the SDK's bin/ removes the "user must install MSVC Build Tools"
+  //   requirement for AOT compilation.
+  std::string linker = io::PathUtils::getAOTLinkerPath();
   if (linker.empty()) {
+#if defined(_WIN32)
+    linker = "lld-link.exe";
+#else
     linker = "clang++";
+#endif
   }
   args.push_back(std::move(linker));
 }

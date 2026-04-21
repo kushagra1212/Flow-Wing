@@ -174,6 +174,16 @@ help:
 	@echo "    JOBS=-j<N>               Sets the number of parallel build jobs (default: all available cores)."
 	@echo "    SILENT=1                 Suppress build and configuration messages for a clean output."
 	@echo ""
+	@echo "  Release packaging (CI / installers):"
+	@echo "    release-aot-configure    Configure AOT Release with RELEASE_INSTALL_PREFIX (FlowWing + CMake install roots)."
+	@echo "    release-aot-build        Build AOT Release after release-aot-configure."
+	@echo "    release-aot-install      cmake --install into RELEASE_INSTALL_PREFIX."
+	@echo "    release-aot              Run configure, build, and install in one step."
+	@echo "    release-jit-configure    Configure JIT Release with RELEASE_INSTALL_PREFIX."
+	@echo "    release-jit-build        Build JIT Release after release-jit-configure."
+	@echo "    release-jit-install      Install JIT binary as FlowWing-jit into RELEASE_INSTALL_PREFIX/bin/."
+	@echo "    release-jit              Run configure, build, and install (JIT) in one step."
+	@echo ""
 
 #! ----- Dependencies -----
 
@@ -301,19 +311,112 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
 	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
 
+#? AOT Release packaging (installers): same preset as build-aot-release but install prefix is RELEASE_INSTALL_PREFIX
+RELEASE_CONFIG_STAMP := $(AOT_RELEASE_DIR)/.release-configured
+RELEASE_BUILD_STAMP  := $(AOT_RELEASE_DIR)/.release-built
+
+ifeq ($(OS),Windows_NT)
+    CHECK_RELEASE_PREFIX = @if "$(RELEASE_INSTALL_PREFIX)"=="" (echo RELEASE_INSTALL_PREFIX is required & exit /b 1)
+else
+    CHECK_RELEASE_PREFIX = @test -n "$(RELEASE_INSTALL_PREFIX)" || (echo RELEASE_INSTALL_PREFIX is required && exit 1)
+endif
+
+$(RELEASE_CONFIG_STAMP): $(RELEASE_DEPS_DIR)/.installed-Release
+	$(ECHO_MSG) "--> Configuring AOT (Release) for release packaging..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --preset $(AOT_RELEASE_PRESET) -DFLOWWING_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" -DCMAKE_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+	@$(call TOUCH, $(RELEASE_CONFIG_STAMP))
+
+$(RELEASE_BUILD_STAMP): $(RELEASE_CONFIG_STAMP)
+	$(ECHO_MSG) "--> Building AOT (Release) for release packaging..."
+	@cmake --build --preset $(AOT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
+	@$(call TOUCH, $(RELEASE_BUILD_STAMP))
+
+.PHONY: release-aot-configure release-aot-build release-aot-install release-aot
+release-aot-configure: $(RELEASE_CONFIG_STAMP)
+
+release-aot-build: $(RELEASE_BUILD_STAMP)
+
+release-aot-install: $(RELEASE_BUILD_STAMP)
+	$(ECHO_MSG) "--> Installing AOT (Release) to $(RELEASE_INSTALL_PREFIX)..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --install $(AOT_RELEASE_DIR) --prefix "$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+ifeq ($(OS),Windows_NT)
+	@if exist ".fw_dependencies\install\bin\clang++.exe" ( \
+		echo "--> Copying LLVM tools to release stage..." && \
+		cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin" && \
+		cmake -E copy ".fw_dependencies\install\bin\clang++.exe" "$(RELEASE_INSTALL_PREFIX)/bin/" && \
+		cmake -E copy ".fw_dependencies\install\bin\clang.exe" "$(RELEASE_INSTALL_PREFIX)/bin/" \
+	) else ( \
+		echo "--> WARNING: Dependencies not found, LLVM tools will NOT be included" \
+	)
+else
+	@if [ -d ".fw_dependencies/install/bin" ]; then \
+		echo "--> Copying LLVM tools to release stage..."; \
+		cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin"; \
+		cp .fw_dependencies/install/bin/clang++ "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
+		cp .fw_dependencies/install/bin/clang "$(RELEASE_INSTALL_PREFIX)/bin/" 2>/dev/null || true; \
+	else \
+		echo "--> WARNING: Dependencies not found, LLVM tools will NOT be included"; \
+	fi
+endif
+
+release-aot: release-aot-install
+
+#? JIT Release packaging (installers): build FlowWing-jit alongside FlowWing.
+#  Installs into a temporary staging dir, then copies only the binary renamed
+#  to FlowWing-jit under $(RELEASE_INSTALL_PREFIX)/bin/. The JIT binary shares
+#  the same SDK lib/ and lib/modules/ that AOT staged, so no duplication.
+JIT_RELEASE_CONFIG_STAMP := $(JIT_RELEASE_DIR)/.release-configured
+JIT_RELEASE_BUILD_STAMP  := $(JIT_RELEASE_DIR)/.release-built
+JIT_RELEASE_STAGE_DIR    := $(JIT_RELEASE_DIR)/release-stage
+
+$(JIT_RELEASE_CONFIG_STAMP): $(RELEASE_DEPS_DIR)/.installed-Release
+	$(ECHO_MSG) "--> Configuring JIT (Release) for release packaging..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --preset $(JIT_RELEASE_PRESET) -DFLOWWING_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" -DCMAKE_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+	@$(call TOUCH, $(JIT_RELEASE_CONFIG_STAMP))
+
+$(JIT_RELEASE_BUILD_STAMP): $(JIT_RELEASE_CONFIG_STAMP)
+	$(ECHO_MSG) "--> Building JIT (Release) for release packaging..."
+	@cmake --build --preset $(JIT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
+	@$(call TOUCH, $(JIT_RELEASE_BUILD_STAMP))
+
+.PHONY: release-jit-configure release-jit-build release-jit-install release-jit
+release-jit-configure: $(JIT_RELEASE_CONFIG_STAMP)
+
+release-jit-build: $(JIT_RELEASE_BUILD_STAMP)
+
+release-jit-install: $(JIT_RELEASE_BUILD_STAMP)
+	$(ECHO_MSG) "--> Installing JIT (Release) into $(RELEASE_INSTALL_PREFIX) as FlowWing-jit..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --install $(JIT_RELEASE_DIR) --prefix "$(JIT_RELEASE_STAGE_DIR)" $(SILENT_CMD)
+ifeq ($(OS),Windows_NT)
+	@cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin"
+	@cmake -E copy "$(JIT_RELEASE_STAGE_DIR)/bin/FlowWing.exe" "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit.exe"
+else
+	@cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin"
+	@cp "$(JIT_RELEASE_STAGE_DIR)/bin/FlowWing" "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit"
+	@chmod +x "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit"
+endif
+
+release-jit: release-jit-install
+
 #? Run AOT
 .PHONY: run-aot-debug run-aot-release
+run-aot-release: build-aot-release
+	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
+	@$(call RM_RF, $(RUN_OUT_EXE))
+	$(ECHO_MSG) "---------------------------------"
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+	
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	@$(call RM_RF, $(RUN_OUT_EXE))
 	$(ECHO_MSG) "---------------------------------"
 	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE)) 
 
-run-aot-release: build-aot-release
-	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
-	@$(call RM_RF, $(RUN_OUT_EXE))
-	$(ECHO_MSG) "---------------------------------"
-	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) $(ARGS) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
+
 
 #! ----- AOT Tests -----
 

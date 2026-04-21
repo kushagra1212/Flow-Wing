@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,8 +77,30 @@ if(BUILD_AOT) # Use the clang from our local LLVM installation
     # Prefer clang++ for C++ linking, but fallback to clang
 
     if(MSVC)
-    # On Windows with the Visual Studio toolchain, the linker is link.exe.
-        set(AOT_LINKER_PATH "link.exe" CACHE FILEPATH "Path to the MSVC linker")
+        # On Windows we drive the link step with LLVM's lld-link.exe (accepts
+        # the same MSVC-style flags we already emit: /OUT:, /LIBPATH:, raw
+        # <name>.lib, /SUBSYSTEM:CONSOLE, /nologo, /IGNORE:<num>). It ships
+        # with our bundled LLVM so end users don't need MSVC Build Tools
+        # installed to run AOT compilation.
+        #
+        # Resolution order at runtime (see PathUtils::getAOTLinkerPath):
+        #   1. sibling <SDK>/bin/lld-link.exe  — installed layout (NSIS, zip, choco)
+        #   2. sibling <SDK>/bin/link.exe      — someone repackaged us next to MSVC
+        #   3. AOT_LINKER_PATH (this value)    — dev builds + unusual installs
+        #
+        # We set this to the absolute path of the bundled lld-link.exe, mirroring
+        # the Unix branch which bakes in ${CXX_COMPILER}. Using the absolute
+        # bundled path (instead of a bare "lld-link.exe" name) guarantees that
+        # AOT tests running from `build/sdk/bin/FlowWing.exe` keep working on
+        # Windows without requiring LLD on PATH — ilammy/msvc-dev-cmd sets up
+        # LIB / INCLUDE but does NOT put LLD on PATH.
+        if(EXISTS "${DEPS_INSTALL_DIR}/bin/lld-link.exe")
+            set(AOT_LINKER_PATH "${DEPS_INSTALL_DIR}/bin/lld-link.exe" CACHE FILEPATH "Path to the bundled LLD (MSVC-compatible) linker")
+        else()
+            # First-config-before-deps-build fallback; once deps are built,
+            # reconfigure to pick up the absolute path above.
+            set(AOT_LINKER_PATH "lld-link.exe" CACHE FILEPATH "Path to the LLD (MSVC-compatible) linker")
+        endif()
     else()
         # For other toolchains like GCC/Clang on Linux/macOS, the C++ compiler is also used as the linker driver.
         set(AOT_LINKER_PATH "${CXX_COMPILER}" CACHE FILEPATH "Path to clang/clang++ compiler")

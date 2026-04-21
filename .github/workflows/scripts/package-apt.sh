@@ -40,20 +40,36 @@ Description: FlowWing Programming Language
  static and dynamic typing, object-oriented programming, and memory management.
  DEB_EOF
 
-# Download and extract the .deb from the release
+# Download the original .deb and fully unpack it (data + control) so that
+# the postinst/prerm scripts that create /usr/local/bin symlinks are
+# preserved in the rebuilt package.
 curl -L "$LINUX_URL" -o /tmp/flowwing.deb
 dpkg-deb -x /tmp/flowwing.deb flowwing-deb-extracted
+dpkg-deb -e /tmp/flowwing.deb flowwing-deb-control
 
-# Copy the extracted files
+# Copy payload (dest must exist — cp will not create the full path)
+mkdir -p flowwing-deb/usr/local/flow-wing
 cp -r flowwing-deb-extracted/usr/local/flow-wing/* flowwing-deb/usr/local/flow-wing/
 
-# Create the new .deb
-dpkg-deb -b flowwing-deb flowwing_$VERSION_amd64.deb
+# Carry over any maintainer scripts (postinst, prerm, postrm, preinst) that
+# shipped with the upstream package so the repo-rebuilt .deb keeps the
+# PATH symlink behaviour.
+for script in postinst prerm postrm preinst; do
+  if [ -f "flowwing-deb-control/${script}" ]; then
+    cp "flowwing-deb-control/${script}" "flowwing-deb/DEBIAN/${script}"
+    chmod 0755 "flowwing-deb/DEBIAN/${script}"
+  fi
+done
+
+# Create the new .deb (brace-delimit VERSION to avoid Bash treating
+# ${VERSION_amd64} as a single, undefined variable)
+DEB_NAME="flowwing_${VERSION}_amd64.deb"
+dpkg-deb -b flowwing-deb "${DEB_NAME}"
 
 # Upload to apt repository
 curl -H "Authorization: token $TOKEN" \
   -H "Content-Type: application/octet-stream" \
-  --upload-file flowwing_$VERSION_amd64.deb \
-  "https://api.github.com/repos/$USERNAME/flowwing-apt/contents/pool/flowwing/flowwing_$VERSION_amd64.deb"
+  --upload-file "${DEB_NAME}" \
+  "https://api.github.com/repos/$USERNAME/flowwing-apt/contents/pool/flowwing/${DEB_NAME}"
 
 echo "=== apt package uploaded ==="

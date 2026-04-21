@@ -388,7 +388,7 @@ To run Flow-Wing programs, you'll need an `Flow-Wing AOT-compiler or JIT-Compile
 Visit [https://brew.sh](https://brew.sh) to install brew.
 
 ```bash
-  brew tap kushagra1212/flow-wing
+  brew tap kushagra1212/flowwing
   brew install flowwing
 ```
 
