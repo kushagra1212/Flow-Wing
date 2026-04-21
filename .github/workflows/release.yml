@@ -702,7 +702,7 @@ jobs:
                   # has no external dependencies (SDK is self-contained), so any dpkg
                   # failure is a real packaging bug we want surfaced, not masked.
                   sudo dpkg -i "${RUNNER_TEMP}/${ASSET_NAME}"
-                  ls -l /usr/local/bin/flowwing /usr/local/bin/flowwing-jit
+                  ls -l /usr/local/bin/FlowWing /usr/local/bin/FlowWing-jit
 
             # --- Locate both AOT (FlowWing) and JIT (FlowWing-jit) binaries ---
             # With direct-artifact installs the locations are deterministic per platform,
@@ -726,8 +726,8 @@ jobs:
                       # Both Linux post-install.sh and macOS .pkg postinstall place
                       # /usr/local/bin/{flowwing,flowwing-jit} symlinks that point at
                       # the versioned install dir.
-                      FW_PATH="/usr/local/bin/flowwing"
-                      FW_JIT_PATH="/usr/local/bin/flowwing-jit"
+                      FW_PATH="/usr/local/bin/FlowWing"
+                      FW_JIT_PATH="/usr/local/bin/FlowWing-jit"
                   fi
 
                   FW_FOUND=false

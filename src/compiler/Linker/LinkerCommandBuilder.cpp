@@ -80,7 +80,7 @@ void LinkerCommandBuilder::addLinkerBinary(std::vector<std::string> &args) {
     linker = "clang++";
 #endif
   }
-  args.push_back(std::move(linker));
+  args.push_back("\"" + linker + "\"");
 }
 
 void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
@@ -113,7 +113,7 @@ void LinkerCommandBuilder::addOutputConfig(std::vector<std::string> &args) {
       std::filesystem::path(binary_file_path).parent_path();
   flow_wing::ir_gen::Utils::createDirectories(output_directory.string());
 
-  args.push_back(getOutputFlag() + binary_file_path);
+  args.push_back(getOutputFlag() + "\"" + binary_file_path + "\"");
 }
 
 void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
@@ -126,12 +126,12 @@ void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
   m_object_files.clear();
   m_object_files.push_back(primary);
   seen.insert(primary);
-  args.push_back(primary);
+  args.push_back("\"" + primary + "\"");
 
   for (const auto &extra : m_context.getBroughtObjectFiles()) {
     if (seen.insert(extra).second) {
       m_object_files.push_back(extra);
-      args.push_back(extra);
+      args.push_back("\"" + extra + "\"");
     }
   }
 }

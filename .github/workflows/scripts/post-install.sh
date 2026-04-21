@@ -26,6 +26,11 @@ case "$1" in
         ln -sfn "$install_root/bin/FlowWing-jit" /usr/local/bin/FlowWing-jit
         ln -sfn "$install_root/bin/FlowWing-jit" /usr/local/bin/flowwing-jit
       fi
+    else
+      echo "ERROR: Could not find executable at $install_root/bin/FlowWing" >&2
+      echo "Directory contents of /usr/local/flow-wing:" >&2
+      ls -la /usr/local/flow-wing/ || echo "Dir does not exist" >&2
+      exit 1
     fi
     ;;
   abort-upgrade|abort-remove|abort-deconfigure) ;;
