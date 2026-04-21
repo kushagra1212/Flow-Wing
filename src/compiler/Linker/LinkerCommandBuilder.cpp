@@ -51,7 +51,17 @@ std::string LinkerCommandBuilder::generateLinkCommand() {
   // 7. System Libraries (libc++, msvcrt, etc)
   addSystemLibraries(cmd);
 
-  return joinArgs(cmd);
+  std::string finalCommand = joinArgs(cmd);
+
+  #if defined(_WIN32)
+    // std::system on Windows invokes cmd.exe /c. If the command string starts 
+    // with a quote and contains multiple quotes, cmd.exe silently strips the 
+    // first and last quote, corrupting the command. 
+    // Fix: Wrap the entire command in an extra set of quotes.
+    finalCommand = "\"" + finalCommand + "\"";
+  #endif
+  
+    return finalCommand;
 }
 
 // ========================================================
