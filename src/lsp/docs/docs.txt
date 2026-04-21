@@ -30,7 +30,7 @@ fun printVehicleDetails(v: Vehicle) -> nthg {
   v.printDetails()
 }
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   var vehicle:Vehicle = new Vehicle("Toyota", "Camry", 2020)
   var car:Car = new Car("Honda", "Civic", 2022, 4)
 
@@ -38,7 +38,7 @@ fun main() -> nthg {
   printVehicleDetails(car)
 }
 
-main()
+fg_main()
 
 
 Classes
@@ -742,7 +742,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -752,7 +752,7 @@ fun callMe(y:local::T) -> local::T {
   var p:local::T = y
 
   p.e = true
-local::main()
+local::fg_main()
   return p
 
   

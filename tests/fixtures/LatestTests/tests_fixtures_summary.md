@@ -2252,7 +2252,7 @@ module [m]
 
 var x: int = 0
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   m::x = "bad"
 }
 ```
@@ -2274,7 +2274,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   print(local::x)
   }
 ```
@@ -2290,7 +2290,7 @@ fun main() -> nthg {
 ```javascript
 bring local
 
-local::main()
+local::fg_main()
 print(local::x)
 ```
 
@@ -2402,7 +2402,7 @@ fun callMe(y:local::T) -> local::T {
   
 }
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -2456,7 +2456,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -2513,7 +2513,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -2523,7 +2523,7 @@ fun callMe(y:local::T) -> local::T {
   var p:local::T = y
 
   p.e = true
-local::main()
+local::fg_main()
   return p
 
   
@@ -2567,7 +2567,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -2587,7 +2587,7 @@ print(local::x)
 bring local
 
 
-local::main()
+local::fg_main()
 ```
 
 ### temp5.expect
@@ -2668,7 +2668,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
   var k:local::T
   print(k)
@@ -2691,7 +2691,7 @@ bring local
 
 local::x = {a:3}
 print(local::x)
-local::main()
+local::fg_main()
 
 local::x = {a:3}
 print(local::x)
@@ -2932,7 +2932,7 @@ type T = {
 
   var x:local::T
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   local::x = {a:2}
 print(local::x)
 }
@@ -2950,7 +2950,7 @@ print(local::x)
 bring local
 
 
-local::main()
+local::fg_main()
 ```
 
 ### temp4.expect
@@ -3111,7 +3111,7 @@ class A {
 
 var g:local::T = {}
 
-fun main()-> nthg {
+fun fg_main()-> nthg {
 var a:local::A =  new local::A()
 print(a.u)
 a.x = {a:100}
@@ -3133,7 +3133,7 @@ print(a.x)
 bring local
 
 
-local::main()
+local::fg_main()
 ```
 
 ### temp9.expect

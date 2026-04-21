@@ -192,7 +192,7 @@ class Cloud {
 
 }
 
-fun main() -> int {
+fun fg_main() -> int {
   const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
   fgAnim.createWindow()
   const bird: Bird = new Bird("./assets/bird.png")
@@ -294,4 +294,4 @@ fun main() -> int {
   return 0
 }
 
-main()
+fg_main()
