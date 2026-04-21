@@ -198,7 +198,15 @@ endif()
         # --- END REPLACEMENT ---
         SOURCE_SUBDIR llvm
 
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DLLVM_ENABLE_PROJECTS=clang;lld -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_ASSERTIONS=${LLVM_ASSERTIONS_SETTING} -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_BUILD_LLVM_DYLIB=${LLVM_BUILD_SHARED} -DLLVM_LINK_LLVM_DYLIB=${LLVM_BUILD_SHARED}
+        # IMPORTANT: CMAKE_ARGS is itself a CMake list, so a literal `;` inside a single
+        # argument (like -DLLVM_ENABLE_PROJECTS=clang;lld) is interpreted as an outer list
+        # separator — the sub-CMake only sees -DLLVM_ENABLE_PROJECTS=clang and the stray
+        # token `lld` gets silently dropped, so LLD is NEVER built (no lld-link.exe, no
+        # ld.lld, no ld64.lld). Use LIST_SEPARATOR to pick a non-semicolon character for
+        # the outer list and substitute it back to `;` when the nested CMake is invoked.
+        # See https://cmake.org/cmake/help/latest/module/ExternalProject.html#command:externalproject_add
+        LIST_SEPARATOR "|"
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DLLVM_ENABLE_PROJECTS=clang|lld -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_ASSERTIONS=${LLVM_ASSERTIONS_SETTING} -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_BUILD_LLVM_DYLIB=${LLVM_BUILD_SHARED} -DLLVM_LINK_LLVM_DYLIB=${LLVM_BUILD_SHARED}
         USES_TERMINAL_DOWNLOAD true
         USES_TERMINAL_CONFIGURE true
         USES_TERMINAL_BUILD true
