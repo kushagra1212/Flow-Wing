@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#if defined(_WIN32)
+#include <algorithm> // std::replace — only used in the Windows colon-strip branch.
+#endif
 
 namespace flow_wing {
 namespace ir_gen {
@@ -14,7 +17,15 @@ namespace jit_utils {
 static inline std::string
 getIRFilePath(const std::string &parent_directory_path,
               const std::string &file_path) {
-  return std::string(parent_directory_path) + file_path +
+  std::filesystem::path p(file_path);
+  if (p.is_absolute()) {
+    p = p.relative_path();
+  }
+  std::string rel = p.string();
+#if defined(_WIN32)
+  std::replace(rel.begin(), rel.end(), ':', '_');
+#endif
+  return std::string(parent_directory_path) + rel +
          std::string(constants::paths::kIR_files_extension);
 }
 

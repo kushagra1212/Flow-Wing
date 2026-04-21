@@ -395,8 +395,29 @@ jobs:
                   echo "--- JIT: run $SMOKE_FG ---"
                   "$FW_JIT" "$SMOKE_FG"
 
-                  echo "--- AOT: compile + run $SMOKE_FG ---"
-                  "$FW" "$SMOKE_FG"
+                  # The AOT compiler only produces an executable; it does not
+                  # run it. Pipe it through a known `-o` path so we can exec
+                  # the artefact and verify the full compile->link->run chain.
+                  SMOKE_BUILD="$RUNNER_TEMP/flowwing-smoke"
+                  rm -rf "$SMOKE_BUILD"
+                  mkdir -p "$SMOKE_BUILD/bin"
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    AOT_OUT="$SMOKE_BUILD/bin/vec_mix_test.exe"
+                  else
+                    AOT_OUT="$SMOKE_BUILD/bin/vec_mix_test"
+                  fi
+
+                  echo "--- AOT: compile $SMOKE_FG -> $AOT_OUT ---"
+                  "$FW" "$SMOKE_FG" --output-dir="$SMOKE_BUILD" -o "$AOT_OUT"
+
+                  if [ ! -x "$AOT_OUT" ] && [ ! -e "$AOT_OUT" ]; then
+                    echo "ERROR: AOT did not produce expected binary at $AOT_OUT"
+                    ls -la "$SMOKE_BUILD/bin" || true
+                    exit 1
+                  fi
+
+                  echo "--- AOT: run $AOT_OUT ---"
+                  "$AOT_OUT"
 
             # --- Create archive ---
             # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
