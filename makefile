@@ -179,6 +179,10 @@ help:
 	@echo "    release-aot-build        Build AOT Release after release-aot-configure."
 	@echo "    release-aot-install      cmake --install into RELEASE_INSTALL_PREFIX."
 	@echo "    release-aot              Run configure, build, and install in one step."
+	@echo "    release-jit-configure    Configure JIT Release with RELEASE_INSTALL_PREFIX."
+	@echo "    release-jit-build        Build JIT Release after release-jit-configure."
+	@echo "    release-jit-install      Install JIT binary as FlowWing-jit into RELEASE_INSTALL_PREFIX/bin/."
+	@echo "    release-jit              Run configure, build, and install (JIT) in one step."
 	@echo ""
 
 #! ----- Dependencies -----
@@ -358,6 +362,45 @@ else
 endif
 
 release-aot: release-aot-install
+
+#? JIT Release packaging (installers): build FlowWing-jit alongside FlowWing.
+#  Installs into a temporary staging dir, then copies only the binary renamed
+#  to FlowWing-jit under $(RELEASE_INSTALL_PREFIX)/bin/. The JIT binary shares
+#  the same SDK lib/ and lib/modules/ that AOT staged, so no duplication.
+JIT_RELEASE_CONFIG_STAMP := $(JIT_RELEASE_DIR)/.release-configured
+JIT_RELEASE_BUILD_STAMP  := $(JIT_RELEASE_DIR)/.release-built
+JIT_RELEASE_STAGE_DIR    := $(JIT_RELEASE_DIR)/release-stage
+
+$(JIT_RELEASE_CONFIG_STAMP): $(RELEASE_DEPS_DIR)/.installed-Release
+	$(ECHO_MSG) "--> Configuring JIT (Release) for release packaging..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --preset $(JIT_RELEASE_PRESET) -DFLOWWING_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" -DCMAKE_INSTALL_PREFIX="$(RELEASE_INSTALL_PREFIX)" $(SILENT_CMD)
+	@$(call TOUCH, $(JIT_RELEASE_CONFIG_STAMP))
+
+$(JIT_RELEASE_BUILD_STAMP): $(JIT_RELEASE_CONFIG_STAMP)
+	$(ECHO_MSG) "--> Building JIT (Release) for release packaging..."
+	@cmake --build --preset $(JIT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
+	@$(call TOUCH, $(JIT_RELEASE_BUILD_STAMP))
+
+.PHONY: release-jit-configure release-jit-build release-jit-install release-jit
+release-jit-configure: $(JIT_RELEASE_CONFIG_STAMP)
+
+release-jit-build: $(JIT_RELEASE_BUILD_STAMP)
+
+release-jit-install: $(JIT_RELEASE_BUILD_STAMP)
+	$(ECHO_MSG) "--> Installing JIT (Release) into $(RELEASE_INSTALL_PREFIX) as FlowWing-jit..."
+	$(CHECK_RELEASE_PREFIX)
+	@cmake --install $(JIT_RELEASE_DIR) --prefix "$(JIT_RELEASE_STAGE_DIR)" $(SILENT_CMD)
+ifeq ($(OS),Windows_NT)
+	@cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin"
+	@cmake -E copy "$(JIT_RELEASE_STAGE_DIR)/bin/FlowWing.exe" "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit.exe"
+else
+	@cmake -E make_directory "$(RELEASE_INSTALL_PREFIX)/bin"
+	@cp "$(JIT_RELEASE_STAGE_DIR)/bin/FlowWing" "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit"
+	@chmod +x "$(RELEASE_INSTALL_PREFIX)/bin/FlowWing-jit"
+endif
+
+release-jit: release-jit-install
 
 #? Run AOT
 .PHONY: run-aot-debug run-aot-release

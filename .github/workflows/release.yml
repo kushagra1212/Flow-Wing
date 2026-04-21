@@ -15,6 +15,9 @@ permissions:
     contents: write
 
 env:
+    # Resolved once at the workflow level so every job/step can use env.FLOWWING_VERSION
+    # directly without re-expanding the long ternary expression.
+    # Evaluated at dispatch (release.tag_name on release events, simulated_tag on workflow_dispatch).
     FLOWWING_VERSION: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
 jobs:
@@ -42,6 +45,10 @@ jobs:
                       installer_ext: .dmg
                       archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.zip
                       installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.dmg
+                      # .pkg runs a postinstall script (as root) that wires up /usr/local/bin/ symlinks,
+                      # so a double-click install puts `flowwing` / `flowwing-jit` straight onto Terminal.app's
+                      # default PATH. The .dmg is still shipped for users who prefer drag-and-drop.
+                      pkg_installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-macos-arm64.pkg
                     - name: windows-x86_64
                       os: windows-latest
                       arch: x86_64
@@ -69,12 +76,13 @@ jobs:
                   fetch-tags: true
                   fetch-depth: 0
 
+            # Re-export FLOWWING_VERSION into GITHUB_ENV for steps that shell-expand it
+            # (e.g. NSIS `$FLOWWING_VERSION`, fpm --version, DMG launcher). The top-level
+            # `env:` is visible to expressions but not to inherited child shells of heredocs.
             - name: Set up environment
               shell: bash
               run: |
-                  # Real tag if it's a release, otherwise use the manual input
-                  TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}"
-                  echo "FLOWWING_VERSION=$TAG_NAME" >> $GITHUB_ENV
+                  echo "FLOWWING_VERSION=${FLOWWING_VERSION}" >> "$GITHUB_ENV"
 
             # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
             - name: Select Xcode Version
@@ -125,12 +133,14 @@ jobs:
             # On a cache hit, skip dependency build (if needed), CMake, compile, and re-stage; reuse the tree under release-stage/<tag>/.
             # Use restore + explicit save: the combined cache action only saves in a post step after the *whole job* succeeds.
             # If zip/installer/upload fails, the staged tree would never be cached otherwise.
+            # NOTE: cache key suffix is bumped (-v2) when the staged SDK layout changes so old caches that lack
+            #       newly-added binaries (e.g. FlowWing-jit) are invalidated automatically.
             - name: Restore staged SDK cache
               id: cache-staged-sdk
               uses: actions/cache/restore@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-v2
 
             # --- Build Project Dependencies ---
             # --- Restore/Build Project Dependencies ---
@@ -157,41 +167,236 @@ jobs:
             # --- Build compiler with install prefix (make uses -j for Ninja; see makefile JOBS) ---
             # Toolchains match multi_platform_ci: macOS Homebrew LLVM + Xcode + SDKROOT;
             # Windows MSVC via msvc-dev-cmd + choco tools; Linux clang-17 + lld.
-            - name: Configure CMake (Release)
+            - name: Configure CMake (Release AOT)
               if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
               run: make release-aot-configure RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
-            - name: Build compiler
+            - name: Build compiler (AOT)
               if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
               run: make release-aot-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
-            # --- Stage SDK ---
-            - name: Stage SDK
+            # --- Stage SDK (AOT FlowWing + lib/modules + lib/<platform>) ---
+            - name: Stage SDK (AOT)
               if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              shell: bash
               run: |
                   # Explicitly create the path before installing to prevent Windows cmd.exe errors
                   mkdir -p "${{ env.INSTALL_PREFIX }}"
                   make release-aot-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
-            # Bundle LLVM tools (clang++) into the staged SDK bin/ so AOT linking works on user machines.
-            - name: Bundle LLVM linker tools
+            # --- Build & install JIT (FlowWing-jit) into the same SDK bin/ ---
+            # Shares the already-staged lib/modules and lib/<platform> from the AOT install,
+            # so only the JIT binary is added to the stage.
+            - name: Build compiler (JIT)
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              run: make release-jit-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+            - name: Stage SDK (JIT — installs as FlowWing-jit)
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              run: make release-jit-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
+
+            # Bundle the LLVM linker tool into the staged SDK bin/ so AOT linking works on
+            # user machines without requiring a system toolchain:
+            #
+            #   * Linux / macOS  -> clang++ (GCC-style driver; our command builder emits -L, -l, -Wl,-w)
+            #   * Windows        -> lld-link.exe (consumes MSVC-style /OUT:, /LIBPATH:, ucrt.lib, ...)
+            #
+            # NOTE: llvm-config is a *build-time* tool and is intentionally omitted — shipping it only
+            # bloats the installer. See src/common/io/PathUtils.hpp :: getAOTLinkerPath() for the
+            # runtime resolution logic and src/compiler/Linker/LinkerCommandBuilder.cpp for usage.
+            - name: Bundle LLVM linker tools (Unix)
               if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
+              shell: bash
               run: |
-                  DEPS_BIN="${{ github.workspace }}/.fw_dependencies/install/bin"
+                  set -e
+                  DEPS_ROOT="${{ github.workspace }}/.fw_dependencies/install"
+                  DEPS_BIN="${DEPS_ROOT}/bin"
+                  DEPS_LIB="${DEPS_ROOT}/lib"
                   STAGED_BIN="${{ env.INSTALL_PREFIX }}/bin"
-                  for tool in clang++ llvm-config; do
-                    if [ -f "$DEPS_BIN/$tool" ]; then
-                      cp "$DEPS_BIN/$tool" "$STAGED_BIN/"
-                      echo "Bundled $tool into SDK bin/"
+                  STAGED_LIB="${{ env.INSTALL_PREFIX }}/lib"
+                  mkdir -p "$STAGED_LIB"
+
+                  if [ ! -f "$DEPS_BIN/clang++" ]; then
+                    echo "ERROR: $DEPS_BIN/clang++ not found — cannot bundle Unix AOT linker."
+                    exit 1
+                  fi
+                  cp "$DEPS_BIN/clang++" "$STAGED_BIN/"
+                  echo "Bundled clang++ into SDK bin/"
+
+                  # clang++ was built against shared libLLVM / libclang-cpp (see cmake/deps_builder/CMakeLists.txt
+                  # -DLLVM_BUILD_LLVM_DYLIB=ON / -DLLVM_LINK_LLVM_DYLIB=ON for non-Windows). Its rpath is
+                  # @loader_path/../lib (macOS) / $ORIGIN/../lib (Linux), so staging the dylibs under
+                  # <SDK>/lib/ alongside the modules/ + <platform>/ dirs satisfies the loader without any
+                  # install_name_tool rewriting. Without these, clang++ dies at process start on user machines:
+                  #   "dyld: Library not loaded: @rpath/libclang-cpp.dylib"
+                  if [ "${{ runner.os }}" = "macOS" ]; then
+                    for lib in libclang-cpp.dylib libLLVM.dylib; do
+                      if [ -f "$DEPS_LIB/$lib" ]; then
+                        cp -a "$DEPS_LIB/$lib" "$STAGED_LIB/"
+                        echo "Bundled $lib into SDK lib/"
+                      else
+                        echo "ERROR: $DEPS_LIB/$lib missing — AOT clang++ will fail on user machines."
+                        exit 1
+                      fi
+                    done
+                  else
+                    # Linux: libclang-cpp.so.17 / libLLVM.so.17 (symlinks to versioned .so). Copy the
+                    # symlink + the concrete file so loader resolution works without assuming ldconfig.
+                    for stem in libclang-cpp libLLVM; do
+                      matched=0
+                      for f in "$DEPS_LIB/${stem}.so" "$DEPS_LIB/${stem}.so."*; do
+                        [ -e "$f" ] || continue
+                        cp -a "$f" "$STAGED_LIB/"
+                        echo "Bundled $(basename "$f") into SDK lib/"
+                        matched=1
+                      done
+                      if [ "$matched" = "0" ]; then
+                        echo "ERROR: no ${stem}.so* found under $DEPS_LIB — AOT clang++ will fail."
+                        exit 1
+                      fi
+                    done
+                  fi
+
+                  # macOS-only: libLLVM.dylib may hardcode a Homebrew-absolute path to libzstd.1.dylib
+                  # (because the deps build picked up /opt/homebrew/opt/zstd during configure). Rewrite
+                  # the install name to @rpath/libzstd.1.dylib and bundle libzstd alongside so the
+                  # dynamic loader resolves it without requiring Homebrew on the target.
+                  if [ "${{ runner.os }}" = "macOS" ]; then
+                    BROKEN_ZSTD="$(otool -L "$STAGED_LIB/libLLVM.dylib" | awk '/libzstd/ {print $1}' | head -n1 || true)"
+                    if [ -n "$BROKEN_ZSTD" ] && [ "$BROKEN_ZSTD" != "@rpath/libzstd.1.dylib" ]; then
+                      echo "libLLVM.dylib references external zstd: $BROKEN_ZSTD"
+                      if [ ! -e "$BROKEN_ZSTD" ]; then
+                        echo "ERROR: $BROKEN_ZSTD does not exist on builder — cannot relocate."
+                        exit 1
+                      fi
+                      # cp -L dereferences the symlink chain so we end up with a concrete dylib
+                      # (Homebrew ships libzstd.1.dylib as a symlink to libzstd.1.5.x.dylib).
+                      cp -L "$BROKEN_ZSTD" "$STAGED_LIB/libzstd.1.dylib"
+                      chmod u+w "$STAGED_LIB/libzstd.1.dylib" "$STAGED_LIB/libLLVM.dylib"
+                      install_name_tool -id "@rpath/libzstd.1.dylib" "$STAGED_LIB/libzstd.1.dylib"
+                      install_name_tool -change "$BROKEN_ZSTD" "@rpath/libzstd.1.dylib" "$STAGED_LIB/libLLVM.dylib"
+                      # Ad-hoc codesign so dyld on arm64 accepts the rewritten Mach-O (unsigned/invalid
+                      # signatures are hard-rejected on Apple Silicon).
+                      codesign --force --sign - "$STAGED_LIB/libzstd.1.dylib" "$STAGED_LIB/libLLVM.dylib"
+                      echo "Relocated zstd reference -> @rpath/libzstd.1.dylib and bundled libzstd."
                     fi
-                  done
+
+                    echo "--- post-bundle verification (otool) ---"
+                    otool -L "$STAGED_BIN/clang++" || true
+                    otool -L "$STAGED_LIB/libLLVM.dylib" || true
+                    # Reject any lingering absolute Homebrew / non-system paths in the bundled tree.
+                    if otool -L "$STAGED_BIN/clang++" "$STAGED_LIB"/*.dylib 2>/dev/null \
+                         | grep -E "^\s+(/opt/homebrew|/usr/local/(Cellar|opt))" ; then
+                      echo "ERROR: bundled Unix AOT tools still reference Homebrew-absolute paths (see grep hits above)."
+                      echo "These will not resolve on end-user machines without Homebrew."
+                      exit 1
+                    fi
+                  fi
+
+                  # Quick exec smoke test: make sure the bundled clang++ at least starts under
+                  # the staged rpath (@loader_path/../lib on macOS, $ORIGIN/../lib on Linux).
+                  "$STAGED_BIN/clang++" --version
+
+            - name: Bundle LLVM linker tools (Windows)
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os == 'Windows'
+              shell: pwsh
+              run: |
+                  $DepsBin  = "${{ github.workspace }}/.fw_dependencies/install/bin"
+                  $StagedBin = "${{ env.INSTALL_PREFIX }}/bin"
+                  $LldLink  = Join-Path $DepsBin "lld-link.exe"
+                  if (Test-Path $LldLink) {
+                    Copy-Item $LldLink -Destination $StagedBin -Force
+                    Write-Host "Bundled lld-link.exe into SDK bin/"
+                  } else {
+                    Write-Host "ERROR: $LldLink not found — bundled LLVM must expose lld-link.exe for zero-dependency Windows AOT."
+                    exit 1
+                  }
+                  # lld-link.exe may internally invoke lld.exe on some paths; ship it as insurance.
+                  $Lld = Join-Path $DepsBin "lld.exe"
+                  if (Test-Path $Lld) {
+                    Copy-Item $Lld -Destination $StagedBin -Force
+                    Write-Host "Bundled lld.exe into SDK bin/"
+                  }
 
             - name: Save staged SDK cache
               if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
               uses: actions/cache/save@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-v2
+
+            # --- Smoke-test the staged SDK before packaging ---
+            # Verifies both AOT and JIT binaries run, find their modules, and resolve the bundled linker.
+            # Catches packaging regressions (e.g. missing clang++, wrong lib path) before we ship installers.
+            - name: Smoke-test staged SDK
+              shell: bash
+              run: |
+                  set -e
+                  BIN="${{ env.INSTALL_PREFIX }}/bin"
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    FW="$BIN/FlowWing.exe"
+                    FW_JIT="$BIN/FlowWing-jit.exe"
+                  else
+                    FW="$BIN/FlowWing"
+                    FW_JIT="$BIN/FlowWing-jit"
+                  fi
+
+                  echo "--- Staged SDK tree (bin/ only) ---"
+                  ls -la "$BIN"
+
+                  # Confirm the bundled linker is present — without it, AOT compilation fails on end-user
+                  # machines even though the compiler binary runs. See src/common/io/PathUtils.hpp
+                  # (getAOTLinkerPath) for the runtime resolution order.
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    LINKER_NAME="lld-link.exe"
+                  else
+                    LINKER_NAME="clang++"
+                  fi
+                  if [ ! -e "$BIN/$LINKER_NAME" ]; then
+                    echo "ERROR: bundled linker $LINKER_NAME missing from $BIN — zero-dependency AOT will fail."
+                    exit 1
+                  fi
+                  echo "Bundled linker found: $BIN/$LINKER_NAME"
+
+                  # Unix: verify the bundled clang++ can actually exec with the staged rpath
+                  # (@loader_path/../lib  /  $ORIGIN/../lib). If libLLVM / libclang-cpp / libzstd are
+                  # missing or still point to a builder-absolute path, this exits non-zero here
+                  # instead of failing on an end-user's machine.
+                  if [ "${{ runner.os }}" != "Windows" ]; then
+                    echo "--- Bundled clang++ exec probe ---"
+                    "$BIN/clang++" --version
+                    if [ "${{ runner.os }}" = "macOS" ]; then
+                      echo "--- otool -L on bundled clang++ / dylibs ---"
+                      otool -L "$BIN/clang++" || true
+                      for f in "${{ env.INSTALL_PREFIX }}/lib"/*.dylib; do
+                        [ -e "$f" ] || continue
+                        otool -L "$f" | awk 'NR>1'
+                      done
+                      # Hard-fail if any Homebrew-absolute path leaked through.
+                      if otool -L "$BIN/clang++" "${{ env.INSTALL_PREFIX }}/lib"/*.dylib 2>/dev/null \
+                           | awk 'NR>1' \
+                           | grep -E "^\s+(/opt/homebrew|/usr/local/(Cellar|opt))" ; then
+                        echo "ERROR: staged Unix AOT still references Homebrew-absolute paths."
+                        exit 1
+                      fi
+                    fi
+                  fi
+
+                  echo "--- FlowWing --version ---"
+                  "$FW" --version
+
+                  echo "--- FlowWing-jit --version ---"
+                  "$FW_JIT" --version
+
+                  # Module resolution: relies on <exe>/../lib/modules. Use a fixture that exercises
+                  # `bring vec` + `bring Err` (the same one the user highlighted in their request).
+                  SMOKE_FG="tests/fixtures/LatestTests/VecModuleTests/vec_mix_test.fg"
+
+                  echo "--- JIT: run $SMOKE_FG ---"
+                  "$FW_JIT" "$SMOKE_FG"
+
+                  echo "--- AOT: compile + run $SMOKE_FG ---"
+                  "$FW" "$SMOKE_FG"
 
             # --- Create archive ---
             # Use bash so Windows runners do not parse `cd` as PowerShell (paths with spaces need quoting there).
@@ -207,8 +412,13 @@ jobs:
                   fi
 
             # --- Create native installer ---
+            # On macOS, build-installer.sh produces BOTH the .dmg (drag-to-Applications) and
+            # the .pkg (double-click, runs postinstall as root → /usr/local/bin symlinks on PATH).
+            # PKG_INSTALLER_NAME is only consumed by the macOS branch of the script.
             - name: Create native installer
               shell: bash
+              env:
+                  PKG_INSTALLER_NAME: ${{ matrix.pkg_installer_name }}
               run: |
                   chmod +x .github/workflows/scripts/build-installer.sh
                   .github/workflows/scripts/build-installer.sh \
@@ -217,17 +427,23 @@ jobs:
                     "${{ runner.os }}" \
                     "${{ matrix.arch }}"
 
-            # --- Native installer (.dmg / .exe / .deb): GitHub Release assets + workflow artifacts ---
-            - name: Upload native installer to GitHub Release
+            # --- Upload to GitHub Release ---
+            # `softprops/action-gh-release` replaces the deprecated actions/upload-release-asset@v1 which:
+            #   (a) is unmaintained, (b) does not tolerate re-running the workflow (asset-already-exists errors),
+            #   (c) requires passing an upload_url that only exists on `release` events.
+            # `files:` accepts globs and missing entries are only fatal when `fail_on_unmatched_files: true`
+            # is set. We list the pkg explicitly and guard it with a wildcard so non-macOS matrix legs
+            # (where `pkg_installer_name` is empty) don't fail the upload.
+            - name: Upload release assets (installer + SDK zip)
               if: github.event_name == 'release'
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              uses: softprops/action-gh-release@v2
               with:
-                  upload_url: ${{ github.event.release.upload_url }}
-                  asset_path: ${{ matrix.installer_name }}
-                  asset_name: ${{ matrix.installer_name }}
-                  asset_content_type: application/octet-stream
+                  tag_name: ${{ github.event.release.tag_name }}
+                  files: |
+                      ${{ matrix.installer_name }}
+                      ${{ matrix.pkg_installer_name }}
+                      release-stage/${{ matrix.archive_name }}
+                  fail_on_unmatched_files: false
 
             - name: Upload native installer (workflow artifact)
               uses: actions/upload-artifact@v4
@@ -236,17 +452,16 @@ jobs:
                   path: ${{ matrix.installer_name }}
                   if-no-files-found: error
 
-            # --- Staged SDK zip: GitHub Release assets + workflow artifacts ---
-            - name: Upload SDK zip to GitHub Release
-              if: github.event_name == 'release'
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            # macOS only: upload the .pkg (auto-PATH GUI installer) as a separate workflow artifact
+            # so it is downloadable from the build run even when the release upload is skipped
+            # (workflow_dispatch mode).
+            - name: Upload macOS .pkg (workflow artifact)
+              if: runner.os == 'macOS' && matrix.pkg_installer_name != ''
+              uses: actions/upload-artifact@v4
               with:
-                  upload_url: ${{ github.event.release.upload_url }}
-                  asset_path: release-stage/${{ matrix.archive_name }}
-                  asset_name: ${{ matrix.archive_name }}
-                  asset_content_type: application/zip
+                  name: native-pkg-${{ matrix.name }}
+                  path: ${{ matrix.pkg_installer_name }}
+                  if-no-files-found: error
 
             - name: Upload SDK zip (workflow artifact)
               uses: actions/upload-artifact@v4
@@ -264,12 +479,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Verify build completed
-              env:
-                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
               run: |
                   echo "Build matrix finished."
                   echo "Native installers and SDK zips: GitHub Release (if this was a release) + job Artifacts (native-installer-*, sdk-zip-*)."
-                  echo "Tag: ${TAG}"
+                  echo "Tag: ${FLOWWING_VERSION}"
 
     # ============================================================================
     # PACKAGE MANAGER PUBLISHING (parallel, non-blocking)
@@ -277,13 +490,15 @@ jobs:
     publish-homebrew:
         name: Publish to Homebrew
         needs: upload
+        # Only relevant for real releases (the tap formula points at the uploaded SDK zip URL).
+        if: github.event_name == 'release'
         runs-on: ubuntu-latest
         continue-on-error: true
         steps:
             - name: Checkout repository (packaging script only)
               uses: actions/checkout@v4
               with:
-                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  ref: ${{ github.event.release.tag_name }}
                   fetch-tags: true
                   fetch-depth: 1
                   sparse-checkout: |
@@ -292,8 +507,8 @@ jobs:
 
             - name: Publish to Homebrew
               env:
-                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
+                  TAG: ${{ github.event.release.tag_name }}
+                  RELEASE_URL: ${{ github.event.release.html_url }}
                   # Git author + tap repo owner: same as the user that triggered the run (no extra secrets).
                   GIT_AUTHOR_NAME: ${{ github.actor }}
                   GIT_AUTHOR_EMAIL: ${{ format('{0}+{1}@users.noreply.github.com', github.actor_id, github.actor) }}
@@ -307,6 +522,7 @@ jobs:
     publish-chocolatey:
         name: Publish to Chocolatey
         needs: upload
+        if: github.event_name == 'release'
         # choco is the Chocolatey CLI and is available on Windows images, not on ubuntu-latest.
         runs-on: windows-latest
         continue-on-error: true
@@ -318,7 +534,7 @@ jobs:
             - name: Checkout repository (packaging script only)
               uses: actions/checkout@v4
               with:
-                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  ref: ${{ github.event.release.tag_name }}
                   fetch-tags: true
                   fetch-depth: 1
                   sparse-checkout: |
@@ -332,8 +548,8 @@ jobs:
             - name: Publish to Chocolatey
               shell: bash
               env:
-                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.event.release.tag_name || github.event.inputs.simulated_tag) }}
+                  TAG: ${{ github.event.release.tag_name }}
+                  RELEASE_URL: ${{ github.event.release.html_url }}
               run: |
                   # Chocolatey shims + Git usrbin (sha256sum, etc.) for Git Bash
                   export PATH="/c/ProgramData/chocolatey/bin:/c/Program Files/Git/usr/bin:$PATH"
@@ -346,22 +562,249 @@ jobs:
     publish-apt:
         name: Publish to apt
         needs: upload
+        if: github.event_name == 'release'
         runs-on: ubuntu-latest
         continue-on-error: true
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
-                  ref: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  ref: ${{ github.event.release.tag_name }}
                   fetch-tags: true
                   fetch-depth: 0
 
             - name: Publish to apt
               env:
-                  TAG: ${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  TAG: ${{ github.event.release.tag_name }}
               run: |
                   chmod +x .github/workflows/scripts/package-apt.sh
                   .github/workflows/scripts/package-apt.sh \
                     "${TAG}" \
                     "${{ secrets.APT_REPO_TOKEN }}" \
                     "${{ secrets.APT_REPO_USERNAME }}"
+
+    # ============================================================================
+    # VERIFY INSTALL: Install via package manager + run test fixtures
+    # ============================================================================
+    # Gated to `release` events: on workflow_dispatch there is no published release for
+    # package managers to pull from, so this job cannot succeed. The staged-SDK smoke
+    # test inside the `build` job covers the dispatch path already.
+    verify-install:
+        name: Verify install (${{ matrix.os-name }})
+        needs: [publish-homebrew, publish-chocolatey, publish-apt]
+        if: github.event_name == 'release'
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os-name: macos-arm64
+                      runner: macos-14
+                      pkg_cmd: brew install kushagra1212/flowwing/flowwing
+                      fw_path_expr: "/opt/homebrew/bin/FlowWing"
+                    - os-name: windows-x86_64
+                      runner: windows-latest
+                      pkg_cmd: choco install flowwing -y
+                      fw_path_expr: "FlowWing.exe"
+                    - os-name: linux-x86_64
+                      runner: ubuntu-latest
+                      pkg_cmd: |
+                          curl -sL "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/FlowWing-${GITHUB_REF_NAME}-linux-x86_64.deb" \
+                              -o /tmp/flowwing-linux.deb
+                          sudo dpkg -i /tmp/flowwing-linux.deb || sudo apt-get install -f -y  # handle deps if needed
+                      fw_path_expr: "flowwing"
+
+        runs-on: ${{ matrix.runner }}
+        steps:
+            - name: Install FlowWing via package manager
+              shell: bash
+              run: |
+                  echo "Installing FlowWing on ${{ matrix.os-name }}..."
+                  eval "${{ matrix.pkg_cmd }}"
+
+            # --- Locate both AOT (FlowWing) and JIT (FlowWing-jit) binaries ---
+            # Each package manager installs the pair at a different prefix, so probe per-platform.
+            - name: Locate FlowWing binaries (AOT + JIT)
+              id: verify_bin
+              shell: bash
+              run: |
+                  set -e
+                  FW_FOUND=false
+                  FW_JIT_FOUND=false
+                  FW_PATH=""
+                  FW_JIT_PATH=""
+
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                      # Chocolatey creates shims on PATH for every .exe in the package tools/ dir.
+                      if command -v FlowWing.exe >/dev/null 2>&1 || command -v FlowWing >/dev/null 2>&1; then
+                          FW_PATH="FlowWing.exe"
+                          FW_FOUND=true
+                      fi
+                      if command -v FlowWing-jit.exe >/dev/null 2>&1 || command -v FlowWing-jit >/dev/null 2>&1; then
+                          FW_JIT_PATH="FlowWing-jit.exe"
+                          FW_JIT_FOUND=true
+                      fi
+                  elif [ "${{ runner.os }}" = "Linux" ]; then
+                      # post-install.sh symlinks /usr/local/bin/{FlowWing,flowwing,FlowWing-jit,flowwing-jit}.
+                      if [ -x /usr/local/bin/flowwing ]; then
+                          FW_PATH="/usr/local/bin/flowwing"
+                          FW_FOUND=true
+                      else
+                          # Fallback: scan versioned install dir.
+                          fw=$(find /usr/local/flow-wing -name FlowWing -type f 2>/dev/null | head -n1)
+                          if [ -n "$fw" ]; then FW_PATH="$fw"; FW_FOUND=true; fi
+                      fi
+                      if [ -x /usr/local/bin/flowwing-jit ]; then
+                          FW_JIT_PATH="/usr/local/bin/flowwing-jit"
+                          FW_JIT_FOUND=true
+                      else
+                          fwj=$(find /usr/local/flow-wing -name FlowWing-jit -type f 2>/dev/null | head -n1)
+                          if [ -n "$fwj" ]; then FW_JIT_PATH="$fwj"; FW_JIT_FOUND=true; fi
+                      fi
+                  elif [ "${{ runner.os }}" = "macOS" ]; then
+                      # Homebrew's `bin.install` links both binaries into /opt/homebrew/bin.
+                      if [ -x /opt/homebrew/bin/FlowWing ]; then
+                          FW_PATH=/opt/homebrew/bin/FlowWing
+                          FW_FOUND=true
+                      fi
+                      if [ -x /opt/homebrew/bin/FlowWing-jit ]; then
+                          FW_JIT_PATH=/opt/homebrew/bin/FlowWing-jit
+                          FW_JIT_FOUND=true
+                      fi
+                  fi
+
+                  echo "FW_FOUND=$FW_FOUND"         >> "$GITHUB_OUTPUT"
+                  echo "FW_PATH=$FW_PATH"           >> "$GITHUB_OUTPUT"
+                  echo "FW_JIT_FOUND=$FW_JIT_FOUND" >> "$GITHUB_OUTPUT"
+                  echo "FW_JIT_PATH=$FW_JIT_PATH"   >> "$GITHUB_OUTPUT"
+
+                  echo "FlowWing (AOT): found=$FW_FOUND path=$FW_PATH"
+                  echo "FlowWing-jit (JIT): found=$FW_JIT_FOUND path=$FW_JIT_PATH"
+
+            - name: Fail early if AOT binary is missing from PATH
+              if: steps.verify_bin.outputs.FW_FOUND != 'true'
+              shell: bash
+              run: |
+                  echo "::error::FlowWing is NOT on PATH after package-manager install."
+                  echo "This means the post-install (deb), Homebrew linking, or Chocolatey shim failed."
+                  exit 1
+
+            - name: Check FlowWing versions (AOT + JIT)
+              shell: bash
+              run: |
+                  set -e
+                  echo "--- FlowWing (AOT) --version ---"
+                  "${{ steps.verify_bin.outputs.FW_PATH }}" --version
+                  if [ "${{ steps.verify_bin.outputs.FW_JIT_FOUND }}" = "true" ]; then
+                      echo "--- FlowWing-jit (JIT) --version ---"
+                      "${{ steps.verify_bin.outputs.FW_JIT_PATH }}" --version
+                  else
+                      echo "::warning::FlowWing-jit is not on PATH (JIT smoke tests will be skipped)."
+                  fi
+
+            - name: Download test fixtures from GitHub
+              shell: bash
+              run: |
+                  set -e
+                  mkdir -p /tmp/flowwing-verify/{01_basics,VecModuleTests,BringTestBasicTestAll,18_mingled_module_bring,ModuleTests}
+
+                  fetch() {
+                      local rel="$1"
+                      local dst="/tmp/flowwing-verify/$2"
+                      curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${GITHUB_REF_NAME}/tests/fixtures/LatestTests/${rel}" -o "$dst"
+                  }
+
+                  # hello-world.fg — no deps, baseline AOT smoke test.
+                  fetch "01_basics/hello-world.fg"                                    "01_basics/hello-world.fg"
+
+                  # vec_mix_test.fg — exercises `bring Err` + `bring vec` (both bundled modules).
+                  # This is the fixture the user highlighted as "must work after install".
+                  fetch "VecModuleTests/vec_mix_test.fg"                              "VecModuleTests/vec_mix_test.fg"
+                  fetch "VecModuleTests/vec_e2e_test.fg"                              "VecModuleTests/vec_e2e_test.fg"
+
+                  # Relative import: `bring "file1.fg"` — tests user-file module resolution.
+                  fetch "BringTests/BringTestBasicTestAll/task2.fg"                   "BringTestBasicTestAll/task2.fg"
+                  fetch "BringTests/BringTestBasicTestAll/file1.fg"                   "BringTestBasicTestAll/file1.fg"
+
+                  # Mingled class + module bring — stresses the binder + linker together.
+                  fetch "ClassTests/18_mingled_module_bring/bring_module_class_field_while.fg" "18_mingled_module_bring/bring_module_class_field_while.fg"
+                  fetch "ClassTests/18_mingled_module_bring/support_cnt_module.fg"             "18_mingled_module_bring/support_cnt_module.fg"
+
+                  # Pure module fixtures — AOT linker must pull in the brought TU's object.
+                  fetch "ModuleTests/03_edge_cases/module_for_counter.fg"             "ModuleTests/module_for_counter.fg"
+
+                  echo "Test fixtures downloaded:"
+                  find /tmp/flowwing-verify -type f | sort
+
+            - name: Run AOT test fixtures
+              id: run_aot_tests
+              shell: bash
+              env:
+                  FW_BIN: ${{ steps.verify_bin.outputs.FW_PATH }}
+              run: |
+                  set +e
+                  FAILURES=0
+                  TOTAL=0
+
+                  run_case() {
+                      local label="$1"
+                      local path="$2"
+                      TOTAL=$((TOTAL + 1))
+                      echo ""
+                      echo "=== [AOT] $label ==="
+                      if "$FW_BIN" "$path"; then
+                          echo "[PASS] $label"
+                      else
+                          echo "[FAIL] $label (exit=$?)"
+                          FAILURES=$((FAILURES + 1))
+                      fi
+                  }
+
+                  run_case "hello-world.fg"                            /tmp/flowwing-verify/01_basics/hello-world.fg
+                  run_case "vec_mix_test.fg (bring Err + bring vec)"   /tmp/flowwing-verify/VecModuleTests/vec_mix_test.fg
+                  run_case "vec_e2e_test.fg (bring vec)"               /tmp/flowwing-verify/VecModuleTests/vec_e2e_test.fg
+                  run_case "task2.fg (relative bring)"                 /tmp/flowwing-verify/BringTestBasicTestAll/task2.fg
+                  run_case "bring_module_class_field_while.fg"         /tmp/flowwing-verify/18_mingled_module_bring/bring_module_class_field_while.fg
+
+                  echo ""
+                  echo "=== AOT Summary: $((TOTAL - FAILURES))/$TOTAL passed ==="
+                  if [ "$FAILURES" -gt 0 ]; then
+                      echo "[RESULT] AOT verify FAILED"
+                      exit 1
+                  fi
+
+            - name: Run JIT test fixtures
+              if: steps.verify_bin.outputs.FW_JIT_FOUND == 'true'
+              id: run_jit_tests
+              shell: bash
+              env:
+                  FW_BIN: ${{ steps.verify_bin.outputs.FW_JIT_PATH }}
+              run: |
+                  set +e
+                  FAILURES=0
+                  TOTAL=0
+
+                  run_case() {
+                      local label="$1"
+                      local path="$2"
+                      TOTAL=$((TOTAL + 1))
+                      echo ""
+                      echo "=== [JIT] $label ==="
+                      if "$FW_BIN" "$path"; then
+                          echo "[PASS] $label"
+                      else
+                          echo "[FAIL] $label (exit=$?)"
+                          FAILURES=$((FAILURES + 1))
+                      fi
+                  }
+
+                  run_case "hello-world.fg"                            /tmp/flowwing-verify/01_basics/hello-world.fg
+                  run_case "vec_mix_test.fg (bring Err + bring vec)"   /tmp/flowwing-verify/VecModuleTests/vec_mix_test.fg
+                  run_case "vec_e2e_test.fg"                           /tmp/flowwing-verify/VecModuleTests/vec_e2e_test.fg
+                  run_case "task2.fg (relative bring)"                 /tmp/flowwing-verify/BringTestBasicTestAll/task2.fg
+
+                  echo ""
+                  echo "=== JIT Summary: $((TOTAL - FAILURES))/$TOTAL passed ==="
+                  if [ "$FAILURES" -gt 0 ]; then
+                      echo "[RESULT] JIT verify FAILED"
+                      exit 1
+                  fi

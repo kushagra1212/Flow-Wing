@@ -121,22 +121,36 @@ public:
     return exePath.parent_path().parent_path() / FLOWWING_PLATFORM_LIB_DIR;
   }
 
-  // Gets the path to the AOT linker.(Clang)
+  // Gets the path to the AOT linker.
+  //
+  // On Unix-like systems the linker we invoke is clang++ acting as a driver.
+  // On Windows the linker we invoke is lld-link.exe (consumes MSVC-style
+  // /OUT:, /LIBPATH:, lib.lib flags). Both binaries ship in the SDK bin/
+  // directory next to FlowWing.exe, which lets us produce zero-dependency
+  // AOT binaries without requiring the user to install MSVC Build Tools.
   static std::string getAOTLinkerPath() {
-    // 1. Check if a compatible clang++ exists next to this executable (in bin/)
     auto exe = getExecutablePath();
 #if defined(_WIN32)
-    auto sibling_clang = exe.parent_path() / "clang++.exe";
+    // Prefer bundled lld-link.exe; fall back to an adjacent link.exe if
+    // someone repackaged us alongside MSVC's linker.
+    const std::filesystem::path candidates[] = {
+        exe.parent_path() / "lld-link.exe",
+        exe.parent_path() / "link.exe",
+    };
 #else
-    auto sibling_clang = exe.parent_path() / "clang++";
+    const std::filesystem::path candidates[] = {
+        exe.parent_path() / "clang++",
+    };
 #endif
 
-    if (std::filesystem::exists(sibling_clang)) {
-      return sibling_clang.string();
+    for (const auto &candidate : candidates) {
+      if (std::filesystem::exists(candidate)) {
+        return candidate.string();
+      }
     }
 
-    // 2. Fall back to the compile-time constant for dev builds or system
-    // installs
+    // Fall back to the compile-time constant for dev builds or when the
+    // tool is available on PATH (lld-link.exe / clang++ on a dev box).
     return AOT_LINKER_PATH;
   }
 };

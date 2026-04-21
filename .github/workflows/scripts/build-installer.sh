@@ -138,6 +138,87 @@ EOF
 
     echo "macOS .dmg created: /tmp/$INSTALLER_NAME"
     mv "/tmp/$INSTALLER_NAME" "$INSTALLER_NAME"
+
+    # ------------------------------------------------------------------
+    # Also build a signed-style .pkg installer (GUI double-click).
+    #
+    # Motivation: a .dmg cannot modify the user's shell PATH because drag-
+    # and-drop copying does not run any script. A .pkg, on the other hand,
+    # runs a postinstall script as root, which lets us place the SDK under
+    # /usr/local/flow-wing/<version>/ and drop symlinks into /usr/local/bin/
+    # (which Terminal.app has on PATH by default). End result: after the
+    # .pkg finishes, users can run `flowwing --version` and
+    # `flowwing-jit --version` immediately.
+    # ------------------------------------------------------------------
+    PKG_INSTALLER_NAME="${PKG_INSTALLER_NAME:-${INSTALLER_NAME%.dmg}.pkg}"
+    echo "Creating macOS .pkg installer ($PKG_INSTALLER_NAME)..."
+
+    PKG_ROOT="/tmp/flowwing-pkg-root"
+    PKG_SCRIPTS="/tmp/flowwing-pkg-scripts"
+    PKG_VERSIONED_DIR="/usr/local/flow-wing/${FW_VER}"
+
+    rm -rf "$PKG_ROOT" "$PKG_SCRIPTS"
+    mkdir -p "${PKG_ROOT}${PKG_VERSIONED_DIR}" "$PKG_SCRIPTS"
+    cp -R "${INSTALL_PREFIX%/}/." "${PKG_ROOT}${PKG_VERSIONED_DIR}/"
+
+    # postinstall runs as root after the payload is copied to / .
+    # - Creates flowwing / FlowWing / flowwing-jit / FlowWing-jit symlinks
+    #   in /usr/local/bin so the binaries are on the default Terminal PATH.
+    # - Stable /usr/local/flow-wing/current → <version>/ symlink so later
+    #   upgrades can flip the pointer without re-writing /usr/local/bin.
+    cat > "$PKG_SCRIPTS/postinstall" << 'POSTINSTALL'
+#!/bin/bash
+set -e
+
+INSTALL_ROOT="/usr/local/flow-wing"
+CURRENT_LINK="${INSTALL_ROOT}/current"
+BIN_DIR="/usr/local/bin"
+
+mkdir -p "$BIN_DIR"
+
+# Pick the newest versioned install and point /usr/local/flow-wing/current at it.
+NEWEST_VERSION_DIR="$(ls -1dt "${INSTALL_ROOT}"/*/ 2>/dev/null | grep -v "/current/$" | head -n 1 | sed 's:/$::' || true)"
+if [ -n "$NEWEST_VERSION_DIR" ]; then
+  ln -sfn "$NEWEST_VERSION_DIR" "$CURRENT_LINK"
+fi
+
+TARGET_BIN="${CURRENT_LINK}/bin"
+
+if [ -x "${TARGET_BIN}/FlowWing" ]; then
+  ln -sfn "${TARGET_BIN}/FlowWing"     "${BIN_DIR}/FlowWing"
+  ln -sfn "${TARGET_BIN}/FlowWing"     "${BIN_DIR}/flowwing"
+fi
+if [ -x "${TARGET_BIN}/FlowWing-jit" ]; then
+  ln -sfn "${TARGET_BIN}/FlowWing-jit" "${BIN_DIR}/FlowWing-jit"
+  ln -sfn "${TARGET_BIN}/FlowWing-jit" "${BIN_DIR}/flowwing-jit"
+fi
+
+exit 0
+POSTINSTALL
+
+    chmod +x "$PKG_SCRIPTS/postinstall"
+
+    # Component package → distribution package. productbuild produces a
+    # Distribution-style .pkg that Installer.app accepts as a double-click
+    # installer (plain pkgbuild output works too, but productbuild is the
+    # macOS-recommended layer for user-facing installers).
+    COMPONENT_PKG="/tmp/flowwing-component.pkg"
+    pkgbuild \
+      --root "$PKG_ROOT" \
+      --identifier "dev.flowwing.cli" \
+      --version "${FW_VER}" \
+      --install-location "/" \
+      --scripts "$PKG_SCRIPTS" \
+      "$COMPONENT_PKG"
+
+    productbuild \
+      --identifier "dev.flowwing.cli.distribution" \
+      --version "${FW_VER}" \
+      --package "$COMPONENT_PKG" \
+      "$PKG_INSTALLER_NAME"
+
+    rm -rf "$PKG_ROOT" "$PKG_SCRIPTS" "$COMPONENT_PKG"
+    echo "macOS .pkg created: $PKG_INSTALLER_NAME"
     ;;
     
   Windows)
@@ -232,6 +313,10 @@ Description: FlowWing Programming Language
  FlowWing is a fast, simple, and easy to use programming language with
  static and dynamic typing, object-oriented programming, and memory management.
 DEB_EOF
+
+    # fpm ships the hook scripts into DEBIAN/ with the mode they have on disk, so force +x
+    # (git doesn't always preserve the executable bit on shell scripts across clones / Windows).
+    chmod +x .github/workflows/scripts/post-install.sh .github/workflows/scripts/pre-remove.sh
 
     # Package using fpm (DEB_ARCH is e.g. amd64 for x86_64)
     # Note: fpm has no --deb-repo; use --deb-field for custom control stanzas if needed.
