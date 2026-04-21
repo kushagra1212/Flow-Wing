@@ -410,7 +410,7 @@ DEB_EOF
       --after-install .github/workflows/scripts/post-install.sh \
       --before-remove .github/workflows/scripts/pre-remove.sh \
       --package "$INSTALLER_NAME" \
-      "$INSTALL_PREFIX"
+      "${INSTALL_PREFIX%/}/=/usr/local/flow-wing/${FLOWWING_VERSION}/"
     
     echo "Linux .deb installer created: $INSTALLER_NAME"
     ;;

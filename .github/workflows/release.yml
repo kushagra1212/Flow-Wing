@@ -813,16 +813,39 @@ jobs:
                   FAILURES=0
                   TOTAL=0
 
+                  AOT_OUT_DIR="${RUNNER_TEMP}/flowwing-aot-out"
+                  mkdir -p "$AOT_OUT_DIR"
+
                   run_case() {
                       local label="$1"
                       local path="$2"
+
+                      # Extract the filename without the .fg extension
+                      local basename=$(basename -- "$path")
+                      local stem="${basename%.*}"
+                      local out_bin="$AOT_OUT_DIR/$stem"
+                      
+                      # Append .exe if we are running on Windows
+                      if [ "${{ runner.os }}" = "Windows" ]; then
+                          out_bin="${out_bin}.exe"
+                      fi
+
+
                       TOTAL=$((TOTAL + 1))
-                      echo ""
-                      echo "=== [AOT] $label ==="
-                      if "$FW_BIN" "$path"; then
-                          echo "[PASS] $label"
+                      echo "-> Compiling to $out_bin..."
+                      if "$FW_BIN" "$path" --output-dir="$AOT_OUT_DIR" -o "$out_bin"; then
+                          
+                          # Step 2: Execute the compiled binary
+                          echo "-> Executing binary..."
+                          if "$out_bin"; then
+                              echo "[PASS] $label"
+                          else
+                              echo "[FAIL] $label (Execution failed with exit code $?)"
+                              FAILURES=$((FAILURES + 1))
+                          fi
+                          
                       else
-                          echo "[FAIL] $label (exit=$?)"
+                          echo "[FAIL] $label (Compilation failed with exit code $?)"
                           FAILURES=$((FAILURES + 1))
                       fi
                   }
