@@ -258,7 +258,7 @@ BIN_DIR="/usr/local/bin"
 mkdir -p "$BIN_DIR"
 
 # Pick the newest versioned install and point /usr/local/flow-wing/current at it.
-NEWEST_VERSION_DIR="$(ls -1dt "${INSTALL_ROOT}"/*/ 2>/dev/null | grep -v "/current/$" | head -n 1 | sed 's:/$::' || true)"
+NEWEST_VERSION_DIR="$(ls -1dt "${INSTALL_ROOT}"/*/ 2>/dev/null | grep -v "/current/$" | sort -V | head -n 1 | sed 's:/$::' || true)"
 if [ -n "$NEWEST_VERSION_DIR" ]; then
   ln -sfn "$NEWEST_VERSION_DIR" "$CURRENT_LINK"
 fi
