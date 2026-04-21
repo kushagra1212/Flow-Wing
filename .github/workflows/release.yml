@@ -223,6 +223,21 @@ jobs:
                   cp "$DEPS_BIN/clang++" "$STAGED_BIN/"
                   echo "Bundled clang++ into SDK bin/"
 
+                  if [ "${{ runner.os }}" = "Linux" ]; then
+                    # clang++ looks specifically for 'ld.lld' when given -fuse-ld=lld
+                    if [ -f "$DEPS_BIN/ld.lld" ]; then
+                      cp -a "$DEPS_BIN/ld.lld" "$STAGED_BIN/"
+                      echo "Bundled ld.lld into SDK bin/"
+                    elif [ -f "$DEPS_BIN/lld" ]; then
+                      # Fallback: copy lld but name it ld.lld to satisfy clang's search pattern
+                      cp -a "$DEPS_BIN/lld" "$STAGED_BIN/ld.lld"
+                      echo "Bundled lld (as ld.lld) into SDK bin/"
+                    else
+                      echo "ERROR: ld.lld or lld not found in deps — zero-dependency Linux AOT will fail."
+                      exit 1
+                    fi
+                  fi
+
                   # clang++ was built against shared libLLVM / libclang-cpp (see cmake/deps_builder/CMakeLists.txt
                   # -DLLVM_BUILD_LLVM_DYLIB=ON / -DLLVM_LINK_LLVM_DYLIB=ON for non-Windows). Its rpath is
                   # @loader_path/../lib (macOS) / $ORIGIN/../lib (Linux), so staging the dylibs under

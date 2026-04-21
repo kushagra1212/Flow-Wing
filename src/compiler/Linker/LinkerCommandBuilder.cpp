@@ -15,6 +15,29 @@
 #include <string>
 #include <unordered_set>
 
+#if defined(__APPLE__)
+#include <cstdio>
+
+// Dynamically fetch the user's active macOS SDK path at runtime
+static std::string getMacOSSDKPath() {
+    std::string result = "";
+    // Open a pipe to the native xcrun command
+    FILE* pipe = popen("xcrun --show-sdk-path 2>/dev/null", "r");
+    if (pipe) {
+        char buffer[256];
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            result += buffer;
+        }
+        pclose(pipe);
+    }
+    // Strip the trailing newline character
+    if (!result.empty() && result.back() == '\n') {
+        result.pop_back();
+    }
+    return result;
+}
+#endif
+
 namespace flow_wing {
 namespace linker {
 
@@ -96,13 +119,11 @@ void LinkerCommandBuilder::addLinkerBinary(std::vector<std::string> &args) {
 void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
 #if defined(__APPLE__)
   {
-    std::string sysroot_flag = MACOS_SDK_SYSROOT_FLAG;
-    const size_t sp = sysroot_flag.find(' ');
-    if (sp != std::string::npos) {
-      args.push_back(sysroot_flag.substr(0, sp));
-      args.push_back(sysroot_flag.substr(sp + 1));
-    } else if (!sysroot_flag.empty()) {
-      args.push_back(std::move(sysroot_flag));
+    std::string sdk_path = getMacOSSDKPath();
+    if (!sdk_path.empty()) {
+      args.push_back("-isysroot");
+      // Wrap the path in quotes in case of spaces (e.g. "/Library/.../Command Line Tools")
+      args.push_back("\"" + sdk_path + "\"");
     }
   }
   // Suppress warnings
