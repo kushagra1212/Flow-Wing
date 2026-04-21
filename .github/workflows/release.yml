@@ -605,11 +605,23 @@ jobs:
                     "${{ secrets.APT_REPO_USERNAME }}"
 
     # ============================================================================
-    # VERIFY INSTALL: Install via package manager + run test fixtures
+    # VERIFY INSTALL: install the native release artifact + run test fixtures
     # ============================================================================
-    # Gated to `release` events: on workflow_dispatch there is no published release for
-    # package managers to pull from, so this job cannot succeed. The staged-SDK smoke
-    # test inside the `build` job covers the dispatch path already.
+    # Gated to `release` events: on workflow_dispatch there is no published release to
+    # download from, so this job cannot succeed. The staged-SDK smoke test inside the
+    # `build` job covers the dispatch path already.
+    #
+    # Rationale for installing the native artifacts directly instead of going through
+    # Homebrew / Chocolatey / apt feeds:
+    #   * Chocolatey community moderation is asynchronous (hours → days). `choco install
+    #     flowwing` in the same CI run routinely fails with "package not found".
+    #   * The Homebrew tap PR created by publish-homebrew is not auto-merged, so
+    #     `brew install kushagra1212/flowwing/flowwing` may install an older / missing
+    #     formula until a human merges it.
+    # The .pkg / NSIS .exe / .deb we upload to the GitHub Release IS exactly what end
+    # users download, so verifying them is both more reliable and a stronger signal.
+    # The per-package-manager install paths are still covered by `brew test` /
+    # `choco install --local` / similar that can be wired into `publish-*` jobs.
     verify-install:
         name: Verify install (${{ matrix.os-name }})
         needs: [publish-homebrew, publish-chocolatey, publish-apt]
@@ -620,93 +632,128 @@ jobs:
                 include:
                     - os-name: macos-arm64
                       runner: macos-14
-                      pkg_cmd: brew install kushagra1212/flowwing/flowwing
-                      fw_path_expr: "/opt/homebrew/bin/FlowWing"
+                      asset_name: FlowWing-${{ github.event.release.tag_name }}-macos-arm64.pkg
                     - os-name: windows-x86_64
                       runner: windows-latest
-                      pkg_cmd: choco install flowwing -y
-                      fw_path_expr: "FlowWing.exe"
+                      asset_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.exe
                     - os-name: linux-x86_64
                       runner: ubuntu-latest
-                      pkg_cmd: |
-                          curl -sL "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/FlowWing-${GITHUB_REF_NAME}-linux-x86_64.deb" \
-                              -o /tmp/flowwing-linux.deb
-                          sudo dpkg -i /tmp/flowwing-linux.deb || sudo apt-get install -f -y  # handle deps if needed
-                      fw_path_expr: "flowwing"
+                      asset_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.deb
 
         runs-on: ${{ matrix.runner }}
         steps:
-            - name: Install FlowWing via package manager
+            - name: Download release artifact
               shell: bash
+              env:
+                  ASSET_NAME: ${{ matrix.asset_name }}
               run: |
-                  echo "Installing FlowWing on ${{ matrix.os-name }}..."
-                  eval "${{ matrix.pkg_cmd }}"
+                  set -euo pipefail
+                  URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/${ASSET_NAME}"
+                  DEST="${RUNNER_TEMP}/${ASSET_NAME}"
+                  echo "Downloading: $URL"
+                  # -f makes 404 / 5xx fail loudly instead of writing the error page
+                  # body to disk (which would then silently misinstall later).
+                  # --retry covers the short window between softprops/action-gh-release
+                  # finishing and the GitHub CDN exposing the asset.
+                  curl -fsSL --retry 5 --retry-delay 4 -o "$DEST" "$URL"
+                  ls -la "$DEST"
+
+            - name: Install FlowWing (macOS .pkg)
+              if: runner.os == 'macOS'
+              shell: bash
+              env:
+                  ASSET_NAME: ${{ matrix.asset_name }}
+              run: |
+                  set -euo pipefail
+                  # `installer -pkg` bypasses Gatekeeper entirely — we never open the
+                  # .pkg via Finder / `open`, so the quarantine xattr is irrelevant.
+                  # Postinstall (build-installer.sh) creates /usr/local/bin/{flowwing,
+                  # flowwing-jit} symlinks that Terminal's default PATH already sees.
+                  sudo installer -pkg "${RUNNER_TEMP}/${ASSET_NAME}" -target /
+                  ls -l /usr/local/bin/flowwing /usr/local/bin/flowwing-jit
+
+            - name: Install FlowWing (Windows NSIS .exe)
+              if: runner.os == 'Windows'
+              shell: pwsh
+              env:
+                  ASSET_NAME: ${{ matrix.asset_name }}
+              run: |
+                  $Installer = Join-Path $env:RUNNER_TEMP $env:ASSET_NAME
+                  Write-Host "Running silent NSIS install: $Installer /S"
+                  # /S = NSIS silent mode. Start-Process -Wait + non-zero exit would
+                  # be invisible without an explicit check, so inspect $LASTEXITCODE.
+                  $p = Start-Process -FilePath $Installer -ArgumentList '/S' -Wait -NoNewWindow -PassThru
+                  if ($p.ExitCode -ne 0) {
+                    Write-Host "NSIS installer exited with $($p.ExitCode)"
+                    exit $p.ExitCode
+                  }
+                  $InstallDir = "C:\Program Files\FlowWing\${env:GITHUB_REF_NAME}\bin"
+                  Write-Host "Expecting binaries under: $InstallDir"
+                  Get-ChildItem $InstallDir
+
+            - name: Install FlowWing (Linux .deb)
+              if: runner.os == 'Linux'
+              shell: bash
+              env:
+                  ASSET_NAME: ${{ matrix.asset_name }}
+              run: |
+                  set -euo pipefail
+                  # Intentionally NO `|| apt-get install -f -y` fallback here: the .deb
+                  # has no external dependencies (SDK is self-contained), so any dpkg
+                  # failure is a real packaging bug we want surfaced, not masked.
+                  sudo dpkg -i "${RUNNER_TEMP}/${ASSET_NAME}"
+                  ls -l /usr/local/bin/flowwing /usr/local/bin/flowwing-jit
 
             # --- Locate both AOT (FlowWing) and JIT (FlowWing-jit) binaries ---
-            # Each package manager installs the pair at a different prefix, so probe per-platform.
+            # With direct-artifact installs the locations are deterministic per platform,
+            # so no fallback search is needed (the previous `find /usr/local/flow-wing`
+            # fallback tripped `set -e` + `pipefail` when the dir didn't exist, killing
+            # the script silently on any upstream regression).
             - name: Locate FlowWing binaries (AOT + JIT)
               id: verify_bin
               shell: bash
               run: |
-                  set -e
-                  FW_FOUND=false
-                  FW_JIT_FOUND=false
-                  FW_PATH=""
-                  FW_JIT_PATH=""
+                  set -euo pipefail
 
                   if [ "${{ runner.os }}" = "Windows" ]; then
-                      # Chocolatey creates shims on PATH for every .exe in the package tools/ dir.
-                      if command -v FlowWing.exe >/dev/null 2>&1 || command -v FlowWing >/dev/null 2>&1; then
-                          FW_PATH="FlowWing.exe"
-                          FW_FOUND=true
-                      fi
-                      if command -v FlowWing-jit.exe >/dev/null 2>&1 || command -v FlowWing-jit >/dev/null 2>&1; then
-                          FW_JIT_PATH="FlowWing-jit.exe"
-                          FW_JIT_FOUND=true
-                      fi
-                  elif [ "${{ runner.os }}" = "Linux" ]; then
-                      # post-install.sh symlinks /usr/local/bin/{FlowWing,flowwing,FlowWing-jit,flowwing-jit}.
-                      if [ -x /usr/local/bin/flowwing ]; then
-                          FW_PATH="/usr/local/bin/flowwing"
-                          FW_FOUND=true
-                      else
-                          # Fallback: scan versioned install dir.
-                          fw=$(find /usr/local/flow-wing -name FlowWing -type f 2>/dev/null | head -n1)
-                          if [ -n "$fw" ]; then FW_PATH="$fw"; FW_FOUND=true; fi
-                      fi
-                      if [ -x /usr/local/bin/flowwing-jit ]; then
-                          FW_JIT_PATH="/usr/local/bin/flowwing-jit"
-                          FW_JIT_FOUND=true
-                      else
-                          fwj=$(find /usr/local/flow-wing -name FlowWing-jit -type f 2>/dev/null | head -n1)
-                          if [ -n "$fwj" ]; then FW_JIT_PATH="$fwj"; FW_JIT_FOUND=true; fi
-                      fi
-                  elif [ "${{ runner.os }}" = "macOS" ]; then
-                      # Homebrew's `bin.install` links both binaries into /opt/homebrew/bin.
-                      if [ -x /opt/homebrew/bin/FlowWing ]; then
-                          FW_PATH=/opt/homebrew/bin/FlowWing
-                          FW_FOUND=true
-                      fi
-                      if [ -x /opt/homebrew/bin/FlowWing-jit ]; then
-                          FW_JIT_PATH=/opt/homebrew/bin/FlowWing-jit
-                          FW_JIT_FOUND=true
-                      fi
+                      # NSIS InstallDir = "C:\Program Files\FlowWing\<tag>\bin" (see
+                      # build-installer.sh). The installer adds that dir to the system
+                      # PATH, but the edit does not propagate to this shell session —
+                      # resolve the binary by absolute path instead.
+                      FW_PATH="/c/Program Files/FlowWing/${GITHUB_REF_NAME}/bin/FlowWing.exe"
+                      FW_JIT_PATH="/c/Program Files/FlowWing/${GITHUB_REF_NAME}/bin/FlowWing-jit.exe"
+                  else
+                      # Both Linux post-install.sh and macOS .pkg postinstall place
+                      # /usr/local/bin/{flowwing,flowwing-jit} symlinks that point at
+                      # the versioned install dir.
+                      FW_PATH="/usr/local/bin/flowwing"
+                      FW_JIT_PATH="/usr/local/bin/flowwing-jit"
                   fi
 
-                  echo "FW_FOUND=$FW_FOUND"         >> "$GITHUB_OUTPUT"
-                  echo "FW_PATH=$FW_PATH"           >> "$GITHUB_OUTPUT"
-                  echo "FW_JIT_FOUND=$FW_JIT_FOUND" >> "$GITHUB_OUTPUT"
-                  echo "FW_JIT_PATH=$FW_JIT_PATH"   >> "$GITHUB_OUTPUT"
+                  FW_FOUND=false
+                  FW_JIT_FOUND=false
+                  [ -x "$FW_PATH" ]     && FW_FOUND=true
+                  [ -x "$FW_JIT_PATH" ] && FW_JIT_FOUND=true
 
-                  echo "FlowWing (AOT): found=$FW_FOUND path=$FW_PATH"
-                  echo "FlowWing-jit (JIT): found=$FW_JIT_FOUND path=$FW_JIT_PATH"
+                  {
+                      echo "FW_FOUND=$FW_FOUND"
+                      echo "FW_PATH=$FW_PATH"
+                      echo "FW_JIT_FOUND=$FW_JIT_FOUND"
+                      echo "FW_JIT_PATH=$FW_JIT_PATH"
+                  } >> "$GITHUB_OUTPUT"
 
-            - name: Fail early if AOT binary is missing from PATH
+                  echo "FlowWing (AOT):     found=$FW_FOUND  path=$FW_PATH"
+                  echo "FlowWing-jit (JIT): found=$FW_JIT_FOUND  path=$FW_JIT_PATH"
+
+            - name: Fail early if AOT binary is missing
               if: steps.verify_bin.outputs.FW_FOUND != 'true'
               shell: bash
               run: |
-                  echo "::error::FlowWing is NOT on PATH after package-manager install."
-                  echo "This means the post-install (deb), Homebrew linking, or Chocolatey shim failed."
+                  echo "::error::FlowWing binary was not found at the expected install location."
+                  echo "Likely causes:"
+                  echo "  * Linux: .deb postinst (post-install.sh) did not create /usr/local/bin/flowwing."
+                  echo "  * macOS: .pkg postinstall did not create /usr/local/bin/flowwing symlinks."
+                  echo "  * Windows: NSIS InstallDir changed without updating verify-install's path."
                   exit 1
 
             - name: Check FlowWing versions (AOT + JIT)
