@@ -1579,7 +1579,7 @@ Multi-line comments are enclosed between `/#` and `#/`.
 
 ```flowwing
 /# Calulate sum  of natural number
-fun main() {
+fun fg_main() {
     var num = 10
     var sum = 0
     var i = 1
@@ -1591,7 +1591,7 @@ fun main() {
     print("Sum = "+ sum + sum)
 }
 
-main()
+fg_main()
 #/
 ```
 
@@ -2250,7 +2250,7 @@ test2(1) /; Error: LiteralCannotBePassedToInoutParameter
 The name `main` is reserved and cannot be used for user-defined functions.
 
 ```flowwing
-fun main() -> nthg {
+fun fg_main() -> nthg {
   var a: str = "Hello, World!"
 } /; Error: kFunctionNamedMain
 ```

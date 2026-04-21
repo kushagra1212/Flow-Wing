@@ -15,6 +15,29 @@
 #include <string>
 #include <unordered_set>
 
+#if defined(__APPLE__)
+#include <cstdio>
+
+// Dynamically fetch the user's active macOS SDK path at runtime
+static std::string getMacOSSDKPath() {
+    std::string result = "";
+    // Open a pipe to the native xcrun command
+    FILE* pipe = popen("xcrun --show-sdk-path 2>/dev/null", "r");
+    if (pipe) {
+        char buffer[256];
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            result += buffer;
+        }
+        pclose(pipe);
+    }
+    // Strip the trailing newline character
+    if (!result.empty() && result.back() == '\n') {
+        result.pop_back();
+    }
+    return result;
+}
+#endif
+
 namespace flow_wing {
 namespace linker {
 
@@ -51,7 +74,17 @@ std::string LinkerCommandBuilder::generateLinkCommand() {
   // 7. System Libraries (libc++, msvcrt, etc)
   addSystemLibraries(cmd);
 
-  return joinArgs(cmd);
+  std::string finalCommand = joinArgs(cmd);
+
+  #if defined(_WIN32)
+    // std::system on Windows invokes cmd.exe /c. If the command string starts 
+    // with a quote and contains multiple quotes, cmd.exe silently strips the 
+    // first and last quote, corrupting the command. 
+    // Fix: Wrap the entire command in an extra set of quotes.
+    finalCommand = "\"" + finalCommand + "\"";
+  #endif
+  
+    return finalCommand;
 }
 
 // ========================================================
@@ -80,19 +113,17 @@ void LinkerCommandBuilder::addLinkerBinary(std::vector<std::string> &args) {
     linker = "clang++";
 #endif
   }
-  args.push_back(std::move(linker));
+  args.push_back("\"" + linker + "\"");
 }
 
 void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
 #if defined(__APPLE__)
   {
-    std::string sysroot_flag = MACOS_SDK_SYSROOT_FLAG;
-    const size_t sp = sysroot_flag.find(' ');
-    if (sp != std::string::npos) {
-      args.push_back(sysroot_flag.substr(0, sp));
-      args.push_back(sysroot_flag.substr(sp + 1));
-    } else if (!sysroot_flag.empty()) {
-      args.push_back(std::move(sysroot_flag));
+    std::string sdk_path = getMacOSSDKPath();
+    if (!sdk_path.empty()) {
+      args.push_back("-isysroot");
+      // Wrap the path in quotes in case of spaces (e.g. "/Library/.../Command Line Tools")
+      args.push_back("\"" + sdk_path + "\"");
     }
   }
   // Suppress warnings
@@ -113,7 +144,7 @@ void LinkerCommandBuilder::addOutputConfig(std::vector<std::string> &args) {
       std::filesystem::path(binary_file_path).parent_path();
   flow_wing::ir_gen::Utils::createDirectories(output_directory.string());
 
-  args.push_back(getOutputFlag() + binary_file_path);
+  args.push_back(getOutputFlag() + "\"" + binary_file_path + "\"");
 }
 
 void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
@@ -126,12 +157,12 @@ void LinkerCommandBuilder::addObjectFiles(std::vector<std::string> &args) {
   m_object_files.clear();
   m_object_files.push_back(primary);
   seen.insert(primary);
-  args.push_back(primary);
+  args.push_back("\"" + primary + "\"");
 
   for (const auto &extra : m_context.getBroughtObjectFiles()) {
     if (seen.insert(extra).second) {
       m_object_files.push_back(extra);
-      args.push_back(extra);
+      args.push_back("\"" + extra + "\"");
     }
   }
 }

@@ -1,0 +1,166 @@
+// X-macro list of every C runtime symbol the FlowWing JIT must be able to
+// resolve at IR-link time.  Each entry is included into:
+//
+//   (1) an `extern "C"` block in JITRuntimeSymbols.cpp that forces a
+//       reference so the linker keeps the symbol in FlowWing-jit.exe, and
+//   (2) a loop that pushes "<name>" -> &<name> into
+//       llvm::sys::DynamicLibrary::AddSymbol so ORC's default
+//       DynamicLibrarySearchGenerator::GetForCurrentProcess can find it.
+//
+// Why maintain this by hand?  The runtime is a static library that gets
+// /WHOLEARCHIVE'd into FlowWing-jit, so the functions are *present* in the
+// .exe.  On Linux `-Wl,--export-dynamic` re-exports them into the dynamic
+// symbol table; on macOS dlsym(RTLD_DEFAULT) finds them.  On Windows MSVC
+// symbols from static libs are **not** put into the .exe's export
+// directory, so GetProcAddress(hProcess, "fg_pf") returns NULL and the JIT
+// fails with "Symbols not found: [ fg_pf, fg_cs, ... ]".  Registering them
+// explicitly via AddSymbol sidesteps the export-table limitation.
+//
+// Format: FW_JIT_RUNTIME_SYMBOL(name)
+//
+// Keep entries grouped by source file so it's obvious where each symbol
+// comes from when new ones are added.  Sources were cross-checked against
+// `nm -g --defined-only` on each libflowwing_*.a / libbuilt_in_module.a /
+// libdynamic.a so the list is complete for the core runtime.  NOTE:
+// raylib_module is intentionally *not* listed — `bring raylib` in JIT mode
+// on Windows is not supported in this iteration because raylib exposes
+// 500+ symbols; use AOT for raylib on Windows.
+
+#ifndef FW_JIT_RUNTIME_SYMBOL
+#  error "Define FW_JIT_RUNTIME_SYMBOL(name) before including JITRuntimeSymbols.def"
+#endif
+
+// ---- fw-modules/built_in_module/built_in_module.c -------------------------
+FW_JIT_RUNTIME_SYMBOL(fg_panic)
+FW_JIT_RUNTIME_SYMBOL(fg_re)
+FW_JIT_RUNTIME_SYMBOL(fg_runtime_error)
+FW_JIT_RUNTIME_SYMBOL(fg_pf)
+FW_JIT_RUNTIME_SYMBOL(fg_cs)
+FW_JIT_RUNTIME_SYMBOL(fg_sl)
+FW_JIT_RUNTIME_SYMBOL(fg_itos)
+FW_JIT_RUNTIME_SYMBOL(fg_i8tos)
+FW_JIT_RUNTIME_SYMBOL(fg_lltos)
+FW_JIT_RUNTIME_SYMBOL(fg_ctos)
+FW_JIT_RUNTIME_SYMBOL(fg_dtos)
+FW_JIT_RUNTIME_SYMBOL(fg_ftos)
+FW_JIT_RUNTIME_SYMBOL(fg_gmosc)
+FW_JIT_RUNTIME_SYMBOL(fg_cmp)
+FW_JIT_RUNTIME_SYMBOL(fg_lt)
+FW_JIT_RUNTIME_SYMBOL(fg_lte)
+FW_JIT_RUNTIME_SYMBOL(fg_gt)
+FW_JIT_RUNTIME_SYMBOL(fg_gte)
+FW_JIT_RUNTIME_SYMBOL(fg_eq)
+FW_JIT_RUNTIME_SYMBOL(fg_sti)
+FW_JIT_RUNTIME_SYMBOL(fg_stc)
+FW_JIT_RUNTIME_SYMBOL(fg_stl)
+FW_JIT_RUNTIME_SYMBOL(fg_std)
+FW_JIT_RUNTIME_SYMBOL(fg_stf)
+FW_JIT_RUNTIME_SYMBOL(fg_init_runtime)
+FW_JIT_RUNTIME_SYMBOL(fg_idx_oob)
+FW_JIT_RUNTIME_SYMBOL(fg_str_idx)
+FW_JIT_RUNTIME_SYMBOL(fg_dyn_str_idx)
+FW_JIT_RUNTIME_SYMBOL(fg_str_set)
+FW_JIT_RUNTIME_SYMBOL(fg_dyn_str_set)
+FW_JIT_RUNTIME_SYMBOL(fg_print_enter_object)
+FW_JIT_RUNTIME_SYMBOL(fg_print_exit_object)
+FW_JIT_RUNTIME_SYMBOL(fg_set_script_anchor)
+FW_JIT_RUNTIME_SYMBOL(fg_get_script_dir)
+FW_JIT_RUNTIME_SYMBOL(fg_store_args)
+FW_JIT_RUNTIME_SYMBOL(fg_get_arg_count)
+FW_JIT_RUNTIME_SYMBOL(fg_get_arg)
+FW_JIT_RUNTIME_SYMBOL(fg_exit)
+FW_JIT_RUNTIME_SYMBOL(fg_timestamp)
+
+// ---- fw-modules/dynamic/dynamic.c ----------------------------------------
+FW_JIT_RUNTIME_SYMBOL(fg_perform_dynamic_op)
+FW_JIT_RUNTIME_SYMBOL(fg_perform_dynamic_unary_op)
+FW_JIT_RUNTIME_SYMBOL(fg_print_dynamic)
+FW_JIT_RUNTIME_SYMBOL(fg_dyn_to_string_ptr)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_int8)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_int32)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_int64)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_bool)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_float32)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_float64)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_string)
+FW_JIT_RUNTIME_SYMBOL(fg_unbox_char)
+
+// ---- fw-modules/vec_module/libflowwing_vec.cpp ---------------------------
+FW_JIT_RUNTIME_SYMBOL(dyn_list_new)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_push)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_pop)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_get)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_set)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_insert)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_remove_at)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_size)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_clear)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_sort)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_reverse)
+FW_JIT_RUNTIME_SYMBOL(dyn_list_index_of)
+
+// ---- fw-modules/map_module/libflowwing_map.cpp ---------------------------
+FW_JIT_RUNTIME_SYMBOL(dyn_map_new)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_set)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_get_or)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_remove)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_contains)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_size)
+FW_JIT_RUNTIME_SYMBOL(dyn_map_clear)
+
+// ---- fw-modules/text_module/libflowwing_text.c ---------------------------
+FW_JIT_RUNTIME_SYMBOL(strLength)
+FW_JIT_RUNTIME_SYMBOL(strReplace)
+FW_JIT_RUNTIME_SYMBOL(strReverse)
+FW_JIT_RUNTIME_SYMBOL(strToLower)
+FW_JIT_RUNTIME_SYMBOL(strToUpper)
+FW_JIT_RUNTIME_SYMBOL(strTrim)
+
+// ---- fw-modules/file_module/libflowwing_file.cpp -------------------------
+FW_JIT_RUNTIME_SYMBOL(file_absolute_path)
+FW_JIT_RUNTIME_SYMBOL(file_append_all)
+FW_JIT_RUNTIME_SYMBOL(file_close)
+FW_JIT_RUNTIME_SYMBOL(file_cwd)
+FW_JIT_RUNTIME_SYMBOL(file_delete)
+FW_JIT_RUNTIME_SYMBOL(file_exists)
+FW_JIT_RUNTIME_SYMBOL(file_last_error)
+FW_JIT_RUNTIME_SYMBOL(file_open)
+FW_JIT_RUNTIME_SYMBOL(file_read_all)
+FW_JIT_RUNTIME_SYMBOL(file_read_line)
+FW_JIT_RUNTIME_SYMBOL(file_write_all)
+
+// ---- fw-modules/io_module/libflowwing_io.cpp -----------------------------
+FW_JIT_RUNTIME_SYMBOL(io_flush)
+FW_JIT_RUNTIME_SYMBOL(io_last_error)
+FW_JIT_RUNTIME_SYMBOL(io_print_error_log)
+FW_JIT_RUNTIME_SYMBOL(io_print_error_log_ln)
+FW_JIT_RUNTIME_SYMBOL(io_print_log)
+FW_JIT_RUNTIME_SYMBOL(io_print_log_ln)
+FW_JIT_RUNTIME_SYMBOL(io_read_line)
+
+// ---- fw-modules/sys_module/libflowwing_sys.cpp ---------------------------
+//
+// NOTE: sys_module is not in the /WHOLEARCHIVE (macOS -force_load / Linux
+// --whole-archive / Windows /WHOLEARCHIVE) set in cmake/targets.cmake today,
+// so its symbols (sys_arg, sys_exit, sys_platform) are *not* linked into
+// FlowWing-jit.  Re-add them to BOTH this list and the force_load block in
+// targets.cmake if `bring sys` ever needs to work inside JIT.
+
+// ---- fw-modules/vortex_module/libflowwing_vortex.cpp ---------------------
+FW_JIT_RUNTIME_SYMBOL(vortex_client_close)
+FW_JIT_RUNTIME_SYMBOL(vortex_client_is_done)
+FW_JIT_RUNTIME_SYMBOL(vortex_client_post_stream)
+FW_JIT_RUNTIME_SYMBOL(vortex_client_read_chunk)
+FW_JIT_RUNTIME_SYMBOL(vortex_client_res_ok)
+FW_JIT_RUNTIME_SYMBOL(vortex_req_body)
+FW_JIT_RUNTIME_SYMBOL(vortex_req_method)
+FW_JIT_RUNTIME_SYMBOL(vortex_req_path)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_header)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_send)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_status)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_stream_begin)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_stream_end)
+FW_JIT_RUNTIME_SYMBOL(vortex_res_stream_write)
+FW_JIT_RUNTIME_SYMBOL(vortex_server_accept)
+FW_JIT_RUNTIME_SYMBOL(vortex_server_listen)
+FW_JIT_RUNTIME_SYMBOL(vortex_server_new)

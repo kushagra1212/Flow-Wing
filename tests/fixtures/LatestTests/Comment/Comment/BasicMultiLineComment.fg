@@ -1,5 +1,5 @@
 /# Calulate sum  of natural number
-fun main() {
+fun fg_main() {
     var num = 10
     var sum = 0
     var i = 1
@@ -11,7 +11,7 @@ fun main() {
     print("Sum = "+ sum + sum)
 }
 
-main()
+fg_main()
 
 #/
 print(2)

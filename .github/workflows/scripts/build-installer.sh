@@ -84,14 +84,58 @@ case "$OS" in
 </plist>
 PLIST
 
-    # Launcher: must resolve SDK root reliably (old script used invalid ../Resources/lib/modules/../../..).
+    # Launcher.
+    #
+    # FlowWing is a CLI, so double-clicking FlowWing.app in /Applications used
+    # to exec the compiler with no args and exit silently — users reported
+    # "drag into Applications and nothing happens". Make the GUI entry point
+    # pop a Terminal window that:
+    #   (a) prints `FlowWing --version`, then
+    #   (b) tells the user how to add the SDK bin/ to PATH and keeps the shell
+    #       open (login shell) so they can actually try it.
+    # When the same binary is re-entered from Terminal (TERM set & stdin is a
+    # tty) we assume the user knows what they're doing and exec the compiler
+    # with forwarded args — this keeps `open -a FlowWing -- --help` etc.
+    # working for power users.
     cat > "$APP/Contents/MacOS/FlowWing" << 'WRAPPER'
 #!/bin/bash
 SDK_ROOT="$(cd "$(dirname "$0")/../Resources/FlowWingSDK" && pwd)"
 export PATH="$SDK_ROOT/bin:$PATH"
 export FLOWWING_MODULES_PATH="$SDK_ROOT/lib/modules"
 export FLOWWING_LIB_PATH="$SDK_ROOT/lib"
-exec "$SDK_ROOT/bin/FlowWing" "$@"
+
+# Heuristic: launched from Terminal (or `open -W` with args)?  Just exec.
+if [ -t 0 ] || [ -t 1 ] || [ "$#" -gt 0 ]; then
+  exec "$SDK_ROOT/bin/FlowWing" "$@"
+fi
+
+# Otherwise (Finder / Launchpad double-click): pop a Terminal window with a
+# friendly session that shows the install is working and leaves the shell open.
+WELCOME="/tmp/flowwing-welcome-$$.command"
+cat > "$WELCOME" <<EOF
+#!/bin/bash
+clear
+echo "=========================================="
+echo "  FlowWing is installed."
+echo "=========================================="
+echo
+"$SDK_ROOT/bin/FlowWing" --version || true
+echo
+echo "To use FlowWing / flowwing-jit from any Terminal, add this to your shell rc file"
+echo "(~/.zshrc for zsh, ~/.bash_profile for bash):"
+echo
+echo "    export PATH=\"$SDK_ROOT/bin:\\\$PATH\""
+echo
+echo "Quick try (current shell already has PATH set):"
+echo "    FlowWing --help"
+echo "    FlowWing-jit <your-file>.fg"
+echo
+echo "Docs: https://github.com/kushagra1212/Flow-Wing"
+echo
+exec "\$SHELL" -l
+EOF
+chmod +x "$WELCOME"
+open -a Terminal "$WELCOME"
 WRAPPER
     chmod +x "$APP/Contents/MacOS/FlowWing"
 
@@ -100,18 +144,55 @@ WRAPPER
     cat > "$README" << EOF
 FlowWing ${FW_VER} (macOS)
 
-• Drag “FlowWing.app” into Applications, then open it from Applications (or run FlowWing from Terminal as below).
+FlowWing is a command-line compiler, not a GUI app. There are two ways to
+install it on macOS; pick one.
 
-• This build is for the same CPU architecture as the GitHub runner (e.g. arm64 Apple Silicon). An Intel Mac cannot run an arm64 build and vice versa.
+──────────────────────────────────────────────────
+OPTION A — This .dmg  (drag & drop, no admin)
+──────────────────────────────────────────────────
 
-• Terminal: add the compiler to PATH (after copying the app to /Applications):
+1. Drag "FlowWing.app" into Applications.
+2. Double-click it once. A Terminal window will open, print the version,
+   and show you the exact PATH line to paste into ~/.zshrc (or ~/.bash_profile).
+3. New Terminal tabs will then have \`FlowWing\` and \`FlowWing-jit\` on PATH.
+
+Manual PATH (if you prefer):
 
   export PATH="/Applications/FlowWing.app/Contents/Resources/FlowWingSDK/bin:\$PATH"
   FlowWing --version
 
-Or call the binary directly:
+Or call the binary directly without touching PATH:
 
   "/Applications/FlowWing.app/Contents/Resources/FlowWingSDK/bin/FlowWing" --version
+
+──────────────────────────────────────────────────
+OPTION B — The .pkg  (double-click, auto PATH)
+──────────────────────────────────────────────────
+
+The accompanying FlowWing-${FW_VER}-macos-*.pkg does OPTION A automatically:
+it installs under /usr/local/flow-wing/${FW_VER}/ and drops symlinks in
+/usr/local/bin (already on Terminal's default PATH).
+
+The .pkg is not signed with an Apple Developer ID, so on first run macOS
+Gatekeeper will say "cannot be opened … move to Trash". This is normal for
+open-source installers. Bypass it ONCE, either way:
+
+  • Finder:  Control-click the .pkg → Open → Open anyway.
+  • Terminal: xattr -d com.apple.quarantine ~/Downloads/FlowWing-*.pkg
+             open ~/Downloads/FlowWing-*.pkg
+
+After the .pkg finishes, open a new Terminal tab and run:
+
+  flowwing --version
+  flowwing-jit --version
+
+──────────────────────────────────────────────────
+Architecture note
+──────────────────────────────────────────────────
+
+This build targets the same CPU as the runner that produced it
+(arm64 Apple Silicon for the macos-arm64 asset). An Intel Mac cannot run an
+arm64 build and vice versa — download the matching asset for your machine.
 EOF
 
     # create-dmg's source must be a *folder whose contents* appear at the DMG root.
@@ -177,7 +258,7 @@ BIN_DIR="/usr/local/bin"
 mkdir -p "$BIN_DIR"
 
 # Pick the newest versioned install and point /usr/local/flow-wing/current at it.
-NEWEST_VERSION_DIR="$(ls -1dt "${INSTALL_ROOT}"/*/ 2>/dev/null | grep -v "/current/$" | head -n 1 | sed 's:/$::' || true)"
+NEWEST_VERSION_DIR="$(ls -1d "${INSTALL_ROOT}"/*/ 2>/dev/null | grep -v "/current/$" | sort -V | tail -n 1 | sed 's:/$::' || true)"
 if [ -n "$NEWEST_VERSION_DIR" ]; then
   ln -sfn "$NEWEST_VERSION_DIR" "$CURRENT_LINK"
 fi
@@ -329,7 +410,7 @@ DEB_EOF
       --after-install .github/workflows/scripts/post-install.sh \
       --before-remove .github/workflows/scripts/pre-remove.sh \
       --package "$INSTALLER_NAME" \
-      "$INSTALL_PREFIX"
+      "${INSTALL_PREFIX%/}/=/usr/local/flow-wing/${FLOWWING_VERSION}/"
     
     echo "Linux .deb installer created: $INSTALLER_NAME"
     ;;

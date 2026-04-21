@@ -21,7 +21,7 @@ fun getFoodPosition() -> Position {
   return pos
 }
 
-fun main() -> int {
+fun fg_main() -> int {
   const speed = 10
   var tail: int = 1
   var posX: int[10000] = [10000 fill -1]
@@ -96,4 +96,4 @@ fun main() -> int {
   fgAnim.closeWindow()
   return 0
 }
-main()
+fg_main()

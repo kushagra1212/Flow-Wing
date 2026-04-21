@@ -11,7 +11,7 @@ bring {drawCloud, drawHill} from "./utils.fg"
 /; ─────────────────────────────────────────────────────────
 /;  MAIN
 /; ─────────────────────────────────────────────────────────
-fun main() -> nthg {
+fun start_game() -> nthg {
   var win: raylib::Window = new raylib::Window(800, 600, "FlowWing — Super Mario")
 
   var player: Player = new Player(80.0f, 420.0f)
@@ -168,4 +168,4 @@ fun main() -> nthg {
   }
 }
 
-main()
+start_game()

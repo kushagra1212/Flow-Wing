@@ -78,7 +78,7 @@ fun printVehicleDetails(v: Vehicle) -> nthg {
   v.printDetails()
 }
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
   var vehicle:Vehicle = new Vehicle("Toyota", "Camry", 2020)
   var car:Car = new Car("Honda", "Civic", 2022, 4)
 
@@ -86,7 +86,7 @@ fun main() -> nthg {
   printVehicleDetails(car)
 }
 
-main()
+fg_main()
 
 ```
 
@@ -336,7 +336,7 @@ Here are some sample programs in Flow-Wing to get you started:
 
 ```
 
-fun main() -> nthg {
+fun fg_main() -> nthg {
     var n = getInputAsInt()
     if (isPrime(n)) {
         print("The number is prime")
@@ -345,7 +345,7 @@ fun main() -> nthg {
     }
 }
 
-main()
+fg_main()
 
 ```
 

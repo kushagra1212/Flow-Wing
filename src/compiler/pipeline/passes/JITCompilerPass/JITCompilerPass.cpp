@@ -19,6 +19,7 @@
 
 #include "JITCompilerPass.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/io/JITRuntimeSymbols.hpp"
 #include "src/IRGen/io/JITUtils.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/common/io/FileUtils.h"
@@ -246,6 +247,14 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
     return ReturnStatus::kFailure;
   }
   auto JIT = std::move(*JITExpected);
+
+  // Install FlowWing runtime symbols as absolute definitions in
+  // MainJITDylib.  LLJIT's default DynamicLibrarySearchGenerator goes
+  // through dlsym / GetProcAddress, which on Windows cannot see
+  // /WHOLEARCHIVE'd static-lib symbols (they're not in the PE export
+  // directory).  Defining them here guarantees resolution on every
+  // platform — see JITRuntimeSymbols.hpp for the full rationale.
+  flow_wing::ir_gen::jit_utils::registerRuntimeSymbols(*JIT);
 
   // 3. Create a ThreadSafeContext.
   // ORC JIT requires modules to be wrapped in ThreadSafeModule for thread
