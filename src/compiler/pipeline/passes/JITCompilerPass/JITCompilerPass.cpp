@@ -19,6 +19,7 @@
 
 #include "JITCompilerPass.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
+#include "src/IRGen/io/JITRuntimeSymbols.hpp"
 #include "src/IRGen/io/JITUtils.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/common/io/FileUtils.h"
@@ -246,6 +247,15 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
     return ReturnStatus::kFailure;
   }
   auto JIT = std::move(*JITExpected);
+
+  // LLJIT attaches a DynamicLibrarySearchGenerator::GetForCurrentProcess to
+  // MainJITDylib by default, which consults
+  // llvm::sys::DynamicLibrary::SearchForAddressOfSymbol before falling back
+  // to dlsym / GetProcAddress.  Pre-populating the explicit-symbols map
+  // with every FlowWing runtime function guarantees JIT resolution even on
+  // Windows, where /WHOLEARCHIVE'd static-lib symbols are not exposed in
+  // the .exe's export directory (see JITRuntimeSymbols.hpp for rationale).
+  flow_wing::ir_gen::jit_utils::registerRuntimeSymbols();
 
   // 3. Create a ThreadSafeContext.
   // ORC JIT requires modules to be wrapped in ThreadSafeModule for thread
