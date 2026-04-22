@@ -33,10 +33,10 @@ if [ -z "$API_KEY" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# FIX: Create an isolated staging directory so `choco pack` doesn't accidentally
-# zip up the entire Flow-Wing git repository.
+# FIX: Use a relative directory. Native Windows Python does not understand
+# Git Bash's virtual "/tmp" directory path.
 # -----------------------------------------------------------------------------
-BUILD_DIR="/tmp/choco-build"
+BUILD_DIR="choco-build"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/tools"
 
@@ -84,11 +84,11 @@ $binDir = Join-Path $toolsDir 'bin'
 Install-ChocolateyPath -PathToInstall $binDir -PathType 'Machine'
 PS1_EOF
 
-# Replace placeholders (URLs contain / so sed 's///' breaks; use Python)
-WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" python3 << 'PY'
+# FIX: Pass the relative BUILD_DIR into Python to ensure paths match
+WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" BDIR="$BUILD_DIR" python3 << 'PY'
 from pathlib import Path
 import os
-p = Path("/tmp/choco-build/tools/chocolateyinstall.ps1")
+p = Path(os.environ["BDIR"]) / "tools" / "chocolateyinstall.ps1"
 t = p.read_text()
 t = t.replace("WINDOWS_URL_PLACEHOLDER", os.environ["WU"])
 t = t.replace("WINDOWS_SHA256_PLACEHOLDER", os.environ["WS"])
