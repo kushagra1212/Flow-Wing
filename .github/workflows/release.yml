@@ -221,11 +221,11 @@ jobs:
                   if [ "${{ runner.os }}" = "Linux" ]; then
                     # clang++ looks specifically for 'ld.lld' when given -fuse-ld=lld
                     if [ -f "$DEPS_BIN/ld.lld" ]; then
-                      cp -a "$DEPS_BIN/ld.lld" "$STAGED_BIN/"
+                      # -L to copy the actual binary, not the symlink!
+                      cp -L "$DEPS_BIN/ld.lld" "$STAGED_BIN/"
                       echo "Bundled ld.lld into SDK bin/"
                     elif [ -f "$DEPS_BIN/lld" ]; then
-                      # Fallback: copy lld but name it ld.lld to satisfy clang's search pattern
-                      cp -a "$DEPS_BIN/lld" "$STAGED_BIN/ld.lld"
+                      cp -L "$DEPS_BIN/lld" "$STAGED_BIN/ld.lld"
                       echo "Bundled lld (as ld.lld) into SDK bin/"
                     else
                       echo "ERROR: ld.lld or lld not found in deps — zero-dependency Linux AOT will fail."
