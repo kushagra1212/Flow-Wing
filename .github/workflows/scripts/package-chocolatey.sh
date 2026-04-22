@@ -32,11 +32,16 @@ if [ -z "$API_KEY" ]; then
   exit 0
 fi
 
-# Create the Chocolatey package: nuspec + tools/ beside it (choco pack layout)
-rm -rf tools flowwing.nuspec
-mkdir -p tools
+# -----------------------------------------------------------------------------
+# FIX: Create an isolated staging directory so `choco pack` doesn't accidentally
+# zip up the entire Flow-Wing git repository.
+# -----------------------------------------------------------------------------
+BUILD_DIR="/tmp/choco-build"
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR/tools"
 
-cat > flowwing.nuspec << NUSPEC_EOF
+# Create the Chocolatey package metadata
+cat > "$BUILD_DIR/flowwing.nuspec" << NUSPEC_EOF
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -44,20 +49,26 @@ cat > flowwing.nuspec << NUSPEC_EOF
     <version>$VERSION</version>
     <title>FlowWing</title>
     <authors>Kushagra Rathore</authors>
+    <owners>Kushagra Rathore</owners>
     <projectUrl>https://github.com/kushagra1212/Flow-Wing</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/src/lsp/client/src/resources/icon.png</iconUrl>
     <licenseUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/LICENSE.txt</licenseUrl>
     <projectSourceUrl>https://github.com/kushagra1212/Flow-Wing</projectSourceUrl>
+    <packageSourceUrl>https://github.com/kushagra1212/Flow-Wing</packageSourceUrl>
     <docsUrl>https://github.com/kushagra1212/Flow-Wing</docsUrl>
     <bugTrackerUrl>https://github.com/kushagra1212/Flow-Wing/issues</bugTrackerUrl>
+    <releaseNotes>$RELEASE_URL</releaseNotes>
     <tags>flowwing programming language compiler jit aot</tags>
     <summary>A fast, simple, and easy to use programming language</summary>
     <description>A fast, simple, and easy to use programming language with static and dynamic typing, object-oriented programming, and memory management.</description>
   </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
 </package>
 NUSPEC_EOF
 
-cat > tools/chocolateyinstall.ps1 << 'PS1_EOF'
+cat > "$BUILD_DIR/tools/chocolateyinstall.ps1" << 'PS1_EOF'
 $ErrorActionPreference = 'Stop'
 # Installed next to this script: tools/bin, tools/lib/... (release zip layout)
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -77,15 +88,14 @@ PS1_EOF
 WU="$WINDOWS_URL" WS="$WINDOWS_SHA256" python3 << 'PY'
 from pathlib import Path
 import os
-p = Path("tools/chocolateyinstall.ps1")
+p = Path("/tmp/choco-build/tools/chocolateyinstall.ps1")
 t = p.read_text()
 t = t.replace("WINDOWS_URL_PLACEHOLDER", os.environ["WU"])
 t = t.replace("WINDOWS_SHA256_PLACEHOLDER", os.environ["WS"])
-# VERSION placeholder not used in install script (kept for future use)
 p.write_text(t)
 PY
 
-cat > tools/chocolateyuninstall.ps1 << 'UNINSTALL_EOF'
+cat > "$BUILD_DIR/tools/chocolateyuninstall.ps1" << 'UNINSTALL_EOF'
 $ErrorActionPreference = 'Stop'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $binDir = Join-Path $toolsDir 'bin'
@@ -94,7 +104,8 @@ $newPath = ($machinePath -split ';' | Where-Object { $_ -and ($_ -ne $binDir) })
 [Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine')
 UNINSTALL_EOF
 
-# Package and push
+# Move into the clean staging directory to build and push
+cd "$BUILD_DIR"
 choco pack flowwing.nuspec
 choco push flowwing.$VERSION.nupkg --source https://push.chocolatey.org/ --api-key "$API_KEY"
 
