@@ -131,7 +131,10 @@ void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
     args.push_back("-Wl,-w");
   }
 #elif defined(__linux__)
-  args.push_back("-fuse-ld=lld");
+// Force Clang to use the bundled ld.lld sitting right next to it
+std::string clang_path = io::PathUtils::getAOTLinkerPath();
+std::filesystem::path lld_path = std::filesystem::path(clang_path).parent_path() / "ld.lld";
+args.push_back("--ld-path=\"" + lld_path.string() + "\"");
 #elif defined(_WIN32)
   args.push_back("/nologo");
 #endif
