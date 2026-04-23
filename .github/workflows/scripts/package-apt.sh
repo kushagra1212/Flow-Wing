@@ -8,6 +8,7 @@ set -e
 
 VERSION="$1"
 TOKEN="$2"
+DEB_VERSION="${VERSION#v}"
 USERNAME="$3"
 
 echo "=== Publishing to apt ==="
@@ -30,7 +31,7 @@ git checkout -b "add-flowwing-$VERSION"
 mkdir -p flowwing-deb/DEBIAN
 cat > flowwing-deb/DEBIAN/control << DEB_EOF
 Package: flowwing
-Version: $VERSION
+Version: $DEB_VERSION
 Section: devel
 Priority: optional
 Architecture: amd64
@@ -63,7 +64,7 @@ done
 
 # Create the new .deb (brace-delimit VERSION to avoid Bash treating
 # ${VERSION_amd64} as a single, undefined variable)
-DEB_NAME="flowwing_${VERSION}_amd64.deb"
+DEB_NAME="flowwing_${DEB_VERSION}_amd64.deb"
 dpkg-deb -b flowwing-deb "${DEB_NAME}"
 
 # Upload to apt repository
