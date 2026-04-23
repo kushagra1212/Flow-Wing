@@ -70,6 +70,6 @@ dpkg-deb -b flowwing-deb "${DEB_NAME}"
 curl -H "Authorization: token $TOKEN" \
   -H "Content-Type: application/octet-stream" \
   --upload-file "${DEB_NAME}" \
-  "https://api.github.com/repos/$USERNAME/flowwing-apt/contents/pool/flowwing/${DEB_NAME}"
+  "https://api.github.com/repos/$USERNAME/Flow-Wing/contents/pool/flowwing/${DEB_NAME}"
 
 echo "=== apt package uploaded ==="

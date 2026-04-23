@@ -611,8 +611,8 @@ jobs:
                   chmod +x .github/workflows/scripts/package-apt.sh
                   .github/workflows/scripts/package-apt.sh \
                     "${TAG}" \
-                    "${{ secrets.APT_REPO_TOKEN }}" \
-                    "${{ secrets.APT_REPO_USERNAME }}"
+                    "${{ secrets.GITHUB_TOKEN }}" \
+                    "${{ github.repository_owner }}"
 
     # ============================================================================
     # VERIFY INSTALL: install the native release artifact + run test fixtures
