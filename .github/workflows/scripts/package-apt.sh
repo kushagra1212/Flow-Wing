@@ -67,10 +67,15 @@ done
 DEB_NAME="flowwing_${DEB_VERSION}_amd64.deb"
 dpkg-deb -b flowwing-deb "${DEB_NAME}"
 
-# Upload to apt repository
-curl -H "Authorization: token $TOKEN" \
-  -H "Content-Type: application/octet-stream" \
-  --upload-file "${DEB_NAME}" \
-  "https://api.github.com/repos/$USERNAME/Flow-Wing/contents/pool/flowwing/${DEB_NAME}"
+echo "Committing and pushing to branch..."
 
-echo "=== apt package uploaded ==="
+# Move the .deb file into the correct folder structure
+mkdir -p pool/flowwing
+mv "${DEB_NAME}" pool/flowwing/
+
+# Add, commit, and push using standard Git
+git add "pool/flowwing/${DEB_NAME}"
+git commit -m "Add flowwing $VERSION to apt pool"
+git push -u origin "add-flowwing-$VERSION"
+
+echo "=== apt package pushed to branch ==="
