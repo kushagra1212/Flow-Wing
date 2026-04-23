@@ -607,6 +607,7 @@ jobs:
             - name: Publish to apt
               env:
                   TAG: ${{ github.event.release.tag_name }}
+                  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
               run: |
                   chmod +x .github/workflows/scripts/package-apt.sh
                   .github/workflows/scripts/package-apt.sh \

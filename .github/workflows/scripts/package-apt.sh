@@ -87,19 +87,34 @@ fi
 mkdir -p pool/main
 mv "${DEB_NAME}" "pool/main/${DEB_NAME}"
 
-# 4. Generate the Packages index
+# 4. Import the GPG Private Key
+echo "Importing GPG Key..."
+echo "$GPG_PRIVATE_KEY" | gpg --import
+
+# Ensure the public key is hosted on the gh-pages branch for users to download
+gpg --export --armor "bot@flowwing.dev" > flowwing.gpg.key
+git add flowwing.gpg.key
+
+# 5. Generate the Packages index
 echo "Scanning packages..."
 dpkg-scanpackages --multiversion pool/ > Packages
 gzip -k -f Packages
 
-# 5. Generate the Release file
+# 6. Generate the Release file
 echo "Generating Release file..."
 apt-ftparchive release . > Release
 
-# 6. Commit and push to the gh-pages branch
+# 7. Sign the Release file (This is the magic step!)
+echo "Signing the repository..."
+# Create Release.gpg (detached signature)
+gpg --default-key "bot@flowwing.dev" -abs -o Release.gpg Release
+# Create InRelease (inline signature)
+gpg --default-key "bot@flowwing.dev" --clearsign -o InRelease Release
+
+# 8. Commit and push to the gh-pages branch
 echo "Committing to gh-pages..."
-git add pool/ Packages Packages.gz Release
-git commit -m "Add flowwing v$DEB_VERSION to APT repository"
+git add pool/ Packages Packages.gz Release Release.gpg InRelease
+git commit -m "Add flowwing v$DEB_VERSION to signed APT repository"
 git push origin gh-pages
 
-echo "=== APT repository updated and pushed ==="
+echo "=== Signed APT repository updated and pushed ==="
