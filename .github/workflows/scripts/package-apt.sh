@@ -63,37 +63,43 @@ for script in postinst prerm postrm preinst; do
   fi
 done
 
-# Create the new .deb (brace-delimit VERSION to avoid Bash treating
-# ${VERSION_amd64} as a single, undefined variable)
+# Create the new .deb 
 DEB_NAME="flowwing_${DEB_VERSION}_amd64.deb"
 dpkg-deb -b flowwing-deb "${DEB_NAME}"
 
 echo "=== Updating APT Repository Index ==="
 
-# 1. Switch to a persistent gh-pages branch (create it if it doesn't exist)
-# We stash any current changes just in case, fetch the remote, and checkout.
-git fetch origin
-git checkout gh-pages 2>/dev/null || git checkout -b gh-pages
+# 1. Cleanup temporary build folders so apt-ftparchive doesn't scan them
+rm -rf flowwing-deb flowwing-deb-extracted flowwing-deb-control /tmp/flowwing.deb
 
-# 2. Create the directory structure and move the new .deb into it
+# 2. Smart checkout: Fetch existing gh-pages, OR create a clean empty branch
+if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+  echo "Fetching existing gh-pages branch..."
+  git fetch origin gh-pages
+  git checkout gh-pages
+else
+  echo "Creating clean gh-pages branch..."
+  git checkout --orphan gh-pages
+  git rm -rf .  # Delete all source code files from this branch
+fi
+
+# 3. Create the directory structure and move the new .deb into it
 mkdir -p pool/main
 mv "${DEB_NAME}" "pool/main/${DEB_NAME}"
 
-# 3. Generate the Packages index
-# This scans the pool/ directory and creates an index of all .deb files
+# 4. Generate the Packages index
 echo "Scanning packages..."
 dpkg-scanpackages --multiversion pool/ > Packages
 gzip -k -f Packages
 
-# 4. Generate the Release file
-# This tells the apt client about the architectures and components supported
+# 5. Generate the Release file
 echo "Generating Release file..."
 apt-ftparchive release . > Release
 
-# 5. Commit and push to the gh-pages branch
+# 6. Commit and push to the gh-pages branch
 echo "Committing to gh-pages..."
 git add pool/ Packages Packages.gz Release
 git commit -m "Add flowwing v$DEB_VERSION to APT repository"
-git push -u origin gh-pages
+git push origin gh-pages
 
 echo "=== APT repository updated and pushed ==="
