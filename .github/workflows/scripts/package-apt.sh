@@ -38,7 +38,7 @@ Maintainer: FlowWing <kushagrarathore002@gmail.com>
 Description: FlowWing Programming Language
  FlowWing is a fast, simple, and easy to use programming language with
  static and dynamic typing, object-oriented programming, and memory management.
- DEB_EOF
+DEB_EOF
 
 # Download the original .deb and fully unpack it (data + control) so that
 # the postinst/prerm scripts that create /usr/local/bin symlinks are
