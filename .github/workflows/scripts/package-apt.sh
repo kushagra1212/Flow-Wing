@@ -35,6 +35,7 @@ Version: $DEB_VERSION
 Section: devel
 Priority: optional
 Architecture: amd64
+Depends: libllvm17, libc6
 Maintainer: FlowWing <kushagrarathore002@gmail.com>
 Description: FlowWing Programming Language
  FlowWing is a fast, simple, and easy to use programming language with
@@ -67,15 +68,32 @@ done
 DEB_NAME="flowwing_${DEB_VERSION}_amd64.deb"
 dpkg-deb -b flowwing-deb "${DEB_NAME}"
 
-echo "Committing and pushing to branch..."
+echo "=== Updating APT Repository Index ==="
 
-# Move the .deb file into the correct folder structure
-mkdir -p pool/flowwing
-mv "${DEB_NAME}" pool/flowwing/
+# 1. Switch to a persistent gh-pages branch (create it if it doesn't exist)
+# We stash any current changes just in case, fetch the remote, and checkout.
+git fetch origin
+git checkout gh-pages 2>/dev/null || git checkout -b gh-pages
 
-# Add, commit, and push using standard Git
-git add "pool/flowwing/${DEB_NAME}"
-git commit -m "Add flowwing $VERSION to apt pool"
-git push -u origin "add-flowwing-$VERSION"
+# 2. Create the directory structure and move the new .deb into it
+mkdir -p pool/main
+mv "${DEB_NAME}" "pool/main/${DEB_NAME}"
 
-echo "=== apt package pushed to branch ==="
+# 3. Generate the Packages index
+# This scans the pool/ directory and creates an index of all .deb files
+echo "Scanning packages..."
+dpkg-scanpackages --multiversion pool/ > Packages
+gzip -k -f Packages
+
+# 4. Generate the Release file
+# This tells the apt client about the architectures and components supported
+echo "Generating Release file..."
+apt-ftparchive release . > Release
+
+# 5. Commit and push to the gh-pages branch
+echo "Committing to gh-pages..."
+git add pool/ Packages Packages.gz Release
+git commit -m "Add flowwing v$DEB_VERSION to APT repository"
+git push -u origin gh-pages
+
+echo "=== APT repository updated and pushed ==="
