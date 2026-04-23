@@ -76,7 +76,7 @@ rm -rf flowwing-deb flowwing-deb-extracted flowwing-deb-control /tmp/flowwing.de
 if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
   echo "Fetching existing gh-pages branch..."
   git fetch origin gh-pages
-  git checkout gh-pages
+  git checkout -f gh-pages      # <--- ADD -f HERE
 else
   echo "Creating clean gh-pages branch..."
   git checkout --orphan gh-pages
