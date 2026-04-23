@@ -14,7 +14,7 @@ echo "=== Publishing to apt ==="
 echo "Version: $VERSION"
 
 # Get the Linux download URL
-LINUX_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')"
+LINUX_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' | head -n 1)"
 
 if [ -z "$LINUX_URL" ]; then
   echo "Warning: Could not find Linux artifact for apt repository."
@@ -70,6 +70,6 @@ dpkg-deb -b flowwing-deb "${DEB_NAME}"
 curl -H "Authorization: token $TOKEN" \
   -H "Content-Type: application/octet-stream" \
   --upload-file "${DEB_NAME}" \
-  "https://api.github.com/repos/$USERNAME/flowwing-apt/contents/pool/flowwing/${DEB_NAME}"
+  "https://api.github.com/repos/$USERNAME/Flow-Wing/contents/pool/flowwing/${DEB_NAME}"
 
 echo "=== apt package uploaded ==="
