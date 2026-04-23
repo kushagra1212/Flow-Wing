@@ -14,7 +14,7 @@ echo "=== Publishing to apt ==="
 echo "Version: $VERSION"
 
 # Get the Linux download URL
-LINUX_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' | head -n 1)"
+LINUX_URL="$(curl -s -H "Authorization: token $TOKEN" "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/$VERSION" | jq -r '.assets[]? | select(.name | endswith(".deb")) | .browser_download_url' | head -n 1)"
 
 if [ -z "$LINUX_URL" ]; then
   echo "Warning: Could not find Linux artifact for apt repository."
