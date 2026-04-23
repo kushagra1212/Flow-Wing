@@ -35,7 +35,7 @@ Version: $DEB_VERSION
 Section: devel
 Priority: optional
 Architecture: amd64
-Depends: libllvm17, libc6
+Depends: libllvm17, libc6, libgl1
 Maintainer: FlowWing <kushagrarathore002@gmail.com>
 Description: FlowWing Programming Language
  FlowWing is a fast, simple, and easy to use programming language with
