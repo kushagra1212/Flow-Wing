@@ -2,12 +2,12 @@ Package: flowwing
 Version: 0.0.4
 Architecture: amd64
 Maintainer: FlowWing <kushagrarathore002@gmail.com>
-Depends: libllvm17, libc6
+Depends: libllvm17, libc6, libgl1
 Filename: pool/main/flowwing_0.0.4_amd64.deb
-Size: 45151640
-MD5sum: bce4fbf6f0bb9c06b551204518540bd5
-SHA1: 761ebebdc3e9810c5670c4e83b2803a5f5d66e02
-SHA256: d7cfdcf30f7ca7f69e56298588fd18a4763f24a975cacbe619dcccecfb2f5faf
+Size: 45154442
+MD5sum: 263c10c267f0a0b99d648b146f7cbe0b
+SHA1: bd907283edf585f9c86e301a113f341bbb885025
+SHA256: 648d8becbf8a9c72128edb2e3a23f58b11c5c661aa3e2e0f8aa4897f87d6f8ed
 Section: devel
 Priority: optional
 Description: FlowWing Programming Language
