@@ -15,3 +15,4 @@ compile_commands.json
 .fw_dependencies_debug_bak/
 .vs
 node_modules/
+FlowWing-Docs/.doc_snippet_tmp/

@@ -2,4 +2,4 @@
 fun getStr() -> str {
     return "x"
 }
-println( (getStr() != "") ? "nonempty" : "empty")
+println((getStr() != "") ? "nonempty" : "empty")

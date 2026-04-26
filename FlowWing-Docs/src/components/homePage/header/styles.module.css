@@ -1,0 +1,93 @@
+.heroBanner {
+  padding: 6rem 0;
+  text-align: center;
+  position: relative;
+  color: white;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  animation: headerAnimation 1s ease-in-out;
+  background: linear-gradient(135deg, #006600, #ffffff) 0 0 / 200% 200%;
+  background-size: 200% 200%;
+}
+
+@keyframes headerAnimation {
+  0% {
+    background-position: 0% 50%;
+    background: transparent;
+  }
+  90% {
+    background: linear-gradient(135deg, #006600, #ffffff) 0 0 / 200% 200%;
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+}
+
+.heroSubtitle {
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: #d0d0d0; /* Adjusted for better visibility on dark background */
+  margin-bottom: 3rem;
+  line-height: 1.5;
+}
+
+.animatedLogo {
+  opacity: 0;
+  margin-bottom: 1.5rem;
+  animation: logoBounce 2s ease-in forwards;
+  width: 20%;
+  background: transparent;
+  border: none;
+  background-color: transparent;
+}
+
+@keyframes logoBounce {
+  0% {
+    transform: translateY(0);
+    width: 100%;
+  }
+  50% {
+    width: 20%;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.buttons .button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 30px;
+  background: var(
+    --ifm-color-primary-lightest
+  ); /* Lightest white for button background */
+  color: #1a1a1a; /* Dark text color */
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+}
+
+.buttons .button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+  background: var(--ifm-color-primary-dark); /* Darker shade on hover */
+  color: white;
+}
+.animatedLogo.visible {
+  opacity: 1; /* Fade in after load */
+}

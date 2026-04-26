@@ -1,0 +1,44 @@
+.aboutSection {
+  padding: 2rem 0;
+}
+
+.lead {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 48rem;
+  margin: 0 auto 1rem;
+  color: var(--ifm-font-color-base);
+  text-align: center;
+}
+
+.ctaLine {
+  line-height: 1.5;
+  max-width: 48rem;
+  margin: 0 auto 1.5rem;
+  color: var(--ifm-color-emphasis-800);
+  text-align: center;
+}
+
+.subheading {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+  margin: 0 auto 0.5rem;
+  max-width: 48rem;
+  text-align: center;
+}
+
+.details {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 48rem;
+  margin: 0 auto;
+  color: var(--ifm-color-emphasis-600);
+  text-align: center;
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}

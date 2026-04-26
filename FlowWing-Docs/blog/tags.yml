@@ -1,0 +1,9 @@
+FlowWing:
+  label: Flow-Wing
+  permalink: /flow-wing
+  description: Flow-Wing Programming Language
+
+Server:
+  label: Server
+  permalink: /server
+  description: Flow-Wing Server

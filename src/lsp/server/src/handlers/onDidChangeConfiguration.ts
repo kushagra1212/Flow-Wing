@@ -18,7 +18,15 @@ export const onDidChangeConfiguration = (
         documentSettings.clear();
       }
 
-      if (typeof config?.compilerPath === "string" && config.compilerPath) {
+      // Do not set flowWingPath to the string "FlowWing" (config default) — that
+      // would overwrite the absolute path from initialization / workspace
+      // discovery and make execFile resolve via PATH (often a stale system copy),
+      // while the CLI used from the repo with an explicit path is correct.
+      if (
+        typeof config?.compilerPath === "string" &&
+        config.compilerPath &&
+        config.compilerPath !== "FlowWing"
+      ) {
         flowWingConfig.flowWingPath = config.compilerPath;
       }
       if (config?.modulePath !== undefined) {

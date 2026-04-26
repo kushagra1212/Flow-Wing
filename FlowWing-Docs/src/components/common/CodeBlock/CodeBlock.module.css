@@ -1,0 +1,35 @@
+.codeblock {
+  background-color: #2d2d2d;
+  border-radius: 1em;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 1em;
+  padding-top: 0em;
+  padding-bottom: 0em;
+  width: 100%;
+  position: relative;
+  margin-top: 0em;
+  margin-bottom: 1em;
+}
+
+.copyButton {
+  background-color: #0452a5; /* Bootstrap primary color */
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  margin-bottom: 1em;
+  border-radius: 1em;
+  cursor: pointer;
+  position: absolute; /* Positioning for the button */
+  top: 1em; /* Adjust based on your layout */
+  right: 1em; /* Adjust based on your layout */
+}
+
+.copyButton:hover {
+  background-color: #032651; /* Darker shade on hover */
+}
+
+/* Optional: Change color when copied */
+.copyButton:disabled {
+  background-color: #0f6d2c; /* Greenish color when copied */
+  cursor: default; /* Disable cursor change */
+}

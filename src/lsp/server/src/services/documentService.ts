@@ -521,27 +521,31 @@ export const validateFile = (
   });
 };
 
+/** Same flags as `tests/formatter_golden_test.py` — read result from stdout. */
 const formatFile = (filePath: string): Promise<string> => {
-  const commandArgs = [`--file=${filePath}`, `--format`];
-
-  if (!flowWingConfig.doesFlowWingExist) {
-    return Promise.reject(new Error("FlowWing not found"));
-  }
-
+  const commandArgs = [`--file=${filePath}`, `--format-print`];
   return new Promise((resolve, reject) => {
     const childProcess = execFile(
       flowWingConfig.flowWingPath,
       commandArgs,
+      { maxBuffer: 20 * 1024 * 1024 },
       (error, stdout, stderr) => {
         if (error) {
           reject(error);
           return;
         }
-        if (stderr) {
+        if (stderr && stderr.trim().length > 0) {
           reject(new Error(stderr));
           return;
         }
-        resolve("ok");
+        // In-place --format does not add std::endl; --format-print does one trailing newline.
+        let out = stdout;
+        if (out.endsWith("\r\n")) {
+          out = out.slice(0, -2);
+        } else if (out.endsWith("\n")) {
+          out = out.slice(0, -1);
+        }
+        resolve(out);
       }
     );
 
@@ -567,8 +571,7 @@ export const formatFlowWingFile = async (
       fileName: getTempFileBasename(textDocUri) + "-formatted.fg",
       data: text,
     });
-    await formatFile(tempPath);
-    return fileUtils.readFile(tempPath);
+    return await formatFile(tempPath);
   } catch {
     // Format fails for invalid/incomplete code (compiler may crash) - return original
     return text;
