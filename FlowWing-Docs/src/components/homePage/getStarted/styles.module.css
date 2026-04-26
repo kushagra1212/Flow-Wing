@@ -1,0 +1,19 @@
+.startLearningButtonContainer {
+  margin: 2em 0em;
+  border-radius: 1em;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.startLearningButton {
+  background-color: #04a554; /* Bootstrap primary color */
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  cursor: pointer;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: larger;
+  font-weight: 700;
+}
