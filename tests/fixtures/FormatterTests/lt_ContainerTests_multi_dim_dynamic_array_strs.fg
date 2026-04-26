@@ -1,0 +1,4 @@
+/; from LatestTests/ContainerTests/multi_dim_dynamic_array_strs.fg
+var k:[3] = ["Some", "Test", "Hello"]
+var x:[2][3] = [k, k]
+println(x)

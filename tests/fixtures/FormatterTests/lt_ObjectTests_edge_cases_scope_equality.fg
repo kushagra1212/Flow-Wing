@@ -1,0 +1,23 @@
+/; from LatestTests/ObjectTests/edge_cases/scope_equality.fg
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 10, y: 20 }
+var p2: Point = { x: 10, y: 20 }
+
+print("outer p1 == p2: ", p1 == p2, "\n")
+
+{
+    var p1: Point = { x: 10, y: 20 }
+    var p2: Point = { x: 10, y: 20 }
+    
+    print("inner p1 == p2: ", p1 == p2, "\n")
+    
+    p2 = p1
+    
+    print("inner p1 == p2 after assignment: ", p1 == p2, "\n")
+}
+
+print("outer p1 == p2 after scope: ", p1 == p2, "\n")

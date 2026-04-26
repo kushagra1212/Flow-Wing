@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,11 +30,13 @@ VariableDeclarationSyntax::VariableDeclarationSyntax(
     const SyntaxToken *var_keyword_token,
     std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> declarators,
     std::vector<const SyntaxToken *> comma_tokens,
+    const SyntaxToken *initializer_operator_token,
     std::unique_ptr<ExpressionSyntax> initializer_expression)
     : m_const_keyword_token(const_keyword_token),
       m_var_keyword_token(var_keyword_token),
       m_declarators(std::move(declarators)),
       m_comma_tokens(std::move(comma_tokens)),
+      m_initializer_operator_token(initializer_operator_token),
       m_initializer_expression(std::move(initializer_expression)) {}
 
 NodeKind VariableDeclarationSyntax::getKind() const {
@@ -55,6 +57,10 @@ VariableDeclarationSyntax::getDeclarators() const {
 const std::unique_ptr<ExpressionSyntax> &
 VariableDeclarationSyntax::getInitializerExpression() const {
   return m_initializer_expression;
+}
+
+const SyntaxToken *VariableDeclarationSyntax::getInitializerOperatorToken() const {
+  return m_initializer_operator_token;
 }
 
 // boolean queries
@@ -84,6 +90,8 @@ VariableDeclarationSyntax::getChildren() const {
       }
     }
 
+    if (m_initializer_operator_token)
+      m_children.push_back(m_initializer_operator_token);
     if (m_initializer_expression)
       m_children.push_back(m_initializer_expression.get());
   }

@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/block_assign_global_from_func.fg
+fun supply() -> int { return 42 }
+
+var g: int = 0
+println(g)
+{
+  g = supply()
+  println(g)
+}
+println(g)

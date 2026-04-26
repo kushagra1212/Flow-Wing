@@ -1,0 +1,4 @@
+/; from LatestTests/TernaryTests/07_edge_cases/condition_nir.fg
+var n = null
+
+println(n ? "truthy" : "falsy")

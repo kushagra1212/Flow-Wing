@@ -1,0 +1,16 @@
+/; from LatestTests/ObjectTests/edge_cases/const_member_unary_ops.fg
+type Point = {
+    x: int
+    y: int
+}
+const p: Point = {
+    x: 10,
+    y: -20
+}
+print("p.x: ", p.x, "\n")
+print("-p.x: ", -p.x, "\n")
+print("+p.x: ", +p.x, "\n")
+print("~p.x: ", ~p.x, "\n")
+print("!p.x: ", !p.x, "\n")
+print("p.y: ", p.y, "\n")
+print("-p.y: ", -p.y, "\n")

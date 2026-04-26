@@ -1,0 +1,4 @@
+/; from LatestTests/ContainerTests/array_dyn_cast_success_2.fg
+var x: int = 5
+var a: int[5] = [x, 7]
+print(a)

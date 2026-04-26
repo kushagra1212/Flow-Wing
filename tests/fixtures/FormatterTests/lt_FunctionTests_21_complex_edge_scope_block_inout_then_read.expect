@@ -1,0 +1,12 @@
+/; from LatestTests/FunctionTests/21_complex_edge/scope_block_inout_then_read.fg
+fun inc(inout n: int) {
+    n = n + 1
+}
+var g: int = 0
+{
+    inc(g)
+    println(g)
+    inc(g)
+    println(g)
+}
+println(g)

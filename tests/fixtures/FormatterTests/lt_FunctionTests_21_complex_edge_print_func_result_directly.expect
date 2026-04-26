@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/print_func_result_directly.fg
+fun seven() -> int {
+    return 7
+}
+fun word() -> str {
+    return "word"
+}
+println(seven())
+println(word())
+println(seven(), word())

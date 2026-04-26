@@ -1,0 +1,14 @@
+/; from LatestTests/IfStatementTests/05_complex/func_return_in_else_if.fg
+fun getVal() -> int {
+  return 3
+}
+
+if (getVal() == 1) {
+  println("one")
+} else if (getVal() == 2) {
+  println("two")
+} else if (getVal() == 3) {
+  println("three")
+} else {
+  println("other")
+}

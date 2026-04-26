@@ -1,0 +1,5 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_deci32_from_literal.fg
+fun half() -> deci32 {
+    return 0.5f
+}
+println(half())

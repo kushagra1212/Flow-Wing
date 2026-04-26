@@ -1,0 +1,11 @@
+/; from LatestTests/FunctionTests/21_complex_edge/block_read_global_modify_inout.fg
+fun add(inout n: int, m: int) {
+    n = n + m
+}
+var g: int = 10
+{
+    println(g)
+    add(g, 5)
+    println(g)
+}
+println(g)

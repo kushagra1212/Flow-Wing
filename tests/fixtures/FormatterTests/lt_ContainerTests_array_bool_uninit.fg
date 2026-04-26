@@ -1,0 +1,3 @@
+/; from LatestTests/ContainerTests/array_bool_uninit.fg
+var x:bool[2]
+println(x)

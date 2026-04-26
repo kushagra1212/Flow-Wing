@@ -1,0 +1,23 @@
+/; from LatestTests/ObjectTests/edge_cases/self_ref_partial_init.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1
+}
+
+var node2: Node = {
+    value: 2
+}
+
+print("node1: ", node1, "\n")
+print("node2: ", node2, "\n")
+
+var node3: Node = {
+    value: 3,
+    next: node1
+}
+
+print("node3: ", node3, "\n")

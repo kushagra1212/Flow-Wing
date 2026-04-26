@@ -1,0 +1,34 @@
+/; from LatestTests/ObjectTests/edge_cases/nested_object_equality.fg
+type Address = {
+    street: str
+    city: str
+}
+type Person = {
+    name: str
+    address: Address
+}
+const p1: Person = {
+    name: "John",
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+const p2: Person = {
+    name: "John",
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+const p3: Person = {
+    name: "John",
+    address: {
+        street: "456 Oak Ave",
+        city: "Boston"
+    }
+}
+print("p1 == p2: ", p1 == p2, "\n")
+print("p1 != p2: ", p1 != p2, "\n")
+print("p1 == p3: ", p1 == p3, "\n")
+print("p1 != p3: ", p1 != p3, "\n")

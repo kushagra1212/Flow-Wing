@@ -1,0 +1,6 @@
+/; from LatestTests/ContainerTests/array_double_nested_padding.fg
+var a: int[5][2] = [
+    [1, 2],
+    [3, 4]
+]
+print(a)

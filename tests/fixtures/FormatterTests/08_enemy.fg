@@ -1,0 +1,76 @@
+bring      raylib
+  bring{Player}from"./Player.fg"
+/; ─────────────────────────────────────────────────────────
+/;  ENEMY (Patrolling Goomba equivalent)
+/; ─────────────────────────────────────────────────────────
+expose class   Enemy{
+  var pos:raylib::Vec2
+      var size:raylib::Vec2
+   var velX:deci32
+    var startX:deci32
+  var isDead:bool
+
+    init(x:deci32,y:deci32)->nthg{
+self.pos=new raylib::Vec2(x,y)
+      self.size=new raylib::Vec2(32.0f,32.0f)
+    self.velX=-80.0f
+   self.startX=x
+      self.isDead=false
+  }
+
+   fun update(dt:deci32,player:Player)->nthg{
+  if self.isDead{
+   return:
+      }
+
+    self.pos.x=self.pos.x+(self.velX*dt)
+
+  /; Patrol back and forth
+     if self.pos.x<self.startX-80.0f{
+   self.velX=80.0f
+  }
+    if self.pos.x>self.startX+80.0f{
+      self.velX=-80.0f
+  }
+
+  /; Collision with player
+  var pR:deci32=player.pos.x+player.size.x
+     var pB:deci32=player.pos.y+player.size.y
+   var eR:deci32=self.pos.x+self.size.x
+  var eB:deci32=self.pos.y+self.size.y
+
+     var overlap:bool=player.pos.x<eR&&pR>self.pos.x&&player.pos.y<eB&&pB>self.pos.y
+
+  if overlap{
+   /; Did Mario jump on it from above?
+      if player.vel.y>0.0f&&player.pos.y+player.size.y<self.pos.y+16.0f{
+       self.isDead=true
+     player.vel.y=-400.0f /; Bounce!
+       player.score=player.score+10
+      }else{
+       /; Player dies - respawn at start
+         player.pos.x=80.0f
+       player.pos.y=420.0f
+      player.vel.x=0.0f
+         player.vel.y=0.0f
+       player.score=0
+      }
+  }
+  }
+
+  fun draw(win:raylib::Window,camX:deci32)->nthg{
+    if self.isDead{
+   return:
+  }
+    var drawX:deci32=self.pos.x-camX
+   var cBody:raylib::Color=new raylib::Color(180,40,40,255)
+  var cEye:raylib::Color=new raylib::Color(255,255,255,255)
+     var cDark:raylib::Color=new raylib::Color(20,20,20,255)
+
+  win.drawRectangle(new raylib::Vec2(drawX,self.pos.y),self.size,cBody)
+     win.drawRectangle(new raylib::Vec2(drawX+6.0f,self.pos.y+8.0f),new raylib::Vec2(8.0f,8.0f),cEye)
+   win.drawRectangle(new raylib::Vec2(drawX+18.0f,self.pos.y+8.0f),new raylib::Vec2(8.0f,8.0f),cEye)
+  win.drawRectangle(new raylib::Vec2(drawX+8.0f,self.pos.y+10.0f),new raylib::Vec2(4.0f,4.0f),cDark)
+     win.drawRectangle(new raylib::Vec2(drawX+20.0f,self.pos.y+10.0f),new raylib::Vec2(4.0f,4.0f),cDark)
+  }
+}

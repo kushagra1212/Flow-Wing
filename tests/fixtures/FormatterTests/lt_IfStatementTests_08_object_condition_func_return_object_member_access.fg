@@ -1,0 +1,21 @@
+/; from LatestTests/IfStatementTests/08_object/condition_func_return_object_member_access.fg
+type Point = {
+  x: int
+  y: int
+}
+
+fun getPoint() -> Point {
+  return { x: 5, y: 10 }
+}
+
+if (getPoint().x > 3) {
+  println("x_gt_3")
+} else {
+  println("x_le_3")
+}
+
+if (getPoint().y == 10) {
+  println("y_eq_10")
+} else {
+  println("y_ne_10")
+}

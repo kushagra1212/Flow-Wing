@@ -1,0 +1,11 @@
+/; from LatestTests/CodingProblems/11_sum_of_digits.fg
+fun sumOfDigits(n: int) -> int {
+    if (n == 0) {
+        return 0
+    }
+    return (n % 10) + sumOfDigits(n // 10)
+}
+println(sumOfDigits(123))
+println(sumOfDigits(0))
+println(sumOfDigits(999))
+println("done")

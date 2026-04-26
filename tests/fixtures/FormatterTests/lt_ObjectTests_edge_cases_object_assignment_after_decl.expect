@@ -1,0 +1,28 @@
+/; from LatestTests/ObjectTests/edge_cases/object_assignment_after_decl.fg
+type P = {
+    x: int
+}
+type T = {
+    z: P
+    l: deci
+    y: int
+}
+var p1: P = {x: 54}
+var j1: T = {
+    z: p1,
+    l: 3.14,
+    y: 100
+}
+var j2: T
+j2 = j1
+print("Before modification:\n")
+print("j1: ", j1, "\n")
+print("j2: ", j2, "\n")
+j2.l = 100.00
+print("After modification:\n")
+print("j1: ", j1, "\n")
+print("j2: ", j2, "\n")
+print("After modification of j2.z ref:\n")
+j2.z.x = 200
+print("j1: ", j1, "\n")
+print("j2: ", j2, "\n")

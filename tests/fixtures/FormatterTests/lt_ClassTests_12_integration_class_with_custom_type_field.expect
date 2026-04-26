@@ -1,0 +1,15 @@
+/; from LatestTests/ClassTests/12_integration/class_with_custom_type_field.fg
+type T = {
+    a: int
+}
+class A {
+    var obj: T
+    fun init(obj: T) -> nthg {
+        self.obj = obj
+    }
+}
+fun getA() -> A {
+    return new A({a: 22})
+}
+var a: A = getA()
+println(a.obj)

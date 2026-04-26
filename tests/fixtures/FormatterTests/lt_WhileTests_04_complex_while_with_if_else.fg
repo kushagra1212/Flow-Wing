@@ -1,0 +1,10 @@
+/; from LatestTests/WhileTests/04_complex/while_with_if_else.fg
+var x = 0
+while (x < 5) {
+  if (x == 3) {
+    x = x + 1
+  } else {
+    x = x + 2
+  }
+}
+println(x)

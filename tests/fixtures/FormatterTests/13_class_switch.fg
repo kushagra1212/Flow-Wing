@@ -1,0 +1,30 @@
+/; from LatestTests/ClassTests + SwitchTests: class + nested control (messy)
+   class   C   {
+  var  n  :  int=0
+
+init( )->nthg{ self . n  =0}
+
+ fun tick(  x: int) ->  nthg {
+if x>0 { self.n= self . n+x}
+  else{ self.n= self.n+1
+}
+}
+}
+
+  fun main( )->nthg{
+  var  c: C=new  C( )
+ var a : int=2
+  switch  a{
+  case 1:   {
+println(   "a")
+  }
+ case 2:{
+  var  b: int=1
+  switch  b  {
+  case 1:{println(  "b1"  )}
+    default:{println(  "bdef"  ) }
+  }
+  }
+  default:   {  println(  "d"  ) }
+  }
+  }

@@ -1,0 +1,5 @@
+/; from LatestTests/ContainerTests/array_mixed_type_cast_str2.fg
+var x = 5
+var y = "Hello"
+var a: str[5] = [x, y]
+print(a)

@@ -1,0 +1,28 @@
+/; from LatestTests/ObjectTests/edge_cases/shadowing.fg
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "Global",
+    age: 100
+}
+
+print("Global p: ", p, "\n")
+
+{
+    var p: Person = {
+        name: "Local",
+        age: 50
+    }
+    
+    print("Local p (shadowed): ", p, "\n")
+    
+    p.age = 25
+    
+    print("After modifying local p: ", p, "\n")
+}
+
+print("Global p after local scope: ", p, "\n")
+

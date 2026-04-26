@@ -20,7 +20,7 @@ import {
 import { logger } from "./loggerService";
 import { getCompletionItems, readTokens } from "../completionItemProvider";
 import { fileUtils } from "../utils/fileUtils";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import * as path from "path";
 import * as os from "os";
 

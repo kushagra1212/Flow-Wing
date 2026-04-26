@@ -1,0 +1,15 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inline_arr_obj_access_bool_8.fg
+type Obj_8_2 = {
+    val: bool
+}
+fun getObjs() -> Obj_8_2[5] {
+    var res: Obj_8_2[5] = [
+        {val: true},
+        {val: false},
+        {val: false},
+        {val: false},
+        {val: false}
+    ]
+    return res
+}
+println(getObjs()[4].val)

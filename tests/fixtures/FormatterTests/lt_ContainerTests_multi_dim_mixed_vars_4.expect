@@ -1,0 +1,5 @@
+/; from LatestTests/ContainerTests/multi_dim_mixed_vars_4.fg
+var p: int[2] = [3, 5]
+var l: int[2] = [1, 2]
+var q: int[3][2] = [l, p, p]
+print(q)

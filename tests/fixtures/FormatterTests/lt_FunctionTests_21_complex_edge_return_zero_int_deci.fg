@@ -1,0 +1,11 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_zero_int_deci.fg
+fun zeroInt() -> int {
+  return 0
+}
+
+fun zeroDeci() -> deci {
+  return 0.0
+}
+
+println(zeroInt())
+println(zeroDeci())

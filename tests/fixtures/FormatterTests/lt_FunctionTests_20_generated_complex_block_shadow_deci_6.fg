@@ -1,0 +1,12 @@
+/; from LatestTests/FunctionTests/20_generated_complex/block_shadow_deci_6.fg
+
+fun printVal(val: deci) {
+    println(val)
+}
+
+var a: deci = 10.5
+{
+    var a: deci = 20.5
+    printVal(a)
+}
+printVal(a)

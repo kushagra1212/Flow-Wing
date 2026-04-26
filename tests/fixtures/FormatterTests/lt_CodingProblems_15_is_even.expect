@@ -1,0 +1,8 @@
+/; from LatestTests/CodingProblems/15_is_even.fg
+fun isEven(n: int) -> bool {
+    return n % 2 == 0
+}
+println(isEven(4))
+println(isEven(7))
+println(isEven(0))
+println("done")

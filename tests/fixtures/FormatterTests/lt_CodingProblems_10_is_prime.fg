@@ -1,0 +1,20 @@
+/; from LatestTests/CodingProblems/10_is_prime.fg
+fun isPrime(n: int) -> bool {
+  if (n <= 1) {
+    return false
+  }
+  var i: int = 2
+  while (i < n) {
+    if (n % i == 0) {
+      return false
+    }
+    i = i + 1
+  }
+  return true
+}
+
+println(isPrime(7))
+println(isPrime(10))
+println(isPrime(2))
+println(isPrime(1))
+println("done")

@@ -1,0 +1,13 @@
+/; from LatestTests/IfStatementTests/08_object/object_or_if.fg
+type T = {
+    x: int
+}
+var a: T = null
+var b: T = {x: 1 }
+if (a) {
+    println("a")
+} or if (b) {
+    println("b")
+} else {
+    println("both null")
+}

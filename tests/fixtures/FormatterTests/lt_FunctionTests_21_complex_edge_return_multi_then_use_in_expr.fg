@@ -1,0 +1,8 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_multi_then_use_in_expr.fg
+fun pair() -> int, int {
+  return 3, 7
+}
+
+var a: int, b: int = pair()
+println(a * b)
+println(a + b)

@@ -136,6 +136,9 @@
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
+  "[flowwing]": {
+    "editor.formatOnSave": true
+  },
   "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
   "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
@@ -154,5 +157,11 @@
     "--compile-commands-dir=${workspaceFolder}",
     "--query-driver=${command:cmake.compilerPath}"
   ],
-  "cSpell.words": ["cmdl", "flowwing", "Kushagra", "Nirast", "Nthg", "Rathore"]
+  "cSpell.words": ["cmdl", "flowwing", "Kushagra", "Nirast", "Nthg", "Rathore"],
+  "roo-cline.autoApprovalSettings": {
+    "read_file": true,
+    "list_files": true,
+    "search_files": true,
+    "list_code_definition_names": true
+  }
 }

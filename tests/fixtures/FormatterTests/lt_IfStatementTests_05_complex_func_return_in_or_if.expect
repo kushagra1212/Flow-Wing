@@ -1,0 +1,13 @@
+/; from LatestTests/IfStatementTests/05_complex/func_return_in_or_if.fg
+fun getVal() -> int {
+    return 2
+}
+if (getVal() == 1) {
+    println("one")
+} or if (getVal() == 2) {
+    println("two")
+} or if (getVal() == 3) {
+    println("three")
+} else {
+    println("other")
+}

@@ -86,6 +86,10 @@ jobs:
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      - name: Formatter golden tests
+        if: success()
+        run: make test-format
+
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT
         if: success() || failure()
@@ -181,6 +185,10 @@ jobs:
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      - name: Formatter golden tests
+        if: success()
+        run: make test-format
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -269,6 +277,14 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
+
+      - name: Formatter golden tests
+        if: success()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-format
 
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT

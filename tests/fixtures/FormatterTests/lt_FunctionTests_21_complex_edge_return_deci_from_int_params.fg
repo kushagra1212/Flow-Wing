@@ -1,0 +1,7 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_deci_from_int_params.fg
+fun ratio(a: int, b: int) -> deci {
+  return a * 1.0 / b
+}
+
+println(ratio(1, 2))
+println(ratio(3, 2))

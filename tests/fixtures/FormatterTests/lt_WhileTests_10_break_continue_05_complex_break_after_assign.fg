@@ -1,0 +1,12 @@
+/; from LatestTests/WhileTests/10_break_continue/05_complex/break_after_assign.fg
+var x = 0
+var sum = 0
+while (x < 5) {
+  x = x + 1
+  sum = sum + x
+  if (sum >= 6) {
+    break
+  }
+  println(sum)
+}
+println("done")

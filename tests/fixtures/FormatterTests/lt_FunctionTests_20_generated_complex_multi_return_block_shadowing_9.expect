@@ -1,0 +1,13 @@
+/; from LatestTests/FunctionTests/20_generated_complex/multi_return_block_shadowing_9.fg
+fun getMulti_9() -> int str, {
+    return 9, "test9"
+}
+var x: int = 999
+var y: str = "outer"
+{
+    var x: int, y: str = getMulti_9()
+    println(x)
+    println(y)
+}
+println(x)
+println(y)

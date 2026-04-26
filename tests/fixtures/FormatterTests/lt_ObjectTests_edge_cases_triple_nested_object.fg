@@ -1,0 +1,34 @@
+/; from LatestTests/ObjectTests/edge_cases/triple_nested_object.fg
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+type Shape = {
+    name: str
+    rect: Rectangle
+}
+
+var shape: Shape = {
+    name: "MyShape",
+    rect: {
+        topLeft: {
+            x: 0,
+            y: 0
+        },
+        bottomRight: {
+            x: 100,
+            y: 100
+        }
+    }
+}
+
+print("shape: ", shape, "\n")
+
+print("shape.rect: ", shape.rect, "\n")
+print("shape.rect.bottomRight: ", shape.rect.bottomRight, "\n")

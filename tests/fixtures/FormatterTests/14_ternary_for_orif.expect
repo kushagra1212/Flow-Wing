@@ -1,0 +1,24 @@
+/; from LatestTests/IfStatement + ternary: or-if, for, ternary, while (messy)
+fun pick(a: int, b: int) -> int {
+    return a > b ? a : b
+}
+fun main() -> nthg {
+    var x: int = 3
+    if (x < 2) {
+        println("lo")
+    } or if (x < 5) {
+        println("mid")
+    } else {
+        println("no")
+    }
+    for (var i = 0 to 2) {
+        println(i)
+    }
+    var m: int = x > 0 ? 1 : 0
+    println(m)
+    var w: int = 0
+    while (w < 1) {
+        w = w + 1
+        println(w)
+    }
+}

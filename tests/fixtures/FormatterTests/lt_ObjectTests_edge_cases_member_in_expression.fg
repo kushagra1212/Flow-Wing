@@ -1,0 +1,23 @@
+/; from LatestTests/ObjectTests/edge_cases/member_in_expression.fg
+type Person = {
+    name: str
+    age: int
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 20
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 25
+}
+
+var sum: int = p1.age + p2.age
+var product: int = p1.age * p2.age
+
+print("Sum: ", sum, "\n")
+print("Product: ", product, "\n")
+print("Average: ", sum / 2, "\n")
+

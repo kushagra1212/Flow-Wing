@@ -1,0 +1,15 @@
+var p: int = 1
+var q: int = 2
+if (p == 1) {
+    if (q == 2) {
+        println("inner")
+    } else {
+        println("q")
+    }
+} or if (p == 0) {
+    println("or1")
+} or if (false) {
+    println("or2")
+} else {
+    println("else")
+}

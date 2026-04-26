@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/20_generated_complex/block_shadow_int_0.fg
+fun printVal(val: int) {
+    println(val)
+}
+var a: int = 10
+{
+    var a: int = 20
+    printVal(a)
+}
+printVal(a)

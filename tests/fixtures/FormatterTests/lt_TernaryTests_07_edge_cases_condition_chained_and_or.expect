@@ -1,0 +1,6 @@
+/; from LatestTests/TernaryTests/07_edge_cases/condition_chained_and_or.fg
+var a: bool = true
+var b: bool = false
+var c: bool = true
+var d: bool = false
+println( (a && b || c && !d) ? "true" : "false")

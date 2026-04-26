@@ -1,3 +1,14 @@
+Flow-Wing (compiler, runtime, libraries, VS Code / LSP extension, and
+other sources in this repository unless another license is noted in-file)
+
+Copyright (C) 2023-2026 Kushagra Rathore
+
+You may use, modify, and distribute this software under the terms of the
+GNU General Public License version 2 only, as published by the Free
+Software Foundation. The full license text is reproduced below.
+
+------------------------------------------------------------------------
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 

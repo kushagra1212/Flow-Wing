@@ -1,0 +1,17 @@
+/; from LatestTests/IfStatementTests/05_complex/deeply_nested_if.fg
+var a: int = 1
+var b: int = 2
+var c: int = 3
+if (a == 1) {
+    if (b == 2) {
+        if (c == 3) {
+            println("all match")
+        } else {
+            println("c no match")
+        }
+    } else {
+        println("b no match")
+    }
+} else {
+    println("a no match")
+}

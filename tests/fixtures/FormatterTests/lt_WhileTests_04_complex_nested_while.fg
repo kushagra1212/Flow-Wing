@@ -1,0 +1,12 @@
+/; from LatestTests/WhileTests/04_complex/nested_while.fg
+var i = 0
+while (i < 2) {
+  var j = 0
+  while (j < 2) {
+    println(i)
+    println(j)
+    j = j + 1
+  }
+  i = i + 1
+}
+println("done")

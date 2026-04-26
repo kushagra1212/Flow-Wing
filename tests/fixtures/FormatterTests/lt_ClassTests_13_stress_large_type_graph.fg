@@ -1,0 +1,19 @@
+/; from LatestTests/ClassTests/13_stress/large_type_graph.fg
+type L0 = { x: int }
+type L1 = { n: L0 }
+type L2 = { n: L1 }
+type L3 = { n: L2 }
+type L4 = { n: L3 }
+
+class Holder {
+  var root: L4
+  fun init(root: L4) -> nthg {
+    self.root = root
+  }
+  fun leaf() -> int {
+    return self.root.n.n.n.n.x
+  }
+}
+
+var h: Holder = new Holder({n: {n: {n: {n: {x: 42}}}}})
+println(h.leaf())

@@ -1,0 +1,31 @@
+/; from LatestTests/ObjectTests/edge_cases/scope_multiple_objects.fg
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 1, y: 1 }
+var p2: Point = { x: 2, y: 2 }
+var p3: Point = { x: 3, y: 3 }
+
+print("outer p1: ", p1, "\n")
+print("outer p2: ", p2, "\n")
+print("outer p3: ", p3, "\n")
+
+{
+    var p1: Point = { x: 10, y: 10 }
+    var p2: Point = { x: 20, y: 20 }
+    
+    print("inner p1: ", p1, "\n")
+    print("inner p2: ", p2, "\n")
+    print("inner p3 (outer): ", p3, "\n")
+    
+    p3.x = 300
+    p3.y = 300
+    
+    print("inner p3 after modify: ", p3, "\n")
+}
+
+print("outer p1 after: ", p1, "\n")
+print("outer p2 after: ", p2, "\n")
+print("outer p3 after: ", p3, "\n")

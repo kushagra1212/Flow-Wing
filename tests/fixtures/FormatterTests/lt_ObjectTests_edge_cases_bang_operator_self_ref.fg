@@ -1,0 +1,24 @@
+/; from LatestTests/ObjectTests/edge_cases/bang_operator_self_ref.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+var node2: Node = {
+    value: 2,
+    next: node1
+}
+
+print("node1: ", node1, "\n")
+print("node2: ", node2, "\n")
+
+print("!node1: ", !node1, "\n")
+print("!node2: ", !node2, "\n")
+
+print("!node1.next: ", !node1.next, "\n")
+print("!node2.next: ", !node2.next, "\n")

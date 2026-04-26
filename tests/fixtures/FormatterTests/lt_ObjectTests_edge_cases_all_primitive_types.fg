@@ -1,0 +1,25 @@
+/; from LatestTests/ObjectTests/edge_cases/all_primitive_types.fg
+type AllPrimitives = {
+    i32: int
+    i64: int64
+    i8: int8
+    _deci: deci
+    _deci32: deci32
+    _str: str
+    ch: char
+    b: bool
+}
+
+var all: AllPrimitives = {
+    i32: 32,
+    i64: 64,
+    i8: 8,
+    _deci: 3.14,
+    _deci32: 2.5f,
+    _str: "string",
+    ch: 'A',
+    b: true
+}
+
+print(all, "\n")
+

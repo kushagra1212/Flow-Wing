@@ -1,0 +1,8 @@
+/; from LatestTests/ForTests/04_functions/for_step_from_function.fg
+fun getStep() -> int {
+    return 2
+}
+for (var i: int = 0 to 6 : getStep()) {
+    println(i)
+}
+println("done")

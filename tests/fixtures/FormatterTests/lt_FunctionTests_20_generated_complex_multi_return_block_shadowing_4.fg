@@ -1,0 +1,15 @@
+/; from LatestTests/FunctionTests/20_generated_complex/multi_return_block_shadowing_4.fg
+
+fun getMulti_4() -> int, str {
+    return 4, "test4"
+}
+
+var x: int = 999
+var y: str = "outer"
+{
+    var x: int, y: str = getMulti_4()
+    println(x)
+    println(y)
+}
+println(x)
+println(y)

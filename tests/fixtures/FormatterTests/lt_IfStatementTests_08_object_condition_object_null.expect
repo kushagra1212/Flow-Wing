@@ -1,0 +1,11 @@
+/; from LatestTests/IfStatementTests/08_object/condition_object_null.fg
+type Point = {
+    x: int
+    y: int
+}
+var p: Point = null
+if (p) {
+    println("nonnull")
+} else {
+    println("null")
+}

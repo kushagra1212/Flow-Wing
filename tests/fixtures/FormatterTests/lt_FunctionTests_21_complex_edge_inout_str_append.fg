@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/inout_str_append.fg
+fun append(inout s: str, t: str) {
+  s = s + t
+}
+
+var x: str = "a"
+append(x, "b")
+println(x)
+append(x, "c")
+println(x)

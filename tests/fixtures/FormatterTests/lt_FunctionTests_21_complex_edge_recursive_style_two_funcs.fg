@@ -1,0 +1,6 @@
+/; from LatestTests/FunctionTests/21_complex_edge/recursive_style_two_funcs.fg
+fun b() -> int { return 2 }
+fun a() -> int { return 1 + b() }
+
+println(a())
+println(b())

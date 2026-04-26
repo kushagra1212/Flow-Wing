@@ -1,0 +1,6 @@
+/; from LatestTests/FunctionTests/21_complex_edge/param_default_bool.fg
+fun flag(on: bool = true) -> bool {
+    return on
+}
+println(flag())
+println(flag(false))

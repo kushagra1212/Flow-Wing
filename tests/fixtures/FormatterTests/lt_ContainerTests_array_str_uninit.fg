@@ -1,0 +1,3 @@
+/; from LatestTests/ContainerTests/array_str_uninit.fg
+var x:str[2] 
+println(x)

@@ -1,0 +1,11 @@
+/; from LatestTests/FunctionTests/21_complex_edge/param_int8_boundary.fg
+fun maxInt8() -> int8 {
+  return 127
+}
+
+fun minInt8() -> int8 {
+  return -128
+}
+
+println(maxInt8())
+println(minInt8())

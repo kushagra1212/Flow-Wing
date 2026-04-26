@@ -1,0 +1,24 @@
+/; from LatestTests/ObjectTests/edge_cases/object_literal_in_init.fg
+type P = {
+    x: int
+}
+
+type T = {
+    z: P
+    l: deci
+    y: int
+}
+
+var j: T = {
+    z: {
+        x: 20
+    },
+    l: 3.14,
+    y: 100
+}
+
+j.z = {
+    x: 20
+}
+
+print("j: ", j, "\n")

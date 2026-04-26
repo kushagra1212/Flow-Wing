@@ -1,7 +1,10 @@
-import { ExampleSettings } from "./types";
+import { FlowWingLspSettings } from "./types";
 
-export const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
+/** Matches `FlowWing.maxNumberOfProblems` default in package.json (100). */
+export const defaultSettings: FlowWingLspSettings = {
+  maxNumberOfProblems: 100,
+};
 export const documentSettings: Map<
   string,
-  Thenable<ExampleSettings>
+  Thenable<FlowWingLspSettings>
 > = new Map();

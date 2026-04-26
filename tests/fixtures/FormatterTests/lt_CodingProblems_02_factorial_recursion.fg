@@ -1,0 +1,11 @@
+/; from LatestTests/CodingProblems/02_factorial_recursion.fg
+fun factorial(n: int) -> int {
+  if (n == 0) {
+    return 1
+  }
+  return n * factorial(n - 1)
+}
+
+println(factorial(5))
+println(factorial(0))
+println("done")

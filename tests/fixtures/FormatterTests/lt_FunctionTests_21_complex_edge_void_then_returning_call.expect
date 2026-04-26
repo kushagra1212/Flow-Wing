@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/void_then_returning_call.fg
+fun noop() -> nthg {
+    println(0)
+}
+fun get() -> int {
+    return 9
+}
+noop()
+println(get())
+noop()

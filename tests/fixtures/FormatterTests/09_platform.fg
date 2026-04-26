@@ -1,0 +1,69 @@
+bring       raylib
+  bring{Player}from"./Player.fg"
+/; ─────────────────────────────────────────────────────────
+/;  PLATFORM
+/; ─────────────────────────────────────────────────────────
+expose class    Platform{
+  var pos:raylib::Vec2
+      var size:raylib::Vec2
+   var kind:int   
+    init(x:deci32,y:deci32,w:deci32,h:deci32,k:int)->nthg{
+self.pos=new raylib::Vec2(x,y)
+      self.size=new raylib::Vec2(w,h)
+    self.kind=k
+  }
+   fun resolvePlayer(player:Player)->bool{
+  var pR:deci32=player.pos.x+player.size.x
+     var pB:deci32=player.pos.y+player.size.y
+   var plR:deci32=self.pos.x+self.size.x
+  var plB:deci32=self.pos.y+self.size.y
+     var overlap:bool=player.pos.x<plR&&pR>self.pos.x&&player.pos.y<plB&&pB>self.pos.y
+  if overlap{
+   if player.vel.y>0.0f&&player.pos.y<self.pos.y{
+     player.pos.y=self.pos.y-player.size.y
+       player.vel.y=0.0f
+     player.isGrounded=true
+       return true
+      }
+   if player.vel.x>0.0f{
+         player.pos.x=self.pos.x-player.size.x
+  }
+  if player.vel.x<0.0f{
+         player.pos.x=plR
+  }
+  }
+  return false
+  }
+  fun draw(win:raylib::Window,camX:deci32)->nthg{
+    var dPos:raylib::Vec2=new raylib::Vec2(self.pos.x-camX,self.pos.y)
+   if self.kind==0{
+      var dirt:raylib::Color=new raylib::Color(180,120,60,255)
+     var grass:raylib::Color=new raylib::Color(60,180,60,255)
+    var dark:raylib::Color=new raylib::Color(40,140,40,255)
+   win.drawRectangle(dPos,self.size,dirt)
+      win.drawRectangle(new raylib::Vec2(dPos.x,dPos.y),new raylib::Vec2(self.size.x,10.0f),grass)
+     win.drawRectangle(new raylib::Vec2(dPos.x,dPos.y+10.0f),new raylib::Vec2(self.size.x,4.0f),dark)
+   }
+    if self.kind==1{
+     var brick1:raylib::Color=new raylib::Color(200,80,30,255)
+        var mortar:raylib::Color=new raylib::Color(220,200,160,255)
+   win.drawRectangle(dPos,self.size,brick1)
+      win.drawRectangle(new raylib::Vec2(dPos.x,dPos.y+10.0f),new raylib::Vec2(self.size.x,2.0f),mortar)
+     win.drawRectangle(new raylib::Vec2(dPos.x,dPos.y+22.0f),new raylib::Vec2(self.size.x,2.0f),mortar)
+   win.drawRectangle(new raylib::Vec2(dPos.x+20.0f,dPos.y),new raylib::Vec2(2.0f,10.0f),mortar)
+        win.drawRectangle(new raylib::Vec2(dPos.x+10.0f,dPos.y+12.0f),new raylib::Vec2(2.0f,10.0f),mortar)
+     win.drawRectangle(new raylib::Vec2(dPos.x+30.0f,dPos.y+12.0f),new raylib::Vec2(2.0f,10.0f),mortar)
+   }
+ if self.kind==2{
+      var pipeBody:raylib::Color=new raylib::Color(30,160,40,255)
+     var pipeDark:raylib::Color=new raylib::Color(20,100,25,255)
+    var pipeHead:raylib::Color=new raylib::Color(50,200,60,255)
+   var pipeRim:raylib::Color=new raylib::Color(15,80,20,255)
+       win.drawRectangle(new raylib::Vec2(dPos.x+4.0f,dPos.y+16.0f),new raylib::Vec2(self.size.x-8.0f,self.size.y-16.0f),pipeBody)
+     win.drawRectangle(new raylib::Vec2(dPos.x+4.0f,dPos.y+16.0f),new raylib::Vec2(8.0f,self.size.y-16.0f),pipeHead)
+    win.drawRectangle(new raylib::Vec2(dPos.x+self.size.x-12.0f,dPos.y+16.0f),new raylib::Vec2(8.0f,self.size.y-16.0f),pipeDark)
+   win.drawRectangle(dPos,new raylib::Vec2(self.size.x,16.0f),pipeRim)
+       win.drawRectangle(new raylib::Vec2(dPos.x+4.0f,dPos.y),new raylib::Vec2(self.size.x-8.0f,16.0f),pipeHead)
+   }
+  }
+}

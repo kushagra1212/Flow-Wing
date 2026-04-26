@@ -1,0 +1,6 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_char_from_param.fg
+fun echo(c: char) -> char {
+    return c
+}
+println(echo('Z'))
+println(echo('!'))

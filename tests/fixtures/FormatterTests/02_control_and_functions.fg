@@ -1,0 +1,16 @@
+fun  add(  a: int,   b: int)  ->  int
+{
+  return  a+   b
+  }
+
+ var  x  :  int=  add( 1 , 2   )
+  if(  x>2){
+  println(  "x")
+} else{ println(  "n")  }
+  for(  var  i=0  to 2 )
+  {  println(   i)}
+  var  w=0
+  while(  w<1){   w= w+1
+   println(   w)}
+  var  t:  int= x>1?1:0
+ println(   t)

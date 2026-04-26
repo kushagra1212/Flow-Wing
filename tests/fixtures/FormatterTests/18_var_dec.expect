@@ -1,0 +1,9 @@
+/; messy newlines: single-space between var/const and name (idempotent on save)
+var a: int = 2
+const b: int = 2
+const d: int <- 1
+var c: int = [3, 3, 3]
+fun main() -> nthg {
+    var t: int = 1
+    return t
+}

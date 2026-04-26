@@ -1,0 +1,47 @@
+/; from LatestTests/ObjectTests/edge_cases/linked_list_in_scope.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node9: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+var node10: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+{
+    var node11: Node = {
+        value: 2,
+        next: node9
+    }
+
+    var node12: Node = {
+        value: 2,
+        next: node10
+    }
+
+    print("node11 == node12: ", node11 == node12, "\n")
+}
+
+var node11: Node = {
+    value: 2,
+    next: node9
+}
+
+var node12: Node = {
+    value: 2,
+    next: node10
+}
+
+print("node11 == node12: ", node11 == node12, "\n")

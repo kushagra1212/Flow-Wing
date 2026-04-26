@@ -1,0 +1,9 @@
+/; from LatestTests/ArrayTests/multidimensional/nested_3d_from_1d_2d.fg
+var a:int[5] = [1, 2, 3, 4, 5]
+var b:int[2][5] = [a, [6, 7, 8, 9, 10]]
+var c:int[3][2][5] = [b, [[11, 12], [13, 14]], b]
+var d:int[3][2][5] = c
+println(a)
+println(b)
+println(c)
+println(d)

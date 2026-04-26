@@ -1,0 +1,7 @@
+/; from LatestTests/ContainerTests/array_cast_error_runtime_32.fg
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int32.
+var x:int =  5
+var y = "Hello"
+
+var a:int[5] = [x, y]
+print(a)

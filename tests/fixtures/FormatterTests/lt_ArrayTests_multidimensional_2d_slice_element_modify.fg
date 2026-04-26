@@ -1,0 +1,8 @@
+/; from LatestTests/ArrayTests/multidimensional/2d_slice_element_modify.fg
+var a:int[2][2] = [[1, 2], [3, 4]]
+var p:int[2] = a[1]
+println(a)
+println(p)
+p[0] = 11
+println(a)
+println(p)

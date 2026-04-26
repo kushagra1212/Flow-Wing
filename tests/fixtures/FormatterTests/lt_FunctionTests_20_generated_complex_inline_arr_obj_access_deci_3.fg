@@ -1,0 +1,9 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inline_arr_obj_access_deci_3.fg
+
+type Obj_3_1 = { val: deci }
+fun getObjs() -> Obj_3_1[5] {
+    var res: Obj_3_1[5] = [{val: 3.0}, {val: 4.5}, {val: 6.0}, {val: 7.5}, {val: 9.0}]
+    return res
+}
+
+println(getObjs()[4].val)

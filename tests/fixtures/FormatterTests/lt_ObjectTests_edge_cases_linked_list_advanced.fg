@@ -1,0 +1,65 @@
+/; from LatestTests/ObjectTests/edge_cases/linked_list_advanced.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1
+}
+
+node1.next = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+print("node1: ", node1, "\n")
+
+var node3: Node = {
+    value: 5,
+    next: null
+}
+
+node1.next = node3
+
+print("node1: ", node1, "\n")
+
+var node4: Node = {
+    value: 6,
+    next: {
+        value: 7,
+        next: null
+    }
+}
+
+node1.next.next = node4
+
+print("node1: ", node1, "\n")
+
+var node5: Node = node1
+
+print("node5: ", node5, "\n")
+
+node5.next = null
+
+print("node1: ", node1, "\n")
+print("node5: ", node5, "\n")
+
+print("node1 == node5: ", node1 == node5, "\n")
+
+var node6: Node = {
+    value: 1,
+    next: null
+}
+
+print("node5 == node6: ", node5 == node6, "\n")
+
+var node7: Node = {
+    value: 2,
+    next: null
+}
+
+print("node7 == node6: ", node7 == node6, "\n")

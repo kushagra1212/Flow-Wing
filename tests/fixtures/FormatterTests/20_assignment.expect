@@ -1,0 +1,11 @@
+type T = {
+    a: int
+    b: int
+}
+var t: T <- {
+    a: 1,
+    b: 5
+}
+println(t)
+t = {}
+println(t)

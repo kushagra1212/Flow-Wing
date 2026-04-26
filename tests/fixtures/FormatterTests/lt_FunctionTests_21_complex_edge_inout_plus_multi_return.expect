@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/inout_plus_multi_return.fg
+fun op(inout a: int, b: int) -> int int, {
+    a = a + b
+    return a, b
+}
+var x: int = 1
+var u: int, v: int = op(x, 2)
+println(x)
+println(u)
+println(v)

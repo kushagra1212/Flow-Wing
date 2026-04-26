@@ -1,0 +1,146 @@
+bring raylib
+bring {Player} from "./Player.fg"
+bring {Platform} from "./Platform.fg"
+bring {Flagpole} from "./Flagpole.fg"
+bring {Enemy} from "./Enemy.fg"
+bring {Coin} from "./Coin.fg"
+bring {drawCloud, drawHill} from "./utils.fg"
+/; ─────────────────────────────────────────────────────────
+/;  MAIN
+/; ─────────────────────────────────────────────────────────
+fun start_game() -> nthg {
+    var win: raylib::Window = new raylib::Window(800, 600, "FlowWing — Super Mario")
+    var player: Player = new Player(80.0f, 420.0f)
+    /; Level Geometry
+    var ground: Platform = new Platform(0.0f, 540.0f, 3000.0f, 60.0f, 0)
+    var brick1: Platform = new Platform(200.0f, 420.0f, 120.0f, 24.0f, 1)
+    var brick2: Platform = new Platform(440.0f, 340.0f, 160.0f, 24.0f, 1)
+    var brick3: Platform = new Platform(120.0f, 280.0f, 100.0f, 24.0f, 1)
+    var brick4: Platform = new Platform(560.0f, 240.0f, 120.0f, 24.0f, 1)
+    var pipe1: Platform = new Platform(620.0f, 440.0f, 64.0f, 100.0f, 2)
+    var pipe2: Platform = new Platform(30.0f, 460.0f, 64.0f, 80.0f, 2)
+    var pipe3: Platform = new Platform(900.0f, 440.0f, 64.0f, 100.0f, 2)
+    var pipe4: Platform = new Platform(1300.0f, 420.0f, 64.0f, 120.0f, 2)
+    var brick5: Platform = new Platform(1100.0f, 320.0f, 120.0f, 24.0f, 1)
+    /; Flagpole
+    var flag: Flagpole = new Flagpole(1800.0f, 240.0f)
+    /; Enemies
+    var enemy1: Enemy = new Enemy(350.0f, 508.0f)
+    var enemy2: Enemy = new Enemy(750.0f, 508.0f)
+    var enemy3: Enemy = new Enemy(1150.0f, 508.0f)
+    /; Coins
+    var coin1: Coin = new Coin(240.0f, 395.0f)
+    var coin2: Coin = new Coin(280.0f, 395.0f)
+    var coin3: Coin = new Coin(320.0f, 395.0f)
+    var coin4: Coin = new Coin(480.0f, 315.0f)
+    var coin5: Coin = new Coin(520.0f, 315.0f)
+    var coin6: Coin = new Coin(560.0f, 315.0f)
+    var coin7: Coin = new Coin(150.0f, 255.0f)
+    var coin8: Coin = new Coin(590.0f, 215.0f)
+    var coin9: Coin = new Coin(1120.0f, 270.0f)
+    var coin10: Coin = new Coin(1160.0f, 270.0f)
+    var sky: raylib::Color = new raylib::Color(107, 196, 255, 255)
+    var white: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    var yellow: raylib::Color = new raylib::Color(255, 220, 30, 255)
+    var shadow: raylib::Color = new raylib::Color(80, 40, 10, 255)
+    var camX: deci32 = 0.0f
+    while !win.shouldClose() {
+        var dt: deci32 = win.getFrameTime()
+        /; ── Update ────────────────────────────────────────
+        if !flag.reached {
+            player.update(dt, win)
+            /; FIX: Clear grounded AFTER the update, so jump logic can see last frame's result
+            player.isGrounded = false
+            ground.resolvePlayer(player)
+            brick1.resolvePlayer(player)
+            brick2.resolvePlayer(player)
+            brick3.resolvePlayer(player)
+            brick4.resolvePlayer(player)
+            brick5.resolvePlayer(player)
+            pipe1.resolvePlayer(player)
+            pipe2.resolvePlayer(player)
+            pipe3.resolvePlayer(player)
+            pipe4.resolvePlayer(player)
+            enemy1.update(dt, player)
+            enemy2.update(dt, player)
+            enemy3.update(dt, player)
+            coin1.update(dt, player)
+            coin2.update(dt, player)
+            coin3.update(dt, player)
+            coin4.update(dt, player)
+            coin5.update(dt, player)
+            coin6.update(dt, player)
+            coin7.update(dt, player)
+            coin8.update(dt, player)
+            coin9.update(dt, player)
+            coin10.update(dt, player)
+            flag.update(player)
+        } else {
+            /; Win Sequence (freeze horizontal bounds, fall to ground)
+            player.vel.x = 0.0f
+            player.pos.y = player.pos.y + (980.0f * dt)
+            ground.resolvePlayer(player)
+        }
+        /; Update Camera Target
+        camX = player.pos.x - 380.0f
+        if camX < 0.0f {
+            camX = 0.0f
+        }
+        if camX > 1400.0f {
+            camX = 1400.0f
+        }
+        /; Prevent scrolling off map
+        /; ── Render ────────────────────────────────────────
+        win.begin()
+        win.clear(sky)
+        /; Parallax Background
+        drawHill(win, 80.0f, 560.0f, 80.0f, camX)
+        drawHill(win, 380.0f, 560.0f, 110.0f, camX)
+        drawHill(win, 700.0f, 560.0f, 90.0f, camX)
+        drawHill(win, 1200.0f, 560.0f, 100.0f, camX)
+        drawHill(win, 1600.0f, 560.0f, 80.0f, camX)
+        drawCloud(win, 60.0f, 80.0f, camX)
+        drawCloud(win, 340.0f, 50.0f, camX)
+        drawCloud(win, 620.0f, 100.0f, camX)
+        drawCloud(win, 1000.0f, 70.0f, camX)
+        drawCloud(win, 1400.0f, 40.0f, camX)
+        drawCloud(win, 1800.0f, 80.0f, camX)
+        /; Level
+        ground.draw(win, camX)
+        brick1.draw(win, camX)
+        brick2.draw(win, camX)
+        brick3.draw(win, camX)
+        brick4.draw(win, camX)
+        brick5.draw(win, camX)
+        pipe1.draw(win, camX)
+        pipe2.draw(win, camX)
+        pipe3.draw(win, camX)
+        pipe4.draw(win, camX)
+        flag.draw(win, camX)
+        enemy1.draw(win, camX)
+        enemy2.draw(win, camX)
+        enemy3.draw(win, camX)
+        coin1.draw(win, camX)
+        coin2.draw(win, camX)
+        coin3.draw(win, camX)
+        coin4.draw(win, camX)
+        coin5.draw(win, camX)
+        coin6.draw(win, camX)
+        coin7.draw(win, camX)
+        coin8.draw(win, camX)
+        coin9.draw(win, camX)
+        coin10.draw(win, camX)
+        player.draw(win, camX)
+        /; HUD (Coordinates static directly to screen)
+        win.drawText("SCORE", 20, 14, 20, shadow)
+        win.drawText("SCORE", 18, 12, 20, white)
+        win.drawText(String(player.score), 18, 36, 28, yellow)
+        if flag.reached {
+            win.drawText("LEVEL CLEARED!", 260, 200, 40, yellow)
+        } else {
+            win.drawText("ARROWS: move   SPACE: jump", 220, 572, 16, white)
+        }
+        win.end()
+    }
+}
+start_game()

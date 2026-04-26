@@ -3,11 +3,11 @@ import {
   DidChangeConfigurationNotification,
   InitializeParams,
   InitializeResult,
-  TextDocuments,
   TextDocumentSyncKind,
 } from "vscode-languageserver";
 import { existsSync } from "fs";
 import { join } from "path";
+import { platform } from "os";
 import { doesFlowWingCompilerExist } from "../services/documentService";
 import { getModulePath } from "../utils";
 import { flowWingConfig } from "../config";
@@ -66,7 +66,6 @@ export class InitializationHandler {
             retriggerCharacters: [","],
           },
           hoverProvider: true,
-          callHierarchyProvider: true,
           definitionProvider: true,
           documentFormattingProvider: true,
         },
@@ -103,8 +102,9 @@ export class InitializationHandler {
             const paths = (folders ?? []).map((f) =>
               f.uri.replace(/^file:\/\/?/, "")
             );
+            const bin = platform() === "win32" ? "FlowWing.exe" : "FlowWing";
             const findCompiler = (dir: string): string | null => {
-              const candidate = join(dir, "build", "sdk", "bin", "FlowWing");
+              const candidate = join(dir, "build", "sdk", "bin", bin);
               return existsSync(candidate) ? candidate : null;
             };
             for (const p of paths.sort((a, b) => a.length - b.length)) {

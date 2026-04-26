@@ -1,0 +1,20 @@
+/; from LatestTests/ClassTests/16_cross_feature/with_switch_on_member_field.fg
+class Mode {
+  var k: int
+  fun init(v: int) -> nthg {
+    self.k = v
+  }
+}
+
+var m: Mode = new Mode(2)
+switch (m.k) {
+  case 1: {
+    println(10)
+  }
+  case 2: {
+    println(20)
+  }
+  default: {
+    println(99)
+  }
+}

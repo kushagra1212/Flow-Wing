@@ -25,11 +25,14 @@
 #include "src/compiler/pipeline/CompilationPipeline.h"
 #include "src/compiler/pipeline/ICompilationPass.h"
 #include "src/compiler/pipeline/PipelineFactory.hpp"
+#include "src/utils/LogConfig.h"
 
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 
 int main(int argc, char *argv[]) {
+
   flow_wing::cli::CommandLineParser parser;
   auto parseResult = parser.parse(argc, argv);
 

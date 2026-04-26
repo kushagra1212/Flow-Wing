@@ -1,0 +1,24 @@
+/; from LatestTests/FunctionTests/21_complex_edge/three_blocks_sequential.fg
+fun v1() -> int {
+    return 1
+}
+fun v2() -> int {
+    return 2
+}
+fun v3() -> int {
+    return 3
+}
+var x: int = 0
+{
+    var x: int = v1()
+    println(x)
+}
+{
+    var x: int = v2()
+    println(x)
+}
+{
+    var x: int = v3()
+    println(x)
+}
+println(x)

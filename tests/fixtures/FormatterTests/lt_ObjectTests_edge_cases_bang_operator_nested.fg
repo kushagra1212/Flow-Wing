@@ -1,0 +1,36 @@
+/; from LatestTests/ObjectTests/edge_cases/bang_operator_nested.fg
+type T = {
+    x: int
+}
+
+type T2 = {
+    x: T
+}
+
+var t1: T = { x: 10 }
+var t2: T = { x: 20 }
+
+var t3: T2 = { x: t1 }
+var t4: T2 = { x: t2 }
+
+print("t3 == t4: ", t3 == t4, "\n")
+print("t3 != t4: ", t3 != t4, "\n")
+print("t3.x == t4.x: ", t3.x == t4.x, "\n")
+print("t3.x != t4.x: ", t3.x != t4.x, "\n")
+
+print("!t1: ", !t1, "\n")
+print("!t1.x: ", !t1.x, "\n")
+print("!t2: ", !t2, "\n")
+print("!t2.x: ", !t2.x, "\n")
+
+print("t3.x: ", t3.x, "\n")
+print("!t3.x: ", !t3.x, "\n")
+t3.x = null
+print("t3.x: ", t3.x, "\n")
+print("!t3.x: ", !t3.x, "\n")
+
+print("t3: ", t3, "\n")
+print("!t3: ", !t3, "\n")
+
+print("t3 == null: ", t3 == null, "\n")
+print("t3.x == null: ", t3.x == null, "\n")

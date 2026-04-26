@@ -1,0 +1,24 @@
+/; from LatestTests/ObjectTests/edge_cases/mixed_const_nonconst.fg
+type Person = {
+    name: str
+    age: int
+}
+
+const constPerson: Person = {
+    name: "Alice",
+    age: 25
+}
+
+var mutablePerson: Person = {
+    name: "Bob",
+    age: 30
+}
+
+print("Const person (read-only): ", constPerson, "\n")
+print("Mutable person (before): ", mutablePerson, "\n")
+
+mutablePerson.name = "Charlie"
+mutablePerson.age = 35
+
+print("Mutable person (after): ", mutablePerson, "\n")
+print("Const person (still unchanged): ", constPerson, "\n")

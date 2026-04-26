@@ -1,0 +1,13 @@
+/; from LatestTests/FunctionTests/21_complex_edge/dynamic_reassign_int_then_str.fg
+fun i() -> int {
+    return 1
+}
+fun s() -> str {
+    return "s"
+}
+var v = i()
+println(v)
+v = s()
+println(v)
+v = i()
+println(v)

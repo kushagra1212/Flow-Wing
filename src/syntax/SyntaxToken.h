@@ -48,6 +48,12 @@ public:
   /** True if any leading token (e.g. before this token) is EndOfLine. */
   bool hasLeadingEndOfLine() const;
 
+  /// Trivia (whitespace, comments) attached before this token in source order.
+  const std::vector<std::unique_ptr<syntax::SyntaxToken>> &
+  getLeadingTrivia() const {
+    return m_leading_tokens;
+  }
+
 private:
   lexer::TokenKind m_token_kind;
   std::string m_text;

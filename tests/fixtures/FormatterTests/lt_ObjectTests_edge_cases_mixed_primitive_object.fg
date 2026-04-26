@@ -1,0 +1,26 @@
+/; from LatestTests/ObjectTests/edge_cases/mixed_primitive_object.fg
+type Person = {
+    name: str
+    age: int
+}
+
+var p: Person = {
+    name: "John",
+    age: 30
+}
+
+var x: int = 10
+var y: str = "test"
+
+print("Person: ", p, "\n")
+print("x: ", x, "\n")
+print("y: ", y, "\n")
+
+x = p.age
+y = p.name
+
+print("After assignments:\n")
+print("x: ", x, "\n")
+print("y: ", y, "\n")
+print("p: ", p, "\n")
+

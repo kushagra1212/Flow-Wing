@@ -1,0 +1,55 @@
+/; from LatestTests/ClassTests/16_cross_feature/class_inout_vs_by_value_mutation.fg
+class A {
+
+  var x:int
+
+
+  incrementX() -> nthg {
+    x = x + 1
+  }
+
+
+
+}
+
+
+fun mutable(inout a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+fun immutableDefault(a:A = new A()) -> nthg {
+  a.x = a.x + 1
+
+  println("Immutable Default a.x: ", a.x)
+}
+
+fun immutable(a:A) -> nthg {
+  a.x = a.x + 1
+}
+
+fun immutableWithNew(a:A) -> nthg {
+  a = new A()
+}
+
+fun mutableWithNew(inout a:A) -> nthg {
+  a = new A()
+}
+
+var a: A = new A()
+a.incrementX()
+println("a.x: ", a.x)
+
+mutable(a)
+println("a.x: ", a.x)
+
+immutableDefault()
+println("a.x: ", a.x)
+
+immutable(a)
+println("a.x: ", a.x)
+
+immutableWithNew(a)
+println("a.x: ", a.x)
+
+mutableWithNew(a)
+println("a.x: ", a.x)

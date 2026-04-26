@@ -15,7 +15,7 @@ import { createDiagnostic } from "./diagnosticService";
 import { logger } from "./loggerService";
 import { _Connection } from "vscode-languageserver";
 import { execFile } from "child_process";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { promises as fs } from "fs";
 import * as path from "path";
 import * as os from "os";

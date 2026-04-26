@@ -1,0 +1,49 @@
+/; from LatestTests/ObjectTests/edge_cases/global_local_scope.fg
+type Person = {
+    name: str
+    age: int
+}
+
+var global: Person = {
+    name: "Global",
+    age: 100
+}
+
+print("Global scope - global: ", global, "\n")
+
+{
+    var local: Person = {
+        name: "Local",
+        age: 50
+    }
+    
+    print("Local scope - local: ", local, "\n")
+    print("Local scope - global: ", global, "\n")
+    
+    local = global
+    
+    print("After assignment in local scope:\n")
+    print("local: ", local, "\n")
+    print("global: ", global, "\n")
+    
+    {
+        var nested: Person = {
+            name: "Nested",
+            age: 25
+        }
+        
+        print("Nested scope - nested: ", nested, "\n")
+        print("Nested scope - local: ", local, "\n")
+        print("Nested scope - global: ", global, "\n")
+        
+        nested = local
+        
+        print("After assignment in nested scope:\n")
+        print("nested: ", nested, "\n")
+        print("local: ", local, "\n")
+        print("global: ", global, "\n")
+    }
+}
+
+print("Back to global scope - global: ", global, "\n")
+

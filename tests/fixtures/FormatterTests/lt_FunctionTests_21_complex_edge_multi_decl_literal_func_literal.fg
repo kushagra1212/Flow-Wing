@@ -1,0 +1,7 @@
+/; from LatestTests/FunctionTests/21_complex_edge/multi_decl_literal_func_literal.fg
+fun mid() -> int { return 5 }
+
+var a: int, b: int, c: int = 1, mid(), 9
+println(a)
+println(b)
+println(c)

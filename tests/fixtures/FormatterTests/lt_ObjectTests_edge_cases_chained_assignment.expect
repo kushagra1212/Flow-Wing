@@ -1,0 +1,27 @@
+/; from LatestTests/ObjectTests/edge_cases/chained_assignment.fg
+type Person = {
+    name: str
+    age: int
+}
+var p1: Person = {
+    name: "Alice",
+    age: 20
+}
+var p2: Person = {
+    name: "Bob",
+    age: 25
+}
+var p3: Person = {
+    name: "Charlie",
+    age: 30
+}
+print("Initial:\n")
+print("p1: ", p1, "\n")
+print("p2: ", p2, "\n")
+print("p3: ", p3, "\n")
+p1 = p3
+p2 = p3
+print("After chained assignment:\n")
+print("p1: ", p1, "\n")
+print("p2: ", p2, "\n")
+print("p3: ", p3, "\n")

@@ -1,0 +1,49 @@
+/; from LatestTests/ObjectTests/edge_cases/linked_list_deep_equality.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node9: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+var node10: Node = {
+    value: 2,
+    next: {
+        value: 3,
+        next: null
+    }
+}
+
+print("node9 == node10: ", node9 == node10, "\n")
+
+print("node9.next == node10.next: ", node9.next == node10.next, "\n")
+
+var node11: Node = {
+    value: 2,
+    next: node9
+}
+
+var node12: Node = {
+    value: 2,
+    next: node10
+}
+
+print("node11 == node12: ", node11 == node12, "\n")
+
+node11.next.next = {
+    value: 100
+}
+
+print("node11: ", node11, "\n")
+print("node9: ", node9, "\n")
+
+node11.next.next = null
+
+print("node11: ", node11, "\n")
+print("node9: ", node9, "\n")

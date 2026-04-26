@@ -1,0 +1,21 @@
+/; from LatestTests/SwitchTests/07_complex/func_return_in_case_body.fg
+fun getVal() -> int {
+  return 3
+}
+
+var a: int = 2
+
+switch a {
+  case 1:{
+    println(getVal())
+  }
+  case 2:{
+    println(getVal())
+  }
+  case 3:{
+    println(getVal())
+  }
+  default:{
+    println(0)
+  }
+}

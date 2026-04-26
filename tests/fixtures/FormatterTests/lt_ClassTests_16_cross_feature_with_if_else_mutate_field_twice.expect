@@ -1,0 +1,18 @@
+/; from LatestTests/ClassTests/16_cross_feature/with_if_else_mutate_field_twice.fg
+class Box {
+    var n: int
+    fun init(v: int) -> nthg {
+        self.n = v
+    }
+    fun add(d: int) -> nthg {
+        self.n = self.n + d
+    }
+}
+var b: Box = new Box(0)
+if (b.n < 1) {
+    b.add(5)
+} else {
+    b.add(100)
+}
+b.add(2)
+println(b.n)
