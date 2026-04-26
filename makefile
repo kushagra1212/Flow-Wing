@@ -157,6 +157,7 @@ help:
 	@echo "  Testing:"
 	@echo "    test-aot                 Build and run all tests in AOT mode."
 	@echo "    test-jit                 Build and run all tests in JIT mode."
+	@echo "    test-format              Build AOT and run formatter golden tests (tests/formatter_golden_test.py)."
 	@echo "    (Example: make test-aot FILTER=MyTestSuite.*)"
 	@echo ""
 	@echo "  Dependency Management:"
@@ -444,6 +445,11 @@ test-aot: build-aot-release
 		--filter "$(FILTER)" \
 		--mode aot $(ARGS)
 
+#? Golden tests for `FlowWing --format-print` (tests/fixtures/FormatterTests)
+.PHONY: test-format
+test-format: build-aot-release
+	$(ECHO_MSG) "--> Running formatter golden tests..."
+	@python3 tests/formatter_golden_test.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT)
 
 
 #! ----- LSP -----

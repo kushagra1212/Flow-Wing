@@ -182,6 +182,11 @@ public:
       opts.format_source = 1;
     if (cmdl[{kOptFormatPrint.names[0], kOptFormatPrint.names[1]}])
       opts.format_print = 1;
+    if (opts.format_source != 0 && opts.format_print != 0) {
+      return {ParseStatus::kFailure, opts,
+              std::string("Only one of --format (-FM) or --format-print (-FMP) "
+                          "may be specified.\n")};
+    }
     if (cmdl[{kOptServer.names[0], kOptServer.names[1]}])
       opts.enable_server = 1;
     if (cmdl[{kOptLinkWarn.names[0]}])

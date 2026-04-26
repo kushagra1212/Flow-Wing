@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SemanticTreeJsonDumperPass/SemanticTreeJsonDumperPass.hpp"
+#include "src/compiler/pipeline/passes/FormatPass/FormatPass.hpp"
 #include "src/compiler/pipeline/passes/SourceLoaderPass.h"
 #include "src/compiler/pipeline/passes/TokenJsonDumperPass/TokenJsonDumperPass.hpp"
 #include "src/utils/LogConfig.h"
@@ -41,6 +42,14 @@ PipelineFactory::PipelineFactory() { registerPipelines(); }
 
 CompilationPipeline PipelineFactory::build(const CompilerOptions &options) {
   CompilationPipeline pipeline;
+
+  if (options.format_source != 0 || options.format_print != 0) {
+    pipeline.addPass(std::make_unique<SourceLoaderPass>());
+    pipeline.addPass(std::make_unique<LexerPass>());
+    pipeline.addPass(std::make_unique<ParsingPass>());
+    pipeline.addPass(std::make_unique<FormatPass>());
+    return pipeline;
+  }
 
   const PassList &pass_creators = m_pipeline_definitions[options.output_type];
   for (const auto &createPass : pass_creators) {

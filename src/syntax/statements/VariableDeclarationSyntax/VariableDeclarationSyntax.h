@@ -36,6 +36,7 @@ public:
       const SyntaxToken *var_keyword_token,
       std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> declarators,
       std::vector<const SyntaxToken *> comma_tokens,
+      const SyntaxToken *initializer_operator_token,
       std::unique_ptr<ExpressionSyntax> initializer_expression);
 
   // Overrides
@@ -46,6 +47,7 @@ public:
   const std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> &
   getDeclarators() const;
   const std::unique_ptr<ExpressionSyntax> &getInitializerExpression() const;
+  const SyntaxToken *getInitializerOperatorToken() const;
 
   // Helpers
   bool hasConstKeyword() const;
@@ -54,6 +56,7 @@ private:
   const SyntaxToken *m_const_keyword_token, *m_var_keyword_token;
   std::vector<std::unique_ptr<DeclaratorExpressionSyntax>> m_declarators;
   std::vector<const SyntaxToken *> m_comma_tokens;
+  const SyntaxToken *m_initializer_operator_token;
   std::unique_ptr<ExpressionSyntax> m_initializer_expression;
 
   mutable std::vector<const SyntaxNode *> m_children;

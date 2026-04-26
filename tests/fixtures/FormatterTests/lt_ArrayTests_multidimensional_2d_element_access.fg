@@ -1,0 +1,4 @@
+/; from LatestTests/ArrayTests/multidimensional/2d_element_access.fg
+var a:int[2][2] = [[1, 2], [3, 4]]
+var k:int = a[1][1]
+println(k)

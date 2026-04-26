@@ -1,0 +1,29 @@
+bring raylib
+bring {Player} from "./Player.fg"
+/; ─────────────────────────────────────────────────────────
+/;  FLAGPOLE
+/; ─────────────────────────────────────────────────────────
+expose class Flagpole {
+    var pos: raylib::Vec2
+    var reached: bool
+    init(x: deci32, y: deci32) -> nthg {
+        self.pos = new raylib::Vec2(x, y)
+        self.reached = false
+    }
+    fun update(player: Player) -> nthg {
+        if player.pos.x > self.pos.x {
+            self.reached = true
+        }
+    }
+    fun draw(win: raylib::Window, camX: deci32) -> nthg {
+        var drawX: deci32 = self.pos.x - camX
+        var cPole: raylib::Color = new raylib::Color(200, 200, 200, 255)
+        var cFlag: raylib::Color = new raylib::Color(50, 220, 50, 255)
+        win.drawRectangle(new raylib::Vec2(drawX, self.pos.y), new raylib::Vec2(8.0f, 300.0f), cPole)
+        var flagY: deci32 = self.pos.y + 20.0f
+        if self.reached {
+            flagY = self.pos.y + 240.0f /; Slide down
+        }
+        win.drawRectangle(new raylib::Vec2(drawX + 8.0f, flagY), new raylib::Vec2(60.0f, 40.0f), cFlag)
+    }
+}

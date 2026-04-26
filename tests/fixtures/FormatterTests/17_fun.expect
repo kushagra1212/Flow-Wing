@@ -1,0 +1,6 @@
+fun sumArray(arr: int[3]) -> int {
+    return arr[0] + arr[1] + arr[2]
+}
+var a: int[3] = [10, 20, 30]
+var s: int = sumArray(a)
+println(s)

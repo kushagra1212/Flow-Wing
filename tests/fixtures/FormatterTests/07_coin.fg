@@ -1,0 +1,51 @@
+bring      raylib
+  bring{Player}from"./Player.fg"
+/; ─────────────────────────────────────────────────────────
+/;  COIN
+/; ─────────────────────────────────────────────────────────
+expose class   Coin{
+  var pos:raylib::Vec2
+      var collected:bool
+   var bounce: deci32
+
+    init(x:deci32,y:deci32)->nthg{
+self.pos=new raylib::Vec2(x,y)
+      self.collected=false
+    self.bounce=0.0f
+  }
+
+   fun update(dt:deci32,player:Player)->nthg{
+  if self.collected{
+   return:
+      }
+    self.bounce=self.bounce+(4.0f*dt)
+
+  var cx:deci32=self.pos.x
+     var cy:deci32=self.pos.y
+   var px:deci32=player.pos.x+20.0f
+  var py:deci32=player.pos.y+24.0f
+    var dx:deci32=cx-px
+  var dy:deci32=cy-py
+     var dist:deci32=(dx*dx)+(dy*dy)
+
+  if dist<1600.0f{
+   self.collected=true
+     player.score=player.score+1
+  }
+  }
+
+  fun draw(win:raylib::Window,camX:deci32)->nthg{
+    if self.collected{
+   return:
+  }
+    var drawX:deci32=self.pos.x-camX
+   var bobY:deci32=self.pos.y-5.0f
+  var coinC:raylib::Color=new raylib::Color(255,215,0,255)
+     var coinD:raylib::Color=new raylib::Color(200,160,0,255)
+    var shine:raylib::Color=new raylib::Color(255,245,150,255)
+
+  win.drawCircle(new raylib::Vec2(drawX,bobY),10.0f,coinD)
+     win.drawCircle(new raylib::Vec2(drawX,bobY),8.0f,coinC)
+   win.drawCircle(new raylib::Vec2(drawX-2.0f,bobY-2.0f),3.0f,shine)
+  }
+}

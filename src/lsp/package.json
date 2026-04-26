@@ -99,6 +99,11 @@
           "description": "Path to the Flow-Wing modules (e.g. build/sdk/lib/modules). Leave empty to use workspace build output."
         }
       }
+    },
+    "configurationDefaults": {
+      "[flowwing]": {
+        "editor.formatOnSave": true
+      }
     }
   },
   "scripts": {

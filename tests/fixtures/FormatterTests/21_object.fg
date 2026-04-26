@@ -1,0 +1,15 @@
+type K = {
+    a: int
+    b: int
+}
+type T = {
+    a: int
+    b: int
+    d: int
+    e: int
+    f: K
+}
+var t: T <- {a: 1, b: 5, d: 10, e: 15, f: {a: 20, b: 25}}
+println(t)
+t = {}
+println(t)

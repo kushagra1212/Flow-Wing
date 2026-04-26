@@ -32,13 +32,35 @@
 #include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
 #include "src/syntax/expression/ColonExpressionSyntax/ColonExpressionSyntax.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
-#include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/NewExpressionSyntax/NewExpressionSyntax.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
 #include <cassert>
 
 namespace flow_wing {
 namespace parser {
+
+// Block `3\n( ...` as a call; allow `f\n( ...` across a line break.
+static bool isLiteralishPrimaryForNoCallAcrossNewline(
+    const syntax::ExpressionSyntax *e) {
+  if (!e) {
+    return false;
+  }
+  switch (e->getKind()) {
+  case syntax::NodeKind::kNumberLiteralExpression:
+  case syntax::NodeKind::kInt64LiteralExpression:
+  case syntax::NodeKind::kFloatLiteralExpression:
+  case syntax::NodeKind::kDoubleLiteralExpression:
+  case syntax::NodeKind::kStringLiteralExpression:
+  case syntax::NodeKind::kTemplateStringLiteralExpression:
+  case syntax::NodeKind::kCharacterLiteralExpression:
+  case syntax::NodeKind::kBooleanLiteralExpression:
+  case syntax::NodeKind::kDynLiteralExpression:
+    return true;
+  default:
+    return false;
+  }
+}
 
 std::unique_ptr<syntax::ExpressionSyntax>
 PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
@@ -79,13 +101,17 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
 
     if (postfix_precedence != 0 && postfix_precedence > parent_precedence) {
       // --- Handle Postfix Operators ---
-      // not parsing '(' as call postfix when it is after a newline (e.g.
-      // "3\n(expr)" should not be 3(expr)).
+      // not parsing '(' as call postfix when it is after a newline before a
+      // *literal* left operand (e.g. "3\n(expr)" should not be 3(expr)).
+      // Identifiers and other exprs may split across lines: "f\n( a )" is
+      // still a call.
       if (ctx->getCurrentTokenKind() ==
           lexer::TokenKind::kOpenParenthesisToken) {
         const auto *cur = ctx->getCurrent();
-        if (cur && cur->hasLeadingEndOfLine())
+        if (cur && cur->hasLeadingEndOfLine() &&
+            isLiteralishPrimaryForNoCallAcrossNewline(left.get())) {
           break;
+        }
       }
 
       switch (ctx->getCurrentTokenKind()) {

@@ -1,0 +1,3 @@
+/; Tight: }from, while! / if! without `(` 
+fun f()->nthg{while!true{}}
+ bring{a} from"./a.fg"

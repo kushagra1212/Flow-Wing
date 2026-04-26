@@ -937,6 +937,9 @@ void AstJson::visit( syntax::VariableDeclarationSyntax *node) {
   }
   serializeArray(node->getDeclarators(), variable_declaration_json,
                  "declarators");
+  if (const auto *op = node->getInitializerOperatorToken()) {
+    variable_declaration_json["initializer_operator"] = op->getText();
+  }
   if (node->getInitializerExpression())
     serializeChild(node->getInitializerExpression(), variable_declaration_json,
                    "initializer_expression");

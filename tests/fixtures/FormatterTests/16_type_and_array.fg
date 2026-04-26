@@ -1,0 +1,9 @@
+/; from LatestTests: type alias, int array, object literal (messy)
+  type  Rng  =  {  lo:  int,  hi:  int}
+  fun  span(  r:  Rng)->  int{ return  r. hi-  r. lo
+}
+  fun  run(  )->  nthg{
+  var  d:  int[ 2]=[ 1,2  ]
+  var  m:  Rng=  {  lo:  d[0  ],hi:  d[1]}
+  println(  span(  m)  )
+}

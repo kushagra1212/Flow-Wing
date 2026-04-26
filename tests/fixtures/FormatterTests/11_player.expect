@@ -1,0 +1,85 @@
+bring raylib
+/; ─────────────────────────────────────────────────────────
+/;  PLAYER
+/; ─────────────────────────────────────────────────────────
+expose class Player {
+    var pos: raylib::Vec2
+    var vel: raylib::Vec2
+    var size: raylib::Vec2
+    var isGrounded: bool
+    var score: int
+    init(x: deci32, y: deci32) -> nthg {
+        self.pos = new raylib::Vec2(x, y)
+        self.vel = new raylib::Vec2(0.0f, 0.0f)
+        self.size = new raylib::Vec2(40.0f, 48.0f)
+        self.isGrounded = false
+        self.score = 0
+    }
+    fun update(dt: deci32, win: raylib::Window) -> nthg {
+        /; Gravity
+        self.vel.y = self.vel.y + (980.0f * dt)
+        var speed: deci32 = 280.0f
+        self.vel.x = 0.0f
+        if win.isKeyDown(raylib::KEY_LEFT) {
+            self.vel.x = -speed
+        }
+        if win.isKeyDown(raylib::KEY_RIGHT) {
+            self.vel.x = speed
+        }
+        if win.isKeyPressed(raylib::KEY_SPACE) {
+            if self.isGrounded {
+                self.vel.y = -560.0f
+                self.isGrounded = false
+            }
+        }
+        /; Integrate
+        self.pos.x = self.pos.x + (self.vel.x * dt)
+        self.pos.y = self.pos.y + (self.vel.y * dt)
+        /; Left / right level clamp
+        if self.pos.x < 0.0f {
+            self.pos.x = 0.0f
+        }
+        if self.pos.x > 2800.0f {
+            self.pos.x = 2800.0f
+        }
+        /; Bottomless pit respawn
+        if self.pos.y > 800.0f {
+            self.pos.x = 80.0f
+            self.pos.y = 420.0f
+            self.vel.x = 0.0f
+            self.vel.y = 0.0f
+            self.score = 0
+        }
+    }
+    fun draw(win: raylib::Window, camX: deci32) -> nthg {
+        var px: deci32 = self.pos.x - camX
+        var py: deci32 = self.pos.y
+        var cRed: raylib::Color = new raylib::Color(220, 50, 50, 255)
+        var cSkin: raylib::Color = new raylib::Color(255, 205, 160, 255)
+        var cBlue: raylib::Color = new raylib::Color(35, 90, 210, 255)
+        var cBrown: raylib::Color = new raylib::Color(100, 55, 10, 255)
+        var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+        var cDark: raylib::Color = new raylib::Color(20, 10, 5, 255)
+        var cYellow: raylib::Color = new raylib::Color(250, 210, 40, 255)
+        /; Player Drawing (Offset by camX implicitly via `px`)
+        win.drawRectangle(new raylib::Vec2(px + 6.0f, py + 0.0f), new raylib::Vec2(28.0f, 10.0f), cRed)
+        win.drawRectangle(new raylib::Vec2(px + 0.0f, py + 10.0f), new raylib::Vec2(40.0f, 6.0f), cRed)
+        win.drawRectangle(new raylib::Vec2(px + 2.0f, py + 15.0f), new raylib::Vec2(36.0f, 4.0f), cBrown)
+        win.drawRectangle(new raylib::Vec2(px + 4.0f, py + 16.0f), new raylib::Vec2(32.0f, 14.0f), cSkin)
+        win.drawRectangle(new raylib::Vec2(px + 8.0f, py + 18.0f), new raylib::Vec2(8.0f, 8.0f), cWhite)
+        win.drawRectangle(new raylib::Vec2(px + 24.0f, py + 18.0f), new raylib::Vec2(8.0f, 8.0f), cWhite)
+        win.drawRectangle(new raylib::Vec2(px + 10.0f, py + 20.0f), new raylib::Vec2(4.0f, 4.0f), cDark)
+        win.drawRectangle(new raylib::Vec2(px + 26.0f, py + 20.0f), new raylib::Vec2(4.0f, 4.0f), cDark)
+        win.drawRectangle(new raylib::Vec2(px + 6.0f, py + 27.0f), new raylib::Vec2(28.0f, 4.0f), cBrown)
+        win.drawRectangle(new raylib::Vec2(px + 4.0f, py + 30.0f), new raylib::Vec2(32.0f, 10.0f), cRed)
+        win.drawRectangle(new raylib::Vec2(px + 10.0f, py + 30.0f), new raylib::Vec2(20.0f, 10.0f), cBlue)
+        win.drawRectangle(new raylib::Vec2(px + 8.0f, py + 28.0f), new raylib::Vec2(7.0f, 4.0f), cBlue)
+        win.drawRectangle(new raylib::Vec2(px + 25.0f, py + 28.0f), new raylib::Vec2(7.0f, 4.0f), cBlue)
+        win.drawRectangle(new raylib::Vec2(px + 11.0f, py + 33.0f), new raylib::Vec2(4.0f, 4.0f), cYellow)
+        win.drawRectangle(new raylib::Vec2(px + 25.0f, py + 33.0f), new raylib::Vec2(4.0f, 4.0f), cYellow)
+        win.drawRectangle(new raylib::Vec2(px + 4.0f, py + 40.0f), new raylib::Vec2(14.0f, 8.0f), cBlue)
+        win.drawRectangle(new raylib::Vec2(px + 22.0f, py + 40.0f), new raylib::Vec2(14.0f, 8.0f), cBlue)
+        win.drawRectangle(new raylib::Vec2(px + 2.0f, py + 44.0f), new raylib::Vec2(16.0f, 4.0f), cBrown)
+        win.drawRectangle(new raylib::Vec2(px + 22.0f, py + 44.0f), new raylib::Vec2(16.0f, 4.0f), cBrown)
+    }
+}

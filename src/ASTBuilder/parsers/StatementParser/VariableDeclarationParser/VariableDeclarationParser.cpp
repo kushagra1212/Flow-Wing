@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,9 +84,13 @@ std::unique_ptr<syntax::StatementSyntax> VariableDeclarationParser::parse() {
         PrecedenceAwareExpressionParser::parse(m_ctx); // initializer expression
   }
 
+  const syntax::SyntaxToken *initializer_op =
+      equals_token ? equals_token
+                   : (left_arrow_token != nullptr ? left_arrow_token
+                                                  : nullptr);
   return std::make_unique<syntax::VariableDeclarationSyntax>(
       const_keyword_token, var_keyword_token, std::move(declarators),
-      comma_tokens,
+      comma_tokens, initializer_op,
       std::move(initializer)); // var y: int = 2
                                // var x: int, y: int = 2, 5
                                // var x

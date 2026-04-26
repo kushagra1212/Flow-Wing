@@ -36,6 +36,7 @@
 
 #if defined(ENABLE_LOGGING)
 
+
 // ==========================================
 // Container & LLVM-Aware Printing Logic
 // ==========================================
@@ -136,6 +137,7 @@ template <typename... Args>
 void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
                     const std::string &func, const std::string &format,
                     Args &&...args) {
+
   std::stringstream ss;
   ((ss << " => ", print_arg(ss, std::forward<Args>(args))), ...);
 
