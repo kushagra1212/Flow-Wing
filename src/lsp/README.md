@@ -1,6 +1,10 @@
-![repl](https://github.com/user-attachments/assets/ae3ef362-769d-475e-96ba-3142851d2404)# Flow-Wing
+# Flow-Wing
 
-Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and code browsing features for the Flow-Wing programming language in Visual Studio Code. This extension enhances your development experience by offering real-time feedback and suggestions as you write your code.
+![repl](https://github.com/user-attachments/assets/ae3ef362-769d-475e-96ba-3142851d2404)
+
+Flow-Wing language support for [Visual Studio Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), and other editors that use the Open VSX Registry (e.g. [VSCodium](https://vscodium.com/)). It provides syntax highlighting, a bundled dark theme, diagnostics, IntelliSense, and format-on-save by running the **Flow-Wing compiler** you configure locally (`FlowWing.compilerPath`).
+
+**Source repository:** [github.com/kushagra1212/Flow-Wing](https://github.com/kushagra1212/Flow-Wing) (extension lives under `src/lsp/`). **Publisher ID** on marketplaces must match `publisher` in `package.json` (e.g. `Kushagra` on the Visual Studio Marketplace).
 
 ## Features
 
@@ -35,7 +39,7 @@ Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and co
 
 1. Open Visual Studio Code.
 2. Go to the Extensions view by clicking on the Extensions icon in the Activity Bar on the side or by pressing `Ctrl+Shift+X`.
-3. Search for "Flow-Wing IntelliSense."
+3. Search for **Flow-Wing** (or **Flow-Wing IntelliSense**).
 4. Click on the install button.
 
 ## Usage
@@ -44,14 +48,29 @@ Once installed, the Flow-Wing IntelliSense extension will automatically activate
 
 ## Configuration
 
-You can customize the behavior of the Flow-Wing IntelliSense extension in your settings:
+Settings are under the **`FlowWing`** section (User or Workspace `settings.json`):
 
-- **Enable/Disable Diagnostics**: Toggle error reporting in your settings.json file.
-- **IntelliSense Options**: Adjust the level of suggestions and completions offered.
+| Setting | Default | Purpose |
+|--------|---------|--------|
+| `FlowWing.enable` | `true` | When `false`, the extension does not start the language server. |
+| `FlowWing.compilerPath` | `FlowWing` | Executable name on `PATH`, or absolute path to the Flow-Wing compiler. In an open workspace, the extension may fall back to `build/sdk/bin/FlowWing` under the workspace root. |
+| `FlowWing.modulePath` | _(empty)_ | Directory for standard modules (e.g. `build/sdk/lib/modules`). Empty uses the workspace `build/sdk/lib/modules` when possible. |
+| `FlowWing.maxNumberOfProblems` | `100` | Reserved cap for diagnostics (the compiler currently surfaces one primary error per validation). |
+| `FlowWing.trace.server` | `off` | LSP message tracing: `off`, `messages`, or `verbose`. |
 
 ## Contributing
 
 If you would like to contribute to Flow-Wing IntelliSense, feel free to fork the repository and submit a pull request. Your contributions and feedback are welcome!
+
+## Privacy and data
+
+This extension **does not** ship analytics, advertising, or third-party telemetry. It starts a **local** Language Server Protocol (LSP) process and, for analysis and formatting, invokes the **Flow-Wing compiler binary** you configure (default: `FlowWing` on your `PATH`). Your source files and workspace paths remain on your machine.
+
+Optional editor settings can increase logging (for example `FlowWing.trace.server`), which may print LSP traffic to your editor’s output panel—still **local**, not sent to Flow-Wing or Eclipse servers.
+
+## Trademarks
+
+**Flow-Wing** naming and project icons in this repo refer to the Flow-Wing open-source project. **Visual Studio Code**, **VS Code**, and related marks are trademarks of Microsoft Corporation. **Cursor** is a trademark of its owner. **Open VSX** and related Eclipse marks are trademarks of their respective owners. This extension is not endorsed by those organizations unless they say so explicitly.
 
 ## Changelog
 
@@ -62,7 +81,7 @@ If you would like to contribute to Flow-Wing IntelliSense, feel free to fork the
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This extension uses the **same license as the Flow-Wing compiler** and the rest of this repository: **GNU General Public License v2.0 only** (GPL-2.0) — see [`LICENSE.txt`](https://github.com/kushagra1212/Flow-Wing/blob/main/LICENSE.txt) in the repository root. SPDX: `GPL-2.0-only`.
 
 ## Support
 

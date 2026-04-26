@@ -9,7 +9,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/completionItems/keywords/types";
 import { Token } from "../types";
 import { fileUtils } from "./fileUtils";
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { Stack } from "../ds/stack";
 import path = require("path");
 import { fileURLToPath, pathToFileURL } from "url";

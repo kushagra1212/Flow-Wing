@@ -1,25 +1,38 @@
 {
   "name": "Flow-Wing",
-  "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
-  "author": "kushagra Rathore",
-  "license": "FlowWing Compiler Contribution License",
+  "displayName": "Flow-Wing",
+  "description": "Language support for Flow-Wing (.fg): syntax highlighting, theme, IntelliSense, diagnostics, and format-on-save via the Flow-Wing compiler (VS Code, Cursor, VSCodium / Open VSX).",
+  "author": "Kushagra Rathore",
+  "license": "GPL-2.0-only",
   "version": "1.0.0",
+  "homepage": "https://github.com/kushagra1212/Flow-Wing",
   "repository": {
     "type": "git",
     "url": "https://github.com/kushagra1212/Flow-Wing"
   },
+  "bugs": {
+    "url": "https://github.com/kushagra1212/Flow-Wing/issues"
+  },
   "icon": "client/src/resources/icon.png",
-  "publisher": "kushagra",
-  "categories": [],
+  "publisher": "Kushagra",
+  "categories": [
+    "Programming Languages",
+    "Themes",
+    "Formatters"
+  ],
   "keywords": [
+    "flowwing",
+    "flow-wing",
+    "fg",
+    "language server",
+    "intellisense",
     "multi-root ready"
   ],
   "engines": {
     "vscode": "^1.52.0"
   },
   "activationEvents": [
-    "onLanguage:flowwing",
-    "onStartupFinished"
+    "onLanguage:flowwing"
   ],
   "main": "./client/out/extension",
   "contributes": {
@@ -55,19 +68,13 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Multi Server LSP of Flow Wing for VSCode",
+      "title": "Flow-Wing",
       "properties": {
         "FlowWing.enable": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "description": "Controls the enablement."
-        },
-        "FlowWing": {
-          "scope": "resource",
-          "type": "object",
-          "default": {},
-          "description": "Additional options."
         },
         "FlowWing.trace.server": {
           "scope": "window",
@@ -122,8 +129,5 @@
     "@typescript-eslint/parser": "^7.14.0",
     "eslint": "^8.26.0",
     "typescript": "^5.5.2"
-  },
-  "dependencies": {
-    "crypto": "^1.0.1"
   }
 }

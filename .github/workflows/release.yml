@@ -615,6 +615,85 @@ jobs:
                     "${{ secrets.GITHUB_TOKEN }}" \
                     "${{ github.repository_owner }}"
 
+    # Visual Studio Marketplace + Open VSX (VS Code / Cursor / VSCodium).
+    # Secrets:
+    #   VSCE_PAT   — Azure DevOps PAT, Marketplace (Manage), same MS account as publisher in src/lsp/package.json.
+    #   OVSX_PAT   — Open VSX token: https://open-vsx.org/user-settings/tokens (claim namespace matching publisher id).
+    # See: https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+    #      https://github.com/eclipse/openvsx/wiki/Publishing-Extensions
+    publish-vscode-marketplace:
+        name: Publish VS Code extension
+        needs: upload
+        if: github.event_name == 'release'
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  fetch-tags: true
+                  fetch-depth: 1
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: yarn
+                  cache-dependency-path: src/lsp/yarn.lock
+
+            - name: Enable Yarn
+              run: corepack enable
+
+            - name: Install LSP dependencies
+              working-directory: src/lsp
+              # Mirrors multi_platform_ci.yml (postinstall runs npm in client/ + server/).
+              run: yarn install
+
+            - name: Sync extension version from release tag
+              working-directory: src/lsp
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  set -euo pipefail
+                  VER="${TAG#v}"
+                  echo "Setting package.json version to ${VER}"
+                  npm version "${VER}" --no-git-tag-version
+
+            - name: Compile extension
+              working-directory: src/lsp
+              run: yarn compile
+
+            # Ship the VSIX on the GitHub Release first so users can sideload even if
+            # Marketplace publish fails (missing PAT, moderation, network, etc.).
+            - name: Package VSIX for GitHub Release
+              working-directory: src/lsp
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  set -euo pipefail
+                  npx --yes @vscode/vsce package --yarn -o "${GITHUB_WORKSPACE}/FlowWing-${TAG}.vsix"
+
+            - name: Upload VSIX to GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ github.event.release.tag_name }}
+                  files: |
+                      FlowWing-${{ github.event.release.tag_name }}.vsix
+                  fail_on_unmatched_files: true
+
+            - name: Publish to Visual Studio Marketplace
+              working-directory: src/lsp
+              env:
+                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
+              run: npx --yes @vscode/vsce publish --yarn --packagePath "${GITHUB_WORKSPACE}/FlowWing-${{ github.event.release.tag_name }}.vsix"
+
+            # Same VSIX as GitHub Release / VS Marketplace; ovsx reads OVSX_PAT from the environment.
+            - name: Publish to Open VSX Registry
+              env:
+                  OVSX_PAT: ${{ secrets.OVSX_PAT }}
+              run: npx --yes ovsx publish "${GITHUB_WORKSPACE}/FlowWing-${{ github.event.release.tag_name }}.vsix"
+
     # ============================================================================
     # VERIFY INSTALL: install the native release artifact + run test fixtures
     # ============================================================================

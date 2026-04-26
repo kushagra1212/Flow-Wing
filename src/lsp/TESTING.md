@@ -4,9 +4,9 @@
 
 1. **Build the FlowWing compiler** (from repo root):
    ```bash
-   make aot-debug
+   make build-aot-debug
    ```
-   This produces `build/sdk/bin/FlowWing`.
+   This produces `build/sdk/bin/FlowWing` (use `FlowWing.exe` on Windows).
 
 2. **Install and compile the LSP** (from repo root):
    ```bash

@@ -25,14 +25,6 @@ export const documents: TextDocuments<TextDocument> = new TextDocuments(
   TextDocument
 );
 
-// The example settings
-
-// The global settings, used when the `workspace/configuration` request is not supported by the client.
-// Please note that this is not the case when using this server with the client provided in this example
-// but could happen with other clients.
-
-// Cache the settings of all open documents
-
 const initializationHandler = new InitializationHandler(connection, () => {
   // Workspace compiler path is applied asynchronously after `initialized`. Earlier
   // `didOpen` validations may have used the default `"FlowWing"` and published no diagnostics.
@@ -77,17 +69,3 @@ documents.listen(connection);
 
 // Listen on the connection
 connection.listen();
-
-// function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
-//   return Promise.resolve(globalSettings);
-
-//   let result = documentSettings.get(resource);
-//   if (!result) {
-//     result = connection.workspace.getConfiguration({
-//       scopeUri: resource,
-//       section: "flow-wing",
-//     });
-//     documentSettings.set(resource, result);
-//   }
-//   return result;
-// }

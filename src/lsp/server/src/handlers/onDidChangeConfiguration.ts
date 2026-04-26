@@ -1,31 +1,36 @@
 import { _Connection, TextDocuments } from "vscode-languageserver";
 
 import { validateTextDocument } from "../services/documentService";
-import { defaultSettings, documentSettings } from "../common";
-import { ExampleSettings } from "../common/types";
+import { documentSettings } from "../common";
 import { InitializationHandler } from "./InitializationHandler";
 import { TextDocument } from "vscode-languageserver-textdocument";
-
-let globalSettings: ExampleSettings = defaultSettings;
+import { flowWingConfig } from "../config";
+import { getModulePath } from "../utils";
 
 export const onDidChangeConfiguration = (
   connection: _Connection,
   initializationHandler: InitializationHandler,
   documents: TextDocuments<TextDocument>
 ) => {
-  connection.onDidChangeConfiguration((change) => {
-    if (initializationHandler.getHasConfigurationCapability()) {
-      // Reset all cached document settings
-      documentSettings.clear();
-    } else {
-      globalSettings = <ExampleSettings>(
-        (change.settings.languageServerExample || defaultSettings)
-      );
-    }
+  connection.onDidChangeConfiguration(() => {
+    void connection.workspace.getConfiguration("FlowWing").then((config) => {
+      if (initializationHandler.getHasConfigurationCapability()) {
+        documentSettings.clear();
+      }
 
-    // Revalidate all open text documents
-    documents.all().forEach((doc, index, docs) => {
-      return validateTextDocument(doc, connection);
+      if (typeof config?.compilerPath === "string" && config.compilerPath) {
+        flowWingConfig.flowWingPath = config.compilerPath;
+      }
+      if (config?.modulePath !== undefined) {
+        flowWingConfig.modulePath =
+          typeof config.modulePath === "string" && config.modulePath.length > 0
+            ? config.modulePath
+            : getModulePath();
+      }
+
+      for (const doc of documents.all()) {
+        void validateTextDocument(doc, connection);
+      }
     });
   });
 };

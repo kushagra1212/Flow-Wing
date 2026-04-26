@@ -1,13 +1,12 @@
-# .vscode/**
-# **/*.ts
-# **/*.map
-# .gitignore
-# **/tsconfig.json
-# **/tsconfig.base.json
-# contributing.md
-# .travis.yml
-# client/node_modules/**
-# !client/node_modules/vscode-jsonrpc/**
-# !client/node_modules/vscode-languageclient/**
-# !client/node_modules/vscode-languageserver-protocol/**
-# !client/node_modules/vscode-languageserver-types/**
+.vscode/**
+**/.git*
+**/*.map
+**/package-lock.json
+**/yarn.lock
+**/tsconfig*.json
+**/.eslintrc*
+client/src/**/*.ts
+server/src/**
+server/sem-test-out/**
+LSP_ARCHITECTURE_ANALYSIS.md
+TESTING.md

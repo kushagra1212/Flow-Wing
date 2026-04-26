@@ -1,8 +1,9 @@
 /* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
+ * Flow-Wing LSP client for VS Code / compatible editors.
+ * SPDX-License-Identifier: GPL-2.0-only
  * ------------------------------------------------------------------------------------------ */
 import * as path from "path";
+import * as os from "os";
 import {
   workspace as Workspace,
   window as Window,
@@ -20,8 +21,11 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 
-let defaultClient: LanguageClient;
 const clients: Map<string, LanguageClient> = new Map();
+
+function flowWingBinaryName(): string {
+  return os.platform() === "win32" ? "FlowWing.exe" : "FlowWing";
+}
 
 let _sortedWorkspaceFolders: string[] | undefined;
 function sortedWorkspaceFolders(): string[] {
@@ -70,22 +74,29 @@ function resolveCompilerPath(
   if (configPath && configPath !== "FlowWing") {
     return configPath;
   }
-  // Default "FlowWing" not in PATH - use project root (shortest path), not LatestTests
+  const bin = flowWingBinaryName();
   const paths = (workspaceFolders ?? []).map((f) => f.uri.fsPath);
   const root = paths.sort((a, b) => a.length - b.length)[0];
   if (root) {
-    return path.join(root, "build", "sdk", "bin", "FlowWing");
+    return path.join(root, "build", "sdk", "bin", bin);
   }
   return configPath ?? "FlowWing";
 }
 
-export function activate(context: ExtensionContext) {
-  const module = context.asAbsolutePath(
+export function activate(extContext: ExtensionContext) {
+  const enabled = Workspace.getConfiguration("FlowWing").get<boolean>(
+    "enable",
+    true
+  );
+  if (!enabled) {
+    return;
+  }
+
+  const module = extContext.asAbsolutePath(
     path.join("server", "out", "server.js")
   );
-  const outputChannel: OutputChannel = Window.createOutputChannel("flow-wing");
-  // Defer show so flow-wing output is selected after other extensions (e.g. pip)
-  setTimeout(() => outputChannel.show(), 1500);
+  const outputChannel: OutputChannel = Window.createOutputChannel("Flow-Wing");
+
   const configPath =
     Workspace.getConfiguration("FlowWing").get<string>("compilerPath");
   const sorted = (Workspace.workspaceFolders ?? [])
@@ -98,7 +109,6 @@ export function activate(context: ExtensionContext) {
   );
   const rawModulePath =
     Workspace.getConfiguration("FlowWing").get<string>("modulePath");
-  // Empty or legacy "flowwing" default causes ENOENT scandir. Use workspace fallback.
   const modulePath =
     rawModulePath && rawModulePath !== "flowwing"
       ? rawModulePath
@@ -107,7 +117,6 @@ export function activate(context: ExtensionContext) {
         : undefined;
 
   function didOpenTextDocument(document: TextDocument): void {
-    // We are only interested in language mode text
     if (
       document.languageId !== "flowwing" ||
       (document.uri.scheme !== "file" && document.uri.scheme !== "untitled")
@@ -116,34 +125,10 @@ export function activate(context: ExtensionContext) {
     }
 
     const uri = document.uri;
-    // Untitled files go to a default client.
-    if (uri.scheme === "flow-wing" && !defaultClient) {
-      const serverOptions: ServerOptions = {
-        run: { module, transport: TransportKind.ipc },
-        debug: { module, transport: TransportKind.ipc },
-      };
-      const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: "flow-wing", language: "flowwing" }],
-        diagnosticCollectionName: "FlowWing",
-        outputChannel: outputChannel,
-        initializationOptions: { compilerPath, modulePath },
-      };
-      defaultClient = new LanguageClient(
-        "FlowWing",
-        "A Flow-Wing language server for VSCode",
-        serverOptions,
-        clientOptions
-      );
-      defaultClient.start();
-      return;
-    }
     let folder = Workspace.getWorkspaceFolder(uri);
-    // Files outside a folder can't be handled. This might depend on the language.
-    // Single file languages like JSON might handle files outside the workspace folders.
     if (!folder) {
       return;
     }
-    // If we have nested workspace folders we only start a server on the outer most workspace folder.
     folder = getOuterMostWorkspaceFolder(folder);
 
     if (!clients.has(folder.uri.toString())) {
@@ -159,14 +144,14 @@ export function activate(context: ExtensionContext) {
             pattern: `${folder.uri.fsPath}/**/*`,
           },
         ],
-        diagnosticCollectionName: "flow-wing",
+        diagnosticCollectionName: "flowwing",
         workspaceFolder: folder,
         outputChannel: outputChannel,
         initializationOptions: { compilerPath, modulePath },
       };
       const client = new LanguageClient(
-        "flow-wing",
-        "A Flow-Wing language server for VSCode",
+        "flowwing",
+        "Flow-Wing Language Server",
         serverOptions,
         clientOptions
       );
@@ -182,7 +167,7 @@ export function activate(context: ExtensionContext) {
       const client = clients.get(folder.uri.toString());
       if (client) {
         clients.delete(folder.uri.toString());
-        client.stop();
+        void client.stop();
       }
     }
   });
@@ -190,9 +175,6 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate(): Thenable<void> {
   const promises: Thenable<void>[] = [];
-  if (defaultClient) {
-    promises.push(defaultClient.stop());
-  }
   for (const client of clients.values()) {
     promises.push(client.stop());
   }

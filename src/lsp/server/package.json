@@ -1,8 +1,8 @@
 {
   "name": "Flow-Wing",
   "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
-  "author": "kushagra Rathore",
-  "license": "FlowWing Compiler Contribution License",
+  "author": "Kushagra Rathore",
+  "license": "GPL-2.0-only",
   "version": "0.0.1",
   "engines": {
     "node": "*"
