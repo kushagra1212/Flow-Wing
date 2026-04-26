@@ -4,24 +4,13 @@ sidebar_position: 4
 
 import CodeBlock from "../../src/components/common/CodeBlock";
 
-# Assignment Expressions
+# Assignment expressions
 
-**Flow-Wing provides the following assignment operators:**
+**Assignment operators:**
 
-- `=` Used for Updating Variables
-- `<-` Used for Complete Reassignment of Variables
+- **`=`** and **`<-`** (left arrow) are the **same** assignment in meaning: evaluate the right-hand side and store it in the target (variable, index, or member, where the language allows). The two tokens differ **only in syntax**—use whichever you prefer for **readability** or **style**; there is no separate “mode” in behavior between them.
 
-Assignment expressions in Flow-Wing allow updating the value of a variable. The assignment operator (=) is used to set a variable to a new value.
-
-<CodeBlock code={
-`var x = 10
-x = 20
-`} language="fg"/>
-
-**`=` Behavior for Complex Types (Container / Objects)**
-
-
-## Example:
+Omitted object fields in a **literal** are filled from **type defaults** (e.g. **`0`** for **`int`**, empty **`str`**, etc.), **not** from whatever was in the variable before. To change only one field, assign to that field:
 
 <CodeBlock code={
 `type Person = {
@@ -29,44 +18,29 @@ x = 20
     age: int,
 }
 
-var person: Person =  { name: "Alice", age: 30 }
+var person: Person = { name: "Alice", age: 30 }
+person.name = "Bob"
+print(person)
+`} language="fg"/>
 
+That keeps **`age: 30`** and updates **`name`**. By contrast, replacing the **whole** value with a **partial** literal overwrites the whole value with a new object where missing fields are defaults:
+
+<CodeBlock code={
+`type Person = {
+    name: str,
+    age: int,
+}
+
+var person: Person = { name: "Alice", age: 30 }
 person = { name: "Bob" }
-
 print(person)
 `} language="fg"/>
 
-**Output:**
+You get **`age: 0`** (default for **`int`**) and **`name: "Bob"`** — not **`age: 30`**. The same happens if you write **`person <- { name: "Bob" }`**: the operator does not “merge” old field values. To keep **`age: 30`**, use a **field** assignment (first example) or a **full** new literal, not a partial one.
 
-<CodeBlock code={
-`{ name : 'Bob', age : 30 }
-`}/>
+## Fixed-size array example
 
-The value of person is updated to `{"name": "Bob", "age": 30}`. In this case, only the value of name is updated, while the rest of the properties remain the same. If we want to change the entire person object, we can use `person = {"name": "Bob", "age": 30}` or we can use the `<-` operator.
-
-
-The `<-` operator is used to update the variable completely. For primitive types, the behavior of `<-` is similar to that of `=`, but for complex types, the behavior of `<-` is different.
-
-## Example:
-<CodeBlock code={
-`type Person = {
-    name: str,
-    age: int,
-}
-
-var person: Person =  { name: "Alice", age: 30 }
-
-person <- { name: "Bob" }
-
-print(person)
-`} language="fg"/>
-
-The value of person is updated to `{"name": "Bob", "age": 0}`. The age property is set to `0` since it was not provided, so it defaults to this value.
-
-
-## Container Example:
-
-Using `<-` for Assignment
+For **`Person[2]`**, assigning from an array **literal** with **fewer** elements than the fixed size still produces a value of the array type: remaining slots are set from **defaults**, not the previous array’s elements.
 
 <CodeBlock code={
 `type Person = {
@@ -74,34 +48,17 @@ Using `<-` for Assignment
     age: int,
 }
 
-var person: Person =  { name: "Alice", age: 30 }
-
-var people: Person[2] = [person, { name: "Bob", age: 30 }]
-
-people <- [{ name: "Charlie", age: 30 }]
-
-print(people) 
-`} language="fg"/>
-
-**Output:**
-<CodeBlock code={
-`[{ name : 'Charlie', age : 30 }, { name : '', age : 0 }]
-`} />
-
-The value of the first element in people is updated to `{"name": "Charlie", "age": 30}`, while the rest are set to their default values.
-
-Using `=` for Assignment 
-
-<CodeBlock code={
-`var people: Person[2] = [person, { name: "Bob", age: 30 }]
-
+var people: Person[2] = [
+    { name: "Alice", age: 30 },
+    { name: "Bob", age: 30 }
+]
 people = [{ name: "Charlie", age: 30 }]
-
-print(people) 
+print(people)
 `} language="fg"/>
 
-**Output:**
-<CodeBlock code={
-`[{ name : 'Charlie', age : 30 }, { name : 'Bob', age : 30 }]
-`}/>
+**Typical result:** the first entry matches the literal; the second is **default-initialized** (e.g. empty name, **age** **0**), **not** the old **`"Bob"`** row. You could write **`people <- [...]`** here with the same effect.
 
+## Notes
+
+- **`x <- 1`** and **`x = 1`**, **`person <- { name: "Bob" }`** and **`person = { name: "Bob" }`** are interchangeable; pick **`=`** or **`<-`** for taste.
+- For **partial** object or array literals, the same **defaulting** rules apply: if you need old data preserved, do not rely on a partial literal; update fields explicitly or build a new full value.

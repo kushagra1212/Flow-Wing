@@ -1,99 +1,63 @@
 ---
 sidebar_position: 4
+title: File module
+sidebar_label: File (file)
 ---
 
 import CodeBlock from "../../src/components/common/CodeBlock";
 
+# File module (`file`)
 
-# File Handling Module
+## Start here
 
-## Overview
+The **`file`** module reads and writes **disk paths** from Flow-Wing. You **`bring file`**. When an operation can fail, you get **`Err::Result`** on the result side, so in real code you also **`bring Err`** and use **`isErr()`** (or **`Err::isErr`**) to branch on failures.
 
-The `File` module provides functions for file handling in the Flow-Wing language. It supports operations like creating, writing, and reading files, while also ensuring error handling using the `Err::Result` type. 
+**Two styles:**
 
-## Functions
+- **All at once** — **`file::readText`**, **`file::writeText`**, **`file::appendText`** (good for small files).
+- **Open, then read/write** — **`file::File`** for **`open`**, **`readLine`**, **`close`**, when you work like a small script with a file handle.
 
-### `File::createFile(path: str) -> Err::Result`
+**Script location:** **`file::__DIR__`** is a string path to the **current** **`.fg`** file’s directory (handy for loading assets next to the program).
 
-Creates a new file at the specified path. If the file already exists, it will not be overwritten.
-
-#### Parameters
-- `path`: The file path where the new file will be created.
-
-#### Returns
-- `Err::Result`: Returns `Nir` on success or an error object if the file creation fails.
-
-## Example Usage
+## Example (read and write, with errors)
 
 <CodeBlock code={
-`bring File
+`bring file
 bring Err
 
-var err: Err::Result = File::createFile("test.txt")
-if (err != Nir) {
-  print(err.toString())
+var path: str = "example.txt"
+var ok: bool, werr: Err::Result = file::writeText(path, "Hello\\n")
+if werr.isErr() {
+  println(werr.getMessage())
 } else {
-  print("File Created")
+  var content: str, rerr: Err::Result = file::readText(path)
+  if rerr.isErr() {
+    println(rerr.getMessage())
+  } else {
+    println(content)
+  }
 }
 `} language="fg"/>
 
-### `File::write(path: str, data: str, mode: str) -> Err::Result`
+## Whole-file helpers (summary)
 
-Writes data to the specified file. You can specify the mode for writing:
-- `"w"`: Write, overwrites the file.
-- `"a"`: Append, adds data to the end of the file.
+- **`file::readText(path: str) -> str, Err::Result`**
+- **`file::writeText(path: str, content: str) -> bool, Err::Result`**
+- **`file::appendText(path: str, content: str) -> bool, Err::Result`**
+- **`file::exists(path: str) -> bool`**
+- **`file::delete(path: str) -> bool, Err::Result`**
 
-#### Parameters
-- `path`: The file path to write to.
-- `data`: The content to write into the file.
-- `mode`: The file writing mode. Choose `"w"` for overwrite, `"a"` for append.
+## Stateful `file::File` (open file)
 
-#### Returns
-- `Err::Result`: Returns `Nir` on success or an error object if writing fails.
+`new file::File(path)` then **`open("r" | "w" | "a")`**, **`readLine`**, **`close`**, as declared in the **`file`** module for your compiler version.
 
-## Example Usage
+## More detail: errors and paths
 
-<CodeBlock code={
-`bring File
-bring Err
+Always treat **I/O** as fallible: missing files, **permission** errors, and **invalid paths** show up on **`Err::Result`**. Use the **`Err`** module’s patterns in *Built-in libraries → **Err** module* to report messages and codes. Path strings follow your **OS** rules; on Windows, **backslashes** in string literals and **string building** are normal in **`.fg`** programs.
 
-var errorWritingToFile: Err::Result = File::write("test.txt", "Hello", "w")
-if (errorWritingToFile != Nir) {
-        print(errorWritingToFile.toString())
-} else {
-        print("\\nFile Written")
-}
-`} language="fg"/>
+## Source & tests (if you have the repository)
 
-### `File::read(path: str, mode: str) -> (str, Err::Result)`
-
-Reads the content of a file and returns it as a string. You can specify the mode for reading:
-- `"r"`: Read, reads the file normally.
-- `"rb"`: Read in binary mode.
-
-#### Parameters
-- `path`: The file path to read from.
-- `mode`: The file reading mode. Choose `"r"` for text read, `"rb"` for binary read.
-
-#### Returns
-- `(str, Err::Result)`: A tuple containing the file content (if read successfully) and the error result. Returns `Nir` if there is no error.
-
-## Example Usage
-
-
-<CodeBlock code={
-`bring File
-bring Err
-
-var content: str, errorReadingFromFile: Err::Result = File::read("test.txt", "r")
-if (errorReadingFromFile != Nir) {
-        print(errorReadingFromFile.toString())
-} else {
-        print("\\nFile Read: ", content)
-}
-`} language="fg"/>
-
-
-## Notes
-- Always check for `Err::Result` after calling file operations to handle errors properly.
-- Use appropriate file modes (`"w"`, `"a"`, `"r"`, `"rb"`) depending on whether you're writing, appending, or reading files.
+| What | Where |
+|------|--------|
+| **Module source (reference)** | **`fw-modules/file_module/file-module.fg`**. |
+| **Integration-style fixtures** | **`tests/fixtures/LatestTests/FileModuleTests/`** — reads, writes, and **`__DIR__` behavior** in the test harness. |

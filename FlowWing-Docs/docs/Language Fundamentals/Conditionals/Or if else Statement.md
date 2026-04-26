@@ -13,10 +13,9 @@ Flow-Wing supports the `or` keyword to chain multiple `if` statements together. 
 <CodeBlock code={
 `var x: int = 10
 var y: int = 20
-
-if x == 10 or y == 20 {
+if (x == 10 || y == 20) {
     print("x is 10 or y is 20")
-} or if (x == 10 or y == 30) {
+} or if (x == 10 || y == 30) {
     print("x is 10 or y is 30")
 } else {
     print("x is not 10 or y is not 20")

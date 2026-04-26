@@ -100,7 +100,7 @@ The `deci32` datatype represents a 32-bit floating-point number, used for storin
 ### Example Usage:
 
 <CodeBlock code={
-`var z: deci32 = 1.23
+`var z: deci32 = 1.23f
 `} language="fg"/>
 
 ### Properties:
@@ -127,20 +127,28 @@ The `int8` datatype represents a 8-bit signed integer, used for storing small in
 
 ---
 
-## 8. Nir Data Type (`Nir`)
+## 8. Null (`null`)
 
-The `Nir` datatype represents the null or Nirast value, often used as a return type for functions that can return null values.
+**`null`** is the keyword and type name for the “no value” value. Use it in expressions and comparisons: **`== null`**, **`!= null`**, or assign **`null`** where a reference or optional value can be empty.
 
-### Example Usage:
+### Example usage
+
+For APIs that return **`Err::Result`**, you still check errors with **`isErr()`** / **`Err::isErr`**; do not use **`== null` / `!= null` on the result value** the way you would for a plain optional reference—the result object itself is not “null on error” in that pattern; follow the `Err` API.
 
 <CodeBlock code={
-`const val: Nir, err: Err::Result = File.read("file.txt","r")
+`var n = null
+print(null == null, "\n")
 
-if err != Nir {
-  print(err.getMessage())
+bring file
+bring Err
+var text: str, err: Err::Result = file::readText("file.txt")
+if err.isErr() {
+    print(err.getMessage())
+} else {
+    print(text)
 }
 `} language="fg"/>
 
-### Properties:
+### Properties
 
-- **Usage**: Used to indicate that a function can return null values.
+- **Usage**: Absence of a value for object references, fields, and other nullable shapes; for multi-return APIs that use **`Err`**, use **`isErr()`** (see example above) instead of only testing **`null`**, unless the API is documented to use **`null` directly.

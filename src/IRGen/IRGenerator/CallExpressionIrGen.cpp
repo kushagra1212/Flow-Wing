@@ -31,9 +31,12 @@ void IRGenerator::visit(binding::BoundCallExpression *call_expression) {
 
   auto function_symbol = call_expression->getSymbol();
 
-
-
-  if (analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
+  // Instance methods can legally share a name with a builtin (e.g. print()).
+  // Binding stores the user FunctionSymbol with the same name; only true
+  // top-level builtin calls should use dispatchBuiltinFunctionCall.
+  const bool is_instance_call = call_expression->getImplicitReceiverLast();
+  if (analysis::Builtins::isBuiltInFunction(function_symbol->getName()) &&
+      !is_instance_call) {
     dispatchBuiltinFunctionCall(call_expression);
   } else {
     dispatchUserDefinedOrExternalFunctionCall(call_expression);

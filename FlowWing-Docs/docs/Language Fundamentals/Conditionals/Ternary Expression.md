@@ -13,9 +13,9 @@ Flow-Wing supports the `?` keyword to handle multiple cases.
 ### Example Usage:
 
 <CodeBlock code={
-`print(true ? "Hello" : "World", "\\n")
-print(false ? "Hello" : "World", "\\n")
-print(2 > 1 ? "Hello" : "World")  
+`println(true ? "Hello" : "World")
+print(false ? "Hello" : "World" + "\n")
+print(2 > 1 ? "Hello" : "World")
 `} language="fg"/>
 
 **Output:**

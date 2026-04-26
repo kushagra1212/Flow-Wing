@@ -1,212 +1,51 @@
 ---
 sidebar_position: 2
+title: Text module (text)
+sidebar_label: Text (text)
 ---
 
 import CodeBlock from "../../src/components/common/CodeBlock";
 
-# Str Module
+# Text / string utilities (`text`)
 
-The Str module in Flow-Wing provides various utilities for string manipulation and handling. Below is the list of available functions, descriptions, and examples of how to use them.
+> **Name note:** this page is stored as **`Str Module.md`** in the docs tree, but the **module you import** is **`text`**, not `str`. Use **`bring text`**. (Plain **`str`** is a **type** in the language for string values.)
 
+## Start here
 
-### makeCopy
+**`text`** adds helpers for **working with `str` values and mutable text buffers**—**`text::length`**, **`text::trim`**, **`toUpper`**, **concatenation**, **substring** search, and a **`text::Text`** class when you want a **mutable** buffer. **String equality** in Flow-Wing is still **`==` / `!=`** on **`str`**.
 
-`Function:` makeCopy(dest: str, src: str)
-`Description:` Copies the content of src string to dest. After the copy, changes to one string do not affect the other.
-
-#
+### A tiny program
 
 <CodeBlock code={
-`var x: str = "HS"
-var y: str
-Str::makeCopy(y, x)
-print(x)  /; Output: HS
-print(y)  /; Output: HS
+`bring text
+
+var s: str = "  FlowWing  "
+println(text::trim(s))
+println(text::toUpper("abc"))
+println(text::length("hi"))
 `} language="fg"/>
 
+## When to use `text::Text`
 
-### concat
+Use **`text::Text`** for a **builder-style** or **in-place** buffer you mutate (for example call **`toUpper()`** on the object, then **`get()`** to read a **`str`**). Use plain **`str`** and **free functions** when you do not need a long-lived buffer.
 
-`Function:` concat(a: str, b: str) -> str
-`Description:` Concatenates two strings and returns the result.
-
-#
+**Mutable buffer example:**
 
 <CodeBlock code={
-`var x: str = "HS"
-var y: str = "S"
-var z: str = Str::concat(x, y)
-print(z)  /; Output: HSS
+`bring text
+
+var t: text::Text = new text::Text("hello")
+t.toUpper()
+println(t.get())
 `} language="fg"/>
 
+## More detail: free functions and naming
 
-### compare
+**Free functions** in your install may include (names are not guaranteed every release—verify with the shipped module) **`text::length`**, **`text::concat`**, **`text::toUpper`**, **`text::toLower`**, **`text::trim`**, **`text::replace`**, **`text::reverse`**, **`text::indexOf`**, **`text::substring`**, and more. The **`text::Text`** class carries additional **methods** for in-place work. There is no separate legacy **`text::compare`** for ordering—**`==` / `!=`** cover equality; for sorting semantics, use what your program’s **types** and libraries provide.
 
-`Function:` compare(a: str, b: str) -> int
-`Description:` Compares two strings lexicographically. Returns:
+## Source & tests (if you have the repository)
 
-- `0` if a equals b
-- `< 0` if a is lexicographically less than b
-- `> 0` if a is greater than b
-
-
-#
-
-<CodeBlock code={
-`print(Str::compare("HS", "HS"))  /; Output: 0
-print(Str::compare("HS", "S"))   /; Output: -1
-print(Str::compare("S", "HS"))   /; Output: 1
-`} language="fg"/>
-
-
-### toUpper
-
-`Function:` toUpper(s: str) -> str
-`Description:` Converts the string s to uppercase.
-
-#
-
-<CodeBlock code={
-`var x: str = "abc"
-print(Str::toUpper(x))  /; Output: ABC
-`} language="fg"/>
-
-
-### toLower
-
-`Function:` toLower(s: str) -> str
-`Description:` Converts the string s to lowercase.
-
-#
-
-<CodeBlock code={
-`var x: str = "ABC"
-print(Str::toLower(x))  /; Output: abc
-`} language="fg"/>
-
-
-`Function:` length(s: str) -> int
-`Description:` Returns the length of the string s.
-
-#
-
-<CodeBlock code={
-`var x: str = "FlowWing"
-print(Str::length(x))  /; Output: 8
-`} language="fg"/>
-
-
-### reverse
-
-
-`Function:` reverse(s: str) -> str
-`Description:` Returns the reversed version of the string s without modifying the original string.
-
-
-#
-
-<CodeBlock code={
-`var x: str = "abc"
-print(Str::reverse(x))  /; Output: cba
-`} language="fg"/>
-
-
-### reverseInPlace
-
-`Function:` reverseInPlace(s: str)
-`Description:` Reverses the string s in place.
-
-#
-
-<CodeBlock code={
-`var x: str = "abc"
-Str::reverseInPlace(x)
-print(x)  /; Output: cba
-`} language="fg"/>
-
-
-### subStrIndex
-
-`Function:` subStrIndex(s: str, sub: str) -> int
-`Description:` Returns the index of the first occurrence of the substring sub in s. Returns -1 if sub is not found.
-
-#
-
-<CodeBlock code={
-`var x: str = "FlowWing"
-print(Str::subStrIndex(x, "Wing"))  /; Output: 4
-`} language="fg"/>
-
-
-
-### replaceInPlace
-
-`Function:` replaceInPlace(s: str, old: str, new: str)
-`Description:` Replaces all occurrences of the old substring in s with new, modifying the original string.
-
-#
-
-<CodeBlock code={
-`var x: str = "abcabc"
-Str::replaceInPlace(x, "a", "x")
-print(x)  /; Output: xbcxbc
-`} language="fg"/>
-
-
-### trim
-
-
-`Function:` trimInPlace(s: str) -> str
-`Description:` Removes leading and trailing whitespace characters from the string s.
-
-#
-
-<CodeBlock code={
-`var x: str = "   abc   "
-Str::trimInPlace(x)
-print(x)  /; Output: abc
-`} language="fg"/>
-
-
-### indexOfChar
-
-`Function:` indexOfChar(s: str, c: char) -> int
-`Description:` Returns the index of the first occurrence of the character c in the string s. Returns -1 if c is not found.
-
-#
-
-<CodeBlock code={
-`var x: str = "FlowWing"
-print(Str::indexOfChar(x, 'W'))  /; Output: 4
-`} language="fg"/>
-
-
-
-### charAt
-
-`Function:` charAt(s: str, index: int) -> char
-`Description:` Returns the character at the specified index of string s.
-
-#
-
-<CodeBlock code={
-`var x: str = "FlowWing"
-print(Str::charAt(x, 1))  /; Output: l
-`} language="fg"/>
-
-
-
-### int8ToString
-
-`Function:` int8ToString(n: Int8) -> str
-`Description:` Converts an Int8 value to a string representation.
-
-#
-
-<CodeBlock code={
-    `print(Str::int8ToString(Int8(99)))  /; Output: 99`
-} language="fg"/>
-
-
-
-This module provides a comprehensive set of string operations that cover common string manipulation needs. Each function is designed to be efficient and easy to use within the Flow-Wing language.
+| What | Where |
+|------|--------|
+| **Module source (reference)** | **`fw-modules/text_module/text-module.fg`**. |
+| **Integration-style fixtures** | **`tests/fixtures/LatestTests/StrModuleTests/`** — **`bring`**, path helpers, **substring** / **indexOf** / **mutation** samples (file names use **“str”**; the import is still **`text`**). |

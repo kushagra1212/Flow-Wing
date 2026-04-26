@@ -10,7 +10,7 @@ Flow-Wing supports the `for` keyword to iterate over a sequence of values.
 ### Example Usage:
 
 <CodeBlock code={
-`for var i = 0 to 10  {
+`for var i: int = 0 to 10  {
     print(i + " ")
 }
 `} language="fg"/>
@@ -29,7 +29,7 @@ Flow-Wing supports the `for` keyword to iterate over a sequence of values with a
 ### Example Usage:
 
 <CodeBlock code={
-`for var i = 0 to 10 : 2  {
+`for (var i: int = 0 to 10 : 2)  {
     print(i + " ")
 }
 `} language="fg"/>
@@ -48,15 +48,40 @@ Flow-Wing supports the `for` keyword to iterate over a sequence of values with a
 ### Example Usage:
 
 <CodeBlock code={
-`for var i = 0 to 5 : 1 {
+`type Person = {
+    name: str
+}
+var people: Person[6] = [
+    {name: "a"},
+    {name: "b"},
+    {name: "c"},
+    {name: "d"},
+    {name: "e"},
+    {name: "f"}
+]
+for (var i: int = 0 to 5 : 1) {
     print(people[i].name + " ")
 }
 `} language="fg"/>
-### Using Outside Variable
+### Using a variable from the outer scope (bounds)
+
+The loop control variable is introduced in the `for` head (`var i: int = ...`). You can still read other outer variables in the *bounds* and *step*:
 
 <CodeBlock code={
-`var i: int = 0
-for i = 0 to 5 : 1 {
+`type Person = {
+    name: str
+}
+var people: Person[6] = [
+    {name: "a"},
+    {name: "b"},
+    {name: "c"},
+    {name: "d"},
+    {name: "e"},
+    {name: "f"}
+]
+var last: int = 5
+for (var i: int = 0 to last : 1) {
     print(people[i].name + " ")
 }
+
 `} language="fg"/>

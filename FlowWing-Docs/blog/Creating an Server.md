@@ -5,148 +5,59 @@ authors: [kushagra]
 tags: [FlowWing, Server]
 ---
 import CodeBlock from "../src/components/common/CodeBlock";
-import Toast from "../src/components/common/Toast";
 
-# Creating an Server
+# Creating a server in Flow-Wing (short)
 
-## Overview
+## Get something running in a few minutes
 
-In this tutorial, we’ll explore how to create a basic HTTP server in Flow-Wing using the `Vortex module`. This server will handle GET and POST requests, serving HTML and JSON content to clients. Whether you're building a simple API or serving web pages, this guide provides the foundational steps to get your Flow-Wing server up and running.
+1. **Install** a Flow-Wing **SDK** (see the docs: *Getting Started → **Installation***) so you have **`flowwing`** or **`FlowWing`** and the standard **modules** on disk.
+2. Put the program below in **`main.fg`**. It **listens** on a port, **waits** for **one** **HTTP** request, and sends **"Hello"**. **Vortex** is the HTTP stack; **Err** is for **`listen` failures.
+3. **Compile** and **run** the executable (AOT) or use **JIT** if you have **`flowwing-jit`** (see *Flow-Wing CLI*). Then **curl** or open the **URL** in a browser while the process is up.
 
-## Modules Required
-
-To create the HTTP server, you will need to bring in the following modules:
-
-- `Vortex`: For handling HTTP requests and responses.
-- `File`: For reading files from the filesystem.
-- `Err`: For error handling.
-- `Json`: For parsing JSON data.
-- `Map`: For storing key-value pairs.
-
-## Example Code
-
-Here is the complete example of a simple HTTP server that serves a home page and handles JSON requests:
+**Minimal example** (one request—add a **loop** around **`accept()`** for a real service):
 
 <CodeBlock code={
-`bring Vortex
-bring File
+`bring vortex
 bring Err
-bring Json
-bring Map
 
-fun handleHomePage(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
-  var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")    
-  /; Handle GET request for the home page
-
-  if (homePageLoadErr != Nir) {
-    print(homePageLoadErr.getMessage(), "\\n")
-    res.send({
-      status: 500,
-      content_type: "text/html",
-      body: \`
-      <html>
-        <body>
-          <h1>Error Loading Home Page</h1>
-        </body>
-      </html>
-      \`
-    })
-    return :
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8080)
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
   }
-  
-  var err: Err::Result = res.send({
-    status: 200,
-    content_type: "text/html",
-    body: homePage
-  })
-  
-  if err != Nir {
-    print("Error sending response: ", err.getMessage(), "\\n")
-  }
+  var req: vortex::Request, res: vortex::Response = app.accept()
+  res.status(200).send("Hello")
 }
-
-fun handleGet(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
-  var err: Err::Result = res.send({
-    status: 200,
-    content_type: "application/json",
-    body: \`{
-      "message": "Welcome to the Flow-Wing Programming Language!"
-    }\`
-  })
-  
-  if err != Nir {
-    print("Error sending response: ", err.getMessage(), "\\n")
-  }
-}
-
-fun handlePost(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
-  const body: Map::String = Json::parseObject(req.body)
-  var name: str = body.get("name")
-  
-  var err: Err::Result = res.send({
-    status: 200,
-    content_type: "application/json",
-    body: \`
-       {
-         "message": "Welcome to the Flow-Wing Programming Language!",
-         "body": \` + body.get("name") + \`
-       }
-       \`
-  })
-}
-
-const port: int = 8080
-print("Flow-Wing server starting on port: ", port, "\\n")
-var server: Vortex::Server = new Vortex::Server(port)
-server.setRoute("GET", "/", handleHomePage)
-server.setRoute("GET", "/api/welcome", handleGet)
-server.setRoute("POST", "/", handlePost)
-server.start()
+fg_main()
 `} language="fg"/>
 
-
-### Starting the Server:
+**Build (typical AOT name on PATH):**
 
 <CodeBlock code={
-`FlowWing --F=main.fg -O=-O3 --server
+`flowwing main.fg -O3
 `} />
 
-<Toast message="Do not forget to use the --server flag" title="Server Started" type="warning"/>
+`bring vortex` is usually enough; you rarely need extra **“server”** **link** flags on top of a normal app. The full **guide** in the main docs (routing, **JSON**, **streaming**, error handling) is **HTTP server (Vortex)** under *Creating a server* in the **sidebar**—read that next.
 
+## Read next (same site, deeper guide)
+
+- **HTTP server (Vortex)** — **Request** / **Response** API, **paths**, and production-minded notes.
+- **Err module** and **Flow-Wing CLI** for flags and result handling.
+
+## Optional video
 
 <iframe
   width="800"
   height="400"
   src="https://github.com/user-attachments/assets/4d7502a9-e1de-4c20-a82b-4ffee80df2b9"
-  title="YouTube video player"
+  title="YouTube — Flow-Wing Vortex (optional)"
   frameborder="0"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
   allowfullscreen
 ></iframe>
 
-## Explanation of Functions
+## For repo readers: Vortex in tests
 
-### `handleHomePage`
-
-- This function handles GET requests to the home page (`/`).
-- It attempts to read `homePage.html`. If successful, it sends the content with a 200 status code; otherwise, it sends a 500 error response.
-
-### `handleGet`
-
-- This function handles GET requests to the `/api/welcome` endpoint.
-- It responds with a JSON message welcoming users to the Flow-Wing programming language.
-
-### `handlePost`
-
-- This function handles POST requests to the home page (`/`).
-- It parses the JSON body of the request to extract the `name` field and responds with a JSON message that includes the name.
-
-## Starting the Server
-
-- The server is initialized on port 8080.
-- Routes are defined for handling specific paths and HTTP methods.
-- The server starts listening for incoming requests.
-
-## Conclusion
-
-This example demonstrates how to create a basic HTTP server in Flow-Wing using the `Vortex` module. You can expand upon this foundation to handle more complex routing and request processing as needed.
+If you have the **Flow-Wing** **repository**, extra **Vortex** samples and router-style programs live under **`tests/fixtures/LatestTests/ServerTests/`** (for example **`vortex_router.fg`** and **`mission_control_server/`**). They are **regression** and **demo** **`.fg`** files, not a separate product—use them after you are comfortable with the **minimal** example above.

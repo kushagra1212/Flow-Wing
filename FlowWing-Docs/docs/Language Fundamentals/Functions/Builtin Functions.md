@@ -17,54 +17,38 @@ print("Hello, World!\\nHello, Flow-Wing!")
 `} language="fg"/>
 
 
-## Superclass Reference
-The `super` keyword is used to refer to the superclass of the current class.
+## Superclass reference
+The `super` keyword refers to the superclass from a subclass `init` or method.
 
-### Example:
+### Example
 <CodeBlock code={
-`class Dog extends Animal {
+`class Animal {
+    var age: int
     init(age: int) -> nthg {
-      super(age)
+        self.age = age
     }
 }
+class Dog extends Animal {
+    init(age: int) -> nthg {
+        super(age)
+    }
+}
+
 `} language="fg"/>
 
-## Input Function
-The `input` function is used to read `input` from the user.
+## Conversions (built-in callables)
 
-### Example:
+Built-in conversion callables (provided by the language implementation) include **`Int8`**, **`Int32`**, **`Int64`**, **`Decimal`**, **`Decimal32`**, **`String`**, **`Bool`**, **`Char`**, with overloads for several source types. There is **no** standard `input()` console helper in the same set—use **`print`** / **`println`**, the **`file`** or **`sys`** modules, or your own I/O.
+
+### Integer (default `int` is 32-bit)
 <CodeBlock code={
-`var name: str = input("Enter your name: ")
+`var n: int = Int32("123")
 `} language="fg"/>
 
-**Return Type: `str`**
-
-**Properties:**
-    - Usage: Read input from the user
-
-
-## Integer Conversion
-The `Int32` function is used to convert a value to a 32-bit integer.
-
-### Example:
+### `deci` (64-bit float) and `deci32`
 <CodeBlock code={
-`var number: int = Int32("123")
-`} language="fg"/>
-
-## Decimal Conversion
-The Decimal 64function is used to convert a value to a decimal 64-bit floating-point number.
-
-### Example:
-<CodeBlock code={
-`var number: deci = Decimal("123.45")
-`} language="fg"/>
-
-## Decimal32 Conversion
-The Decimal32 function is used to convert a value to a `32-bit decimal`.
-
-### Example:
-<CodeBlock code={
-`var number: deci32 = Decimal32("123.45")
+`var x: deci = Decimal("123.45")
+var y: deci32 = Decimal32("123.45")
 `} language="fg"/>
 
 ## String Conversion

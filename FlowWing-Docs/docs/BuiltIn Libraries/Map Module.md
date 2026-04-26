@@ -1,84 +1,46 @@
 ---
 sidebar_position: 3
+title: Map module
+sidebar_label: Map (map)
 ---
 
 import CodeBlock from "../../src/components/common/CodeBlock";
 
-# Map Module 
+# Map module (`map`)
 
-## Overview
+## Start here
 
-The `Map` module provides a data structure that allows you to store key-value pairs, enabling efficient retrieval and management of data. It supports various operations such as insertion, retrieval, checking for existence, and removal of key-value pairs.
+**`map::Map`** is a **string-keyed, dynamic-value** map: **keys** are **`str`**, and **values** are stored in the language’s **dynamic** representation, so you can store numbers, text, and other values under different keys. Add **`bring map`**, then **`new map::Map()`**.
 
-## Types
-
-### Map::String
-
-The `Map::String` type represents a map where both keys and values are of type `string`. It provides methods to manipulate the map efficiently.
-
-## Functions
-
-### `new Map::String()`
-
-Creates a new instance of a string map.
-
-#### Returns
-- `Map::String`: A new empty string map.
-
-### `insert(key: str, value: str)`
-
-Inserts a key-value pair into the map.
-
-#### Parameters
-- `key`: The key to be inserted into the map.
-- `value`: The value associated with the key.
-
-### `get(key: str) -> str`
-
-Retrieves the value associated with the specified key.
-
-#### Parameters
-- `key`: The key whose value needs to be retrieved.
-
-#### Returns
-- `str`: The value associated with the key, or `null` if the key does not exist.
-
-### `contains(key: str) -> bool`
-
-Checks whether the map contains the specified key.
-
-#### Parameters
-- `key`: The key to check for existence in the map.
-
-#### Returns
-- `bool`: `true` if the key exists, otherwise `false`.
-
-### `remove(key: str)`
-
-Removes the key-value pair associated with the specified key.
-
-#### Parameters
-- `key`: The key to be removed from the map.
-
-### `free()`
-
-Frees the memory allocated for the map.
-
-## Example Usage
+### A tiny program
 
 <CodeBlock code={
-`var m: Map::String = new Map::String()
-  m.insert("key1", "value1")
-  m.insert("key2", "value2")
-  m.insert("key3", "value3")
-  m.insert("key4", "value4")
-  
-  print(m.get("key1"))      
-  print(m.get("key2"))   
-  print(m.contains("key3")) 
-  
-  m.remove("key3")
-  print(m.contains("key3")) 
-  
-  m.free()
+`bring map
+
+var m: map::Map = new map::Map()
+m.set("a", 1)
+m.set("b", "two")
+println(m.get("a"))
+println(m.get("b"))
+println(m.size())
 `} language="fg"/>
+
+**Typical uses:** small **JSON-like** in-memory data, **config** keyed by name, and **caches** in scripts.
+
+## Common operations (cheat sheet)
+
+- **Read / write** — **`get`**, **`getOr`**, **`set`**
+- **Structure** — **`has`**, **`remove`**, **`size`**, **`clear`**
+
+Exact **method** names and optional helpers follow the **`map`** module in your **SDK**; the surface can evolve between versions.
+
+## More detail: keys, values, and `dyn`
+
+`Map` is a **convenience** over **`map::...`**; values behave like the **`dyn`**-style value model for heterogeneous storage. For **type-safe** fixed shapes, the language’s **`type`**, **objects**, and **classes** are often a better long-term design than a single unbounded **map**; use **`Map`** when flexibility matters more.
+
+## Source & tests (if you have the repository)
+
+| What | Where |
+|------|--------|
+| **Module source (reference)** | **`fw-modules/map_module/map-module.fg`**. |
+| **Integration-style fixtures** | **`tests/fixtures/LatestTests/MapModuleTests/`**. |

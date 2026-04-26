@@ -22,12 +22,12 @@ Flow-Wing supports the following operators, categorized for ease of understandin
 ## Examples:
 
 <CodeBlock code={
-`print(true-true) /; Output: false
-print(1.0 * 1.0) /; Output: 1.00000000000000
-print("Hello"+2.0) /; Output: Hello2.00000000000000
-print(1/2) /; Output: 0.50000000000000
-print(3//2) /; Output: 1
-print("Hello"+"FlowWing") /; Output: HelloFlowWing
+`println(1 - 1) /; integer subtraction
+println(1.0 * 1.0) /; Output: 1
+println("Hello"+ 2.0) /; Output: Hello2
+println(1 / 2) /; Output: 0.5
+println(3// 2) /; Output: 1
+println("Hello"+"FlowWing") /; Output: HelloFlowWing
 `} language="fg"/>
 
 ## Comparison Operators

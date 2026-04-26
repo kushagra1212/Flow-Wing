@@ -208,6 +208,29 @@ static char outLastNonSpaceChar(const std::string &s) {
   return '\0';
 }
 
+/// `inComment` in `t`’s leading list has no kEndOfLine before it: `) /;` in
+/// source, not a full line after a forced statement `\\n`.
+static bool
+commentTriviaIsFirstInLineInLeading(
+    const syntax::SyntaxToken *t, const syntax::SyntaxToken *inComment) {
+  if (!t || !inComment)
+    return false;
+  for (const auto &u : t->getLeadingTrivia()) {
+    if (!u)
+      continue;
+    if (u.get() == inComment) {
+      return inComment->getTokenKind() ==
+                 lexer::TokenKind::kSingleLineCommentToken ||
+             (inComment->getTokenKind() ==
+                  lexer::TokenKind::kMultiLineCommentToken &&
+              inComment->getText().find('\n') == std::string::npos);
+    }
+    if (u->getTokenKind() == lexer::TokenKind::kEndOfLineToken)
+      return false;
+  }
+  return false;
+}
+
 // True when `n` is `}` and its leading trivia has a one-line // /; (or
 // single-line /* */) comment that appears in source *before* the first newline
 // in that trivia — i.e. it belongs on the same line as the last statement, not
@@ -378,8 +401,8 @@ void SourceFormatter::spaceBefore(const syntax::SyntaxToken *t) {
   }
 
   if (L == '(') {
-    if (k == lexer::TokenKind::kOpenParenthesisToken)
-      m_buf.requestInterTokenSpace();
+    // `((expr))` — no space between consecutive `(` (contrast: `return (` for
+    // the keyword before the first paren, via getSpacingOverride).
     return;
   }
   if (L == '[') {
@@ -658,6 +681,29 @@ void SourceFormatter::emitLeadingTrivia(const syntax::SyntaxToken *t) {
         m_buf.text += '\n';
         continue;
       } else {
+        // `visit(CompilationUnit|Block)` may have just appended `\\n` between
+        // statements; for `);\\n/;` (comment in leading of next) pull `/;` back
+        // to the `)` / `]`.
+        if (cOnePhysicalLine && !m_buf.text.empty() &&
+            m_buf.text.back() == '\n' &&
+            commentTriviaIsFirstInLineInLeading(t, tr.get())) {
+          const char c = outLastNonSpaceChar(m_buf.text);
+          if (c == ')' || c == ']') {
+            while (!m_buf.text.empty() &&
+                   (m_buf.text.back() == '\n' || m_buf.text.back() == '\r')) {
+              m_buf.text.pop_back();
+            }
+            while (!m_buf.text.empty() && m_buf.text.back() == ' ') {
+              m_buf.text.pop_back();
+            }
+            if (!m_buf.text.empty() && m_buf.text.back() != '\n') {
+              m_buf.text += ' ';
+            }
+            m_buf.text += cText;
+            m_buf.text += '\n';
+            continue;
+          }
+        }
         if (!m_buf.text.empty() && m_buf.text.back() != '\n')
           m_buf.text += '\n';
         appendBlockIndent();
@@ -803,6 +849,19 @@ void SourceFormatter::visit(syntax::CompilationUnitSyntax *node) {
     if (i + 1 < stmts.size() && stmts[i + 1]) {
       if (m_buf.text.empty() || m_buf.text.back() != '\n')
         m_buf.text += '\n';
+    }
+  }
+  // `visitTokenCore` is a no-op for kEndOfFileToken, but `/;` and `//` after
+  // the last statement are stored as leading trivia on EOF; emit them.
+  const auto &cuChildren = node->getChildren();
+  if (!cuChildren.empty()) {
+    const auto *last = cuChildren.back();
+    if (last && last->getKind() == syntax::NodeKind::kTokenNode) {
+      const auto *eofTok = static_cast<const syntax::SyntaxToken *>(last);
+      if (eofTok->getTokenKind() == lexer::TokenKind::kEndOfFileToken &&
+          !eofTok->getLeadingTrivia().empty()) {
+        emitLeadingTrivia(eofTok);
+      }
     }
   }
 }

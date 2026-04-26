@@ -31,7 +31,7 @@ Flow-Wing programming language supports the following keywords:
 | `str`     | String type                                |
 | `deci`    | Decimal type                               |
 | `deci32`  | 32-bit decimal type                        |
-| `Nir`     | Represents null value                      |
+| `null`    | Null value; type of the null literal       |
 | `bring`   | Import or bring a module                   |
 | `expose`  | Expose functionality of a module           |
 | `from`    | Used in import statements                  |

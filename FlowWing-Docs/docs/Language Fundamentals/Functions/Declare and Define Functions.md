@@ -191,9 +191,13 @@ Flow-Wing supports returning object values from a function.
 ### Example:
 
 <CodeBlock code={
-`fun add(x: int, y: int) -> Person {
-    return { name: "Alice" }    
+`type Person = {
+    name: str
 }
+fun add(x: int, y: int) -> Person {
+    return {name: "Alice" }
+}
+
 `} language="fg"/>
 
 Here, the `add` function returns an object value.
@@ -209,24 +213,18 @@ Flow-Wing supports returning class values from a function.
 `class Person {
     var name: str
     var age: int
-
-     init(name: str, age: int) -> nthg {
+    init(name: str, age: int) -> nthg {
         self.name = name
-        self.age = age 
+        self.age = age
     }
-
     toString() -> str {
         return "Name: " + self.name + ", Age: " + age
     }
 }
-
-
 fun add(x: int, y: int) -> Person {
     return new Person("Alice", 30)
 }
-
 var person: Person = add(2, 3)
-
 print(person.toString())
 `} language="fg"/>
 Output: `Name: Alice, Age: 30`
@@ -234,9 +232,19 @@ Output: `Name: Alice, Age: 30`
 ## Function Example with Class a Parameter 
 
 <CodeBlock code={
-`fun add(inout person: Person) -> nthg {
+`type Person = {
+    name: str
+    age: int
+}
+var p: Person = {
+    name: "a",
+    age: 1
+}
+fun add(inout person: Person) -> nthg {
     person.age = 2
 }
+add(p)
+
 `} language="fg"/>
 
 It is recommended to use `inout` parameter in Flow-Wing functions, when passing any complex types.

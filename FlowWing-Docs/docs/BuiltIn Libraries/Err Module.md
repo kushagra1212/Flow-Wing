@@ -1,79 +1,78 @@
 ---
 sidebar_position: 5
+title: Err module
+sidebar_label: Err
 ---
 
 import CodeBlock from "../../src/components/common/CodeBlock";
 
+# Err module (`Err`)
 
-# Err Module Documentation
+## Start here
 
-## Overview
+**`Err`** is the usual way to return **“something went wrong”** from APIs that can fail. You **`bring Err`**. Many library calls return a **pair** (for example a **value** and an **`Err::Result`**, or a **bool** and an **`Err::Result`**). **Check the error first** with **`isErr()`** on the result or **`Err::isErr(err)`** before you trust the “success” part.
 
-The `Err` module is designed to handle error codes and error messages in Flow-Wing. It includes an `ErrorCode` type for predefined error codes, a `Result` class for handling error messages, and methods to enhance error management and reporting.
+- **`Err::Result`** — holds a **message**, a small **code** (see **`Err::CODE`**), and optional **details**.
+- **`Err::CODE`** — named **constants** (for example **NOT_FOUND**, **FAILED**, **INVALID_ARGUMENT** in a typical build) for **stable** error kinds.
 
-## Types
-
-### `Err::ErrorCode`
-
-This type defines a set of error codes that are used throughout the module for standardized error handling. 
-
-#### Fields:
-- `NOT_FOUND`: Represents an error when a resource is not found (value: `1`).
-- `FAILED`: Represents a general failure error (value: `2`).
-- `INVALID_ARGUMENT`: Represents an error when an invalid argument is provided (value: `3`).
-
-### Example
+### A tiny program
 
 <CodeBlock code={
 `bring Err
 print(Err::CODE.NOT_FOUND)
 `} language="fg"/>
 
-## Classes
+**Pattern with `file` or other modules** — the **second** (or last) return is often the **`Result`**:
 
-### `Err::Result`
+```text
+if err.isErr() { … } else { use the good value }
+```
 
-The `Result` class represents an error object containing an error message, error code, and optional details. It provides multiple constructors and methods to work with error messages, extend error details, and retrieve error information.
+## Building and inspecting errors
 
-#### Constructors
+**Constructors and helpers** (your exact overload set follows the installed module) commonly include an **`init`** with **message**, optional **code**, and optional **details**; and methods such as:
 
-- **`init(message: str = "")`**: Initializes the result with only a message.
-- **`init(message: str = "", code: int = 0)`**: Initializes the result with a message and an error code.
-- **`init(message: str = "", code: int = 0, details: str = "")`**: Initializes the result with a message, an error code, and additional details.
+- **`getMessage()`**, **`getCode()`**, **`getDetails()`**
+- **`withMessage(…)`**, **`withDetails(…)`** — return **new** **`Err::Result`** with extra context
+- **`toString()`** — a single **human-readable** line for **logging** or **println**
 
-#### Methods
-
-- **`getMessage() -> str`**: Returns the error message.
-- **`getCode() -> int`**: Returns the error code.
-- **`getDetails() -> str`**: Returns the additional error details.
-- **`withMessage(extraMessage: str) -> Err::Result`**: Adds an extra message to the existing error message and returns a new `Result`.
-- **`withDetails(details: str) -> Err::Result`**: Adds or replaces the details of the error and returns a new `Result`.
-- **`toString() -> str`**: Converts the error object into a string representation of the error.
-
-### Example
-
+**Longer example:**
 
 <CodeBlock code={
 `bring Err
 
 fun handle_error() -> nthg {
   var err1: Err::Result = new Err::Result("File not found", Err::CODE.NOT_FOUND)
-  print(err1.getMessage())   /; Error: File not found
+  print(err1.getMessage())
 
   var err2: Err::Result = err1.withMessage("Please check the path")
-  print(err2.toString())     /; Error: File not found -> Please check the path
+  print(err2.toString())
 
   var err3: Err::Result = err2.withDetails("The file might have been deleted")
-  print(err3.toString())     /; Error: File not found -> Please check the path (Details: The file might have been deleted)
+  print(err3.toString())
 
   var err4: Err::Result = new Err::Result("Invalid argument", Err::CODE.INVALID_ARGUMENT)
-  print(err4.toString())     /; Error: Invalid argument
+  print(err4.toString())
 }
 
 handle_error()
 `} language="fg"/>
 
+## More detail: `ErrorCode` and `Err::Result`
 
-### Notes
-- The `Err::Result` class provides flexibility in managing errors by allowing additional messages and details to be attached to errors.
-- Use `Err::ErrorCode` for standardized error codes when dealing with different failure scenarios.
+The **`Err::ErrorCode` / `Err::CODE`** story is a **shared vocabulary** between your code and the standard library. **`Err::Result`** is designed so you can **thread** **messages** and **details** through calls without a separate exception system—Flow-Wing’s model is **explicit** **return** values, not try/catch.
+
+**Fields on `Err::CODE`** in a default install often include (integer values are **illustrative**; trust your binary):
+
+- **`NOT_FOUND`** (example value **`1`**) — resource not found
+- **`FAILED`** (example value **`2`**) — general failure
+- **`INVALID_ARGUMENT`** (example value **`3`**) — bad input
+
+## Source & tests (if you have the repository)
+
+| What | Where |
+|------|--------|
+| **Module source (reference)** | **`fw-modules/error_module/Err-module.fg`**. |
+| **Integration-style fixtures** | **`tests/fixtures/LatestTests/ErrModuleTests/`**. |
+
+Cloning the repo is **optional** for **day-to-day** use of **`Err`**.

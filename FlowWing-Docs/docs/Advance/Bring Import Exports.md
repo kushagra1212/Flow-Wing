@@ -3,41 +3,44 @@ sidebar_position: 2
 ---
 import CodeBlock from "../../src/components/common/CodeBlock";
 
-# Bring (Import Exports)
+# Bring (import and exports)
 
-### Bring Statement in Flow-Wing
+## Start here
 
-The `bring` statement in Flow-Wing is used to import external files or modules into the current file. It allows the code to access functions, types, classes, and variables defined in other files. This feature enhances modularity and code reuse, allowing developers to organize their code into multiple files, keeping concerns separated.
+**`bring`** loads another **`.fg` file** into the **current** compilation. After **`bring "path.fg"`**, you can use **types**, **classes**, **functions**, and **variables** that the **other** file **exposes** to importers. Think of it as the **one**-file **import** for Flow-Wing: **`bring` = “include this file’s **exported** surface into my scope”**.
 
-The `bring` keyword functions similarly to an "import" statement found in other programming languages like Python or JavaScript. By using bring, you can include definitions from other `Flow-Wing` files without needing to rewrite the same code multiple times.
-
-### Syntax
+The **string** is a **path** resolved **relative to the file** that contains the **`bring`**, with **toolchain** rules for **system** / **lib** **modules** (for example **`bring vec`**). For **project** code, use **quoted** **paths** like **`"lib/util.fg"`** or, in these docs, the examples tree:
 
 <CodeBlock code={
-`bring "path_to_file.fg"`
-} language="fg"/>
+`bring "../examples/bring/choosy_lib.fg"
+`} language="fg"/>
 
-- `path_to_file`: This is the relative path to the file you want to import, enclosed in double quotes.
+(Adjust for **your** project; doc snippets are compiled from a temp folder that can reach **`FlowWing-Docs/examples/…`**.)
+
+**Use what the file exports:**
 
 <CodeBlock code={
-`bring "utils.fg" /; Imports definitions from utils.fg
+`bring "../examples/bring/choosy_lib.fg"
+print(x)
+callS(88)
+`} language="fg"/>
 
-print(someVariableFromUtils)
-`
-} language="fg"/>
+The sample **`choosy_lib.fg`** uses **`expose`** on **`x`**, **`callS`**, **types**, **…** so those names are **visible** here. A file with **no** **`expose`** is still a normal **source** file; the story for **picking a subset** of names is *Choosy imports* in this section.
 
-In the example, the bring statement includes all the public symbols from the `utils.fg` file, allowing access to any types, variables, or functions declared there.
+## “Whole file” vs choosy
 
+- **Whole file (default story):** **`bring "file.fg"`** — you rely on the **other** file’s **expose** list (or the module / visibility rules in your build).
+- **Choosy only:** **`bring { a, b } from "file.fg"`** — see **Choosy imports** for **`{ }`** and **requirements** on **`expose`**.
 
-### Examples
+## More detail: `dependencies` + consumer (two-file pattern)
 
-- `dependencies.fg`
+**`dependencies.fg`** (library side — no **`expose` required** in this *teaching* copy; in practice match what you **import**):
 
 <CodeBlock code={
 `var globalCount:int = 2
 
 type StringWrapper = {
-    value:str 
+    value:str
 }
 
 type ComplexType = {
@@ -47,14 +50,14 @@ type ComplexType = {
 
 var defaultComplexType:ComplexType = {}
 
-var complexTypeArray:ComplexType[2] 
+var complexTypeArray:ComplexType[2]
 
 class Printer {
-    var count:int 
-    var complexData:ComplexType  
-  
+    var count:int
+    var complexData:ComplexType
+
     init(complexData:ComplexType) -> nthg {
-        self.complexData = complexData 
+        self.complexData = complexData
     }
 
     displayComplexData() -> nthg {
@@ -70,26 +73,29 @@ fun handleData(input:int) -> nthg {
 
     print("Input Value: ", input)
 }
-
 `} language="fg"/>
 
-
-- `bring_example.fg`
+**`bring_example.fg` consumer** (uses **`choosy_lib`** in this **documentation** set so the snippet **verifies** end-to-end):
 
 <CodeBlock code={
-`bring "dependencies.fg"
-
-print(globalCount)
-
-print(defaultComplexType)
-
-print(complexTypeArray)
-
-handleData(88)
-
-var customComplexType:ComplexType  
-
-customComplexType = {id:2}
-print("Custom Complex Type: ", customComplexType)
-
+`bring "../examples/bring/choosy_lib.fg"
+print(x)
+print(k)
+callS(88)
+var p:T
+p = {a:2}
+print("print p ", p)
+var g:A = new A({})
+g.printY()
 `} language="fg"/>
+
+> **Heads-up:** the first block is a **template** of a **self-contained** library file. The second block is wired to the **real** **`choosy_lib.fg`** in **this** repo. When you **split** a real app into **`dependencies.fg` + `app.fg`**, add the right **`bring`** and **`expose`**s so names **match** your **binder** rules.
+
+**Modules** ( **`module [name]`** ) are a **separate** **namespacing** feature—see *Creating and using modules*.
+
+## Source & tests (if you have the repository)
+
+| What | Where |
+|------|--------|
+| **General `bring` and multi-file** | **`tests/fixtures/LatestTests/BringTests/`**, especially **`BringTestBasicTestAll/`** for basic **`bring` / path** / **expose**-style cases. |
+| **Doc `choosy` library** | **`FlowWing-Docs/examples/bring/choosy_lib.fg`**. |

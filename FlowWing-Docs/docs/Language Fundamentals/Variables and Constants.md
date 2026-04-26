@@ -30,20 +30,23 @@ Variables in Flow-Wing can be `dynamically allocated`. This means that they can 
 
 ### Example:
 <CodeBlock code={
-`var number: int  = new 2
-var string: str = new "Hello, Flow-Wing!"
-var boolean: bool = new true
+`var number: int = 2
+var string: str = "Hello, Flow-Wing!"
+var boolean: bool = true
 `} language="fg"/>
 
 ### Example with Complex Type:
 <CodeBlock code={
 `type Person = {
-    name: str,
-    age: int,
+    name: str
+    age: int
     height: deci
 }
-
-var person: Person = { name: "Alice", age: 30, height: 5.5 }
+var person: Person = {
+    name: "Alice",
+    age: 30,
+    height: 5.5
+}
 print(person)
 `} language="fg"/>
 

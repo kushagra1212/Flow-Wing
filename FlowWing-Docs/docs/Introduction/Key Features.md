@@ -2,22 +2,14 @@
 sidebar_position: 2
 ---
 
-- **Both Static and Dynamic Typing**: 
-- **Object-Oriented Programming**: 
+High-level capabilities of **Flow-Wing** as a language:
 
-- **Dynamic and Static Memory Allocation**:
+- **Static typing** — built-in types such as `int` (32-bit by default in typical programs), `deci` / `deci32`, `str`, `bool`, and more; class types; `bring` for code and modules; `var` and containers with inference and reassignment as defined by the language.
+- **Object-oriented programming** — classes, `extends`, `init`, methods; see *Language Fundamentals → Classes* and *Advance → Inheritance*.
+- **AOT and JIT** — a normal install may include an **AOT** compiler (compile to a native executable you run) and/or a **JIT**-style tool that runs a `.fg` file in one step. Which binary you have depends on your build or package. See *Flow-Wing CLI* and *Getting Started*.
+- **Heap memory** — the runtime uses **Boehm GC** for ordinary heap allocation at the source level; you do not pair every allocation with a manual `free` in user code the way you would in C.
+- **Modules and native linking** — `bring` for Flow-Wing modules; the compiler CLI supports **`-L`**, **`-l`**, and on macOS **`--framework`** for native libraries.
+- **Developer tooling** — in-editor support via a **Flow-Wing** extension, formatter flags (for example **`-FMP`**), and debug-style emits (`--emit=…`) for tokens, trees, and IR, where your compiler build enables them. Details are in *Flow-Wing CLI*.
+- **Sample programs** — small games and demos are published with the project for learning; they are **examples**, not a separate product “engine.”
 
-- **Rich Data Structures**:
-
-- **Control Flow Constructs**: 
-
-- **Garbage Collection**:
-
-- **Modular Design**: 
-
-- **Module Support** 
-
-- **Game Development Support**:
-
-- **C Bindings**:
-
+For **building the compiler from source**, use *Getting Started → Installation* and the upstream repository. For **writing this documentation**, see **`WRITING.md`** in the `FlowWing-Docs` folder.

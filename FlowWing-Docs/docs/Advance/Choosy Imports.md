@@ -3,48 +3,56 @@ sidebar_position: 2
 ---
 import CodeBlock from "../../src/components/common/CodeBlock";
 
-# Choosy Imports
+# Choosy imports
 
+## Start here
 
-In Flow-Wing, the `bring` statement can selectively import specific exposed items from a file or module. This mechanism is known as choosy imports, where only the necessary components are imported from an external file. This helps in avoiding namespace pollution and enhances code readability and maintainability by importing only what is required.
+**Choosy import** means: **`bring { name1, name2, … } from "path.fg"`** — you import **only** the symbols you list, not the whole file. The **target** file must **`expose`** those names (variables, types, functions, classes). The **path** is **relative to the** **`.fg`** file that contains the **`bring`**.
 
-
-### Syntax
-
-<CodeBlock code={
-`bring {item1, item2, ..., itemN} from "path_to_file"
-`} language="fg"/>
-
--`item1`, `item2`, ..., `itemN`: These are the specific variables, types, classes, or functions that are exposed in the source file and imported into the current file.
-+`globalCount, handleData`: These are the specific variables, types, classes, or functions that are exposed in the source file and imported into the current file.
--`path_to_file`: This is the relative path to the file containing the exposed definitions.
-
-
-### Examples
+**Minimal use** (library lives under **`FlowWing-Docs/examples/`** when you follow this site’s layout; adjust the path for **your** tree):
 
 <CodeBlock code={
-`bring {globalCount, handleData} from "dependencies.fg"
+`bring {x, k, callS} from "../examples/bring/choosy_lib.fg"
 
-print(globalCount) /; Using imported variable
-handleData(99)     /; Using imported function
-
+print(x)
+callS(99)
 `} language="fg"/>
 
+Only **`x`**, **`k`**, and **`callS`** are in scope here—other **`expose`**d names in that file stay **out** of this unit unless you add them to **`{ … }`**.
 
-In the above example, only globalCount and handleData are imported from `dependencies.fg`, meaning that other exposed items from `dependencies.fg` (e.g., Printer, defaultComplexType) are not accessible in the current file.
+## Why use choosy imports?
 
+- **Smaller** visible namespace—easier to see what a file **depends** on.
+- **Avoids** accidental use of **hidden** globals from a **big** library file.
+- Pairs with a **well-`expose`d** library: one **`.fg`** can offer many **exports**; each **consumer** picks what it needs.
 
-### Example 2
+## Bigger example (many symbols from one library)
 
-- `dependencies.fg`
+<CodeBlock code={
+`bring {x, k, j, callS, A, T, TB} from "../examples/bring/choosy_lib.fg"
 
-We use `expose` keyword to make the exposed items available to other files.
+print(x)
+print(k)
+print(j)
+callS(88)
+var p:T
+p = {a:2 }
+print("print p ", p)
+var g:A = new A({})
+g.printY()
+`} language="fg"/>
+
+## More detail: `expose` and the library file
+
+Everything you list in **`{ … }`** must appear as **`expose var`**, **`expose type`**, **`expose class`**, or **`expose fun`** in the **brought** file. **Order** in **`{ ... }`** does not matter. You **cannot** choosy-import a name the library does **not** **expose** (you would get a **binder** error).
+
+**Illustration** of a “fat” library (many **`expose`**) — same **`choosy_lib`** idea, shown here as a **fictive** `dependencies.fg` style for teaching **structure**; your real file should **match** the names you list in **`bring { … }`**:
 
 <CodeBlock code={
 `expose var globalCount:int = 2
 
 expose type StringWrapper = {
-    value:str 
+    value:str
 }
 
 expose type ComplexType = {
@@ -54,14 +62,14 @@ expose type ComplexType = {
 
 expose var defaultComplexType:ComplexType = {}
 
-expose var complexTypeArray:ComplexType[2] 
+expose var complexTypeArray:ComplexType[2]
 
 expose class Printer {
-    var count:int 
-    var complexData:ComplexType  
-  
+    var count:int
+    var complexData:ComplexType
+
     init(complexData:ComplexType) -> nthg {
-        self.complexData = complexData 
+        self.complexData = complexData
     }
 
     printData() -> nthg {
@@ -77,28 +85,13 @@ expose fun handleData(input:int) -> nthg {
 
     print("Input Value: ", input)
 }
-
 `} language="fg"/>
 
-- `choose_example.fg`
+(That block is a **self-contained** pattern example; it is **not** the same text as **`choosy_lib.fg`** in this repo—use it as a **template** for your own **expose**s.)
 
-<CodeBlock code={
-`bring {globalCount, defaultComplexType, complexTypeArray, handleData, Printer} from "file1.fg"
+## Source & tests (if you have the repository)
 
-print(globalCount)
-
-print(defaultComplexType)
-
-print(complexTypeArray)
-
-handleData(88)
-
-var customComplexType:ComplexType  
-
-customComplexType = {id:2}
-print("Custom Complex Type: ", customComplexType)
-
-var printerInstance:Printer = new Printer({})
-printerInstance.printData()
-
-`} language="fg"/>
+| What | Where |
+|------|--------|
+| **Choosy + `bring` / `expose` cases** | **`tests/fixtures/LatestTests/BringTests/BringTestBasicTestAllChoosy/`** and the wider **`tests/fixtures/LatestTests/BringTests/`** tree. |
+| **Doc sample library** | **`FlowWing-Docs/examples/bring/choosy_lib.fg`**. |
