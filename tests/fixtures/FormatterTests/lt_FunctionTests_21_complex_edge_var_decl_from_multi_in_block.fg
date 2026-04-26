@@ -1,0 +1,14 @@
+/; from LatestTests/FunctionTests/21_complex_edge/var_decl_from_multi_in_block.fg
+fun pair() -> int, str {
+  return 77, "seven"
+}
+
+var a: int = 0
+var b: str = ""
+{
+  var c: int, d: str = pair()
+  println(c)
+  println(d)
+}
+println(a)
+println(b)

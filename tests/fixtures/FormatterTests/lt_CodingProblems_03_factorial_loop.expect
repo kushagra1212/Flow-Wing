@@ -1,0 +1,11 @@
+/; from LatestTests/CodingProblems/03_factorial_loop.fg
+fun factorial(n: int) -> int {
+    var fact: int = 1
+    for (var i: int = 1 to n : 1) {
+        fact = fact * i
+    }
+    return fact
+}
+println(factorial(5))
+println(factorial(0))
+println("done")

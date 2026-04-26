@@ -1,0 +1,4 @@
+/; from LatestTests/ContainerTests/multi_dim_dynamic_array_init.fg
+var k: [3] = [2, "Some", "Test"]
+var x: [2][3] = [k, k]
+println(x)

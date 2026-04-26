@@ -1,0 +1,17 @@
+/; from LatestTests/ObjectTests/edge_cases/zero_values.fg
+type Person = {
+    name: str
+    age: int
+    height: deci
+    isActive: bool
+}
+var p: Person = {
+    name: "",
+    age: 0,
+    height: 0.0,
+    isActive: false
+}
+print("Zero values: ", p, "\n")
+p.name = "John"
+p.age = 30
+print("After updates: ", p, "\n")

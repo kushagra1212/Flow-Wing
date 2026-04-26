@@ -1,0 +1,24 @@
+/; from LatestTests/ObjectTests/edge_cases/deep_nested_const_read.fg
+type Level3 = {
+    value: str
+}
+
+type Level2 = {
+    level3: Level3
+}
+
+type Level1 = {
+    level2: Level2
+}
+
+const obj: Level1 = {
+    level2: {
+        level3: {
+            value: "deep"
+        }
+    }
+}
+
+print("Level 1 -> Level 2 -> Level 3 value: ", obj.level2.level3.value, "\n")
+print("Level 2 -> Level 3: ", obj.level2.level3, "\n")
+print("Level 1 -> Level 2: ", obj.level2, "\n")

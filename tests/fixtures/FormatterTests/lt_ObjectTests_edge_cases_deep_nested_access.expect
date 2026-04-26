@@ -1,0 +1,41 @@
+/; from LatestTests/ObjectTests/edge_cases/deep_nested_access.fg
+type Point = {
+    x: int
+    y: int
+}
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+type Shape = {
+    name: str
+    rect: Rectangle
+}
+var shape: Shape = {
+    name: "MyShape",
+    rect: {
+        topLeft: {
+            x: 0,
+            y: 0
+        },
+        bottomRight: {
+            x: 100,
+            y: 100
+        }
+    }
+}
+print("Full shape: ", shape, "\n")
+print("Top-left x: ", shape.rect.topLeft.x, "\n")
+print("Top-left y: ", shape.rect.topLeft.y, "\n")
+print("Bottom-right x: ", shape.rect.bottomRight.x, "\n")
+print("Bottom-right y: ", shape.rect.bottomRight.y, "\n")
+shape.rect.topLeft.x = 10
+shape.rect.topLeft.y = 20
+shape.rect.bottomRight.x = 200
+shape.rect.bottomRight.y = 300
+print("After field updates:\n")
+print("Top-left x: ", shape.rect.topLeft.x, "\n")
+print("Top-left y: ", shape.rect.topLeft.y, "\n")
+print("Bottom-right x: ", shape.rect.bottomRight.x, "\n")
+print("Bottom-right y: ", shape.rect.bottomRight.y, "\n")
+print("Full shape: ", shape, "\n")

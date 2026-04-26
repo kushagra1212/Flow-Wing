@@ -1,0 +1,20 @@
+/; from LatestTests/ObjectTests/edge_cases/nested_const_read.fg
+type Address = {
+    street: str
+    city: str
+}
+type Person = {
+    name: str
+    address: Address
+}
+const person: Person = {
+    name: "John",
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+print("Person name: ", person.name, "\n")
+print("Street: ", person.address.street, "\n")
+print("City: ", person.address.city, "\n")
+print("Full address: ", person.address, "\n")

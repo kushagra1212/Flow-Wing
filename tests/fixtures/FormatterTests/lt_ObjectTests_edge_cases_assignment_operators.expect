@@ -1,0 +1,18 @@
+/; from LatestTests/ObjectTests/edge_cases/assignment_operators.fg
+type Person = {
+    name: str
+    age: int
+}
+var p: Person = {
+    name: "John",
+    age: 30
+}
+print("Initial age: ", p.age, "\n")
+p.age = p.age + 5
+print("After + 5: ", p.age, "\n")
+p.age = p.age - 3
+print("After - 3: ", p.age, "\n")
+p.age = p.age * 2
+print("After * 2: ", p.age, "\n")
+p.age = p.age // 4
+print("After // 4: ", p.age, "\n")

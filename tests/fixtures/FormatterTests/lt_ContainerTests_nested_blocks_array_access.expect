@@ -1,0 +1,15 @@
+/; from LatestTests/ContainerTests/nested_blocks_array_access.fg
+{
+    var x: int[2][2] = [
+        [1, 2],
+        [3, 4]
+    ]
+    {
+        x[0][1] = 200
+        {
+            x[1][0] = 300
+            println(x)
+        }
+    }
+    println(x)
+}

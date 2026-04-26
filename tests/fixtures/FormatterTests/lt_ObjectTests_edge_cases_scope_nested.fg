@@ -1,0 +1,30 @@
+/; from LatestTests/ObjectTests/edge_cases/scope_nested.fg
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 1, y: 1 }
+
+print("level 0 p1: ", p1, "\n")
+
+{
+    var p1: Point = { x: 2, y: 2 }
+    print("level 1 p1: ", p1, "\n")
+    
+    {
+        var p1: Point = { x: 3, y: 3 }
+        print("level 2 p1: ", p1, "\n")
+        
+        {
+            var p1: Point = { x: 4, y: 4 }
+            print("level 3 p1: ", p1, "\n")
+        }
+        
+        print("level 2 p1 after: ", p1, "\n")
+    }
+    
+    print("level 1 p1 after: ", p1, "\n")
+}
+
+print("level 0 p1 after: ", p1, "\n")

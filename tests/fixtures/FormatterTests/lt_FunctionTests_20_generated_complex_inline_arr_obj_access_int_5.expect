@@ -1,0 +1,15 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inline_arr_obj_access_int_5.fg
+type Obj_5_0 = {
+    val: int
+}
+fun getObjs() -> Obj_5_0[5] {
+    var res: Obj_5_0[5] = [
+        {val: 5},
+        {val: 15},
+        {val: 25},
+        {val: 35},
+        {val: 45}
+    ]
+    return res
+}
+println(getObjs()[4].val)

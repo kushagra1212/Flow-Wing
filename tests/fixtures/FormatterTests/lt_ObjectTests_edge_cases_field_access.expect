@@ -1,0 +1,17 @@
+/; from LatestTests/ObjectTests/edge_cases/field_access.fg
+type Person = {
+    name: str
+    age: int
+}
+var p: Person = {
+    name: "John",
+    age: 30
+}
+print("Name: ", p.name, "\n")
+print("Age: ", p.age, "\n")
+p.name = "Jane"
+p.age = 25
+print("After field updates:\n")
+print("Name: ", p.name, "\n")
+print("Age: ", p.age, "\n")
+print("Full object: ", p, "\n")

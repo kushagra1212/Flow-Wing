@@ -1,0 +1,15 @@
+/; from LatestTests/FunctionTests/21_complex_edge/scope_nested_block_reassign_outer.fg
+fun getInner() -> int {
+    return 100
+}
+fun getOuter() -> int {
+    return 200
+}
+var o: int = 0
+{
+    var i: int = getInner()
+    println(i)
+    o = getOuter()
+    println(o)
+}
+println(o)

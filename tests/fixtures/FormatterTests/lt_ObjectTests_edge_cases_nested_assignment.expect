@@ -1,0 +1,26 @@
+/; from LatestTests/ObjectTests/edge_cases/nested_assignment.fg
+type Address = {
+    street: str
+    city: str
+}
+type Person = {
+    name: str
+    age: int
+    address: Address
+}
+var p1: Person = {
+    name: "John",
+    age: 30,
+    address: {
+        street: "123 Main St",
+        city: "New York"
+    }
+}
+var p2: Person
+print("Before assignment:\n")
+print("p1: ", p1, "\n")
+print("p2: ", p2, "\n")
+p2 = p1
+print("After assignment:\n")
+print("p1: ", p1, "\n")
+print("p2: ", p2, "\n")

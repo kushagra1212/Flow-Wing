@@ -1,0 +1,28 @@
+/; from LatestTests/ObjectTests/edge_cases/complex_expression.fg
+type Person = {
+    name: str
+    age: int
+    height: deci
+}
+
+var p1: Person = {
+    name: "Alice",
+    age: 20,
+    height: 5.5
+}
+
+var p2: Person = {
+    name: "Bob",
+    age: 25,
+    height: 6.0
+}
+
+var avgAge: deci = (p1.age + p2.age) / 2.0
+var avgHeight: deci = (p1.height + p2.height) / 2.0
+var totalAge: int = p1.age + p2.age
+
+print("Average age: ", avgAge, "\n")
+print("Average height: ", avgHeight, "\n")
+print("Total age: ", totalAge, "\n")
+print("Age difference: ", p2.age - p1.age, "\n")
+

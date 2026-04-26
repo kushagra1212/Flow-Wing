@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/multi_return_assign_partial.fg
+fun two() -> int, str {
+  return 7, "seven"
+}
+
+var a: int = 0
+var b: str = ""
+a, b = two()
+println(a)
+println(b)

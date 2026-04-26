@@ -1,0 +1,10 @@
+/; from LatestTests/CodingProblems/06_sum_n_recursion.fg
+fun sumN(n: int) -> int {
+    if (n == 0) {
+        return 0
+    }
+    return n + sumN(n - 1)
+}
+println(sumN(10))
+println(sumN(0))
+println("done")

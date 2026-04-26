@@ -1,0 +1,23 @@
+/; from LatestTests/IfStatementTests/08_object/condition_func_return_complex_object.fg
+type Point = {
+  x: int
+  y: int
+}
+
+type Rectangle = {
+  topLeft: Point
+  bottomRight: Point
+}
+
+fun getShape() -> Rectangle {
+  return {
+    topLeft: { x: 0, y: 0 },
+    bottomRight: { x: 100, y: 100 }
+  }
+}
+
+if (getShape()) {
+  println("nonnull")
+} else {
+  println("null")
+}

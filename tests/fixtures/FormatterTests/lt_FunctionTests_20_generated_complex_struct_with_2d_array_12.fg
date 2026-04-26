@@ -1,0 +1,13 @@
+/; from LatestTests/FunctionTests/20_generated_complex/struct_with_2d_array_12.fg
+
+type Matrix_12 = { rows: int[13][2], valid: bool }
+fun getMatrix(v: int) -> Matrix_12 {
+    var m: Matrix_12
+    m.valid = true
+    m.rows[0][0] = v
+    return m
+}
+
+var mat: Matrix_12 = getMatrix(1200)
+println(mat.valid)
+println(mat.rows[0][0])

@@ -1,0 +1,9 @@
+/; from LatestTests/FunctionTests/20_generated_complex/2d_array_init_access_2_3_0.fg
+
+fun get2D() -> int[2][3] {
+    var flat: int[2][3]
+    return flat
+}
+var temp: int[2][3] = get2D()
+temp[0][0] = 6
+println(temp[0][0])

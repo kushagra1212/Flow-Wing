@@ -1,0 +1,13 @@
+/; from LatestTests/ClassTests/16_cross_feature/with_default_param_function_taking_class.fg
+class A {
+    var x: int
+    fun init(x: int) -> nthg {
+        self.x = x
+    }
+}
+fun show(a: A, prefix: str = ">") -> nthg {
+    println(prefix, a.x)
+}
+var a: A = new A(4)
+show(a)
+show(a, ">>")

@@ -1,0 +1,21 @@
+/; from LatestTests/ObjectTests/edge_cases/const_in_expression.fg
+type Point = {
+    x: int
+    y: int
+}
+
+const p1: Point = {
+    x: 10,
+    y: 20
+}
+
+const p2: Point = {
+    x: 5,
+    y: 15
+}
+
+var result: int = p1.x + p2.y
+
+print("p1.x: ", p1.x, "\n")
+print("p2.y: ", p2.y, "\n")
+print("result (p1.x + p2.y): ", result, "\n")

@@ -1,0 +1,13 @@
+/; from LatestTests/CodingProblems/01_fizzbuzz.fg
+for (var i: int = 1 to 15 : 1) {
+  if (i % 3 == 0 && i % 5 == 0) {
+    println("FizzBuzz")
+  } else if (i % 3 == 0) {
+    println("Fizz")
+  } else if (i % 5 == 0) {
+    println("Buzz")
+  } else {
+    println(i)
+  }
+}
+println("done")

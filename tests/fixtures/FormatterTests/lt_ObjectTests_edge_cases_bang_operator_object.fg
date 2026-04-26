@@ -1,0 +1,20 @@
+/; from LatestTests/ObjectTests/edge_cases/bang_operator_object.fg
+type T = {
+    x: int
+}
+
+var t1: T = { x: 10 }
+var t2: T = { x: 20 }
+
+print("t1 == t2: ", t1 == t2, "\n")
+print("t1 != t2: ", t1 != t2, "\n")
+print("t1.x == t2.x: ", t1.x == t2.x, "\n")
+print("t1.x != t2.x: ", t1.x != t2.x, "\n")
+print("!t1: ", !t1, "\n")
+print("!t1.x: ", !t1.x, "\n")
+print("!t2: ", !t2, "\n")
+print("!t2.x: ", !t2.x, "\n")
+print("!t1 == !t2: ", !t1 == !t2, "\n")
+print("!t1 != !t2: ", !t1 != !t2, "\n")
+print("!t1.x == !t2.x: ", !t1.x == !t2.x, "\n")
+print("!t1.x != !t2.x: ", !t1.x != !t2.x, "\n")

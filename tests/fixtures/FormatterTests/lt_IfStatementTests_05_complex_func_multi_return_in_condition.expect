@@ -1,0 +1,10 @@
+/; from LatestTests/IfStatementTests/05_complex/func_multi_return_in_condition.fg
+fun getPair() -> int int, {
+    return 5, 10
+}
+var a: int, b: int = getPair()
+if (a < b) {
+    println("a lt b")
+} else {
+    println("a ge b")
+}

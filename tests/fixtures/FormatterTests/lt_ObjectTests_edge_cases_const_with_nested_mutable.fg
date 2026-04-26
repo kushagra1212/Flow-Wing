@@ -1,0 +1,26 @@
+/; from LatestTests/ObjectTests/edge_cases/const_with_nested_mutable.fg
+type Inner = {
+    value: int
+}
+
+type Outer = {
+    inner: Inner
+}
+
+const outer: Outer = {
+    inner: {
+        value: 10
+    }
+}
+
+var inner: Inner = {
+    value: 20
+}
+
+print("Const outer.inner.value (read-only): ", outer.inner.value, "\n")
+print("Mutable inner.value (before): ", inner.value, "\n")
+
+inner.value = 30
+
+print("Mutable inner.value (after): ", inner.value, "\n")
+print("Const outer.inner.value (still unchanged): ", outer.inner.value, "\n")

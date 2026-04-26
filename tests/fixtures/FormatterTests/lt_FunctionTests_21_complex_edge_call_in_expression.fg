@@ -1,0 +1,8 @@
+/; from LatestTests/FunctionTests/21_complex_edge/call_in_expression.fg
+fun double(x: int) -> int {
+  return x * 2
+}
+
+var a: int = double(3) + double(4)
+println(a)
+println(double(1) + 1)

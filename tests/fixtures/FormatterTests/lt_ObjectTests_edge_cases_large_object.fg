@@ -1,0 +1,29 @@
+/; from LatestTests/ObjectTests/edge_cases/large_object.fg
+type LargeObject = {
+    field1: int
+    field2: int
+    field3: int
+    field4: int
+    field5: int
+    field6: str
+    field7: str
+    field8: str
+    field9: deci
+    field10: deci
+}
+
+var large: LargeObject = {
+    field1: 1,
+    field2: 2,
+    field3: 3,
+    field4: 4,
+    field5: 5,
+    field6: "six",
+    field7: "seven",
+    field8: "eight",
+    field9: 9.9,
+    field10: 10.10
+}
+
+print(large, "\n")
+

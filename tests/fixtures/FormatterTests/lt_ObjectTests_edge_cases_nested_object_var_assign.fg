@@ -1,0 +1,35 @@
+/; from LatestTests/ObjectTests/edge_cases/nested_object_var_assign.fg
+type P = {
+    x: int
+}
+
+type T = {
+    z: P
+    l: deci
+    y: int
+}
+
+var p1: P = {
+    x: 54
+}
+
+var j: T = {
+    z: p1,
+    l: 3.14,
+    y: 100
+}
+
+j.z = p1
+
+print("p1: ", p1, "\n")
+print("j: ", j, "\n")
+
+p1.x = 100
+print("After p1.x = 100:\n")
+print("p1: ", p1, "\n")
+print("j: ", j, "\n")
+
+j.z.x = 200
+print("After j.z.x = 200:\n")
+print("p1: ", p1, "\n")
+print("j: ", j, "\n")

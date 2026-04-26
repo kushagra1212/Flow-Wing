@@ -1,0 +1,9 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inline_arr_obj_access_bool_6.fg
+
+type Obj_6_2 = { val: bool }
+fun getObjs() -> Obj_6_2[5] {
+    var res: Obj_6_2[5] = [{val: true}, {val: false}, {val: false}, {val: false}, {val: false}]
+    return res
+}
+
+println(getObjs()[4].val)

@@ -1,0 +1,13 @@
+/; from LatestTests/ClassTests/17_edge_cases/implicit_return_chained_calls.fg
+class A {
+    fun init() -> nthg {
+    }
+    fun inc(x: int) {
+        return x + 1
+    }
+    fun addTwo(x: int) {
+        return x + 2
+    }
+}
+var a: A = new A()
+println(a.inc(a.addTwo(0)))

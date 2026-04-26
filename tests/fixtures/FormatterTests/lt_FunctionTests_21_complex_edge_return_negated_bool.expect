@@ -1,0 +1,6 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_negated_bool.fg
+fun notVal(b: bool) -> bool {
+    return !b
+}
+println(notVal(true))
+println(notVal(false))

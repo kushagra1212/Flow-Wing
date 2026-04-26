@@ -1,0 +1,13 @@
+/; from LatestTests/WhileTests/04_complex/while_assign_from_func_in_body.fg
+fun step() -> int {
+  return 1
+}
+
+var acc = 0
+var i = 0
+while (i < 3) {
+  acc = acc + step()
+  println(acc)
+  i = i + 1
+}
+println("done")

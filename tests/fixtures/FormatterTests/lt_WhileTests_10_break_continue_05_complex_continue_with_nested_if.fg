@@ -1,0 +1,12 @@
+/; from LatestTests/WhileTests/10_break_continue/05_complex/continue_with_nested_if.fg
+var x = 0
+while (x < 5) {
+  x = x + 1
+  if (x > 1) {
+    if (x == 3) {
+      continue
+    }
+    println(x)
+  }
+}
+println("done")

@@ -792,8 +792,9 @@ std::string SourceFormatter::format(
 void SourceFormatter::visit(syntax::CompilationUnitSyntax *node) {
   const auto &stmts = node->getStatements();
   for (size_t i = 0; i < stmts.size(); ++i) {
-    if (stmts[i])
+    if (stmts[i]) {
       stmts[i]->accept(this);
+    }
     // When the next top-level item starts on the same line as the previous
     // one ended (e.g. `} start_game()` with no EOL in trivia), ensure a
     // break before the next statement. If the output already ends with `\\n`
@@ -1296,8 +1297,9 @@ void SourceFormatter::visit(syntax::ClassStatementSyntax *node) {
   {
     DepthPush block(m_blockDepth);
     for (size_t i = openI + 1; i < closeI; ++i) {
-      if (ch[i])
+      if (ch[i]) {
         visitChild(ch[i]);
+      }
       if (m_buf.text.empty() || m_buf.text.back() != '\n')
         m_buf.text += "\n";
     }
@@ -1370,11 +1372,17 @@ void SourceFormatter::visit(syntax::IfStatementSyntax *node) {
   emitDefault(node);
 }
 void SourceFormatter::visit(syntax::ModuleStatementSyntax *node) {
-  for (const auto *c : node->getChildren()) {
+  const auto &ch = node->getChildren();
+  for (size_t i = 0; i < ch.size(); ++i) {
+    const auto *c = ch[i];
+    if (!c) {
+      continue;
+    }
     if (c->getKind() == syntax::NodeKind::kTokenNode) {
       const auto *tok = static_cast<const syntax::SyntaxToken *>(c);
-      if (tok->getTokenKind() == lexer::TokenKind::kEndOfFileToken)
+      if (tok->getTokenKind() == lexer::TokenKind::kEndOfFileToken) {
         continue;
+      }
     }
     visitChild(c);
   }

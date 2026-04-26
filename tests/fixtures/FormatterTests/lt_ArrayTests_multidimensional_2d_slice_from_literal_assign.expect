@@ -1,0 +1,11 @@
+/; from LatestTests/ArrayTests/multidimensional/2d_slice_from_literal_assign.fg
+var a: int[2][2] = [
+    [1, 2],
+    [3, 4]
+]
+var p: int[2] = [9, 10]
+println(a)
+println(p)
+p = a[1]
+println(a)
+println(p)

@@ -1,0 +1,22 @@
+/; from LatestTests/ObjectTests/edge_cases/scope_null_handling.fg
+type Point = {
+    x: int
+    y: int
+}
+
+var p1: Point = { x: 10, y: 20 }
+
+print("before scope p1: ", p1, "\n")
+print("p1 == null: ", p1 == null, "\n")
+
+{
+    p1 = null
+    print("inside scope p1: ", p1, "\n")
+    print("p1 == null: ", p1 == null, "\n")
+    
+    p1 = { x: 100, y: 200 }
+    print("inside scope p1 after reassign: ", p1, "\n")
+}
+
+print("after scope p1: ", p1, "\n")
+print("p1 == null: ", p1 == null, "\n")

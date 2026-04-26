@@ -1,0 +1,8 @@
+/; from LatestTests/ContainerTests/array_mixed_type_cast_str.fg
+var x =  5
+var y = "Hello"
+var z = 3.2f
+var w:bool = true
+
+var a:str[5] = [x, y, z, w]
+print(a)

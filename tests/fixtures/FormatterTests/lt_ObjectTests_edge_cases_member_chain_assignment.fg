@@ -1,0 +1,50 @@
+/; from LatestTests/ObjectTests/edge_cases/member_chain_assignment.fg
+type Point = {
+    x: int
+    y: int
+}
+
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+
+var rect1: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+
+var rect2: Rectangle = {
+    topLeft: {
+        x: 20,
+        y: 20
+    },
+    bottomRight: {
+        x: 30,
+        y: 30
+    }
+}
+
+print("Before:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+
+rect1.topLeft = rect2.topLeft
+
+print("After assignment:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+
+rect1.topLeft.x = 100
+rect1.topLeft.y = 200
+
+print("After modifying rect1.topLeft:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+

@@ -1,0 +1,16 @@
+/; from LatestTests/FunctionTests/21_complex_edge/block_two_vars_one_shadow.fg
+fun getA() -> int {
+    return 10
+}
+fun getB() -> int {
+    return 20
+}
+var a: int = 1
+var b: int = 2
+{
+    var a: int = getA()
+    println(a)
+    println(b)
+}
+println(a)
+println(b)

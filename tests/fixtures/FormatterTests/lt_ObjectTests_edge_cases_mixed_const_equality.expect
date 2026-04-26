@@ -1,0 +1,21 @@
+/; from LatestTests/ObjectTests/edge_cases/mixed_const_equality.fg
+type Person = {
+    name: str
+    age: int
+}
+const constPerson: Person = {
+    name: "Alice",
+    age: 30
+}
+var mutablePerson: Person = {
+    name: "Alice",
+    age: 30
+}
+var differentPerson: Person = {
+    name: "Bob",
+    age: 25
+}
+print("constPerson == mutablePerson: ", constPerson == mutablePerson, "\n")
+print("constPerson != mutablePerson: ", constPerson != mutablePerson, "\n")
+print("constPerson == differentPerson: ", constPerson == differentPerson, "\n")
+print("mutablePerson == differentPerson: ", mutablePerson == differentPerson, "\n")

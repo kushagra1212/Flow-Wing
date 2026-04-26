@@ -1,0 +1,8 @@
+/; from LatestTests/WhileTests/04_complex/while_with_ternary_in_body.fg
+var i = 0
+while (i < 3) {
+  var v = i > 1 ? 10 : 0
+  println(v)
+  i = i + 1
+}
+println("done")

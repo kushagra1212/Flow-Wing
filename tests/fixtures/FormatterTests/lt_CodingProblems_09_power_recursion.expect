@@ -1,0 +1,11 @@
+/; from LatestTests/CodingProblems/09_power_recursion.fg
+fun power(base: int, exp: int) -> int {
+    if (exp == 0) {
+        return 1
+    }
+    return base * power(base, exp - 1)
+}
+println(power(2, 3))
+println(power(5, 0))
+println(power(10, 2))
+println("done")

@@ -1,0 +1,7 @@
+/; from LatestTests/TernaryTests/07_edge_cases/ternary_as_function_arg.fg
+fun show(s: str) {
+  println(s)
+}
+
+show(true ? "a" : "b")
+show(false ? "a" : "b")

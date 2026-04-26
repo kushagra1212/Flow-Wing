@@ -1,0 +1,6 @@
+/; from LatestTests/FunctionTests/21_complex_edge/return_str_from_concat.fg
+fun greet(a: str, b: str) -> str {
+    return a + " " + b
+}
+println(greet("Hello", "World"))
+println(greet("A", "B"))

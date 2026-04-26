@@ -1,0 +1,3 @@
+/; from LatestTests/ContainerTests/array_single_padding.fg
+var a:int[5] = [1, 2]
+print(a)

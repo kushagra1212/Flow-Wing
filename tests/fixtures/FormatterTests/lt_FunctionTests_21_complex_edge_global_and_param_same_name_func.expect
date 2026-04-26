@@ -1,0 +1,11 @@
+/; from LatestTests/FunctionTests/21_complex_edge/global_and_param_same_name_func.fg
+var x: int = 100
+fun useGlobal() -> int {
+    return x
+}
+fun useParam(x: int) -> int {
+    return x + 1
+}
+println(useGlobal())
+println(useParam(5))
+println(x)

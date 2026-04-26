@@ -1,0 +1,37 @@
+/; from LatestTests/ObjectTests/edge_cases/type_promotion.fg
+type Small = {
+    a: int
+}
+
+type Medium = {
+    a: int
+    b: str
+}
+
+type Large = {
+    a: int
+    b: str
+    c: deci
+}
+
+var small: Small = {
+    a: 10
+}
+
+var medium: Medium
+var large: Large
+
+print("Initial:\n")
+print("small: ", small, "\n")
+print("medium: ", medium, "\n")
+print("large: ", large, "\n")
+
+medium = small
+large = small
+large = medium
+
+print("After assignments:\n")
+print("small: ", small, "\n")
+print("medium: ", medium, "\n")
+print("large: ", large, "\n")
+

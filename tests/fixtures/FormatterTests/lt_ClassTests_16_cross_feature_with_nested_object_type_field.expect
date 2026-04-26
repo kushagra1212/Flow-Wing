@@ -1,0 +1,12 @@
+/; from LatestTests/ClassTests/16_cross_feature/with_nested_object_type_field.fg
+type Box = {
+    inner: int
+}
+class A {
+    var b: Box
+    fun init(v: int) -> nthg {
+        self.b = {inner: v}
+    }
+}
+var a: A = new A(7)
+println(a.b.inner)

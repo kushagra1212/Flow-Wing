@@ -1,0 +1,19 @@
+/; from LatestTests/CodingProblems/13_palindrome_number.fg
+fun reverseNum(n: int) -> int {
+  var rev: int = 0
+  var x: int = n
+  while (x > 0) {
+    rev = rev * 10 + (x % 10)
+    x = x // 10
+  }
+  return rev
+}
+
+fun isPalindrome(n: int) -> bool {
+  return n == reverseNum(n)
+}
+
+println(isPalindrome(121))
+println(isPalindrome(123))
+println(isPalindrome(1))
+println("done")

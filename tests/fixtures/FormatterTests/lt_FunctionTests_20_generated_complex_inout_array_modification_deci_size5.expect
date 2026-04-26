@@ -1,0 +1,7 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inout_array_modification_deci_size5.fg
+fun mutateArray(inout arr: deci[5], idx: int, v: deci) {
+    arr[idx] = v
+}
+var data: deci[5] = [0.5, 1.5, 2.5, 3.5, 4.5]
+mutateArray(data, 4, 40.5)
+println(data[4])

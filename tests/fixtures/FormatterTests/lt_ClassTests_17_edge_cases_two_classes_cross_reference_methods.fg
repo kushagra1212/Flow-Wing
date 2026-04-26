@@ -1,0 +1,18 @@
+/; from LatestTests/ClassTests/17_edge_cases/two_classes_cross_reference_methods.fg
+class A {
+  fun init() -> nthg {}
+  fun tag() -> int {
+    return 1
+  }
+}
+
+class B {
+  fun init() -> nthg {}
+  fun fromA(a: A) -> int {
+    return a.tag() + 10
+  }
+}
+
+var a: A = new A()
+var b: B = new B()
+println(b.fromA(a))

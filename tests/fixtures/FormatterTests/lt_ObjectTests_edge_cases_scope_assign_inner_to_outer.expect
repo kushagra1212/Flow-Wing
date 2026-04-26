@@ -1,0 +1,23 @@
+/; from LatestTests/ObjectTests/edge_cases/scope_assign_inner_to_outer.fg
+type Point = {
+    x: int
+    y: int
+}
+var p1: Point = {
+    x: 10,
+    y: 20
+}
+print("before scope p1: ", p1, "\n")
+{
+    var p2: Point = {
+        x: 100,
+        y: 200
+    }
+    print("inner p2: ", p2, "\n")
+    p1 = p2
+    print("inner p1 after assign: ", p1, "\n")
+    p2.x = 999
+    print("inner p2 after modify: ", p2, "\n")
+    print("inner p1 after p2 modify: ", p1, "\n")
+}
+print("outer p1 after scope: ", p1, "\n")

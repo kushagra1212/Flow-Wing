@@ -1,1 +1,30 @@
-var y : int = 5
+type B = {
+    c: int
+    d: int[2][2][3]
+}
+type A = {
+    a: int
+    b: B[2][3][4]
+}
+var arr: A = {
+    a: 1,
+    b: [[[{
+        c: 2,
+        d: [[[2, 3], [4, 5]], [[6, 7], [8, 9]]]
+    }], [{
+        c: 4,
+        d: [[[10, 11], [12, 13]], [[14, 15], [16, 17]]]
+    }]]]
+}
+fun prettyPrint(arr: A) -> nthg {
+    for (var i: int = 0 to 1) {
+        for (var j: int = 0 to 2) {
+            for (var k: int = 0 to 3) {
+                println(arr.b[i][j][k])
+            }
+            println("--------------------------------", i, j)
+        }
+        println("--------------------------------", i)
+    }
+}
+prettyPrint(arr)

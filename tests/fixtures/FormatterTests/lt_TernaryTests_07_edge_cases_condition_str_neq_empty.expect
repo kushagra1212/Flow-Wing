@@ -1,0 +1,5 @@
+/; from LatestTests/TernaryTests/07_edge_cases/condition_str_neq_empty.fg
+fun getStr() -> str {
+    return "x"
+}
+println( (getStr() != "") ? "nonempty" : "empty")

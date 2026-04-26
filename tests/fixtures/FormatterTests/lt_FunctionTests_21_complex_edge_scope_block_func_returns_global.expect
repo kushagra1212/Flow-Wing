@@ -1,0 +1,12 @@
+/; from LatestTests/FunctionTests/21_complex_edge/scope_block_func_returns_global.fg
+var g: int = 7
+fun readG() -> int {
+    return g
+}
+{
+    println(readG())
+    var g: int = 99
+    println(g)
+    println(readG())
+}
+println(g)

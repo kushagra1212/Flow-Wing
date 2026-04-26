@@ -1,0 +1,39 @@
+/; from LatestTests/ObjectTests/edge_cases/nested_member_field_assign.fg
+type Point = {
+    x: int
+    y: int
+}
+type Rectangle = {
+    topLeft: Point
+    bottomRight: Point
+}
+var rect1: Rectangle = {
+    topLeft: {
+        x: 0,
+        y: 0
+    },
+    bottomRight: {
+        x: 10,
+        y: 10
+    }
+}
+var rect2: Rectangle = {
+    topLeft: {
+        x: 20,
+        y: 20
+    },
+    bottomRight: {
+        x: 30,
+        y: 30
+    }
+}
+print("Before:\n")
+print("rect1: ", rect1, "\n")
+print("rect2: ", rect2, "\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")
+rect1.topLeft.x = rect2.topLeft.x
+rect1.topLeft.y = rect2.topLeft.y
+print("After nested member assignment:\n")
+print("rect1.topLeft: ", rect1.topLeft, "\n")
+print("rect2.topLeft: ", rect2.topLeft, "\n")

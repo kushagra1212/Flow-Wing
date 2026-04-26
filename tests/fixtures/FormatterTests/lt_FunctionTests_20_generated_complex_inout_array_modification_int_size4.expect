@@ -1,0 +1,7 @@
+/; from LatestTests/FunctionTests/20_generated_complex/inout_array_modification_int_size4.fg
+fun mutateArray(inout arr: int[4], idx: int, v: int) {
+    arr[idx] = v
+}
+var data: int[4] = [0, 1, 2, 3]
+mutateArray(data, 3, 30)
+println(data[3])

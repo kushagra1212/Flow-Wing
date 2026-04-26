@@ -1,0 +1,19 @@
+/; from LatestTests/ObjectTests/edge_cases/inline_object_print.fg
+type Node = {
+    value: int
+    next: Node
+}
+
+var node1: Node = {
+    value: 1,
+    next: null
+}
+
+print("node1: ", node1, "\n")
+
+print(
+    {
+        value: 2
+    }
+)
+print("\n")

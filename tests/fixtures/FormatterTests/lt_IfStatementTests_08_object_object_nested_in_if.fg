@@ -1,0 +1,15 @@
+/; from LatestTests/IfStatementTests/08_object/object_nested_in_if.fg
+type Inner = { v: int }
+type Outer = { inner: Inner }
+
+var o: Outer = { inner: { v: 42 } }
+
+if (o) {
+  if (o.inner) {
+    println("both")
+  } else {
+    println("outer only")
+  }
+} else {
+  println("neither")
+}

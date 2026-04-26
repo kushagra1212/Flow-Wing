@@ -1,0 +1,20 @@
+/; from LatestTests/ClassTests/16_cross_feature/with_switch_case_member.fg
+class A {
+    var tag: int
+    fun init(tag: int) -> nthg {
+        self.tag = tag
+    }
+}
+var a: A = new A(2)
+var k: int = 2
+switch (k) {
+    case 1: {
+        println(1)
+    }
+    case 2: {
+        println(a.tag)
+    }
+    default: {
+        println(0)
+    }
+}

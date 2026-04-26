@@ -1,0 +1,12 @@
+/; from LatestTests/IfStatementTests/05_complex/nested_else_if.fg
+var x: int = 3
+
+if (x == 1) {
+  println("one")
+} else if (x == 2) {
+  println("two")
+} else if (x == 3) {
+  println("three")
+} else {
+  println("other")
+}

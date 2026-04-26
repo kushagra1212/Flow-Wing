@@ -1,0 +1,7 @@
+/; from LatestTests/ContainerTests/double_dim_multi_oob.fg
+/; EXPECT_ERROR: Runtime Error: Array Index Out of Bounds.
+var a: int[2][2] = [
+    [1, 2],
+    [3, 4]
+]
+println(a[0][3])

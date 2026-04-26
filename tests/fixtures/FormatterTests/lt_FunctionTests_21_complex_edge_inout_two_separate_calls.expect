@@ -1,0 +1,12 @@
+/; from LatestTests/FunctionTests/21_complex_edge/inout_two_separate_calls.fg
+fun inc(inout n: int) {
+    n = n + 1
+}
+var p: int = 0
+var q: int = 10
+inc(p)
+inc(q)
+println(p)
+println(q)
+inc(p)
+println(p)

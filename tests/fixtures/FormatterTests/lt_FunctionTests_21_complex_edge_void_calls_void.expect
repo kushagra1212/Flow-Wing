@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/21_complex_edge/void_calls_void.fg
+fun inner() -> nthg {
+    println(1)
+}
+fun outer() -> nthg {
+    println(0)
+    inner()
+    println(2)
+}
+outer()

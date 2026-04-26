@@ -1,0 +1,10 @@
+/; from LatestTests/FunctionTests/20_generated_complex/block_shadow_char_4.fg
+fun printVal(val: char) {
+    println(val)
+}
+var a: char = 'X'
+{
+    var a: char = 'Y'
+    printVal(a)
+}
+printVal(a)

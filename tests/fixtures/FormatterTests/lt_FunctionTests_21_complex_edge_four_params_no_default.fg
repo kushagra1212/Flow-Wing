@@ -1,0 +1,7 @@
+/; from LatestTests/FunctionTests/21_complex_edge/four_params_no_default.fg
+fun sum4(a: int, b: int, c: int, d: int) -> int {
+  return a + b + c + d
+}
+
+println(sum4(1, 1, 1, 1))
+println(sum4(10, 0, 0, 0))

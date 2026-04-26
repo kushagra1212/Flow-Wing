@@ -1,0 +1,13 @@
+/; from LatestTests/SwitchTests/07_complex/empty_case_block.fg
+var a: int = 1
+switch a {
+    case 1: {
+    }
+    case 2: {
+        println("two")
+    }
+    default: {
+        println("default")
+    }
+}
+println("after")

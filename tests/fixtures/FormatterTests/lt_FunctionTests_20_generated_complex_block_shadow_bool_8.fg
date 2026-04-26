@@ -1,0 +1,12 @@
+/; from LatestTests/FunctionTests/20_generated_complex/block_shadow_bool_8.fg
+
+fun printVal(val: bool) {
+    println(val)
+}
+
+var a: bool = false
+{
+    var a: bool = true
+    printVal(a)
+}
+printVal(a)

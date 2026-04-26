@@ -1,0 +1,9 @@
+/; from LatestTests/ForTests/04_functions/for_bound_from_function.fg
+fun getBound() -> int {
+  return 3
+}
+
+for (var i: int = 0 to getBound() : 1) {
+  println(i)
+}
+println("done")

@@ -1,0 +1,14 @@
+/; from LatestTests/FunctionTests/21_complex_edge/scope_global_after_two_blocks.fg
+fun one() -> int { return 1 }
+fun two() -> int { return 2 }
+
+var g: int = 0
+{
+  var g: int = one()
+  println(g)
+}
+{
+  var g: int = two()
+  println(g)
+}
+println(g)

@@ -1,0 +1,12 @@
+/; from LatestTests/IfStatementTests/05_complex/nested_if.fg
+var a: int = 2
+var b: int = 3
+if (a == 2) {
+    if (b == 3) {
+        println("both")
+    } else {
+        println("a only")
+    }
+} else {
+    println("neither")
+}
