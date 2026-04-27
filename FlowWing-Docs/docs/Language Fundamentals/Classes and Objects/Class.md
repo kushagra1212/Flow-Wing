@@ -57,7 +57,7 @@ Define multiple constructors by marking additional ones with `fun init` (the fir
         self.name = name
         self.age = age
     }
-    // Second constructor — name only, default age
+    /; Second constructor — name only, default age
     fun init(n: str) -> nthg {
         self.name = n
         self.age = 0

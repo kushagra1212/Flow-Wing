@@ -70,9 +70,9 @@ Variables live inside the block `{ }` where you declare them:
 <CodeBlock code={
 `{
     var x: int = 10
-    print(x)  // 10
+    print(x)  /; 10
 }
-// x is out of scope here — gone
+/; x is out of scope here — gone
 `} language="fg"/>
 
 Outer variables are visible inside inner blocks. Inner blocks can shadow outer variables by declaring the same name:
@@ -80,10 +80,10 @@ Outer variables are visible inside inner blocks. Inner blocks can shadow outer v
 <CodeBlock code={
 `var x: int = 10
 {
-    var x: int = 20  // shadows outer x
-    print(x)  // 20
+    var x: int = 20  /; shadows outer x
+    print(x)  /; 20
 }
-print(x)  // 10
+print(x)  /; 10
 `} language="fg"/>
 
 ## Constant Declaration
@@ -94,5 +94,5 @@ Constants lock in a value at compile time. Use `const` for values that never cha
 
 <CodeBlock code={
 `const maxUsers: int = 100
-// maxUsers = 200  // Error: cannot reassign constant
+/; maxUsers = 200  /; Error: cannot reassign constant
 `} language="fg"/>

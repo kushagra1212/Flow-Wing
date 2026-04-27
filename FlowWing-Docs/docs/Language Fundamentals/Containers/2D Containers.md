@@ -21,8 +21,8 @@ This creates a 2×3 grid of integers.
 ## Access and Modification
 
 <CodeBlock code={
-`print(grid[0][1])  // 2 — first row, second column
-grid[1][0] = 10     // modify an element
+`print(grid[0][1])  /; 2 — first row, second column
+grid[1][0] = 10     /; modify an element
 `} language="fg"/>
 
 ## Iteration

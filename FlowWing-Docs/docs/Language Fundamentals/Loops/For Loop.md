@@ -48,7 +48,7 @@ Flow-Wing supports descending loops by using a negative step value.
 ### Example Usage:
 
 <CodeBlock code={
-`// Count down from 10 to 0
+`/; Count down from 10 to 0
 for (var i: int = 10 to 0 : -1) {
     print(i + " ")
 }
@@ -66,7 +66,7 @@ Flow-Wing supports `break` and `continue` control flow statements inside a `for`
 ### Example Usage:
 
 <CodeBlock code={
-`// Skip even numbers
+`/; Skip even numbers
 for (var i: int = 0 to 10 : 1) {
     if (i % 2 == 0) {
         continue

@@ -41,10 +41,10 @@ Here, if the first condition is true, `10` is assigned to `x`. If the first cond
 <Toast message="It is recommended to use `(` and `)` around the condition to get the expected results" title="Recommendation" type="info"/>
 
 <CodeBlock code={
-`// Without parentheses — the + may bind inside the false branch
+`/; Without parentheses — the + may bind inside the false branch
 var r = a > b ? a + 1 : b + 1
 
-// With parentheses — explicit grouping
+/; With parentheses — explicit grouping
 var r = (a > b) ? (a + 1) : (b + 1)
 `} language="fg"/>
 

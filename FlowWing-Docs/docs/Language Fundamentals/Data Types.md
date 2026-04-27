@@ -79,8 +79,8 @@ Strings are 0-indexed. `name[i]` returns a `char` at position `i`:
 
 <CodeBlock code={
 `var name: str = "Flow"
-print(name[0])  // 'F'
-print(name[3])  // 'w'
+print(name[0])  /; 'F'
+print(name[3])  /; 'w'
 `} language="fg"/>
 
 ---
@@ -204,10 +204,10 @@ Declare a variable **without** a type annotation and Flow-Wing gives you a **dyn
 ### Example Usage:
 
 <CodeBlock code={
-`var x = 42       // x is dyn, currently holds int
-print(x + 1)     // 43 — works, x acts as int
-x = "hello"      // x now holds str
-print(x + "world")  // helloworld — works, x acts as str
+`var x = 42       /; x is dyn, currently holds int
+print(x + 1)     /; 43 — works, x acts as int
+x = "hello"      /; x now holds str
+print(x + "world")  /; helloworld — works, x acts as str
 `} language="fg"/>
 
 ### Properties:

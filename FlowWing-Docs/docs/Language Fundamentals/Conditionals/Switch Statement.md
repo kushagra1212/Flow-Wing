@@ -77,7 +77,7 @@ Both cases are independent. The `break` keyword exits the entire switch early, u
 `while (true) {
     switch getInput() {
         case "quit": {
-            break  // exits the switch, not the while
+            break  /; exits the switch, not the while
         }
     }
 }
