@@ -107,9 +107,9 @@ apt-ftparchive release . > Release
 # 7. Sign the Release file (This is the magic step!)
 echo "Signing the repository..."
 # Create Release.gpg (detached signature)
-gpg --default-key "bot@flowwing.dev" -abs -o Release.gpg Release
+gpg --batch --yes --no-tty --default-key "bot@flowwing.dev" -abs -o Release.gpg Release
 # Create InRelease (inline signature)
-gpg --default-key "bot@flowwing.dev" --clearsign -o InRelease Release
+gpg --batch --yes --no-tty --default-key "bot@flowwing.dev" --clearsign -o InRelease Release
 
 # 8. Commit and push to the gh-pages branch
 echo "Committing to gh-pages..."
