@@ -47,6 +47,21 @@ fun doNothing2() -> nthg {
 
 Here, the function `doNothing` does not return anything. `return :` is used for early return in doNothing2 function.
 
+### Early Return from Void Functions
+
+For functions returning `nthg` (nothing), use `return :` to exit early:
+
+<CodeBlock code={
+`fun maybePrint(shouldPrint: bool) -> nthg {
+    if (!shouldPrint) {
+        return :
+    }
+    print("Hello")
+}
+`} language="fg"/>
+
+The `:` after `return` represents the absence of a value — it matches the `nthg` return type.
+
 
 ## Only Function Declaration
 
@@ -58,7 +73,18 @@ Flow-Wing supports only function declaration.
 `fun add(x: int, y: int) -> int decl
 `} language="fg"/>
 
-Here, the function `add` is declared. but not defined.
+Here, the function `add` is declared but not defined yet.
+
+### Forward Declarations
+
+Use `decl` to declare a function without defining its body. Useful for FFI or separating interface from implementation:
+
+<CodeBlock code={
+`fun external_lib_func(x: int) -> int decl
+fun add(x: int, y: int) -> int decl
+`} language="fg"/>
+
+The body is provided elsewhere — via a linked native library (`-l` flag) or in another file brought with `bring`.
 
 ## Function Call
 
