@@ -23,7 +23,7 @@ Flow-Wing lets you pass functions as arguments using function type syntax.
     print("Hello, " + name)
 }
 
-fun runCallback(cb: [(str) -> nthg]) {
+fun runCallback(cb: [(str) -> nthg]) -> nthg {
     cb("World")
 }
 

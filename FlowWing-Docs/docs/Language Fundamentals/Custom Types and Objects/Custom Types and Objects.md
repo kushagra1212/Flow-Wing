@@ -18,7 +18,7 @@ Custom types in Flow-Wing are a powerful feature that allows you to define your 
     age: int,
 }
 
-fun printPerson(person: Person) {
+fun printPerson(person: Person) -> nthg {
     print(person.name, " is ", person.age, " years old.")
 }
 

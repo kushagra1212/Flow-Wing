@@ -58,7 +58,7 @@ class Car extends Vehicle {
 A parameter typed as **`Vehicle`** happily accepts a **`Car`**. The **right** `printDetails` and **`getDetails`** run for the **real** object. (The `Vehicle` and `Car` classes are the same as above — `...` shortened for readability.)
 
 <CodeBlock code={
-`/* ... Vehicle and Car classes as defined above ... */
+`/# ... Vehicle and Car classes as defined above ... #/
 
 fun printVehicleDetails(v: Vehicle) -> nthg {
     v.printDetails()

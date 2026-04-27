@@ -31,7 +31,7 @@ Below is a simple example demonstrating a single-parameter callback:
     print("Hello, " + name)
 }
 
-fun runCallback(callback: [(str) -> nthg]) {
+fun runCallback(callback: [(str) -> nthg]) -> nthg {
     callback("World")
 }
 
