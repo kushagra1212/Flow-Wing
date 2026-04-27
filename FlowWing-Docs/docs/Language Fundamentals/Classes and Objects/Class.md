@@ -6,11 +6,9 @@ import CodeBlock from "../../../src/components/common/CodeBlock";
 
 # Class
 
-Flow-Wing supports classes and objects.
+Define classes with the `class` keyword. Classes bundle fields and methods into a single type.
 
 ## Classes
-
-In Flow-Wing, classes are defined using the `class` keyword.
 
 ### Example:
 
@@ -45,11 +43,11 @@ print("\n", person.getAge())
 30`
 } />
 
-Here, `Person` is a class that has two properties `name` and `age`, and three methods `print`, `getAge`, and `setAge`. `init` is a constructor that initializes the properties of the class.
+`Person` has two fields (`name`, `age`), three methods (`print`, `getAge`, `setAge`), and a constructor (`init`) that sets the initial values. Create instances with `new`.
 
 ### Multiple Constructors Example
 
-Flow-Wing supports multiple constructors. The `init` keyword can have multiple constructors.
+Define multiple constructors by marking additional ones with `fun init` (the first `init` stays bare). Each can accept different parameters:
 
 <CodeBlock code={
 `class Person {
@@ -69,8 +67,8 @@ Flow-Wing supports multiple constructors. The `init` keyword can have multiple c
 
 ### The `self` Keyword
 
-`self` is the current instance and is automatically available in all methods. You never pass `self` explicitly — it's implicit:
+`self` refers to the current instance. It's automatically available in every method — you never pass it explicitly:
 
-- `self.field` — access a member
+- `self.field` — read a member
 - `self.method()` — call another method
 - `self.field = value` — modify a member

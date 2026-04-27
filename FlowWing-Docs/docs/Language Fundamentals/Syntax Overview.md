@@ -11,7 +11,7 @@ Here's what Flow-Wing looks like:
 <CodeBlock code={`print("Hello, World!")
 `} language="fg"/>
 
-Flow-Wing is **statically typed**, **case-sensitive**, and **whitespace-insensitive**.
+Flow-Wing is **statically typed**, **case-sensitive**, and **whitespace-insensitive** — indentation is yours to choose.
 
 ## Basic Structure
 

@@ -4,7 +4,7 @@ sidebar_position: 2
 
 High-level capabilities of **Flow-Wing** as a language:
 
-- **Static typing** — built-in types such as `int` (32-bit by default in typical programs), `deci` / `deci32`, `str`, `bool`, and more; class types; `bring` for code and modules; `var` and containers with inference and reassignment as defined by the language.
+- **Static typing** — built-in types: `int` (32-bit by default), `deci` / `deci32`, `str`, `bool`, and more. Class types, `bring` for modules, `var` with inference, and containers with reassignment.
 
   ```flowwing
   var x: int = 42
@@ -12,7 +12,7 @@ High-level capabilities of **Flow-Wing** as a language:
   var pi: deci = 3.14
   ```
 
-- **Object-oriented programming** — classes, `extends`, `init`, methods; see *Language Fundamentals → Classes* and **Advanced** → *Inheritance*.
+- **Object-oriented programming** — classes, `extends`, `init`, methods. See *Language Fundamentals → Classes* and **Advanced** → *Inheritance*.
 
   ```flowwing
   class Animal {
@@ -26,24 +26,24 @@ High-level capabilities of **Flow-Wing** as a language:
   }
   ```
 
-- **AOT and JIT** — a normal install may include an AOT compiler (compile to a native executable you run) and/or a JIT-style tool that runs a `.fg` file in one step. Which binary you have depends on your build or package. See *Flow-Wing CLI* and *Getting Started*.
+- **AOT and JIT** — the AOT compiler produces a native executable you run directly. The JIT tool runs a `.fg` file in one step. Your build or package determines which binaries you get. See *Flow-Wing CLI* and *Getting Started*.
 
-- **Heap memory** — the runtime uses Boehm GC for ordinary heap allocation at the source level; you do not pair every allocation with a manual `free` in user code the way you would in C.
+- **Heap memory** — the runtime uses Boehm GC for heap allocation. You never pair allocations with manual `free` in user code.
 
   ```flowwing
   var items: [int] = [1, 2, 3]
   items.push(4)
   ```
 
-- **Modules and native linking** — `bring` for Flow-Wing modules; the compiler CLI supports `-L`, `-l`, and on macOS `--framework` for native libraries.
+- **Modules and native linking** — `bring` loads Flow-Wing modules. The compiler CLI supports `-L`, `-l`, and on macOS `--framework` for native libraries.
 
   ```flowwing
   bring sys
   bring io
   ```
 
-- **Developer tooling** — in-editor support via a Flow-Wing extension, formatter flags (for example `-FMP`), and debug-style emits (`--emit=…`) for tokens, trees, and IR, where your compiler build enables them. Details are in *Flow-Wing CLI*.
+- **Developer tooling** — the Flow-Wing VS Code extension gives you in-editor support. Use formatter flags like `-FMP` and debug-style emits (`--emit=…`) for tokens, trees, and IR. Details are in *Flow-Wing CLI*.
 
-- **Sample programs** — small games and demos are published with the project for learning; they are examples, not a separate product "engine."
+- **Sample programs** — small games and demos ship with the project for learning. They are examples, not a separate product or "engine."
 
 For **building the compiler from source**, use *Getting Started → Installation* and the upstream repository. For **writing this documentation**, see **`WRITING.md`** in the `FlowWing-Docs` folder.

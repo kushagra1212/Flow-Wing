@@ -7,7 +7,9 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 ## Start here
 
-Flow-Wing uses **single inheritance**: a **subclass** has **one** direct **superclass**, declared with **`extends`**. The child **inherits** fields and methods; **`init` in the child** usually calls **`super(…)`** to run the parent’s **constructor** before setting child-only data. You can **override** a method in the child by writing a new body with the **same** name; **dynamic dispatch** means the **actual** class of an object picks which method runs (for example when you call **`printDetails`** on a value typed as the **parent** but holding a **child** instance).
+Flow-Wing uses **single inheritance**: a **subclass** has **one** direct **superclass**, declared with **`extends`**. The child **inherits** fields and methods. In the child's **`init`**, call **`super(…)`** to run the parent's **constructor** before setting child-only fields.
+
+You can **override** a method in the child by writing a new body with the **same** name. **Dynamic dispatch** means the **runtime type** of an object — not the declared type — picks which method runs. Pass a `Car` where a `Vehicle` is expected, and the `Car`'s methods fire automatically. It's like a hotel key card: the base says "door access," but your card knows you're in room 304.
 
 ## Your first `extends` (Vehicle → Car)
 
@@ -53,7 +55,7 @@ class Car extends Vehicle {
 
 ## Use the same function for `Vehicle` and `Car` (polymorphism)
 
-A parameter typed as **`Vehicle`** can receive a **`Car`**: the **right** `printDetails` and **`getDetails`** run for the **real** object. The `Vehicle` and `Car` classes are the same as above (**`...`** ):
+A parameter typed as **`Vehicle`** happily accepts a **`Car`**. The **right** `printDetails` and **`getDetails`** run for the **real** object. (The `Vehicle` and `Car` classes are the same as above — `...` shortened for readability.)
 
 <CodeBlock code={
 `/* ... Vehicle and Car classes as defined above ... */
@@ -75,14 +77,14 @@ fg_main()
 
 ## More detail: `super`, overrides, and design
 
-- Call **`super(…)`** in **`init`** so **parent** state is set before you assign **subclass** fields. **`super`** can only be used inside **`init`** — it calls the base class constructor and is not available in regular methods.
-- **Override** by redeclaring a **method** in the child; **return types** and **signatures** must stay compatible with the **language** rules in your build.
-- **No multiple inheritance** of classes—only one **`extends`** chain; use **composition** (hold another object as a field) for “mix in” style patterns.
+- Call **`super(…)`** in **`init`** so **parent** state is set before you assign **subclass** fields. **`super`** works only inside **`init`** — it's not available in regular methods.
+- **Override** by redeclaring a **method** in the child. **Return types** and **signatures** must stay compatible with your build's language rules.
+- **No multiple inheritance** of classes — only one **`extends`** chain. For "mix in" style patterns, use **composition**: hold another object as a field rather than inheriting from it.
 
 ## Source & tests (if you have the repository)
 
-Hundreds of class and **inheritance** cases live under **`tests/fixtures/LatestTests/ClassTests/`**; a deep tree of **hierarchy** tests is under
+Hundreds of class and **inheritance** test cases live under **`tests/fixtures/LatestTests/ClassTests/`**. A deep tree of **hierarchy** tests is at:
 
 **`tests/fixtures/LatestTests/ClassTests/legacy_Class_fixtures/InheritanceTest/InheritanceTest/`**
 
-(legacy layout name, still useful when **reading** how the **binder** and **IR** are exercised). You do **not** need that folder to **learn** **`extends`**.
+(legacy layout name — still useful for seeing how the **binder** and **IR** handle inheritance). You don't need that folder to **learn** **`extends`**.

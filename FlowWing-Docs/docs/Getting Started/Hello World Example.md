@@ -6,34 +6,34 @@ sidebar_position: 2
 
 ## 1. Create a small program
 
-Create a new file called **`main.fg`** in a folder of your choice and put this in it:
+Create a new file called **`main.fg`** in any folder and write this:
 
 ```flowwing
 print("Hello World")
 ```
 
-You can use any editor. Flow-Wing source files use the **`.fg`** extension.
+Use any editor. Flow-Wing source files use the **`.fg`** extension.
 
 ## 2. Run it (after *Installation*)
 
-You need a Flow-Wing compiler on your **PATH** or the full **SDK** unpacked so you can run the **`bin`** tools—see *Getting Started → Installation*.
+First, make sure a Flow-Wing compiler is on your **PATH** or the **SDK** is unpacked so you can reach the **`bin`** tools. See *Getting Started → Installation*.
 
-**Compile to an app, then run it (AOT)** — typical when your command is **`flowwing`**, **`FlowWing`**, or **`FlowWing.exe`:**
+**Compile to an app, then run it (AOT)** — use this when your command is **`flowwing`**, **`FlowWing`**, or **`FlowWing.exe`**:
 
 ```bash
 flowwing main.fg -o myapp
 ./myapp
 ```
 
-On Windows, use a **`.exe`** name with **`-o`** (for example **`-o myapp.exe`**) and run **`.\myapp.exe`**.
+On Windows, give **`-o`** a **`.exe`** name (for example **`-o myapp.exe`**) and run **`.\myapp.exe`**.
 
-**Run the script in one go (JIT)** — if you installed the **JIT** binary as **`flowwing-jit`** / **`FlowWing-jit`** (see *Flow-Wing CLI*), you can skip a separate app file:
+**Run the script in one go (JIT)** — if you installed the **JIT** binary as **`flowwing-jit`** / **`FlowWing-jit`** (see *Flow-Wing CLI*), skip the separate binary step:
 
 ```bash
 flowwing-jit main.fg
 ```
 
-The **same `main.fg`** works for both; which command you have depends on your install (many SDKs include **both** AOT and JIT names).
+The **same `main.fg`** works for both. Your install determines which commands you have (many SDKs ship **both** AOT and JIT names).
 
 ## 3. Expected output
 
@@ -58,7 +58,7 @@ make run-aot-debug FILE=path/to/main.fg
 
 **JIT from source:** if you used **`make build-jit-debug`**, the file **`build/sdk/bin/FlowWing`** may run **`main.fg`** directly in one step—same path as in the *Flow-Wing CLI* page. The last **`make build-aot-***` or **`build-jit-***` you ran decides what that one binary does.
 
-**Tip:** with AOT, pass **`-o some/path`** when you want a **fixed** output name. Without **`-o`**, the compiler may still emit a binary under a default build directory, sometimes with an **temporary filename** (for example a hash) so parallel builds do not overwrite each other.
+**Tip:** with AOT, pass **`-o some/path`** when you want a **fixed** output name. Without **`-o`**, the compiler emits a binary under a default build directory with a temporary filename (often a hash) — this keeps parallel builds from overwriting each other.
 
 ## Entry point and `fg_main` (optional detail)
 

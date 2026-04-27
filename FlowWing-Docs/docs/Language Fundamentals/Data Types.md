@@ -8,7 +8,7 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 ## 1. Integer Data Type (`int`)
 
-The `int` datatype represents a 32-bit signed integer. It is used to store numeric values without any fractional components.
+`int` stores a 32-bit signed integer — whole numbers, no fractional parts.
 
 ### Example Usage:
 
@@ -20,13 +20,13 @@ The `int` datatype represents a 32-bit signed integer. It is used to store numer
 
 - **Range**: -2,147,483,648 to 2,147,483,647
 - **Default Value**: 0
-- **Usage**: Commonly used for counting, indexing, and simple arithmetic operations.
+- **Usage**: Counting, indexing, and simple arithmetic.
 
 ---
 
 ## 2. Decimal Data Type (`deci`)
 
-The `deci` datatype is used to store floating-point numbers with decimal points.
+`deci` stores floating-point numbers — values with a decimal point.
 
 ### Example Usage:
 
@@ -36,14 +36,14 @@ The `deci` datatype is used to store floating-point numbers with decimal points.
 
 ### Properties:
 
-- **Precision**: `deci` is 64-bit (double precision). Use `deci32` (32-bit, single precision) only when memory is constrained.
-- **Usage**: Commonly used for financial calculations, scientific computations, and anywhere precision with decimals is required.
+- **Precision**: `deci` is 64-bit (double precision). Use `deci32` (32-bit, single precision) only when memory is tight.
+- **Usage**: Financial calculations, scientific computations, and anywhere decimal precision matters.
 
 ---
 
 ## 3. Boolean Data Type (`bool`)
 
-The `bool` datatype represents a boolean value, which can be either `true` or `false`.
+`bool` holds one of two values: `true` or `false`. Think of it as an on/off switch with a name.
 
 ### Example Usage:
 
@@ -54,13 +54,13 @@ The `bool` datatype represents a boolean value, which can be either `true` or `f
 ### Properties:
 
 - **Values**: `true` or `false`
-- **Usage**: Commonly used for conditional statements, flags, and toggles.
+- **Usage**: Conditions, flags, and toggles.
 
 ---
 
 ## 4. String Data Type (`str`)
 
-The `str` datatype is used to store sequences of characters.
+`str` stores a sequence of characters — text, in other words.
 
 ### Example Usage:
 
@@ -71,7 +71,7 @@ print(name, name[2])
 
 ### Properties:
 
-- **Usage**: Commonly used for text processing, displaying messages, and storing any form of textual data.
+- **Usage**: Text processing, messages, and any form of textual data.
 
 ### String Indexing
 
@@ -87,25 +87,25 @@ print(name[3])  // 'w'
 
 ## 5. Nothing Data Type (`nthg`)
 
-The `nthg` datatype represents the absence of a value, often used as a return type for functions that do not return any value.
+`nthg` marks the absence of a value. Use it as the return type for functions that don't return anything — no surprise, no data.
 
 ### Example Usage:
 
 <CodeBlock code={
 `fun doNothing() -> nthg {
-    /; This function does not return anything
+    /; This function returns nothing
 }
 `} language="fg"/>
 
 ### Properties:
 
-- **Usage**: Used to indicate no return value from a function.
+- **Usage**: Return type for procedures (functions with no return value).
 
 ---
 
 ## 6. 32-bit Decimal Data Type (`deci32`)
 
-The `deci32` datatype represents a 32-bit floating-point number, used for storing decimal values with less precision compared to `deci`.
+`deci32` is a 32-bit floating-point number — half the precision of `deci`, half the memory.
 
 ### Example Usage:
 
@@ -115,14 +115,14 @@ The `deci32` datatype represents a 32-bit floating-point number, used for storin
 
 ### Properties:
 
-- **Precision**: Lower precision compared to `deci`
-- **Usage**: Suitable for scenarios where memory usage is a concern and high precision is not required.
+- **Precision**: 32-bit (single precision) — lower than `deci`
+- **Usage**: Memory-constrained contexts where full double precision isn't worth the cost.
 
 ---
 
 ## 7. 8-bit Integer Data Type (`int8`)
 
-The `int8` datatype represents a 8-bit signed integer, used for storing small integer values.
+`int8` is a compact 8-bit signed integer — small numbers in a small footprint.
 
 ### Example Usage:
 
@@ -133,13 +133,13 @@ The `int8` datatype represents a 8-bit signed integer, used for storing small in
 ### Properties:
 
 - **Range**: -128 to 127
-- **Usage**: Suitable for scenarios where memory usage is a concern and high precision is not required.
+- **Usage**: Memory-tight contexts with values that fit in one byte. Convert from int with `Int8()`.
 
 ---
 
 ## 8. Null (`null`)
 
-**`null`** is the keyword and type name for the “no value” value. Use it in expressions and comparisons: **`== null`**, **`!= null`**, or assign **`null`** where a reference or optional value can be empty.
+**`null`** is the keyword for "no value." Compare with **`== null`**, **`!= null`**, or assign **`null`** where a reference or optional value might be empty.
 
 ### Example usage
 
@@ -148,17 +148,17 @@ The `int8` datatype represents a 8-bit signed integer, used for storing small in
 print(null == null, "\\n")
 `} language="fg"/>
 
-See the [File Handling Module](../Built-in%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
-
 ### Properties
 
-- **Usage**: Absence of a value for object references, fields, and other nullable shapes. See the [File Handling Module](../Built-in%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
+- **Usage**: Absence of a value — object references, optional fields, and other nullable shapes.
+
+See the [File Handling Module](../Built-in%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
 
 ---
 
 ## 9. 64-bit Integer Data Type (`int64`)
 
-The `int64` datatype represents a 64-bit signed integer. Use the **`l` suffix** on literals to explicitly create an `int64` value.
+`int64` stores a 64-bit signed integer — for when 32 bits aren't enough. Append the **`l` suffix** to literals to explicitly create an `int64` value.
 
 ### Example Usage:
 
@@ -172,13 +172,13 @@ var small: int64 = -42l
 - **Range**: -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
 - **Default Value**: 0
 - **Literal suffix**: `l` (e.g., `100l`, `-1l`)
-- **Usage**: When 32-bit integers are not enough—large counters, timestamps, file sizes.
+- **Usage**: Large counters, timestamps, file sizes — anywhere 32 bits would overflow.
 
 ---
 
 ## 10. Character Data Type (`char`)
 
-The `char` datatype represents a single **Unicode character**, written with single quotes.
+`char` holds a single **Unicode character**. Write it in single quotes — yes, even emojis.
 
 ### Example Usage:
 
@@ -192,14 +192,14 @@ print(letter, " ", emoji)
 
 - **Literal syntax**: Single-quoted: `'a'`, `'9'`, `'ñ'`, `'🚀'`
 - **Escape sequences**: `\n`, `\t`, `\'`, `\\`
-- **Conversion**: Use `Char(65)` to convert an integer codepoint, or `Char("X")` to extract the first character of a string.
+- **Conversion**: Use `Char(65)` to convert an integer codepoint, or `Char("X")` to grab the first character of a string.
 - **Usage**: Individual characters, text processing, codepoint arithmetic.
 
 ---
 
 ## 11. Dynamic Type (`dyn` / `unknown`)
 
-When you declare a variable **without** a type annotation, it becomes a **dynamic** variable. The keyword `unknown` is the compile-time type for such values. A dynamic variable can hold **any value** and can **change its type** at runtime.
+Declare a variable **without** a type annotation and Flow-Wing gives you a **dynamic** variable. The keyword `unknown` is the compile-time type for these values. A dynamic variable holds **any value** and can **change its type** at runtime — like a box that reshapes itself to fit whatever you put in.
 
 ### Example Usage:
 

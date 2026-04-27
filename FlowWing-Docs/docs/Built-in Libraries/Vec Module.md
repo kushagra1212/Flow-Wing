@@ -10,7 +10,7 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 ## Start here
 
-**`vec::Vec`** is a **dynamic list**—you can store **different kinds of values** in the same list (for example a number, then a string, then a decimal). In source you write **`bring vec`**, then **`new vec::Vec()`**. You do not manage raw memory in Flow-Wing the way you do in C; the runtime looks after the storage.
+**`vec::Vec`** is a **dynamic list** — one container, many types. Push a number, then a string, then a decimal into the same list. Write **`bring vec`**, then **`new vec::Vec()`**. The runtime manages the storage; you never touch raw memory.
 
 ### A tiny program
 
@@ -35,7 +35,7 @@ list.removeAt(1)
 99
 ```
 
-**Typical uses:** building lists as you go (**`push` / `pop`**), looking up by index (**`get` / `set`**), and sometimes **sorting** or **reversing**.
+**Typical uses:** building lists on the fly (**`push` / `pop`**), looking up by index (**`get` / `set`**), and occasionally **sorting** or **reversing**.
 
 ## Common operations (cheat sheet)
 
@@ -46,7 +46,7 @@ list.removeAt(1)
 
 ## Iteration
 
-Use **`size()`** and **`get()`** in a for-loop to iterate over elements:
+Loop over elements with **`size()`** and **`get()`** in a for-loop:
 
 <CodeBlock code={
 `bring vec
@@ -83,7 +83,7 @@ list[2] = 30
 
 ## More detail: API and behavior
 
-The public surface is the **`vec::Vec`** class. **Vec holds values of any type.** — one `Vec` holds mixed element types, unlike fixed `T[n]` arrays in the type system.
+The public surface is the **`vec::Vec`** class. **Vec holds values of any type** — one `Vec` mixes element types freely, unlike fixed `T[n]` arrays.
 
 ## Source & tests (if you have the repository)
 
@@ -92,4 +92,4 @@ The public surface is the **`vec::Vec`** class. **Vec holds values of any type.*
 | **Module source (reference)** | **`fw-modules/vec_module/vec-module.fg`** in the [Flow-Wing](https://github.com/kushagra1212/Flow-Wing) repository. |
 | **Integration-style fixtures** | **`tests/fixtures/LatestTests/VecModuleTests/`** — how **`bring vec`**, method calls, and edge cases are exercised in the project's tests. |
 
-Cloning the repo is **not** required to **use** **`vec::Vec`**; those paths are for people reading or contributing to the compiler.
+Cloning the repo is **not** required to **use** **`vec::Vec`**. Those paths are for people reading or contributing to the compiler.

@@ -6,11 +6,11 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 # Variables and Constants Declaration
 
-This document provides examples of how to declare variables and constants in Flow-Wing.
+Everything you need to declare variables and constants in Flow-Wing, with examples.
 
 ## Variable Declaration
 
-Variables in Flow-Wing can be declared with a specific data type and assigned a value.
+Declare a variable by giving it a type and a value.
 
 ### Example:
 <CodeBlock code={
@@ -21,12 +21,12 @@ var _boolean: bool = true
 var someThing = "Hello, Flow-Wing!"
 `} language="fg"/>
 
-Here variable someThing is a `Dynamic Type Variable` that can be assigned any value, but its current value is `"Hello, Flow-Wing!"` which is a `string`.
+`someThing` is a **dynamic type variable** — it can hold any value. Right now it holds `"Hello, Flow-Wing!"`, a `string`.
 
 
 ## Typed Variables
 
-Variables in Flow-Wing can be declared with a specific type and assigned a value at runtime.
+Give a variable an explicit type, then assign a value at runtime.
 
 ### Example:
 <CodeBlock code={
@@ -65,17 +65,17 @@ Here numbers is an `array` of `int` with a default value of `[0, 0, 0, 0, 0]`.
 
 ### Variable Scope
 
-Variables are scoped to the block `{ }` where they're declared:
+Variables live inside the block `{ }` where you declare them:
 
 <CodeBlock code={
 `{
     var x: int = 10
     print(x)  // 10
 }
-// x is not accessible here — out of scope
+// x is out of scope here — gone
 `} language="fg"/>
 
-Variables in outer scopes are accessible in inner scopes. Inner scopes can shadow outer variables with new declarations:
+Outer variables are visible inside inner blocks. Inner blocks can shadow outer variables by declaring the same name:
 
 <CodeBlock code={
 `var x: int = 10
@@ -88,7 +88,7 @@ print(x)  // 10
 
 ## Constant Declaration
 
-Constants are immutable and cannot be changed after being assigned. Use `const` for values that never change — it helps the compiler optimize and prevents accidental reassignment:
+Constants lock in a value at compile time. Use `const` for values that never change — the compiler optimizes them, and nobody accidentally reassigns them:
 
 ### Example:
 
