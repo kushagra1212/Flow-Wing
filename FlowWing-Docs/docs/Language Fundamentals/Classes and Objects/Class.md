@@ -45,7 +45,7 @@ print("\n", person.getAge())
 30`
 } />
 
-Here, `Person` is a class that has two properties `name` and `age`, and two methods `print` and `getAge`. `init` is a constructor that initializes the properties of the class. `setAge` is a method that sets the value of the `age` property.
+Here, `Person` is a class that has two properties `name` and `age`, and three methods `print`, `getAge`, and `setAge`. `init` is a constructor that initializes the properties of the class.
 
 ### Multiple Constructors Example
 
@@ -59,5 +59,18 @@ Flow-Wing supports multiple constructors. The `init` keyword can have multiple c
         self.name = name
         self.age = age
     }
+    // Second constructor — name only, default age
+    fun init(n: str) -> nthg {
+        self.name = n
+        self.age = 0
+    }
 }
 `} language="fg"/>
+
+### The `self` Keyword
+
+`self` is the current instance and is automatically available in all methods. You never pass `self` explicitly — it's implicit:
+
+- `self.field` — access a member
+- `self.method()` — call another method
+- `self.field = value` — modify a member
