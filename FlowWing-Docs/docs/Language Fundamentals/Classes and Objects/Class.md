@@ -32,7 +32,7 @@ Define classes with the `class` keyword. Classes bundle fields and methods into 
 }
 const person: Person = new Person("Alice", 30)
 person.print()
-print("\n", person.getAge())
+print("\\n", person.getAge())
 `} language="fg"/>
 
 
