@@ -28,7 +28,7 @@ println(jsonStr)
 
 **Output:**
 ```
-{"name":"FlowWing","year":2024,"active":true}
+{"name": "FlowWing", "year": 2024, "active": true}
 ```
 
 ## Building JSON
@@ -64,7 +64,7 @@ var arr: json::JsonNode = json::newArray()
 
 println(json::stringify(arr))
 
-// Access by index
+/; Access by index
 println("Index 1: ", arr.getAt(1).numVal)
 `} language="fg"/>
 
@@ -81,6 +81,8 @@ var root: json::JsonNode = json::parse(raw)
 println("x = ", root.get("x").numVal)
 println("y[0] = ", root.get("y").getAt(0).numVal)
 `} language="fg"/>
+
+> **Note on string literals:** Single quotes (`'...'`) can be used for JSON string literals to avoid escaping double quotes. Both `'{"key":"val"}'` and `"{\\"key\\":\\"val\\"}"` are valid.
 
 ## Factory functions
 
@@ -102,10 +104,11 @@ println("y[0] = ", root.get("y").getAt(0).numVal)
 
 ## Accessing values
 
-| Property / Method | Returns | Description |
-|-------------------|---------|-------------|
+| Property / Method | Type / Returns | Description |
+|-------------------|----------------|-------------|
 | `.strVal` | `str` | String value of a node |
 | `.numVal` | `deci` | Numeric value of a node |
+| `.boolVal` | `bool` | Boolean value of a node |
 | `.get(key)` | `json::JsonNode` | Get value by key in an object |
 | `.getAt(index)` | `json::JsonNode` | Get item by index in an array (out-of-bounds returns `null`) |
 | `.put(key, val)` | `json::JsonNode` | Set/update a key in an object (returns self) |

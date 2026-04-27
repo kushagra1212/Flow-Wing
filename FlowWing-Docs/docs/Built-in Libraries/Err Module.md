@@ -10,10 +10,10 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 ## Start here
 
-**`Err`** is the usual way to return **“something went wrong”** from APIs that can fail. You **`bring Err`**. Many library calls return a **pair** (for example a **value** and an **`Err::Result`**, or a **bool** and an **`Err::Result`**). **Check the error first** with **`isErr()`** on the result or **`Err::isErr(err)`** before you trust the “success” part.
+**`Err`** is the usual way to return **"something went wrong"** from APIs that can fail. You **`bring Err`**. Many library calls return a **pair** (for example a **value** and an **`Err::Result`**, or a **bool** and an **`Err::Result`**). **Check the error first** with **`isErr()`** on the result or **`Err::isErr(err)`** before you trust the "success" part.
 
 - **`Err::Result`** — holds a **message**, a small **code** (see **`Err::CODE`**), and optional **details**.
-- **`Err::CODE`** — named **constants** (for example **NOT_FOUND**, **FAILED**, **INVALID_ARGUMENT** in a typical build) for **stable** error kinds.
+- **`Err::CODE`** — named **constants** for **stable** error kinds.
 
 ### A tiny program
 
@@ -22,19 +22,53 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 print(Err::CODE.NOT_FOUND)
 `} language="fg"/>
 
+**Output:**
+```
+1
+```
+
 **Pattern with `file` or other modules** — the **second** (or last) return is often the **`Result`**:
 
-```text
-if err.isErr() { … } else { use the good value }
-```
+<CodeBlock code={
+`bring file
+bring Err
+
+var content: str, err: Err::Result = file::readText("missing.txt")
+if err.isErr() {
+    println(err.toString())
+} else {
+    println(content)
+}
+`} language="fg"/>
+
+## Complete error codes
+
+| Constant | Integer value | Meaning |
+|----------|--------------|---------|
+| `Err::CODE.OK` | `0` | No error / success |
+| `Err::CODE.NOT_FOUND` | `1` | Resource not found |
+| `Err::CODE.FAILED` | `2` | General failure |
+| `Err::CODE.INVALID_ARGUMENT` | `3` | Bad input |
 
 ## Building and inspecting errors
 
-**Constructors and helpers** (your exact overload set follows the installed module) commonly include an **`init`** with **message**, optional **code**, and optional **details**; and methods such as:
+**Constructors and helpers** include an **`init`** with **message**, optional **code**, and optional **details**; and methods such as:
 
 - **`getMessage()`**, **`getCode()`**, **`getDetails()`**
-- **`withMessage(…)`**, **`withDetails(…)`** — return **new** **`Err::Result`** with extra context
-- **`toString()`** — a single **human-readable** line for **logging** or **println**
+- **`withMessage(extraMessage)`** — returns a **new** `Err::Result` with the extra message appended to the original message (joined with ` -> `). The original code and details are preserved.
+- **`withDetails(details)`** — returns a **new** `Err::Result` with the details field set to the given string. The original message and code are preserved.
+- **`withCode(code)`** — returns a **new** `Err::Result` with the code replaced. The original message and details are preserved.
+- **`hasDetails()`** — returns `bool`, true if details is non-empty.
+- **`isOk()`** / **`isErr()`** — check success or failure.
+- **`clone()`** — returns a **new** `Err::Result` with all fields copied.
+- **`toString()`** — a single **human-readable** line for **logging** or **println**.
+- **`clearDetails()`** — returns a **new** `Err::Result` with details cleared to `""`.
+
+**Free functions:**
+
+- **`Err::ok(message)`** — returns a success `Err::Result` (code `OK`).
+- **`Err::error(message, code, details)`** — returns a failure `Err::Result`.
+- **`Err::isOk(result)`** / **`Err::isErr(result)`** — static checks on any `Err::Result`.
 
 **Longer example:**
 
@@ -58,15 +92,15 @@ fun handle_error() -> nthg {
 handle_error()
 `} language="fg"/>
 
+**Output:**
+```
+Error: 
+File not foundError: File not found -> Please check the pathError: File not found -> Please check the path (Details: The file might have been deleted)Error: Invalid argument
+```
+
 ## More detail: `ErrorCode` and `Err::Result`
 
-The **`Err::ErrorCode` / `Err::CODE`** story is a **shared vocabulary** between your code and the standard library. **`Err::Result`** is designed so you can **thread** **messages** and **details** through calls without a separate exception system—Flow-Wing’s model is **explicit** **return** values, not try/catch.
-
-**Fields on `Err::CODE`** in a default install often include (integer values are **illustrative**; trust your binary):
-
-- **`NOT_FOUND`** (example value **`1`**) — resource not found
-- **`FAILED`** (example value **`2`**) — general failure
-- **`INVALID_ARGUMENT`** (example value **`3`**) — bad input
+**`Err::CODE`** is a **shared vocabulary** between your code and the standard library. **`Err::Result`** is designed so you can **thread** **messages** and **details** through calls without a separate exception system—Flow-Wing's model is **explicit** **return** values, not try/catch.
 
 ## Source & tests (if you have the repository)
 
