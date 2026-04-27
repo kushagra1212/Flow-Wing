@@ -137,7 +137,7 @@ For APIs that return **`Err::Result`**, you still check errors with **`isErr()`*
 
 <CodeBlock code={
 `var n = null
-print(null == null, "\n")
+print(null == null, "\\n")
 
 bring file
 bring Err
