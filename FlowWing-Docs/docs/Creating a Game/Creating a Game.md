@@ -16,6 +16,37 @@ sidebar_label: Games and graphics (raylib)
 
 If you are new to the toolchain, do *Getting Started → **Installation*** and *Hello World* first, then come back here.
 
+## Quick example
+
+A minimal game window in Flow-Wing with raylib:
+
+```flowwing
+bring raylib
+
+var window = raylib::initWindow(800, 600, "My Game")
+
+while (!raylib::windowShouldClose(window)) {
+    raylib::beginDrawing()
+    raylib::clearBackground(raylib::RAYWHITE)
+    raylib::drawText("Hello from Flow-Wing!", 190, 200, 20, raylib::LIGHTGRAY)
+    raylib::endDrawing()
+}
+
+raylib::closeWindow(window)
+```
+
+Compile it by passing the **raylib** library to the linker:
+
+- **Windows:** `raylib.lib`
+- **Linux:** `libraylib.so`
+- **macOS:** `libraylib.dylib`
+
+Example:
+
+```bash
+flowwing game.fg -o game -L/path/to/raylib -l raylib
+```
+
 ## Two demos in the main repository (clone required)
 
 The **open-source** Flow-Wing tree (not the docs site alone) includes ready-made samples under **`docs/demo/`**—use them once you can compile **`.fg`** and have **raylib** on disk:
@@ -44,18 +75,6 @@ These are **learning examples** shipped with the repo; they are not a separate p
 - **Platform** — `cd` into **`docs/demo/platform-game`**, compile **`main.fg`** the same way (raylib **`-L` / `-l`**, plus frameworks on **Mac**). The entry file pulls **`./Player.fg`**, **`./utils.fg`**, etc. via **`bring`**, so the **current working directory** and **import paths** must match how you invoke **FlowWing** (the compiler resolves **`bring "…"`** from the **`.fg` file’s directory**—see the **modules** section of the docs if imports fail).
 
 If linking fails, the issue is almost always **raylib not found** or **missing system frameworks**—not Flow-Wing syntax. Fix **`-L` / `-l` / `--framework`**, then re-run.
-
-## Optional video (overview)
-
-<iframe
-  width="800"
-  height="400"
-  src="https://github.com/user-attachments/assets/0fbdfe5b-c0df-4128-8fb9-abf564822454"
-  title="YouTube — games / raylib in Flow-Wing (optional)"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen
-></iframe>
 
 ## More detail: linking, other libraries, and another repo
 
