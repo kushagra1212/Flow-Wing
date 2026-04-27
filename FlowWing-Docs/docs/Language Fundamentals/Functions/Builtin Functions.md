@@ -4,10 +4,11 @@ sidebar_position: 2
 
 import CodeBlock from "../../../src/components/common/CodeBlock";
 
-# Built-In Functions 
+# Built-In Functions
 
-## Print Function
-The `print` function is used to print a message to the console.
+## `print`
+
+Prints values to the console. Accepts any number of arguments. Does **not** append a newline.
 
 ### Example:
 <CodeBlock code={
@@ -16,24 +17,15 @@ print(2, 3, 4, "Hello")
 print("Hello, World!\\nHello, Flow-Wing!")
 `} language="fg"/>
 
+## `println`
 
-## Superclass reference
-The `super` keyword refers to the superclass from a subclass `init` or method.
+Prints values to the console. Accepts any number of arguments. Appends a newline after printing.
 
-### Example
+### Example:
 <CodeBlock code={
-`class Animal {
-    var age: int
-    init(age: int) -> nthg {
-        self.age = age
-    }
-}
-class Dog extends Animal {
-    init(age: int) -> nthg {
-        super(age)
-    }
-}
-
+`println("Hello, World!")
+println(1, 2, 3)
+println("The answer is", 42)
 `} language="fg"/>
 
 ## Conversions (built-in callables)
@@ -43,6 +35,21 @@ Built-in conversion callables (provided by the language implementation) include 
 ### Integer (default `int` is 32-bit)
 <CodeBlock code={
 `var n: int = Int32("123")
+`} language="fg"/>
+
+### `Int8`
+<CodeBlock code={
+`var b: int8 = Int8(65)
+`} language="fg"/>
+
+### `Int64`
+<CodeBlock code={
+`var big: int64 = Int64("9223372036854775807")
+`} language="fg"/>
+
+### `Char`
+<CodeBlock code={
+`var c: char = Char(65)
 `} language="fg"/>
 
 ### `deci` (64-bit float) and `deci32`

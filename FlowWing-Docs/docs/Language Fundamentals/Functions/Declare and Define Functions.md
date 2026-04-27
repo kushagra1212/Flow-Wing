@@ -6,11 +6,11 @@ import CodeBlock from "../../../src/components/common/CodeBlock";
 
 # Declare and Define Functions
 
-Flow-Wing supports the creation of functions, which are blocks of reusable code that perform specific tasks.
+Functions are reusable blocks of code that perform a specific task. Define them, call them, pass by reference, return multiple values — it's all here.
 
 ## Function Definition
 
-Functions in Flow-Wing can be defined with a specific data type and assigned a value.
+Define a function with a return type and a body:
 
 ### Example:
 
@@ -24,8 +24,8 @@ var result: int = add(2, 3)
 
 ### Properties:
 
-- **Arguments**: The function takes two arguments of type `int`.
-- **Return Type**: The function returns an `int` value.
+- **Arguments**: Takes two `int` parameters.
+- **Return Type**: Returns an `int`.
 
 
  ## Function with no return value
@@ -34,7 +34,7 @@ var result: int = add(2, 3)
 
 <CodeBlock code={
 `fun doNothing() -> nthg {
-    /; This function does not return anything
+    /; This function returns nothing
 }
 
 fun doNothing2() -> nthg {
@@ -45,12 +45,25 @@ fun doNothing2() -> nthg {
 
 `} language="fg"/>
 
-Here, the function `doNothing` does not return anything. `return :` is used for early return in doNothing2 function.
+`doNothing` returns nothing. `return :` exits early from a `nthg` function. The `:` after `return` represents the absence of a value — it matches the `nthg` return type. Think of it as "return nothing, but return now."
+
+### Early Return from Void Functions
+
+For `nthg` (nothing) functions, use `return :` to bail out early:
+
+<CodeBlock code={
+`fun maybePrint(shouldPrint: bool) -> nthg {
+    if (!shouldPrint) {
+        return :
+    }
+    print("Hello")
+}
+`} language="fg"/>
 
 
 ## Only Function Declaration
 
-Flow-Wing supports only function declaration.
+Declare a function without defining its body — great for separating interface from implementation.
 
 ### Example:
 
@@ -58,11 +71,18 @@ Flow-Wing supports only function declaration.
 `fun add(x: int, y: int) -> int decl
 `} language="fg"/>
 
-Here, the function `add` is declared. but not defined.
+### Forward Declarations
+
+Use `decl` when the body lives elsewhere — in a linked native library (`-l` flag) or another file loaded with `bring`:
+
+<CodeBlock code={
+`fun external_lib_func(x: int) -> int decl
+fun add(x: int, y: int) -> int decl
+`} language="fg"/>
 
 ## Function Call
 
-Functions in Flow-Wing can be called with arguments.
+Call a function by name with arguments. By default, arguments pass by value — the function gets a copy:
 
 ### Example:
 
@@ -76,12 +96,10 @@ var result: int = add(2, 3)
 print(result)
 `} language="fg"/>
 
- By Default, the function arguments are passed by values.
-
 
  ## Function Parameters By Reference
 
- Flow-Wing supports passing function parameters by reference.
+Pass parameters by reference with `inout`. The function can modify the caller's variable directly — no copy, no ceremony.
 
 ### Example:
 
@@ -102,11 +120,9 @@ print("x: ", x)
 `x: 2
 `} />
 
-Here, the function parameter `x` is passed by reference. `inout` indicates that the parameter is passed by reference.
-
 ## Function With Default Value Parameters
 
-Flow-Wing supports passing function parameters with default values.
+Give parameters default values — callers can skip them and still get sensible behavior.
 
 ### Example:
 
@@ -124,12 +140,10 @@ print("Result: ", result)
 `Result: 2
 `} />
 
-Here, the function parameters `x` and `y` have default values.
-
 
 ## Function Example with Multiple Return Values
 
-Flow-Wing supports returning multiple values from a function.
+Return multiple values from a single function — unpack them into multiple variables at the call site.
 
 ### Example:
 
@@ -152,7 +166,7 @@ Second:  -1
 
 ## Function Example with Container/Array Return Values and Parameters
 
-Flow-Wing supports returning container/array values from a function.
+Return containers and arrays from functions. Pass them by reference with `inout` to modify them in place.
 
 ### Example:
 
@@ -181,12 +195,10 @@ fun addPerson(inout people: Person[2], person: Person) -> Person[2] {
 var result: int[2] = add(2, 3)
 `} language="fg"/>
 
-Here, the `add` function returns a container/array value. The `update` function updates the container/array value.
-
 
 ## Function Example with Object Return Values and Parameters
 
-Flow-Wing supports returning object values from a function.
+Return objects (types) from functions.
 
 ### Example:
 
@@ -200,12 +212,10 @@ fun add(x: int, y: int) -> Person {
 
 `} language="fg"/>
 
-Here, the `add` function returns an object value.
-
 
 ## Function Example with Class Return Values and Parameters
 
-Flow-Wing supports returning class values from a function.
+Return class instances from functions. Use `new` to create them.
 
 ### Example:
 
@@ -229,7 +239,7 @@ print(person.toString())
 `} language="fg"/>
 Output: `Name: Alice, Age: 30`
 
-## Function Example with Class a Parameter 
+## Function Example with Class as Parameter 
 
 <CodeBlock code={
 `type Person = {
@@ -247,7 +257,7 @@ add(p)
 
 `} language="fg"/>
 
-It is recommended to use `inout` parameter in Flow-Wing functions, when passing any complex types.
+When passing complex types (objects, arrays, class instances), use `inout` to avoid unnecessary copies. If you don't plan to modify the object, pass by value — the compiler handles the rest.
 
 
 

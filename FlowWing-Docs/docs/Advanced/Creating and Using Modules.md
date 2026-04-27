@@ -23,6 +23,8 @@ type T = {
 var x:int
 `} language="fg"/>
 
+Inside the module file itself you can access members **directly** without **`local::`** — the **`local::`** prefix is needed only when accessing module members **from outside** the module file.
+
 **Another file in the same project** brings it and uses **`local::`:**
 
 <CodeBlock code={
@@ -73,6 +75,10 @@ print(objectInstance.x)
 - **`module [name]`** must match how you **qualify** — the bracket name is the **namespace** for **`name::`…**.
 - **Relative** **`bring`** is from the **source** **`.fg`** path, not the shell **cwd** (unless you only have one file).
 - The **standard library** ( **`bring vec`**, **`bring file`**, **…** ) is resolved by the **toolchain**; local **`bring "…" `** is for **your** project files. **`expose`** (on *Choosy* and **import** pages) is for **picking** names out of a file that **exports** them to **other** **`.fg` files**—a **plain** `module` file is **brought** as a **unit**; see *Bring* and *Choosy* in this section.
+
+> **Module initialization:** top-level code in a module file runs **once** at program start (before **`fg_main`**). Use this for one-time setup like initializing shared state; the module is not re-executed on subsequent **`bring`** references.
+
+> **Re-export pattern:** use **`bring "sub-module.fg"`** followed by **`expose`** in your module file to **re-export** symbols from a sub-module, so consumers only need to bring your module (not every transitive dependency).
 
 ## Source & tests (if you have the repository)
 

@@ -6,17 +6,15 @@ import CodeBlock from "../../../src/components/common/CodeBlock";
 
 # 1D Container
 
-Flow-Wing supports 1D containers.
+Flow-Wing gives you fixed-size 1D arrays with compile-time bounds — think of them as tidy rows of boxes, each holding exactly one value of the same type.
 
 ## 1D Array
-
-Flow-Wing supports 1D arrays.
 
 ### Example Usage:
 
 <CodeBlock code={
 `var arr: int[10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-for (var i = 0 to 9) {
+for (var i: int = 0 to 9 : 1) {
     print(arr[i])
 }
 `} language="fg"/>
@@ -26,6 +24,7 @@ for (var i = 0 to 9) {
 `1 2 3 4 5 6 7 8 9 10
 `} />
 
+> **Note:** The `: 1` step is the default. You can write `for (var i: int = 0 to 9) { }`.
 
 ### Example Usage: With Objects
 

@@ -22,9 +22,9 @@ for (var i = 0 to 1) {
             for (var l = 0 to 1) {
                 print(arr[i][j][k][l], " ")
             }
-            print("\n")
+            print("\\n")
         }
-        print("\n")
+        print("\\n")
     }
 }
 `} language="fg"/>

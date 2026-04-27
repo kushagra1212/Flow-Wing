@@ -36,13 +36,13 @@ Inside your `.fg`:
 <CodeBlock code={
 `bring sys
 
-// sys::getArg(0) is the program name
-// sys::getArg(1) is "hello"
-// sys::getArg(2) is "world"
-// sys::getArg(3) is "42"
+/; sys::getArg(0) is the program name
+/; sys::getArg(1) is "hello"
+/; sys::getArg(2) is "world"
+/; sys::getArg(3) is "42"
 
 var count: int = sys::getArgCount()
-for (var i: int = 0 to count : 1) {
+for (var i: int = 0 to count - 1 : 1) {
     println(i, ": ", sys::getArg(i))
 }
 `} language="fg"/>
@@ -54,7 +54,7 @@ for (var i: int = 0 to count : 1) {
 | `sys::getArgCount()` | `int` | Number of command-line arguments |
 | `sys::getArg(n)` | `str` | The nth argument (0 = program name) |
 | `sys::scriptDir()` | `str` | Directory of the running script |
-| `sys::timestamp()` | `int` | Current timestamp (milliseconds) |
+| `sys::timestamp()` | `int` | Current Unix timestamp (seconds since epoch) |
 | `sys::exit(code)` | — | Terminates the program with exit code `code` |
 
 ### Early exit
@@ -64,7 +64,7 @@ for (var i: int = 0 to count : 1) {
 
 println("before")
 sys::exit(42)
-println("after")      // this never runs
+println("after")      /; this never runs
 `} language="fg"/>
 
 ## Source & tests (if you have the repository)

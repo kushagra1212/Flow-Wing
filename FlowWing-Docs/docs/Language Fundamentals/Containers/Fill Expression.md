@@ -28,3 +28,5 @@ print(arr)
 `[{ x : 5, y : 0 }, { x : 5, y : 0 }, { x : 0, y : 0 }]
 `} />
 
+> **Note:** If the `fill` count is less than the array size, remaining elements keep their old values. In the example above, `[ 2 fill { x: 5 } ]` overwrites only the first two elements; the third retains its previous value `{ x: 0, y: 0 }`.
+

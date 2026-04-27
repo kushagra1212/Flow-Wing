@@ -39,6 +39,10 @@ fun fg_main() -> nthg {
   }
   /; One request for a short demo—use a loop in production
   var req: vortex::Request, res: vortex::Response = app.accept()
+  if req == null {
+    printErrorLog("Failed to accept connection")
+    return :
+  }
   if req.getMethod() == "GET" && req.getPath() == "/" {
     res.status(200).send("Hello from Vortex")
   } else {
@@ -48,12 +52,17 @@ fun fg_main() -> nthg {
 fg_main()
 `} language="fg"/>
 
+:::note `return :` syntax
+
+In functions that return `nthg`, use **`return :`** (with a colon) for early exit. The colon distinguishes it from value-returning `return expr`. Both `listen()` failure and `accept()` failure examples above use `return :` to bail out early without producing a value.
+:::
+
 ## Run it
 
 1. **Build** a native executable with your **AOT** compiler, same as *Hello World*:
 
    ```bash
-   flowwing main.fg -o vortexdemo
+   flowwing main.fg -o vortexdemo 
    ./vortexdemo
    ```
 

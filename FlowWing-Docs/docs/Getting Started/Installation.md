@@ -31,11 +31,11 @@ Release assets are named with the **version tag** (for example **`FlowWing-v0.0.
 
 A full **SDK** install gives you the **`bin`** tools (**`flowwing` / `FlowWing`**, **`flowwing-jit` / `FlowWing-jit`**) plus **`lib/modules/`** (standard **`.fg` library**) and the pieces the compiler needs to **link** AOT output on your machine, without you installing **LLVM** yourself for normal use.
 
-**Optional:** *Homebrew*, *Chocolatey*, and *apt* may also ship Flow-Wing, but the feed can update **slower** than a fresh download on **GitHub Releases**—if something is missing or old, get the build from the release page first.
+**Optional:** *Homebrew*, *Chocolatey*, and *apt* may also ship Flow-Wing, but the feed may be **slower to update** than a fresh download on **GitHub Releases**—if something is missing or old, get the build from the release page first.
 
 ## Build from source (developers)
 
-For a full clone of the [Flow-Wing](https://github.com/kushagra1212/Flow-Wing) repository you need a C/C++ toolchain and **Python 3** (for tests and scripts). **LLVM 17 is downloaded and built automatically** by the first `make` step — you do not need to install it separately. On **macOS** also install `automake`, `autoconf`, and `libtool` (`brew install automake autoconf libtool`); on **Linux** use `apt-get install automake autoconf libtool`.
+For a full clone of the [Flow-Wing](https://github.com/kushagra1212/Flow-Wing) repository you need a C/C++ toolchain and **Python 3**. Python 3 is required for running the test suite and formatter tests. **LLVM 17 is downloaded and built automatically** by the first `make` step — you do not need to install it separately. On **macOS** also install `automake`, `autoconf`, and `libtool` (`brew install automake autoconf libtool`); on **Linux** use `apt-get install automake autoconf libtool`.
 
 From the repo root:
 

@@ -4,11 +4,13 @@ sidebar_position: 1
 
 import CodeBlock from "../../../src/components/common/CodeBlock";
 
-# Custom Types
+# Custom Types and Objects
 
 Custom types in Flow-Wing are a powerful feature that allows you to define your own data types, with the ability to define methods and properties for your custom types.
 
-## Example:
+## Custom Types
+
+### Basic Custom Type
 
 <CodeBlock code={
 `type Person = {
@@ -16,7 +18,7 @@ Custom types in Flow-Wing are a powerful feature that allows you to define your 
     age: int,
 }
 
-fun printPerson(person: Person) {
+fun printPerson(person: Person) -> nthg {
     print(person.name, " is ", person.age, " years old.")
 }
 
@@ -32,7 +34,7 @@ printPerson(person)
 
 Here, the `Person` type is defined with two properties: `name` and `age`. The `Person` type is then used in the `printPerson` function.
 
-## Array of Custom Types
+### Array of Custom Types
 
 Flow-Wing supports arrays of custom types. The `Person` type is used in the `people` array.
 
@@ -53,8 +55,7 @@ print(people)
 
 Here, the `Person` type is used in the `people` array.
 
-
-## Complex Custom Types
+### Complex Custom Types
 
 <CodeBlock code={`type NestedType = {
       value: int
@@ -114,3 +115,22 @@ In this example:
 
 The variable complexArray is a container of `ComplexType` with two elements, each containing nested structures. This demonstrates how Flow-Wing handles complex type definitions and their initialization.
 
+## Objects
+
+Flow-Wing supports objects. You create an object by initializing a custom type with values.
+
+<CodeBlock code={
+`type Person = {
+    name: str,
+    age: int
+}
+
+var alice: Person = { name: "Alice", age: 20 }
+
+print(alice.name + " " + alice.age)
+`} language="fg"/>
+
+**Output:**
+<CodeBlock code={
+`Alice 20
+`} />

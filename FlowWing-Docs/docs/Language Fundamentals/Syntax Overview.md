@@ -2,18 +2,50 @@
 sidebar_position: 1
 ---
 
-# Flow-Wing Syntax Overview
+import CodeBlock from "../../src/components/common/CodeBlock";
 
-Flow-Wing features a clean and intuitive syntax designed to enhance code readability and maintainability. The language emphasizes clarity through consistent indentation and straightforward structures. Key aspects of the syntax include:
+# Syntax Overview
 
-## Identifiers
+Here's what Flow-Wing looks like:
 
-- All identifiers, such as variable names and function names, are case-sensitive.
+<CodeBlock code={`print("Hello, World!")
+`} language="fg"/>
 
-## Whitespace
+Flow-Wing is **statically typed**, **case-sensitive**, and **whitespace-insensitive** — indentation is yours to choose.
 
-- Whitespace is ignored and spaces and tabs are treated as equivalent.
+## Basic Structure
 
-## Comments
+<CodeBlock code={`/; Imports
+bring someModule
 
-- Both single-line and multi-line comments are supported, allowing developers to annotate their code effectively.
+/; Types
+type Point = { x: int; y: int }
+
+/; Functions
+fun greet(name: str) -> nthg {
+    print("Hello, " + name)
+}
+
+/; Entry point
+fun fg_main() -> int {
+    greet("World")
+    return 0
+}
+`} language="fg"/>
+
+## Quick Reference
+
+| Element | Syntax |
+|---------|--------|
+| Variable | `var x: int = 42` |
+| Constant | `const x: int = 100` |
+| Function | `fun name(p: Type) -> RetType { }` |
+| Type | `type Name = { field: Type }` |
+| Class | `class Name { }` |
+| If/Else | `if (cond) { } or if (cond) { } else { }` |
+| While | `while (cond) { }` |
+| For | `for (var i = 0 to 10 : 1) { }` |
+| Switch | `switch val { case v: { } default: { } }` |
+| Comment (line) | `/; comment` |
+| Comment (block) | `/# comment #/` |
+| Import | `bring "file.fg"` or `bring {a, b} from mod` |

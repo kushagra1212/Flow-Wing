@@ -17,7 +17,7 @@ The **`file`** module reads and writes **disk paths** from Flow-Wing. You **`bri
 - **All at once** — **`file::readText`**, **`file::writeText`**, **`file::appendText`** (good for small files).
 - **Open, then read/write** — **`file::File`** for **`open`**, **`readLine`**, **`close`**, when you work like a small script with a file handle.
 
-**Script location:** **`file::__DIR__`** is a string path to the **current** **`.fg`** file’s directory (handy for loading assets next to the program).
+**Script location:** **`file::__DIR__`** is a string path to the **current** **`.fg`** file's directory (handy for loading assets next to the program).
 
 ## Example (read and write, with errors)
 
@@ -26,7 +26,7 @@ The **`file`** module reads and writes **disk paths** from Flow-Wing. You **`bri
 bring Err
 
 var path: str = "example.txt"
-var ok: bool, werr: Err::Result = file::writeText(path, "Hello\\n")
+var _, werr: Err::Result = file::writeText(path, "Hello\\n")
 if werr.isErr() {
   println(werr.getMessage())
 } else {
@@ -39,6 +39,27 @@ if werr.isErr() {
 }
 `} language="fg"/>
 
+## Stateful `file::File` (open, readLine, close)
+
+<CodeBlock code={
+`bring file
+bring Err
+
+var f: file::File = new file::File("example.txt")
+var err: Err::Result = f.open("r")
+if err.isErr() {
+  println(err.getMessage())
+} else {
+  var line: str, rerr: Err::Result = f.readLine()
+  if rerr.isErr() {
+    println(rerr.getMessage())
+  } else {
+    println(line)
+  }
+  f.close()
+}
+`} language="fg"/>
+
 ## Whole-file helpers (summary)
 
 - **`file::readText(path: str) -> str, Err::Result`**
@@ -47,13 +68,9 @@ if werr.isErr() {
 - **`file::exists(path: str) -> bool`**
 - **`file::delete(path: str) -> bool, Err::Result`**
 
-## Stateful `file::File` (open file)
-
-`new file::File(path)` then **`open("r" | "w" | "a")`**, **`readLine`**, **`close`**, as declared in the **`file`** module for your compiler version.
-
 ## More detail: errors and paths
 
-Always treat **I/O** as fallible: missing files, **permission** errors, and **invalid paths** show up on **`Err::Result`**. Use the **`Err`** module’s patterns in *Built-in libraries → **Err** module* to report messages and codes. Path strings follow your **OS** rules; on Windows, **backslashes** in string literals and **string building** are normal in **`.fg`** programs.
+Always treat **I/O** as fallible: missing files, **permission** errors, and **invalid paths** show up on **`Err::Result`**. Use the **`Err`** module's patterns in *Built-in libraries → **Err** module* to report messages and codes. Path strings follow your **OS** rules; on Windows, **backslashes** in string literals and **string building** are normal in **`.fg`** programs.
 
 ## Source & tests (if you have the repository)
 
