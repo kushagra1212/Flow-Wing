@@ -15,15 +15,13 @@ Flow-Wing supports the following operators, categorized for ease of understandin
 | `*`      | Multiplication             |
 | `/`      | Division                   |
 | `%`      | Modulus                    |
-| `^`      | Xor                        |
-| `~`      | Bitwise NOT                |
 | `//`     | Floor Division             |
 
 ## Examples:
 
 <CodeBlock code={
 `println(1 - 1) /; integer subtraction
-println(1.0 * 1.0) /; Output: 1
+println(1.0 * 1.0) /; Output: 1.0
 println("Hello"+ 2.0) /; Output: Hello2
 println(1 / 2) /; Output: 0.5
 println(3// 2) /; Output: 1
@@ -51,18 +49,19 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 |----------|----------------------------|
 | `&`      | Bitwise AND                |
 | `\|`      | Bitwise OR                 |
+| `~`      | Bitwise NOT                |
 | `^`      | Bitwise XOR                |
 
 ## Assignment Operators
 | Operator | Description                |
 |----------|----------------------------|
 | `=`      | Assignment                 |
-| `<-`     | Full Reassignment          |
+| `<-`     | Assignment (same as `=`)   |
 
 ## Miscellaneous Operators
 | Operator | Description                |
 |----------|----------------------------|
-| `;`      | Return Statement terminator       |
+| `;`      | Statement terminator       |
 | `,`      | Separator                  |
 | `/#`      | Multiline Comment Beginning                         |
 | `#/`      | Multiline Comment Ending                           |
@@ -80,3 +79,19 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 | `}`      | Close brace                 |
 | `[`      | Open bracket                |
 | `]`      | Close bracket               |
+
+## Operator Precedence
+
+Operators evaluate in this order, highest to lowest:
+
+| Precedence | Operators |
+|------------|-----------|
+| 1 (highest) | `()`, `[]`, `.`, `::` |
+| 2 | `-` (unary), `!`, `~`, `+` (unary) |
+| 3 | `*`, `/`, `//`, `%` |
+| 4 | `+`, `-` (binary) |
+| 5 | `&amp;lt;`, `&amp;lt;=`, `&amp;gt;`, `&amp;gt;=` |
+| 6 | `==`, `!=` |
+| 7 | `&amp;amp;&amp;amp;` |
+| 8 | `\|\|` |
+| 9 (lowest) | `=`, `&lt;-`, `+=`, `-=`, `*=`, `/=` |
