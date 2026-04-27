@@ -16,7 +16,7 @@ Flow-Wing supports 1D arrays.
 
 <CodeBlock code={
 `var arr: int[10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-for (var i = 0 to 9) {
+for (var i: int = 0 to 9 : 1) {
     print(arr[i])
 }
 `} language="fg"/>
@@ -26,6 +26,7 @@ for (var i = 0 to 9) {
 `1 2 3 4 5 6 7 8 9 10
 `} />
 
+> **Note:** The `: 1` step is the default and can be omitted: `for (var i: int = 0 to 9) { }`.
 
 ### Example Usage: With Objects
 
