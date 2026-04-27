@@ -62,7 +62,7 @@ In functions that return `nthg`, use **`return :`** (with a colon) for early exi
 1. **Build** a native executable with your **AOT** compiler, same as *Hello World*:
 
    ```bash
-   flowwing main.fg -o vortexdemo
+   flowwing main.fg -o vortexdemo 
    ./vortexdemo
    ```
 
