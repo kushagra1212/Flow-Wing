@@ -1,0 +1,8 @@
+if true { /; KEY_UP
+    let
+    x = 1
+}
+if true { /; with if name
+    let
+    y = 2
+}
