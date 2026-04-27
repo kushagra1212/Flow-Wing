@@ -4,6 +4,8 @@ title: Games and graphics (raylib)
 sidebar_label: Games and graphics (raylib)
 ---
 
+import CodeBlock from "../../src/components/common/CodeBlock";
+
 # Games and graphics (raylib)
 
 ## What to expect
@@ -20,8 +22,8 @@ If you are new to the toolchain, do *Getting Started → **Installation*** and *
 
 A minimal game window in Flow-Wing with raylib:
 
-```flowwing
-bring raylib
+<CodeBlock code={
+`bring raylib
 
 var window = raylib::initWindow(800, 600, "My Game")
 
@@ -33,7 +35,7 @@ while (!raylib::windowShouldClose(window)) {
 }
 
 raylib::closeWindow(window)
-```
+`} language="fg"/>
 
 Compile it by passing the **raylib** library to the linker:
 

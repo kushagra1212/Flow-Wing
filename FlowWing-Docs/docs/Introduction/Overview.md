@@ -2,11 +2,13 @@
 sidebar_position: 1
 ---
 
+import CodeBlock from "@site/src/components/common/CodeBlock";
+
 ### Flow-Wing Programming Language
 
-```flowwing
-print("Hello, World!")
-```
+<CodeBlock code={
+`print("Hello, World!")
+`} language="fg"/>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
     <img src={require('../../static/img/flowwing-icon.png').default} alt="Flow-Wing Logo" style={{ maxWidth: '100%', height: 'auto' }} />

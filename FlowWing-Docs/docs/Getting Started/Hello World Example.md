@@ -2,15 +2,17 @@
 sidebar_position: 2
 ---
 
+import CodeBlock from "../../src/components/common/CodeBlock";
+
 # Hello World
 
 ## 1. Create a small program
 
 Create a new file called **`main.fg`** in any folder and write this:
 
-```flowwing
-print("Hello World")
-```
+<CodeBlock code={
+`print("Hello World")
+`} language="fg"/>
 
 Use any editor. Flow-Wing source files use the **`.fg`** extension.
 
@@ -66,17 +68,17 @@ The short program above is only **top-level** code; you do not need a **`fg_main
 
 ### Using `fg_main`
 
-```flowwing
-fun fg_main() -> int {
+<CodeBlock code={
+`fun fg_main() -> int {
     print("Hello, World!")
     return 0
 }
-```
+`} language="fg"/>
 
 ### Command-line arguments with `sys::getArg`
 
-```flowwing
-bring sys
+<CodeBlock code={
+`bring sys
 
 fun fg_main() -> int {
     var count: int = sys::getArgCount()
@@ -85,4 +87,4 @@ fun fg_main() -> int {
     }
     return 0
 }
-```
+`} language="fg"/>
