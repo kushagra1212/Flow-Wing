@@ -9,6 +9,37 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 This documentation explains how to pass functions as arguments to other functions in the Flow-Wing programming language. This feature allows for greater flexibility and modularity in code design.
 
+## Function Type Syntax
+
+Flow-Wing represents function signatures with bracket notation:
+
+```
+[(param_types) -> return_type]
+```
+
+Examples:
+- `[(str) -> nthg]` — function taking a string, returning nothing
+- `[(int, int) -> int]` — function taking two ints, returning int
+- `[(int) -> bool]` — predicate function
+
+## Simple Callback Example
+
+Below is a simple example demonstrating a single-parameter callback:
+
+<CodeBlock code={
+`fun greet(name: str) -> nthg {
+    print("Hello, " + name)
+}
+
+fun runCallback(callback: [(str) -> nthg]) {
+    callback("World")
+}
+
+runCallback(greet)
+`} language="fg"/>
+
+Output: `Hello, World`
+
 ## Example Code
 
 Below is an example that demonstrates how to define and pass functions as arguments:
@@ -44,7 +75,7 @@ mainFunction(printX) /; Calling mainFunction with printX as the handler
   - `p`: A string to be printed.
   - `u`: A boolean value to be printed.
   - `callback`: A function that takes a string as an argument and returns nothing (`nthg`).
-- **Description**: This function prints the values of `x`, `y`, `p`, and `u`. It then calls the `callback` function with the string `"Hehe"`.
+- **Description**: This function prints the values of `x`, `y`, `p`, and `u`. It then calls the `callback` function with the string `"Hello"`.
 
 ### `printString`
 
