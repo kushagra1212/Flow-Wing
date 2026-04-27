@@ -36,7 +36,7 @@ The `deci` datatype is used to store floating-point numbers with decimal points.
 
 ### Properties:
 
-- **Precision**: Can handle a wide range of decimal values
+- **Precision**: `deci` is 64-bit (double precision). Use `deci32` (32-bit, single precision) only when memory is constrained.
 - **Usage**: Commonly used for financial calculations, scientific computations, and anywhere precision with decimals is required.
 
 ---
@@ -72,6 +72,16 @@ print(name, name[2])
 ### Properties:
 
 - **Usage**: Commonly used for text processing, displaying messages, and storing any form of textual data.
+
+### String Indexing
+
+Strings are 0-indexed. `name[i]` returns a `char` at position `i`:
+
+<CodeBlock code={
+`var name: str = "Flow"
+print(name[0])  // 'F'
+print(name[3])  // 'w'
+`} language="fg"/>
 
 ---
 
@@ -133,25 +143,16 @@ The `int8` datatype represents a 8-bit signed integer, used for storing small in
 
 ### Example usage
 
-For APIs that return **`Err::Result`**, you still check errors with **`isErr()`** / **`Err::isErr`**; do not use **`== null` / `!= null` on the result value** the way you would for a plain optional reference—the result object itself is not “null on error” in that pattern; follow the `Err` API.
-
 <CodeBlock code={
 `var n = null
 print(null == null, "\\n")
-
-bring file
-bring Err
-var text: str, err: Err::Result = file::readText("file.txt")
-if err.isErr() {
-    print(err.getMessage())
-} else {
-    print(text)
-}
 `} language="fg"/>
+
+See the [File Handling Module](../BuiltIn%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
 
 ### Properties
 
-- **Usage**: Absence of a value for object references, fields, and other nullable shapes; for multi-return APIs that use **`Err`**, use **`isErr()`** (see example above) instead of only testing **`null`**, unless the API is documented to use **`null` directly.
+- **Usage**: Absence of a value for object references, fields, and other nullable shapes. See the [File Handling Module](../BuiltIn%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
 
 ---
 
@@ -203,12 +204,10 @@ When you declare a variable **without** a type annotation, it becomes a **dynami
 ### Example Usage:
 
 <CodeBlock code={
-`var x = 10          // x is initially an int
-print(x)            // prints 10
-x = "hello"         // now x is a string
-print(x)            // prints hello
-x = 3.14            // now x is a decimal
-print(x)            // prints 3.14
+`var x = 42       // x is dyn, currently holds int
+print(x + 1)     // 43 — works, x acts as int
+x = "hello"      // x now holds str
+print(x + "world")  // helloworld — works, x acts as str
 `} language="fg"/>
 
 ### Properties:
