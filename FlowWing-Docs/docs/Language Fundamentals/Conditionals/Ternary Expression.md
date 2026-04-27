@@ -27,7 +27,7 @@ Hello
 
 
 
-Here, if first condition is true, `Hello` is printed. If first condition is false, `World` is printed.
+Here, if the first condition is true, `Hello` is printed. If the first condition is false, `World` is printed.
 
 The `+` operator binds tighter than `?:`. Use parentheses to make intent explicit.
 
@@ -37,8 +37,8 @@ The `+` operator binds tighter than `?:`. Use parentheses to make intent explici
 `var x: int = (43 == 43) ? 10 : 20
 `} language="fg"/>
 
-Here, if first condition is true, `10` is assigned to `x`. If first condition is false, `20` is assigned to `x`.
-<Toast message="It is recommended to use `(` and `)` around the condition to get expected results" title="Recommendation" type="info"/>
+Here, if the first condition is true, `10` is assigned to `x`. If the first condition is false, `20` is assigned to `x`.
+<Toast message="It is recommended to use `(` and `)` around the condition to get the expected results" title="Recommendation" type="info"/>
 
 <CodeBlock code={
 `// Without parentheses — the + may bind inside the false branch
