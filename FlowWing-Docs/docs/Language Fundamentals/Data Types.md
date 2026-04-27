@@ -148,11 +148,11 @@ The `int8` datatype represents a 8-bit signed integer, used for storing small in
 print(null == null, "\\n")
 `} language="fg"/>
 
-See the [File Handling Module](../BuiltIn%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
+See the [File Handling Module](../Built-in%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
 
 ### Properties
 
-- **Usage**: Absence of a value for object references, fields, and other nullable shapes. See the [File Handling Module](../BuiltIn%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
+- **Usage**: Absence of a value for object references, fields, and other nullable shapes. See the [File Handling Module](../Built-in%20Libraries/File%20Handling%20Module) for real-world `null` and `Err` patterns.
 
 ---
 
