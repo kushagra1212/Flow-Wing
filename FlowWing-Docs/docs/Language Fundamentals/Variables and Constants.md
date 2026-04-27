@@ -21,12 +21,12 @@ var _boolean: bool = true
 var someThing = "Hello, Flow-Wing!"
 `} language="fg"/>
 
-Here variable someThing is a `Dynamic Type Variable` that can be assigned any value. but its current value is `"Hello, Flow-Wing!"` which is a `string`.
+Here variable someThing is a `Dynamic Type Variable` that can be assigned any value, but its current value is `"Hello, Flow-Wing!"` which is a `string`.
 
 
-## Dynamically Allocated Variables
+## Typed Variables
 
-Variables in Flow-Wing can be `dynamically allocated`. This means that they can be assigned a value at runtime.
+Variables in Flow-Wing can be declared with a specific type and assigned a value at runtime.
 
 ### Example:
 <CodeBlock code={
@@ -63,11 +63,36 @@ print(person)
 
 Here numbers is an `array` of `int` with a default value of `[0, 0, 0, 0, 0]`.
 
+### Variable Scope
+
+Variables are scoped to the block `{ }` where they're declared:
+
+<CodeBlock code={
+`{
+    var x: int = 10
+    print(x)  // 10
+}
+// x is not accessible here — out of scope
+`} language="fg"/>
+
+Variables in outer scopes are accessible in inner scopes. Inner scopes can shadow outer variables with new declarations:
+
+<CodeBlock code={
+`var x: int = 10
+{
+    var x: int = 20  // shadows outer x
+    print(x)  // 20
+}
+print(x)  // 10
+`} language="fg"/>
+
 ## Constant Declaration
 
-Constants are immutable and cannot be changed after being assigned.
+Constants are immutable and cannot be changed after being assigned. Use `const` for values that never change — it helps the compiler optimize and prevents accidental reassignment:
 
 ### Example:
+
 <CodeBlock code={
-`const x: int = 2
+`const maxUsers: int = 100
+// maxUsers = 200  // Error: cannot reassign constant
 `} language="fg"/>
