@@ -25,7 +25,7 @@
 # from the '/cmake' directory to configure the build process.
 # =============================================================================
 cmake_minimum_required(VERSION 3.29)
-project(FlowWing VERSION 0.0.2 LANGUAGES C CXX)
+project(FlowWing VERSION 0.0.4 LANGUAGES C CXX)
 
 # Install prefix for release builds - baked into compiler binary at compile time
 set(FLOWWING_INSTALL_PREFIX ""

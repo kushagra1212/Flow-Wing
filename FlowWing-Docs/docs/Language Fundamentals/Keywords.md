@@ -29,7 +29,8 @@ Flow-Wing programming language supports the following keywords:
 | `bool`    | Boolean type                               |
 | `unknown` | Represents an unknown type                 |
 | `str`     | String type                                |
-| `deci`    | Decimal type                               |
+| `char`    | Character type (single Unicode character)  |
+| `deci`    | Decimal type (64-bit)                      |
 | `deci32`  | 32-bit decimal type                        |
 | `null`    | Null value; type of the null literal       |
 | `bring`   | Import or bring a module                   |

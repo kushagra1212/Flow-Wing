@@ -27,7 +27,7 @@ You now have the **AOT** compiler (build a native app from **`.fg`**) and the **
 | **Windows 64-bit** | **`.exe` installer** or the **windows-x86_64** **`.zip`** |
 | **Linux 64-bit (x86_64)** | **`.deb`** (where that fits your distro) or the **linux-x86_64** **`.zip`** |
 
-Release assets are named with the **version tag** (for example **`FlowWing-v0.0.3-macos-arm64.pkg`**)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
+Release assets are named with the **version tag** (for example **`FlowWing-v0.0.4-macos-arm64.pkg`**)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
 
 A full **SDK** install gives you the **`bin`** tools (**`flowwing` / `FlowWing`**, **`flowwing-jit` / `FlowWing-jit`**) plus **`lib/modules/`** (standard **`.fg` library**) and the pieces the compiler needs to **link** AOT output on your machine, without you installing **LLVM** yourself for normal use.
 
@@ -35,7 +35,9 @@ A full **SDK** install gives you the **`bin`** tools (**`flowwing` / `FlowWing`*
 
 ## Build from source (developers)
 
-For a full clone of the [Flow-Wing](https://github.com/kushagra1212/Flow-Wing) repository you need **LLVM 17**, a C/C++ toolchain, and **Python 3** (for tests and scripts). From the repo root:
+For a full clone of the [Flow-Wing](https://github.com/kushagra1212/Flow-Wing) repository you need a C/C++ toolchain and **Python 3** (for tests and scripts). **LLVM 17 is downloaded and built automatically** by the first `make` step — you do not need to install it separately. On **macOS** also install `automake`, `autoconf`, and `libtool` (`brew install automake autoconf libtool`); on **Linux** use `apt-get install automake autoconf libtool`.
+
+From the repo root:
 
 ```bash
 make deps-install-debug
@@ -44,7 +46,7 @@ make build-aot-debug       # or: make build-jit-debug
 
 The compiler is staged at **`build/sdk/bin/FlowWing`**. See the **Hello World** page for **`make run-aot-debug`** and **`make run-jit-debug`**, and the main repo’s **`AGENTS.md`** for more **make** targets and conventions.
 
-**Release / installer style builds** (what produces the public installers) use other **`make release-…`** and **`deps-install-release`** steps—that is for maintainers; details are in the section below.
+**Release / installer style builds** (what produces the public installers) use the **Release** dependency target and the **`release-aot`** / **`release-jit`** make targets with `RELEASE_INSTALL_PREFIX` — that workflow is for maintainers; details are in the section below.
 
 ## Details (CI, release workflow, and file naming)
 
