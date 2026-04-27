@@ -74,9 +74,8 @@ const config: Config = {
         redirects: [
           { from: "/docs/Language%20Fundamentals/Comments/Single%20Line%20Comment", to: "/docs/Language%20Fundamentals/Comments/" },
           { from: "/docs/Language%20Fundamentals/Comments/Multi%20Line%20Comment", to: "/docs/Language%20Fundamentals/Comments/" },
-          { from: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects/Objects", to: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects/" },
-          { from: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects/Custom%20Types", to: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects/" },
-          { from: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects", to: "/docs/Language%20Fundamentals/Custom%20Type%20and%20Objects/" },
+          { from: "/docs/Language%20Fundamentals/Custom%20Types%20and%20Objects/Custom%20Types", to: "/docs/Language%20Fundamentals/Custom%20Types%20and%20Objects/" },
+          { from: "/docs/Language%20Fundamentals/Custom%20Types%20and%20Objects/Objects", to: "/docs/Language%20Fundamentals/Custom%20Types%20and%20Objects/" },
         ],
       },
     ],
