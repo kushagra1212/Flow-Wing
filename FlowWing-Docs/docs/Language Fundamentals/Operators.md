@@ -41,6 +41,7 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 ## Logical Operators
 | Operator | Description                |
 |----------|----------------------------|
+| `!`      | Logical NOT                |
 | `&&`     | Logical AND                |
 | `\|\|`     | Logical OR                 |
 
@@ -57,6 +58,10 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 |----------|----------------------------|
 | `=`      | Assignment                 |
 | `<-`     | Assignment (same as `=`)   |
+| `+=`     | Add and assign             |
+| `-=`     | Subtract and assign        |
+| `*=`     | Multiply and assign        |
+| `/=`     | Divide and assign          |
 
 ## Miscellaneous Operators
 | Operator | Description                |
@@ -69,6 +74,7 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 | `:`      | Label or case separator     |
 | `.`      | Member access operator      |
 | `?`      | Ternary conditional operator |
+| `::`     | Scope resolution / module access |
 
 ## Parentheses and Brackets
 | Operator | Description                |
@@ -90,8 +96,12 @@ Operators evaluate in this order, highest to lowest:
 | 2 | `-` (unary), `!`, `~`, `+` (unary) |
 | 3 | `*`, `/`, `//`, `%` |
 | 4 | `+`, `-` (binary) |
-| 5 | `&amp;lt;`, `&amp;lt;=`, `&amp;gt;`, `&amp;gt;=` |
+| 5 | `<`, `<=`, `>`, `>=` |
 | 6 | `==`, `!=` |
-| 7 | `&amp;amp;&amp;amp;` |
-| 8 | `\|\|` |
-| 9 (lowest) | `=`, `&lt;-`, `+=`, `-=`, `*=`, `/=` |
+| 7 | `&` |
+| 8 | `^` |
+| 9 | `\|` |
+| 10 | `&&` |
+| 11 | `\|\|` |
+| 12 | `?:` (ternary) |
+| 13 (lowest) | `=`, `<-`, `+=`, `-=`, `*=`, `/=` |
