@@ -27,6 +27,43 @@ callS(88)
 
 The sample **`choosy_lib.fg`** uses **`expose`** on **`x`**, **`callS`**, **types**, **…** so those names are **visible** here. A file with **no** **`expose`** is still a normal **source** file; the story for **picking a subset** of names is *Choosy imports* in this section.
 
+Here is **`choosy_lib.fg`** in full so you can see how a library file is structured:
+
+<CodeBlock code={
+`expose var x: int = 2
+
+expose type TB = {
+  s: str
+}
+
+expose type T = {
+  a: int,
+  b: TB[2]
+}
+
+expose var k: T = {}
+
+expose var j: T[2]
+
+expose class A {
+  var x: int
+  var y: T
+  init(y: T) -> nthg {
+    self.y = y
+  }
+  printY() -> nthg {
+    print(self.y)
+  }
+}
+
+expose fun callS(x: int) -> nthg {
+  var aF: A = new A({b: [{s: "Hello"}]})
+  print("Printing af ", aF.y)
+  print("Printing k ", k)
+  print("Print local x", x)
+}
+`} language="fg"/>
+
 ## “Whole file” vs choosy
 
 - **Whole file (default story):** **`bring "file.fg"`** — you rely on the **other** file’s **expose** list (or the module / visibility rules in your build).
@@ -92,6 +129,8 @@ g.printY()
 > **Heads-up:** the first block is a **template** of a **self-contained** library file. The second block is wired to the **real** **`choosy_lib.fg`** in **this** repo. When you **split** a real app into **`dependencies.fg` + `app.fg`**, add the right **`bring`** and **`expose`**s so names **match** your **binder** rules.
 
 **Modules** ( **`module [name]`** ) are a **separate** **namespacing** feature—see *Creating and using modules*.
+
+> **Circular imports:** avoid bringing files that (transitively) bring the file that started the chain — the binder will error on unresolved names. If you need shared types across files that reference each other, extract the shared types into a third file and bring that from both sides.
 
 ## Source & tests (if you have the repository)
 

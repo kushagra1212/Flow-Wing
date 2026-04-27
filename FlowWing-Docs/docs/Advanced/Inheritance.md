@@ -53,44 +53,10 @@ class Car extends Vehicle {
 
 ## Use the same function for `Vehicle` and `Car` (polymorphism)
 
-A parameter typed as **`Vehicle`** can receive a **`Car`**: the **right** `printDetails` and **`getDetails`** run for the **real** object.
+A parameter typed as **`Vehicle`** can receive a **`Car`**: the **right** `printDetails` and **`getDetails`** run for the **real** object. The `Vehicle` and `Car` classes are the same as above (**`...`** ):
 
 <CodeBlock code={
-`class Vehicle {
-    var make:str
-    var model:str
-    var year:int
-
-    init(make:str, model:str, year:int) -> nthg {
-        self.make = make
-        self.model = model
-        self.year = year
-    }
-
-    getDetails() -> str {
-        return self.year + " " + self.make + " " + self.model
-    }
-
-    printDetails() -> nthg {
-        print("Vehicle: ", self.getDetails())
-    }
-}
-
-class Car extends Vehicle {
-    var doors: int
-    init(make: str, model: str, year: int, doors: int) -> nthg {
-        super(make, model, year)
-        self.doors = doors
-    }
-
-    getDetails() -> str {
-        return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
-    }
-
-    printDetails() -> nthg {
-        print("Car: ", self.getDetails())
-    }
-}
+`/* ... Vehicle and Car classes as defined above ... */
 
 fun printVehicleDetails(v: Vehicle) -> nthg {
     v.printDetails()
@@ -109,7 +75,7 @@ fg_main()
 
 ## More detail: `super`, overrides, and design
 
-- Call **`super(…)`** in **`init`** so **parent** state is set before you assign **subclass** fields.
+- Call **`super(…)`** in **`init`** so **parent** state is set before you assign **subclass** fields. **`super`** can only be used inside **`init`** — it calls the base class constructor and is not available in regular methods.
 - **Override** by redeclaring a **method** in the child; **return types** and **signatures** must stay compatible with the **language** rules in your build.
 - **No multiple inheritance** of classes—only one **`extends`** chain; use **composition** (hold another object as a field) for “mix in” style patterns.
 

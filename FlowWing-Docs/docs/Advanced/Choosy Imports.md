@@ -46,48 +46,9 @@ g.printY()
 
 Everything you list in **`{ … }`** must appear as **`expose var`**, **`expose type`**, **`expose class`**, or **`expose fun`** in the **brought** file. **Order** in **`{ ... }`** does not matter. You **cannot** choosy-import a name the library does **not** **expose** (you would get a **binder** error).
 
-**Illustration** of a “fat” library (many **`expose`**) — same **`choosy_lib`** idea, shown here as a **fictive** `dependencies.fg` style for teaching **structure**; your real file should **match** the names you list in **`bring { … }`**:
+For a **self-contained library example** (with many **`expose`** declarations) see the **`choosy_lib.fg`** listing and the **`dependencies.fg`** pattern on the *Bring (import and exports)* page — they show the full file structure.
 
-<CodeBlock code={
-`expose var globalCount:int = 2
-
-expose type StringWrapper = {
-    value:str
-}
-
-expose type ComplexType = {
-    id:int,
-    data:StringWrapper[2]
-}
-
-expose var defaultComplexType:ComplexType = {}
-
-expose var complexTypeArray:ComplexType[2]
-
-expose class Printer {
-    var count:int
-    var complexData:ComplexType
-
-    init(complexData:ComplexType) -> nthg {
-        self.complexData = complexData
-    }
-
-    printData() -> nthg {
-        print(self.complexData)
-    }
-}
-
-expose fun handleData(input:int) -> nthg {
-    var printerInstance:Printer = new Printer({data:[{value:"Hello"}]})
-    print("Printer Instance Data: ", printerInstance.complexData)
-
-    print("Global Default Complex Type: ", defaultComplexType)
-
-    print("Input Value: ", input)
-}
-`} language="fg"/>
-
-(That block is a **self-contained** pattern example; it is **not** the same text as **`choosy_lib.fg`** in this repo—use it as a **template** for your own **expose**s.)
+> **Same-named symbols across files:** if two brought files both **`expose`** a function or variable with the same name, the binder will report an ambiguity. Use **choosy imports** to pick the specific name from the file you intend, or qualify names under a **`module [name]`** namespace.
 
 ## Source & tests (if you have the repository)
 
