@@ -10,7 +10,7 @@ sidebar_label: Games and graphics (raylib)
 
 **Flow-Wing** can drive **2D/3D games and apps** the same way you would from C: you **`bring raylib`** in your **`.fg`** source, and you pass **native link options** to the **Flow-Wing** compiler (library search path **`-L`**, system library **`-l`**, and on **macOS** often **`--framework`** for GL/windowing). The **`raylib`** you use is the one **installed on your machine**; the language ships the **module bindings**, not a copy of the game engine.
 
-1. **Install** the compiler and (separately) a **raylib** build for your OS—see the main repo **[INSTALL](https://github.com/kushagra1212/Flow-Wing/blob/master/docs/INSTALL.md)** and your platform’s **raylib** install guide.
+1. **Install** the compiler and (separately) a **raylib** build for your OS—see the main repo **[INSTALL](https://github.com/kushagra1212/Flow-Wing/blob/main/docs/INSTALL.md)** and your platform’s **raylib** install guide.
 2. In code: **`bring raylib`**, then create a **`raylib::Window`**, run an **update / draw** loop, load textures and handle input the way the **`raylib`** module exposes in Flow-Wing.
 3. On the **command line:** compile with the same **`-L` / `-l`** (and **frameworks** on Mac) you would use for a small **C + raylib** program. All flags are in *Language Fundamentals → **Flow-Wing CLI***.
 
@@ -68,4 +68,4 @@ If linking fails, the issue is almost always **raylib not found** or **missing s
 
 - *Language Fundamentals → **Flow-Wing CLI*** — **`-L`**, **`-l`**, **`--framework`**
 - *Getting Started → **Installation*** — a working **bin** and **lib/modules** layout
-- *Advance* topics on **`bring`**, **modules**, and **objects** for larger games
+- **Advanced** topics on **`bring`**, **modules**, and **objects** for larger games

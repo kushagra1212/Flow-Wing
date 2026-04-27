@@ -1,0 +1,8 @@
+{
+  "label": "Comments",
+  "position": 8,
+  "link": {
+    "type": "generated-index",
+    "description": "Single-line and multi-line comments in Flow-Wing."
+  }
+}

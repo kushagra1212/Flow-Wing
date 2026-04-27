@@ -5,7 +5,7 @@ sidebar_position: 2
 High-level capabilities of **Flow-Wing** as a language:
 
 - **Static typing** — built-in types such as `int` (32-bit by default in typical programs), `deci` / `deci32`, `str`, `bool`, and more; class types; `bring` for code and modules; `var` and containers with inference and reassignment as defined by the language.
-- **Object-oriented programming** — classes, `extends`, `init`, methods; see *Language Fundamentals → Classes* and *Advance → Inheritance*.
+- **Object-oriented programming** — classes, `extends`, `init`, methods; see *Language Fundamentals → Classes* and **Advanced** → *Inheritance*.
 - **AOT and JIT** — a normal install may include an **AOT** compiler (compile to a native executable you run) and/or a **JIT**-style tool that runs a `.fg` file in one step. Which binary you have depends on your build or package. See *Flow-Wing CLI* and *Getting Started*.
 - **Heap memory** — the runtime uses **Boehm GC** for ordinary heap allocation at the source level; you do not pair every allocation with a manual `free` in user code the way you would in C.
 - **Modules and native linking** — `bring` for Flow-Wing modules; the compiler CLI supports **`-L`**, **`-l`**, and on macOS **`--framework`** for native libraries.

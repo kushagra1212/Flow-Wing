@@ -152,3 +152,68 @@ if err.isErr() {
 ### Properties
 
 - **Usage**: Absence of a value for object references, fields, and other nullable shapes; for multi-return APIs that use **`Err`**, use **`isErr()`** (see example above) instead of only testing **`null`**, unless the API is documented to use **`null` directly.
+
+---
+
+## 9. 64-bit Integer Data Type (`int64`)
+
+The `int64` datatype represents a 64-bit signed integer. Use the **`l` suffix** on literals to explicitly create an `int64` value.
+
+### Example Usage:
+
+<CodeBlock code={
+`var big: int64 = 10000000000l
+var small: int64 = -42l
+`} language="fg"/>
+
+### Properties:
+
+- **Range**: -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
+- **Default Value**: 0
+- **Literal suffix**: `l` (e.g., `100l`, `-1l`)
+- **Usage**: When 32-bit integers are not enough—large counters, timestamps, file sizes.
+
+---
+
+## 10. Character Data Type (`char`)
+
+The `char` datatype represents a single **Unicode character**, written with single quotes.
+
+### Example Usage:
+
+<CodeBlock code={
+`var letter: char = 'A'
+var emoji: char = '🚀'
+print(letter, " ", emoji)
+`} language="fg"/>
+
+### Properties:
+
+- **Literal syntax**: Single-quoted: `'a'`, `'9'`, `'ñ'`, `'🚀'`
+- **Escape sequences**: `\n`, `\t`, `\'`, `\\`
+- **Conversion**: Use `Char(65)` to convert an integer codepoint, or `Char("X")` to extract the first character of a string.
+- **Usage**: Individual characters, text processing, codepoint arithmetic.
+
+---
+
+## 11. Dynamic Type (`dyn` / `unknown`)
+
+When you declare a variable **without** a type annotation, it becomes a **dynamic** variable. The keyword `unknown` is the compile-time type for such values. A dynamic variable can hold **any value** and can **change its type** at runtime.
+
+### Example Usage:
+
+<CodeBlock code={
+`var x = 10          // x is initially an int
+print(x)            // prints 10
+x = "hello"         // now x is a string
+print(x)            // prints hello
+x = 3.14            // now x is a decimal
+print(x)            // prints 3.14
+`} language="fg"/>
+
+### Properties:
+
+- **Declaration**: `var name = value` — no type annotation needed
+- **All operations** work dynamically: `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`, `!`, `~`
+- **Type conversions**: Use `Int32()`, `String()`, `Decimal()`, `Bool()`, `Char()`, `Int64()`, `Int8()`, `Decimal32()` to explicitly convert
+- **Usage**: Scripting-style code, heterogeneous collections, prototyping.

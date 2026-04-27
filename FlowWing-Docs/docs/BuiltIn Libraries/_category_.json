@@ -1,0 +1,8 @@
+{
+  "label": "Built-In Libraries",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Standard library modules: Vec, Text, Map, File, Err, Sys, IO, and JSON."
+  }
+}
