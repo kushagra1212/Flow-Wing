@@ -181,13 +181,19 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
         arg_slot =
             m_ir_gen_context.createAlloca(builder->getPtrTy(), "obj_arg_slot");
 
-        if (llvm::isa<llvm::AllocaInst>(m_last_value) ||
-        llvm::isa<llvm::GlobalVariable>(m_last_value)
-        ||
-        llvm::isa<llvm::GetElementPtrInst>(m_last_value) 
-        ||
-        llvm::isa<llvm::GEPOperator>(m_last_value)||
-                   (llvm::isa<llvm::GetElementPtrInst>(m_last_value ) && param_raw_type->getKind() == types::TypeKind::kClass)) {
+        bool is_inline_array_object = false;
+        if (auto *gep = llvm::dyn_cast<llvm::GEPOperator>(m_last_value)) {
+          if (gep->getSourceElementType()->isArrayTy() &&
+              m_last_type->getKind() == types::TypeKind::kObject) {
+            is_inline_array_object = true;
+          }
+        }
+
+        if ((llvm::isa<llvm::AllocaInst>(m_last_value) ||
+             llvm::isa<llvm::GlobalVariable>(m_last_value) ||
+             llvm::isa<llvm::GetElementPtrInst>(m_last_value) ||
+             llvm::isa<llvm::GEPOperator>(m_last_value)) &&
+            !is_inline_array_object) {
           // Member field holding a class reference: m_last_value is the field
           // address (e.g. GEP to `c` in `self.c.bump()`), not the heap pointer.
           val = builder->CreateLoad(m_ir_gen_context.getTypeBuilder()
