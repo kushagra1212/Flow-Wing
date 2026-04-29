@@ -688,7 +688,7 @@ void SourceFormatter::emitLeadingTrivia(const syntax::SyntaxToken *t) {
             m_buf.text.back() == '\n' &&
             commentTriviaIsFirstInLineInLeading(t, tr.get())) {
           const char c = outLastNonSpaceChar(m_buf.text);
-          if (c == ')' || c == ']') {
+          if (c == ')' || c == ']' || c == '{') {
             while (!m_buf.text.empty() &&
                    (m_buf.text.back() == '\n' || m_buf.text.back() == '\r')) {
               m_buf.text.pop_back();
