@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,13 +119,12 @@ FunctionTypeExpressionSyntax::getChildren() const {
         m_children.emplace_back(
             m_as_parameter_keywords_table.at(parameter_count));
       }
-      parameter_count++;
       m_children.emplace_back(parameterType.get());
-    }
-
-    for (auto &parameterCommaToken : m_parameter_comma_tokens) {
-      if (parameterCommaToken)
-        m_children.emplace_back(parameterCommaToken);
+      if (parameter_count < m_parameter_comma_tokens.size() &&
+          m_parameter_comma_tokens[parameter_count]) {
+        m_children.emplace_back(m_parameter_comma_tokens[parameter_count]);
+      }
+      parameter_count++;
     }
 
     for (const auto *node : {
