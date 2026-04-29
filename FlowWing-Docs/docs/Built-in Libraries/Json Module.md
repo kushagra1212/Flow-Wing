@@ -44,7 +44,7 @@ var user: json::JsonNode = json::newObject()
     .put("name", json::newString("Alice"))
     .put("age", json::newNumber(30))
 
-var address = json::newObject()
+var address: json::JsonNode = json::newObject()
     .put("city", json::newString("New York"))
     .put("zip", json::newString("10001"))
 
@@ -75,14 +75,14 @@ Parse a JSON string into a `JsonNode` tree:
 <CodeBlock code={
 `bring json
 
-var raw: str = '{"x":10,"y":[1,2,3],"ok":true}'
+var raw: str = "{\"x\":10,\"y\":[1,2,3],\"ok\":true}"
 var root: json::JsonNode = json::parse(raw)
 
 println("x = ", root.get("x").numVal)
 println("y[0] = ", root.get("y").getAt(0).numVal)
 `} language="fg"/>
 
-> **Note on string literals:** Single quotes (`'...'`) can be used for JSON string literals to avoid escaping double quotes. Both `'{"key":"val"}'` and `"{\\"key\\":\\"val\\"}"` are valid.
+> **Note on string literals:** Flow-Wing uses double quotes for strings. Escape inner double quotes with backslash when embedding JSON: `"{\"key\":\"val\"}"`.
 
 ## Factory functions
 

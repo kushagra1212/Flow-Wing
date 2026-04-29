@@ -1,0 +1,8 @@
+fun add(x: int, y: int) -> int {
+    return x + y
+}
+fun apply(op: [(int, int) -> int], a: int, b: int) -> int {
+    return op(a, b)
+}
+var result: int = apply(add, 3, 4)
+print(result)

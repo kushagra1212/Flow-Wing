@@ -61,7 +61,8 @@ This pattern replaces long `if`/`else if` chains when each case tests a differen
 Unlike some languages, Flow-Wing switch cases **do not fall through**. Each case block is self-contained — no `break` needed between cases:
 
 <CodeBlock code={
-`switch x {
+`var x: int = 1
+switch x {
     case 1: {
         print("one")
     }
@@ -74,7 +75,11 @@ Unlike some languages, Flow-Wing switch cases **do not fall through**. Each case
 Both cases are independent. The `break` keyword exits the entire switch early, useful inside nested loops:
 
 <CodeBlock code={
-`while (true) {
+`fun getInput() -> str {
+    return "quit"
+}
+
+while (true) {
     switch getInput() {
         case "quit": {
             break  /; exits the switch, not the while

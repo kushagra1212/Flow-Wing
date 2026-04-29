@@ -25,16 +25,14 @@ A minimal game window in Flow-Wing with raylib:
 <CodeBlock code={
 `bring raylib
 
-var window = raylib::initWindow(800, 600, "My Game")
+var window: raylib::Window = new raylib::Window(800, 600, "My Game")
 
-while (!raylib::windowShouldClose(window)) {
-    raylib::beginDrawing()
-    raylib::clearBackground(raylib::RAYWHITE)
-    raylib::drawText("Hello from Flow-Wing!", 190, 200, 20, raylib::LIGHTGRAY)
-    raylib::endDrawing()
+while (!window.shouldClose()) {
+    window.begin()
+    window.clear(new raylib::Color(245, 245, 245, 255))
+    window.drawText("Hello from Flow-Wing!", 190, 200, 20, new raylib::Color(200, 200, 200, 255))
+    window.end()
 }
-
-raylib::closeWindow(window)
 `} language="fg"/>
 
 Compile it by passing the **raylib** library to the linker:

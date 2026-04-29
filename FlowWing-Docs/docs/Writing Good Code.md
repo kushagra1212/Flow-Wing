@@ -21,12 +21,15 @@ import CodeBlock from "../src/components/common/CodeBlock";
 <CodeBlock code={
 `/; Good
 var userName: str = "Alice"
-type Point = { x: int; y: int }
-class HttpClient { }
+type Point = { x: int, y: int }
+class HttpClient {
+    init() -> nthg {
+    }
+}
 
 /; Avoid
 var un: str = "Alice"
-type point = { X: int; Y: int }
+type point = { X: int, Y: int }
 `} language="fg"/>
 
 ## File Organization
@@ -41,12 +44,19 @@ type point = { X: int; Y: int }
 Always check `Err::Result` return values:
 
 <CodeBlock code={
-`var ok: bool, werr: Err::Result = file::readText("data.txt")
-if (werr.isErr()) {
-    printErrorLog("Failed: " + werr.getMessage())
-    return :
+`bring file
+bring Err
+
+fun loadData() -> nthg {
+    var content: str, werr: Err::Result = file::readText("data.txt")
+    if (werr.isErr()) {
+        println("Failed: " + werr.getMessage())
+        return :
+    }
+    /; use content ...
 }
-/; use ok ...
+
+loadData()
 `} language="fg"/>
 
 ## Debugging

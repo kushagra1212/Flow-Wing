@@ -16,10 +16,10 @@ Flow-Wing is **statically typed**, **case-sensitive**, and **whitespace-insensit
 ## Basic Structure
 
 <CodeBlock code={`/; Imports
-bring someModule
+bring io
 
 /; Types
-type Point = { x: int; y: int }
+type Point = { x: int, y: int }
 
 /; Functions
 fun greet(name: str) -> nthg {

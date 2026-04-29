@@ -21,14 +21,16 @@ This creates a 2×3 grid of integers.
 ## Access and Modification
 
 <CodeBlock code={
-`print(grid[0][1])  /; 2 — first row, second column
+`var grid: int[2][3] = [[1, 2, 3], [4, 5, 6]]
+print(grid[0][1])  /; 2 - first row, second column
 grid[1][0] = 10     /; modify an element
 `} language="fg"/>
 
 ## Iteration
 
 <CodeBlock code={
-`for (var i: int = 0 to 1 : 1) {
+`var grid: int[2][3] = [[1, 2, 3], [4, 5, 6]]
+for (var i: int = 0 to 1 : 1) {
     for (var j: int = 0 to 2 : 1) {
         print(grid[i][j])
     }
