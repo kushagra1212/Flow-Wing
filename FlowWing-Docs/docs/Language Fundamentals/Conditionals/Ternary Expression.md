@@ -41,8 +41,12 @@ If the condition is true, `10` is assigned. Otherwise `20`.
 Parentheses around the condition are optional. Use them for readability:
 
 <CodeBlock code={
-`var r = a > b ? a + 1 : b + 1        /; works
-var r = (a > b) ? (a + 1) : (b + 1)  /; also works, clearer
+`var a: int = 10
+var b: int = 5
+var r = a > b ? a + 1 : b + 1        /; works
+var r2 = (a > b) ? (a + 1) : (b + 1)  /; also works, clearer
+print(r)
+print(r2)
 `} language="fg"/>
 
 ## Returning from Functions

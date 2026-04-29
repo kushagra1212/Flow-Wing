@@ -58,7 +58,41 @@ class Car extends Vehicle {
 A parameter typed as **`Vehicle`** happily accepts a **`Car`**. The **right** `printDetails` and **`getDetails`** run for the **real** object. (The `Vehicle` and `Car` classes are the same as above — `...` shortened for readability.)
 
 <CodeBlock code={
-`/# ... Vehicle and Car classes as defined above ... #/
+`class Vehicle {
+    var make:str
+    var model:str
+    var year:int
+
+    init(make:str, model:str, year:int) -> nthg {
+        self.make = make
+        self.model = model
+        self.year = year
+    }
+
+    getDetails() -> str {
+        return self.year + " " + self.make + " " + self.model
+    }
+
+    printDetails() -> nthg {
+        print("Vehicle: ", self.getDetails())
+    }
+}
+
+class Car extends Vehicle {
+    var doors: int
+    init(make: str, model: str, year: int, doors: int) -> nthg {
+        super(make, model, year)
+        self.doors = doors
+    }
+
+    getDetails() -> str {
+        return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
+    }
+
+    printDetails() -> nthg {
+        print("Car: ", self.getDetails())
+    }
+}
 
 fun printVehicleDetails(v: Vehicle) -> nthg {
     v.printDetails()

@@ -35,12 +35,12 @@ fun fg_main() -> nthg {
   var err: Err::Result = app.listen(8080)
   if Err::isErr(err) {
     println(err.getMessage())
-    return:
+    return :
   }
-  /; One request for a short demo—use a loop in production
+  /; One request for a short demo-use a loop in production
   var req: vortex::Request, res: vortex::Response = app.accept()
   if req == null {
-    printErrorLog("Failed to accept connection")
+    println("Failed to accept connection")
     return :
   }
   if req.getMethod() == "GET" && req.getPath() == "/" {
