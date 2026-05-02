@@ -1,1 +1,13 @@
-println("Hello World")
+class A {
+    var x: int
+    init(x: int) {
+        self.x = x
+    }
+}
+type T = {
+    b: int
+}
+var t2: T = {b: 2}
+var t3: T = {b: 3}
+var a: T = 2 != 2 ? t2 : t3
+println("A: ", a)

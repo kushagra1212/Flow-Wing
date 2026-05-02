@@ -102,8 +102,11 @@ void IRGenerator::visit(binding::BoundTernaryExpression *ternary_expression) {
 
   llvm::Type *llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(result_type);
-  if (result_type->getKind() == types::TypeKind::kObject) {
-    llvm_type = true_val->getType();
+
+  if (result_type->getKind() == types::TypeKind::kClass) {
+        llvm_type = llvm_type->getPointerTo();
+  } else if (result_type->getKind() == types::TypeKind::kObject) {
+        llvm_type = true_val->getType();
   }
   llvm::PHINode *phi = builder->CreatePHI(llvm_type, 2, "ternary.result");
   phi->addIncoming(true_val, then_block_for_phi);
