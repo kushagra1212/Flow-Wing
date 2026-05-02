@@ -1,5 +1,5 @@
 /; from LatestTests/ModuleTests/01 + FunctionTests/05_inout (messy, single file)
-module[m]
+module [m]
 var secret: int = 40
 fun bump(inout x: int) -> nthg {
     x = x + 1

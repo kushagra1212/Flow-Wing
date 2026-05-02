@@ -1,0 +1,7 @@
+/; Space after `module` before `[` must be preserved (and inserted if missing).
+
+module [custom]
+
+module[tight]
+
+var x: int = 0
