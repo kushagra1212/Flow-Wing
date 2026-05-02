@@ -1,0 +1,62 @@
+bring raylib
+bring {SCREEN_WIDTH, SCREEN_HEIGHT } from "./Constants.fg"
+bring {RacingGame } from "./Game.fg"
+expose fun drawHUD(win: raylib::Window, game: RacingGame) -> nthg {
+    var hudY: int = SCREEN_HEIGHT - 130
+    var cCarbonBG: raylib::Color = new raylib::Color(20, 20, 25, 255)
+    var cMetal: raylib::Color = new raylib::Color(100, 110, 120, 255)
+    var cNeonBlue: raylib::Color = new raylib::Color(0, 255, 255, 255)
+    var cNeonYellow: raylib::Color = new raylib::Color(255, 255, 0, 255)
+    var cNeonGreen: raylib::Color = new raylib::Color(0, 255, 0, 255)
+    var cNeonRed: raylib::Color = new raylib::Color(255, 50, 50, 255)
+    win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(hudY)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 130.0f), cCarbonBG)
+    win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(hudY)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 6.0f), cMetal)
+    win.drawRectangle(new raylib::Vec2(30.0f, Decimal32(hudY + 20)), new raylib::Vec2(220.0f, 90.0f), new raylib::Color(5, 10, 15, 255))
+    var speedKmh: int = Int32(game.speed / 8.0f)
+    win.drawText(String(speedKmh), 50, hudY + 40, 50, cNeonBlue)
+    win.drawText("KM/H", 160, hudY + 60, 20, cMetal)
+    win.drawRectangle(new raylib::Vec2(270.0f, Decimal32(hudY + 20)), new raylib::Vec2(300.0f, 90.0f), new raylib::Color(5, 10, 15, 255))
+    win.drawText("SCORE: " + String(game.score), 290, hudY + 35, 25, cNeonYellow)
+    var topScore: int = (game.score > game.highScore) ? game.score : game.highScore
+    win.drawText("HIGH : " + String(topScore), 290, hudY + 70, 25, cMetal)
+    var barX: deci32 = 600.0f
+    var barY: deci32 = Decimal32(hudY + 20)
+    win.drawRectangle(new raylib::Vec2(barX, barY), new raylib::Vec2(400.0f, 90.0f), new raylib::Color(5, 10, 15, 255))
+    win.drawText("HULL INTEGRITY", Int32(barX) + 20, Int32(barY) + 10, 15, cMetal)
+    var hpColor: raylib::Color = (game.health > 50.0f) ? cNeonGreen : ((game.health > 20.0f) ? cNeonYellow : cNeonRed)
+    var hpWidth: deci32 = (game.health / 100.0f) * 360.0f
+    if hpWidth < 0.0f {
+        hpWidth = 0.0f
+    }
+    win.drawRectangle(new raylib::Vec2(barX + 20.0f, barY + 35.0f), new raylib::Vec2(360.0f, 35.0f), new raylib::Color(30, 40, 50, 255))
+    win.drawRectangle(new raylib::Vec2(barX + 20.0f, barY + 35.0f), new raylib::Vec2(hpWidth, 35.0f), hpColor)
+}
+expose fun drawMenu(win: raylib::Window, game: RacingGame) -> nthg {
+    win.drawRectangle(new raylib::Vec2(0.0f, 0.0f), new raylib::Vec2(Decimal32(SCREEN_WIDTH), Decimal32(SCREEN_HEIGHT)), new raylib::Color(0, 0, 0, 180))
+    var titleWidth: int = win.measureText("NEON RACER", 80)
+    win.drawText("NEON RACER", Int32((SCREEN_WIDTH - titleWidth) / 2), 200, 80, new raylib::Color(0, 255, 255, 255))
+    var hsWidth: int = win.measureText("HIGH SCORE: " + String(game.highScore), 30)
+    win.drawText("HIGH SCORE: " + String(game.highScore), Int32((SCREEN_WIDTH - hsWidth) / 2), 350, 30, new raylib::Color(255, 255, 0, 255))
+    if (Int32(game.time * 2.0f) % 2) == 0 {
+        var promptWidth: int = win.measureText("Press ENTER to Start", 30)
+        win.drawText("Press ENTER to Start", Int32((SCREEN_WIDTH - promptWidth) / 2), 500, 30, new raylib::Color(255, 255, 255, 255))
+    }
+}
+expose fun drawGameOver(win: raylib::Window, game: RacingGame) -> nthg {
+    win.drawRectangle(new raylib::Vec2(0.0f, 0.0f), new raylib::Vec2(Decimal32(SCREEN_WIDTH), Decimal32(SCREEN_HEIGHT)), new raylib::Color(100, 0, 0, 180))
+    var titleWidth: int = win.measureText("SYSTEM FAILURE", 80)
+    win.drawText("SYSTEM FAILURE", Int32((SCREEN_WIDTH - titleWidth) / 2), 200, 80, new raylib::Color(255, 50, 50, 255))
+    var scoreWidth: int = win.measureText("FINAL SCORE: " + String(game.score), 40)
+    win.drawText("FINAL SCORE: " + String(game.score), Int32((SCREEN_WIDTH - scoreWidth) / 2), 350, 40, new raylib::Color(255, 255, 255, 255))
+    if (Int32(game.time * 2.0f) % 2) == 0 {
+        var promptWidth: int = win.measureText("Press ENTER to Return", 30)
+        win.drawText("Press ENTER to Return", Int32((SCREEN_WIDTH - promptWidth) / 2), 500, 30, new raylib::Color(255, 255, 255, 255))
+    }
+}
+expose fun drawPause(win: raylib::Window, game: RacingGame) -> nthg {
+    win.drawRectangle(new raylib::Vec2(0.0f, 0.0f), new raylib::Vec2(Decimal32(SCREEN_WIDTH), Decimal32(SCREEN_HEIGHT)), new raylib::Color(0, 0, 0, 180))
+    var titleWidth: int = win.measureText("PAUSED", 80)
+    win.drawText("PAUSED", Int32((SCREEN_WIDTH - titleWidth) / 2), 300, 80, new raylib::Color(255, 255, 255, 255))
+    var promptWidth: int = win.measureText("Press P to Resume", 30)
+    win.drawText("Press P to Resume", Int32((SCREEN_WIDTH - promptWidth) / 2), 450, 30, new raylib::Color(200, 200, 200, 255))
+}

@@ -1,0 +1,11 @@
+bring raylib
+expose fun getTrackX(z: deci32) -> deci32 {
+    var curve1: deci32 = raylib::getSin(z * 0.0003f) * 2000.0f
+    var curve2: deci32 = raylib::getSin(z * 0.00015f) * 1500.0f
+    return curve1 + curve2
+}
+expose fun getTrackYaw(z: deci32) -> deci32 {
+    var d1: deci32 = raylib::getSin((z * 0.0003f) + 1.5708f) * 0.6f
+    var d2: deci32 = raylib::getSin((z * 0.00015f) + 1.5708f) * 0.225f
+    return d1 + d2
+}
