@@ -13,12 +13,14 @@ Currently a work in progress, Flow-Wing supports object-oriented programming, au
 Flow-Wing is capable of building practical applications through its standard library and FFI bindings. Here are a few examples of what has been built using the language:
 
 ### 1. Games (via `raylib` module)
-You can build 2D and 3D games natively by bringing in the `raylib` module. 
-<br>
+
+You can build 2D and 3D games natively by bringing in the `raylib` module. (Source code: `docs/demo/racer`)
+
 <img src="./assets/gif/neon-racer.gif" alt="Flow-Wing Neon Racer Game" width="600">
 
 ### 2. HTTP Servers (via `vortex` module)
-The Flow-Wing website itself is served and powered by Flow-Wing.
+
+The Flow-Wing website itself is served and powered by Flow-Wing. (Source code: `docs/flow-wing-website`)
 
 <img src="./assets/gif/flow-wing-website.gif" alt="Flow-Wing Website" width="600">
 
