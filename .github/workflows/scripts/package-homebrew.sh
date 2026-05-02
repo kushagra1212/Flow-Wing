@@ -2,9 +2,14 @@
 set -euo pipefail
 
 # Arguments:
-#   $1: version - Release version (e.g., 1.0.0)
+#   $1: version - Release version (e.g., v1.0.1)
 #   $2: release_url - GitHub release HTML URL
-#   $3: token - GitHub PAT with push access to the tap repo (HOMEBREW_TAP_TOKEN)
+#   $3: token - GitHub PAT with push access to homebrew-flowwing (HOMEBREW_TAP_TOKEN).
+#       Same token must be allowed to merge PRs into default branch (classic: repo scope;
+#       fine-grained: Contents + Pull requests). Branch protection must not block merge
+#       (e.g. no required approving reviews unless the token satisfies them).
+#
+# Depends: jq (for PR create/merge API JSON).
 #
 # Git author and tap repo owner ($GITHUB_ACTOR / homebrew-$GITHUB_ACTOR on GitHub):
 #   Set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL in CI (e.g. github.actor + noreply email).
@@ -168,11 +173,36 @@ git commit -m "FlowWing $VERSION"
 git -c credential.helper= push "$TAP_REMOTE" "bump-flowwing-$VERSION" --force
 cd "$REPO_ROOT"
 
-# Create PR
-curl -X POST \
-  -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
-  "https://api.github.com/repos/${TAP_OWNER}/homebrew-flowwing/pulls" \
-  -d "{\"title\":\"FlowWing $VERSION\",\"head\":\"bump-flowwing-$VERSION\",\"base\":\"main\",\"body\":\"Auto-update for FlowWing $VERSION\\n\\nRelease: $RELEASE_URL\"}"
+# Create PR, then merge immediately (same token must allow contents + pull_requests on the tap;
+# branch protection must not require reviews the token cannot satisfy).
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: jq is required to parse the pull request API response (install jq on the runner)." >&2
+  exit 1
+fi
 
-echo "=== Homebrew PR created ==="
+PR_RESPONSE="$(
+  curl -fsS -X POST \
+    -H "Authorization: token $TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${TAP_OWNER}/homebrew-flowwing/pulls" \
+    -d "{\"title\":\"FlowWing $VERSION\",\"head\":\"bump-flowwing-$VERSION\",\"base\":\"main\",\"body\":\"Auto-update for FlowWing $VERSION\\n\\nRelease: $RELEASE_URL\"}"
+)"
+
+PR_NUMBER="$(printf '%s' "$PR_RESPONSE" | jq -r '.number // empty')"
+if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+  echo "Error: create pull request did not return a PR number. Response:" >&2
+  printf '%s\n' "$PR_RESPONSE" >&2
+  exit 1
+fi
+
+echo "Created Homebrew tap PR #${PR_NUMBER}"
+
+curl -fsS -X PUT \
+  -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  "https://api.github.com/repos/${TAP_OWNER}/homebrew-flowwing/pulls/${PR_NUMBER}/merge" \
+  -d '{"merge_method":"squash"}'
+
+echo "=== Homebrew PR #${PR_NUMBER} merged (squash) ==="

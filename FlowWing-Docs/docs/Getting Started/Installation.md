@@ -27,7 +27,7 @@ You now have the **AOT** compiler (build a native app from **`.fg`**) and the **
 | **Windows 64-bit** | **`.exe` installer** or the **windows-x86_64** **`.zip`** |
 | **Linux 64-bit (x86_64)** | **`.deb`** (where that fits your distro) or the **linux-x86_64** **`.zip`** |
 
-Release assets are named with the **version tag** (for example **`FlowWing-v0.0.4-macos-arm64.pkg`**)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
+Release assets are named with the **version tag** (for example **`FlowWing-v1.0.2-macos-arm64.pkg`**)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
 
 A full **SDK** install gives you the **`bin`** tools (**`flowwing` / `FlowWing`**, **`flowwing-jit` / `FlowWing-jit`**) plus **`lib/modules/`** (standard **`.fg` library**) and the pieces the compiler needs to **link** AOT output on your machine, without you installing **LLVM** yourself for normal use.
 

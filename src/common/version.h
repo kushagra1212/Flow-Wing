@@ -18,4 +18,4 @@
  */
 
 
-#define VERSION_INFO "0.0.4"
+#define VERSION_INFO "1.0.2"
