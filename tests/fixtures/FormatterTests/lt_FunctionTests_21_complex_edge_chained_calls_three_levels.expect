@@ -2,9 +2,11 @@
 fun a() -> int {
     return 1
 }
+
 fun b(x: int) -> int {
     return x + 10
 }
+
 fun c(x: int) -> int {
     return x * 2
 }

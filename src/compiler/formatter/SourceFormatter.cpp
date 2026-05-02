@@ -71,6 +71,7 @@
 #include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
@@ -194,6 +195,29 @@ objectFieldListNeedsMultilineObjectLayout(
 
 static bool isIdChar(char c) {
   return (std::isalnum(static_cast<unsigned char>(c)) != 0) || c == '_';
+}
+
+static void appendSingleTrailingNewlineIfNeeded(std::string &text) {
+  if (!text.empty() && text.back() != '\n') {
+    text += '\n';
+  }
+}
+
+static void appendTrailingBlankLineAfterStatement(std::string &text) {
+  appendSingleTrailingNewlineIfNeeded(text);
+  if (!(text.size() >= 2U && text[text.size() - 2U] == '\n')) {
+    text += '\n';
+  }
+}
+
+static bool
+needsBlankLineBetweenAdjacentStatements(const syntax::StatementSyntax *prev,
+                                        const syntax::StatementSyntax *next) {
+  if (!prev || !next) {
+    return false;
+  }
+  return prev->getKind() == syntax::NodeKind::kFunctionStatement &&
+         next->getKind() == syntax::NodeKind::kFunctionStatement;
 }
 
 static char outLastNonSpaceChar(const std::string &s) {
@@ -528,19 +552,23 @@ void SourceFormatter::emitLeadingTrivia(const syntax::SyntaxToken *t) {
         continue;
       }
       if (t->getTokenKind() == lexer::TokenKind::kOpenBracketToken) {
-        // `= [1,2]` / array literal: keep the space the formatter (or `spaceBefore`)
-        // put after `=`. Only tighten `a [0]` / `int [3]`-style spacing.
-        if (!m_lastEmittedToken || m_lastEmittedToken->getTokenKind() !=
-                                  lexer::TokenKind::kEqualsToken) {
+        // `= [1,2]` / array literal: keep the space after `=`.
+        // `module [m]`: keep/require space after `module` (same as `=` case).
+        // Otherwise tighten `a [0]` / `int [3]` → `arr[0]`.
+        const bool keepSpaceBeforeBracket =
+            m_lastEmittedToken &&
+            (m_lastEmittedToken->getTokenKind() ==
+                 lexer::TokenKind::kEqualsToken ||
+             m_lastEmittedToken->getTokenKind() ==
+                 lexer::TokenKind::kModuleKeyword);
+        if (!keepSpaceBeforeBracket) {
           while (!m_buf.text.empty() && m_buf.text.back() == ' ') {
             m_buf.text.pop_back();
           }
         } else {
-          // Trivia for `[` can skip the generic kWhitespace path below; ensure
-          // `= [` (not `=[`) when `=` and `[` are separate tokens.
           m_buf.ensureSpaceIfNeeded();
         }
-        continue; // `arr [0]` in source trivia → `arr[0]`
+        continue;
       }
       if (t->getTokenKind() == lexer::TokenKind::kColonToken &&
           m_tightTypeColonDepth > 0) {
@@ -847,8 +875,12 @@ void SourceFormatter::visit(syntax::CompilationUnitSyntax *node) {
     // (from trivia or prior formatting), skip — leading EOL on the next
     // token also skips adding a duplicate (emitLeadingTrivia).
     if (i + 1 < stmts.size() && stmts[i + 1]) {
-      if (m_buf.text.empty() || m_buf.text.back() != '\n')
+      if (needsBlankLineBetweenAdjacentStatements(stmts[i].get(),
+                                                  stmts[i + 1].get())) {
+        appendTrailingBlankLineAfterStatement(m_buf.text);
+      } else if (m_buf.text.empty() || m_buf.text.back() != '\n') {
         m_buf.text += '\n';
+      }
     }
   }
   // `visitTokenCore` is a no-op for kEndOfFileToken, but `/;` and `//` after
@@ -1431,19 +1463,28 @@ void SourceFormatter::visit(syntax::IfStatementSyntax *node) {
   emitDefault(node);
 }
 void SourceFormatter::visit(syntax::ModuleStatementSyntax *node) {
+  constexpr size_t kModuleHeaderPrefixChildren = 4;
   const auto &ch = node->getChildren();
-  for (size_t i = 0; i < ch.size(); ++i) {
-    const auto *c = ch[i];
-    if (!c) {
-      continue;
-    }
-    if (c->getKind() == syntax::NodeKind::kTokenNode) {
-      const auto *tok = static_cast<const syntax::SyntaxToken *>(c);
-      if (tok->getTokenKind() == lexer::TokenKind::kEndOfFileToken) {
-        continue;
+  for (size_t i = 0;
+       i < kModuleHeaderPrefixChildren && i < ch.size(); ++i) {
+    visitChild(ch[i]);
+  }
+
+  const auto &members = node->getModuleMemberStatements();
+  for (size_t mi = 0; mi < members.size(); ++mi) {
+    if (mi == 0) {
+      if (!members.empty()) {
+        appendTrailingBlankLineAfterStatement(m_buf.text);
       }
+    } else if (needsBlankLineBetweenAdjacentStatements(members[mi - 1].get(),
+                                                       members[mi].get())) {
+      appendTrailingBlankLineAfterStatement(m_buf.text);
+    } else if (m_buf.text.empty() || m_buf.text.back() != '\n') {
+      m_buf.text += '\n';
     }
-    visitChild(c);
+    if (members[mi]) {
+      members[mi]->accept(this);
+    }
   }
 }
 void SourceFormatter::visit(syntax::OrIfStatementSyntax *node) {

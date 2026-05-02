@@ -1,5 +1,5 @@
 /; from LatestTests/WhileTests/04_complex/while_multi_var_assign.fg
-fun getPair() -> int int, {
+fun getPair() -> int, int {
     return 1, 2
 }
 var i = 0

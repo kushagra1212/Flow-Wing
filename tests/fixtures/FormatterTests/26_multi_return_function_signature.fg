@@ -1,0 +1,6 @@
+/; Multi-return after `->`: commas belong between types, not only after last.
+
+fun retsom() -> int, str {
+    return 1, "hello"
+}
+var a: int, b: str = retsom()

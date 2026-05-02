@@ -1,99 +1,247 @@
-bring {FlowWingAnim} from "FlowWingAnim.fg"
-
-bring {getRandomNumber} from "random.fg"
-
-type Position = {
-  x: int,
-  y: int
+bring raylib
+bring vec
+bring file
+bring Err
+const SCREEN_WIDTH: int = 800
+const SCREEN_HEIGHT: int = 600
+const CELL_SIZE: deci32 = 20.0f
+const HALF_CELL: deci32 = 10.0f
+/; ─────────────────────────────────────────────────────────
+/;  FOOD CLASS
+/; ─────────────────────────────────────────────────────────
+class Food {
+    var pos: raylib::Vec2
+    var active: bool
+    var pulseTime: deci32
+    var colorCore: raylib::Color
+    var colorGlow: raylib::Color
+    init(x: deci32, y: deci32) -> nthg {
+        self.pos = new raylib::Vec2(x, y)
+        self.active = true
+        self.pulseTime = 0.0f
+        self.colorCore = new raylib::Color(244, 63, 94, 255)
+        self.colorGlow = new raylib::Color(244, 63, 94, 80)
+    }
+    fun respawn() -> nthg {
+        var cols: int = Int32(SCREEN_WIDTH / CELL_SIZE)
+        var rows: int = Int32(SCREEN_HEIGHT / CELL_SIZE)
+        var rx: int = raylib::getRandomNumber(0, cols - 1)
+        var ry: int = raylib::getRandomNumber(0, rows - 1)
+        self.pos.x = Decimal32(rx) * CELL_SIZE
+        self.pos.y = Decimal32(ry) * CELL_SIZE
+        self.active = true
+        /; Randomize food color for extra flair!
+        var r: int = raylib::getRandomNumber(100, 255)
+        var g: int = raylib::getRandomNumber(100, 255)
+        var b: int = raylib::getRandomNumber(100, 255)
+        self.colorCore = new raylib::Color(r, g, b, 255)
+        self.colorGlow = new raylib::Color(r, g, b, 80)
+    }
+    fun draw(dt: deci32, win: raylib::Window) -> nthg {
+        if !self.active {
+            return:
+        }
+        /; Accumulate time for the sine wave pulse
+        self.pulseTime = self.pulseTime + (dt * 8.0f)
+        var sine: deci32 = raylib::getSin(self.pulseTime)
+        var radius: deci32 = 6.0f + (sine * 2.0f) /; Pulses between 4.0 and 8.0
+        var center: raylib::Vec2 = new raylib::Vec2(self.pos.x + HALF_CELL, self.pos.y + HALF_CELL)
+        /; Draw glow and core
+        win.drawCircle(center, radius + 5.0f, self.colorGlow)
+        win.drawCircle(center, radius, self.colorCore)
+    }
 }
-const screenWidth: int = 1000
-const screenHeight: int = 500
-const side: int = 10
-const BIRD_SIZE: deci32 = 360.0d
-
-fun getFoodPosition() -> Position {
-  var pos: Position = {
-    x: getRandomNumber(0, screenWidth - 1),
-    y: getRandomNumber(0, screenHeight - 1)
-  }
-  pos.x = pos.x - pos.x % side 
-  pos.y = pos.y - pos.y % side 
-  return pos
+/; ─────────────────────────────────────────────────────────
+/;  SNAKE CLASS
+/; ─────────────────────────────────────────────────────────
+class Snake {
+    var bodyX: vec::Vec
+    var bodyY: vec::Vec
+    var dir: raylib::Vec2
+    var moveTimer: deci32
+    var moveDelay: deci32
+    var score: int
+    var isDead: bool
+    init() -> nthg {
+        self.bodyX = new vec::Vec()
+        self.bodyY = new vec::Vec()
+        /; Initial body segments
+        self.bodyX.push(400.0f)
+        self.bodyY.push(300.0f)
+        self.bodyX.push(380.0f)
+        self.bodyY.push(300.0f)
+        self.bodyX.push(360.0f)
+        self.bodyY.push(300.0f)
+        self.dir = new raylib::Vec2(CELL_SIZE, 0.0f)
+        self.moveTimer = 0.0f
+        self.moveDelay = 0.12f
+        /; Starts slightly slower
+        self.score = 0
+        self.isDead = false
+    }
+    fun update(dt: deci32, win: raylib::Window, food: Food) -> nthg {
+        if self.isDead {
+            return:
+        }
+        /; Handle Input (Prevent reversing into self)
+        if win.isKeyPressed(raylib::KEY_UP) && self.dir.y == 0.0f {
+            self.dir.x = 0.0f
+            self.dir.y = -CELL_SIZE
+        }
+        if win.isKeyPressed(raylib::KEY_DOWN) && self.dir.y == 0.0f {
+            self.dir.x = 0.0f
+            self.dir.y = CELL_SIZE
+        }
+        if win.isKeyPressed(raylib::KEY_LEFT) && self.dir.x == 0.0f {
+            self.dir.x = -CELL_SIZE
+            self.dir.y = 0.0f
+        }
+        if win.isKeyPressed(raylib::KEY_RIGHT) && self.dir.x == 0.0f {
+            self.dir.x = CELL_SIZE
+            self.dir.y = 0.0f
+        }
+        self.moveTimer = self.moveTimer + dt
+        if self.moveTimer >= self.moveDelay {
+            self.moveTimer = 0.0f
+            var headX: deci32 = Decimal32(self.bodyX.get(0))
+            var headY: deci32 = Decimal32(self.bodyY.get(0))
+            var newHeadX: deci32 = headX + self.dir.x
+            var newHeadY: deci32 = headY + self.dir.y
+            /; Collision with walls
+            if newHeadX < 0.0f || newHeadX >= Decimal32(SCREEN_WIDTH) || newHeadY < 0.0f || newHeadY >= Decimal32(SCREEN_HEIGHT) {
+                self.isDead = true
+                return:
+            }
+            /; Collision with self
+            var size: int = self.bodyX.size()
+            for (var i: int = 0 to size - 1 : 1) {
+                if Decimal32(self.bodyX.get(i)) == newHeadX && Decimal32(self.bodyY.get(i)) == newHeadY {
+                    self.isDead = true
+                    return:
+                }
+            }
+            /; Move forward
+            self.bodyX.insert(0, newHeadX)
+            self.bodyY.insert(0, newHeadY)
+            /; Collision with food
+            if newHeadX == food.pos.x && newHeadY == food.pos.y {
+                self.score = self.score + 10
+                food.respawn()
+                /; Progressive Difficulty: Speed up slightly!
+                self.moveDelay = self.moveDelay - 0.003f
+                if self.moveDelay < 0.04f {
+                    self.moveDelay = 0.04f /; Speed cap
+                }
+            } else {
+                /; Remove tail
+                self.bodyX.pop()
+                self.bodyY.pop()
+            }
+        }
+    }
+    fun draw(win: raylib::Window) -> nthg {
+        var cBody: raylib::Color = new raylib::Color(52, 211, 153, 255) /; Emerald
+        var cHead: raylib::Color = new raylib::Color(16, 185, 129, 255) /; Darker Emerald
+        var cEye: raylib::Color = new raylib::Color(255, 255, 255, 255)
+        var cPupil: raylib::Color = new raylib::Color(24, 24, 27, 255)
+        var count: int = self.bodyX.size()
+        /; Draw from tail to head so the head renders on top
+        for (var i: int = count - 1 to 0 : -1) {
+            var sx: deci32 = Decimal32(self.bodyX.get(i))
+            var sy: deci32 = Decimal32(self.bodyY.get(i))
+            var center: raylib::Vec2 = new raylib::Vec2(sx + HALF_CELL, sy + HALF_CELL)
+            if i == 0 {
+                /; Draw Head
+                win.drawRectangle(new raylib::Vec2(sx, sy), new raylib::Vec2(CELL_SIZE, CELL_SIZE), cHead)
+                /; Calculate Eye Positions based on direction
+                var ex1: deci32, ey1: deci32 = 0.0f, 0.0f
+                var ex2: deci32, ey2: deci32 = 0.0f, 0.0f
+                if self.dir.x > 0.0f { /; Right
+                    ex1, ey1 = sx + 14.0f, sy + 5.0f
+                    ex2, ey2 = sx + 14.0f, sy + 15.0f
+                } or if self.dir.x < 0.0f { /; Left
+                    ex1, ey1 = sx + 6.0f, sy + 5.0f
+                    ex2, ey2 = sx + 6.0f, sy + 15.0f
+                } or if self.dir.y > 0.0f { /; Down
+                    ex1, ey1 = sx + 5.0f, sy + 14.0f
+                    ex2, ey2 = sx + 15.0f, sy + 14.0f
+                } else { /; Up
+                    ex1, ey1 = sx + 5.0f, sy + 6.0f
+                    ex2, ey2 = sx + 15.0f, sy + 6.0f
+                }
+                /; Draw Whites of eyes
+                win.drawCircle(new raylib::Vec2(ex1, ey1), 3.0f, cEye)
+                win.drawCircle(new raylib::Vec2(ex2, ey2), 3.0f, cEye)
+                /; Draw Pupils
+                win.drawCircle(new raylib::Vec2(ex1, ey1), 1.5f, cPupil)
+                win.drawCircle(new raylib::Vec2(ex2, ey2), 1.5f, cPupil)
+            } else {
+                /; Draw rounded body segments
+                win.drawCircle(center, 9.0f, cBody)
+            }
+        }
+    }
 }
-
-fun fg_main() -> int {
-  const speed = 10
-  var tail: int = 1
-  var posX: int[10000] = [10000 fill -1]
-  var posY: int[10000] = [10000 fill -1]
-  posX[0]= 0
-  posY[0]= 0
-  var foodPos: Position = getFoodPosition()
-  var newPos: Position = {
-    x: posX[0],
-    y: posY[0]
-  }
-  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", 60)
-  fgAnim.createWindow()
-  while (!fgAnim.windowShouldClose()) {
-    var isKeyPressed = false
-    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
-      isKeyPressed = true 
-      newPos.y = newPos.y - speed 
+/; ─────────────────────────────────────────────────────────
+/;  MAIN GAME LOOP
+/; ─────────────────────────────────────────────────────────
+fun start_game() -> nthg {
+    var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Awesome Snake in Flow-Wing")
+    var snake: Snake = new Snake()
+    var food: Food = new Food(0.0f, 0.0f)
+    food.respawn()
+    /; Set up file persistence for High Score
+    var highScore: int = 0
+    var hsPath: str = file::__DIR__ + "./highscore.txt"
+    var hsStr: str, hsErr: Err::Result = file::readText(hsPath)
+    if !hsErr.isErr() {
+        highScore = Int32(hsStr)
     }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_DOWN) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_DOWN)) {
-      isKeyPressed = true 
-      newPos.y = newPos.y + speed 
+    var cBG: raylib::Color = new raylib::Color(24, 24, 27, 255)
+    var cGrid: raylib::Color = new raylib::Color(39, 39, 42, 255)
+    var cScore: raylib::Color = new raylib::Color(161, 161, 170, 255)
+    var cRed: raylib::Color = new raylib::Color(244, 63, 94, 255)
+    while !win.shouldClose() {
+        var dt: deci32 = win.getFrameTime()
+        /; ── Update ────────────────────────────────────────
+        if !snake.isDead {
+            snake.update(dt, win, food)
+            /; Check if snake just died to update High Score
+            if snake.isDead {
+                if snake.score > highScore {
+                    highScore = snake.score
+                    var _, werr: Err::Result = file::writeText(hsPath, String(highScore))
+                }
+            }
+        } else {
+            /; Restart Game
+            if win.isKeyPressed(raylib::KEY_SPACE) {
+                snake = new Snake()
+                food.respawn()
+            }
+        }
+        /; ── Render ────────────────────────────────────────
+        win.begin()
+        win.clear(cBG)
+        /; Draw Background Grid
+        for (var x: int = 0 to SCREEN_WIDTH : Int32(CELL_SIZE)) {
+            win.drawRectangle(new raylib::Vec2(Decimal32(x), 0.0f), new raylib::Vec2(1.0f, Decimal32(SCREEN_HEIGHT)), cGrid)
+        }
+        for (var y: int = 0 to SCREEN_HEIGHT : Int32(CELL_SIZE)) {
+            win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(y)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 1.0f), cGrid)
+        }
+        food.draw(dt, win)
+        snake.draw(win)
+        /; HUD
+        win.drawText("SCORE: " + String(snake.score), 15, 15, 20, cScore)
+        win.drawText("HIGH SCORE: " + String(highScore), 15, 40, 20, cScore)
+        if snake.isDead {
+            var w1: int = win.measureText("GAME OVER", 40)
+            var w2: int = win.measureText("Press SPACE to Restart", 20)
+            win.drawText("GAME OVER", Int32((SCREEN_WIDTH / 2) - (w1 / 2)), Int32((SCREEN_HEIGHT / 2) - 20), 40, cRed)
+            win.drawText("Press SPACE to Restart", Int32((SCREEN_WIDTH / 2) - (w2 / 2)), Int32((SCREEN_HEIGHT / 2) + 30), 20, cScore)
+        }
+        win.end()
     }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_RIGHT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_RIGHT)) {
-      isKeyPressed = true 
-      newPos.x = newPos.x + speed 
-    }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_LEFT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_LEFT)) {
-      isKeyPressed = true 
-      newPos.x = newPos.x - speed 
-    }
-
-    if (newPos.x < 0) {
-      newPos.x = 0 
-    }
-
-    if (newPos.x >= screenWidth - speed) {
-      newPos.x = screenWidth - speed 
-    }
-
-    if (newPos.y < 0) {
-      newPos.y = 0 
-    }
-
-    if (newPos.y >= screenHeight - speed) {
-      newPos.y = screenHeight - speed 
-    }
-
-    if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
-      foodPos = getFoodPosition() 
-      tail = tail + 1 
-    }
-
-    if (isKeyPressed) {
-      for var index: int = tail - 1 to 1 : -1 {
-        posX[index]= posX[index - 1]
-        posY[index]= posY[index - 1]
-      }
-    }
-
-    posX[0]= newPos.x
-    posY[0]= newPos.y
-    fgAnim.beginDrawing()
-    fgAnim.clearBackground(fgAnim.colors.WHITE)
-    for var index: int = 0 to tail - 1 {
-      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)
-    }
-    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)
-    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)
-    fgAnim.endDrawing()
-  }
-  fgAnim.closeWindow()
-  return 0
 }
-fg_main()
+start_game()

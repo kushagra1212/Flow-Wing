@@ -1,5 +1,5 @@
 /; from LatestTests/FunctionTests/21_complex_edge/assign_multi_from_func_twice.fg
-fun next() -> int int, {
+fun next() -> int, int {
     return 1, 2
 }
 var a: int = 0

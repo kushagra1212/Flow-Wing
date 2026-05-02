@@ -3,6 +3,7 @@ var x: int = 100
 fun useGlobal() -> int {
     return x
 }
+
 fun useParam(x: int) -> int {
     return x + 1
 }

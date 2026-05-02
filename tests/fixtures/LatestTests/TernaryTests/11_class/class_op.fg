@@ -1,0 +1,11 @@
+
+class A {
+    var x: int
+    init(x: int) {
+        self.x = x
+    }
+}
+var a2: A = new A(2)
+var a3: A = new A(3)
+var a: A = 2 != 2 ? a2 : a3
+println("A: ", a.x)

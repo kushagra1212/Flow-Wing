@@ -8,16 +8,20 @@ class A {
 fun mutable(inout a: A) -> nthg {
     a.x = a.x + 1
 }
+
 fun immutableDefault(a: A = new A()) -> nthg {
     a.x = a.x + 1
     println("Immutable Default a.x: ", a.x)
 }
+
 fun immutable(a: A) -> nthg {
     a.x = a.x + 1
 }
+
 fun immutableWithNew(a: A) -> nthg {
     a = new A()
 }
+
 fun mutableWithNew(inout a: A) -> nthg {
     a = new A()
 }

@@ -10,7 +10,7 @@ export default function AboutSection() {
           About Flow-Wing
         </Heading>
         <p className={styles.lead}>
-          <strong>Flow-Wing</strong> is a programming language for <code>.fg</code> source
+          <strong>Flow-Wing</strong> is an experimental programming language for <code>.fg</code> source
           files. You get static typing, <code>bring</code> for code and modules, and a
           compiler that can produce a <strong>native app</strong> (AOT) or{" "}
           <strong>run your program in one step</strong> (JIT), depending on which tool you
@@ -28,8 +28,7 @@ export default function AboutSection() {
           The open-source <strong>Flow-Wing</strong> repository builds the toolchain with
           LLVM, optional AOT/JIT products, a Boehm–GC-based runtime, and a root{" "}
           <code>makefile</code> for dependencies and targets. If you are hacking the
-          compiler, see the repository README and <code>AGENTS.md</code>; everyone else can
-          ignore those and stay in the docs.
+          compiler, see the repository README.
         </p>
       </div>
     </section>

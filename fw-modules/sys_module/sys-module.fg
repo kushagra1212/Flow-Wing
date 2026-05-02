@@ -1,22 +1,26 @@
 /; sys module - System utilities
 /; Provides access to command-line arguments, script directory, etc.
-
 /; FFI Declarations (Layer 1: C runtime backend)
 fun fg_get_arg_count() -> as int decl
+
 fun fg_get_arg(index: as int) -> as str decl
+
 fun fg_get_script_dir() -> as str decl
+
 fun fg_exit(code: as int) -> as nthg decl
+
 fun fg_timestamp() -> as int decl
+
 fun fg_runtime_error(msg: as str) -> as nthg decl
 
-module [sys]   /; Layer 2: namespace
-
+fun fg_exec(cmd: as str) -> as str decl
+module [sys] /; Layer 2: namespace
 /; Command-line argument access
 /; Returns the argument at the given index (0 = program name)
 fun getArg(index: int) -> str {
     var c = fg_get_arg_count()
     if (index < 0 || index >= c) {
-        return ""  /; Unreachable, but satisfies the return type
+        return "" /; Unreachable, but satisfies the return type
     }
     return fg_get_arg(index)
 }
@@ -38,4 +42,9 @@ fun exit(code: int) -> nthg {
 /; Current Unix timestamp (seconds since epoch)
 fun timestamp() -> int {
     return fg_timestamp()
+}
+
+/; Executes a shell command and returns the standard output/error
+fun exec(cmd: str) -> str {
+    return fg_exec(cmd)
 }

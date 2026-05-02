@@ -2,6 +2,7 @@
 fun val1() -> int {
     return 11
 }
+
 fun val2() -> int {
     return 22
 }

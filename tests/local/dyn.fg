@@ -1,17 +1,21 @@
-type B = {
-    a: int
+bring io
+bring sys
+bring Err
+fun fg_main() -> nthg {
+    /; Static type
+    var greeting: str = "Hello"
+    /; Dynamic type natively supported
+    var target = "Developer"
+    println(greeting + ", " + target + "! Enter a number:")
+    var inputStr: str, err: Err::Result = io::readLine()
+    if Err::isErr(err) {
+        return :
+    }
+    /; Interoperability: dynamic * static
+    var num = Int32(inputStr) /; Dynamic holding int
+    var multiplier: int = 10
+    /; Static int
+    var result = num * multiplier
+    println("Your number multiplied by 10 is: ", String(result))
 }
-type T = {
-    a: int
-    b: B
-}
-var arr: T[2]
-arr[0].b = {a : 0}
-fun update(arr: T) -> nthg {
-    arr.a = 1
-    arr.b.a = 2
-}
-{
-    update(arr[0])
-    println(arr)
-}
+fg_main()

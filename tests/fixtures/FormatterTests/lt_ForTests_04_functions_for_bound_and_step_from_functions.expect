@@ -2,6 +2,7 @@
 fun getBound() -> int {
     return 5
 }
+
 fun getStep() -> int {
     return 2
 }

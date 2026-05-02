@@ -2,9 +2,11 @@
 fun v1() -> int {
     return 1
 }
+
 fun v2() -> int {
     return 2
 }
+
 fun v3() -> int {
     return 3
 }

@@ -2,6 +2,7 @@
 fun numVal() -> int {
     return 42
 }
+
 fun strVal() -> str {
     return "x"
 }

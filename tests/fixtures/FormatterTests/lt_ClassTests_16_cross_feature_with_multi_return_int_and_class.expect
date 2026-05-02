@@ -5,7 +5,7 @@ class A {
         self.x = x
     }
 }
-fun makePair() -> int A, {
+fun makePair() -> int, A {
     return 3, new A(9)
 }
 var n: int, a: A = makePair()

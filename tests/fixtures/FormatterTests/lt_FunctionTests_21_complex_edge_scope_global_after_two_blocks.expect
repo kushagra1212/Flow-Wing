@@ -2,6 +2,7 @@
 fun one() -> int {
     return 1
 }
+
 fun two() -> int {
     return 2
 }

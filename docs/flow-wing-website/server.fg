@@ -1,0 +1,69 @@
+bring vortex
+bring file
+bring text
+bring io
+bring Err
+bring json
+bring sys
+fun fg_main() -> nthg {
+    var app: vortex::Server = new vortex::Server()
+    var err: Err::Result = app.listen(8080)
+    if Err::isErr(err) {
+        io::printErrorLogln("Failed to start server", "red")
+        return :
+    }
+    io::printLogln("Flow-Wing Live Environment running at http://127.0.0.1:8080", "cyan")
+    while true {
+        var req: vortex::Request, res: vortex::Response = app.accept()
+        if req == null {
+            continue
+        }
+        var method: str = req.getMethod()
+        var path: str = req.getPath()
+        if method == "GET" && path == "/" {
+            var tplPath: str = file::__DIR__ + "/template.html"
+            var content: str, rerr: Err::Result = file::readText(tplPath)
+            if Err::isErr(rerr) {
+                res.status(500).header("Content-Type", "text/html").send("<h1>Missing template.html</h1>")
+            } else {
+                content = text::replace(content, "{{TITLE}}", "Flow-Wing")
+                content = text::replace(content, "{{VERSION}}", "Build v1.0.0-rc.1")
+                /; Exact Tagline Match
+                content = text::replace(content, "{{TAGLINE}}", "Built on LLVM. Flow-Wing combines a strict static core with supported dynamic primitives.")
+                content = text::replace(content, "{{DOCS_URL}}", "https://flow-wing-docs.vercel.app/")
+                content = text::replace(content, "{{GITHUB_URL}}", "https://github.com/kushagra1212/Flow-Wing")
+                content = text::replace(content, "{{RELEASE_URL}}", "https://github.com/kushagra1212/Flow-Wing/releases")
+                content = text::replace(content, "{{CARD_1_TITLE}}", "Hybrid Type System")
+                content = text::replace(content, "{{CARD_1_DESC}}", "Use strict type and class definitions for core architecture, or utilize supported dyn primitives for flexible variable assignments and scripting.")
+                content = text::replace(content, "{{CARD_2_TITLE}}", "LLVM Backend")
+                content = text::replace(content, "{{CARD_2_DESC}}", "Compiles directly to optimized machine code using the LLVM infrastructure. The toolchain produces native binaries for macOS, Windows, and Linux without requiring a heavy runtime or interpreter.")
+                content = text::replace(content, "{{CARD_3_TITLE}}", "Standard Library")
+                content = text::replace(content, "{{CARD_3_DESC}}", "Built-in modules cover core requirements including file I/O, JSON serialization, and system utilities. The SDK also includes integrated bindings for Raylib graphics and the Vortex HTTP framework.")
+                res.status(200).header("Content-Type", "text/html; charset=utf-8").send(content)
+            }
+        } /; === THE REAL EXECUTION ENGINE ===
+        else if method == "POST" && path == "/run" {
+            var body: str = req.getBody()
+            var parsed: json::JsonNode = json::parse(body)
+            var userCode: str = parsed.get("code").strVal
+            var stdInput: str = parsed.get("input").strVal
+            var tempFile: str = file::__DIR__ + "/playground_temp.fg"
+            var inFile: str = file::__DIR__ + "/playground_in.txt"
+            file::writeText(tempFile, userCode)
+            file::writeText(inFile, stdInput)
+            var cmd: str = "/Users/apple/code/per/Flow-Wing/flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
+            var output: str = sys::exec(cmd)
+            /; Safely escape JSON strings to prevent frontend crashes on compilation errors
+            output = text::replace(output, "\\", "\\\\")
+            output = text::replace(output, "\"", "\\\"")
+            output = text::replace(output, "\n", "\\n")
+            output = text::replace(output, "\r", "")
+            var responseObj: json::JsonNode = json::newObject()
+            responseObj.put("output", json::newString(output))
+            res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
+        } else {
+            res.status(404).header("Content-Type", "text/html").send("<h1>404</h1>")
+        }
+    }
+}
+fg_main()
