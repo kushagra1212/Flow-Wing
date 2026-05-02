@@ -542,3 +542,46 @@ long long fg_timestamp(void) {
 void fg_runtime_error(const char* msg) {
     fg_re(msg);
 }
+
+
+// Add this near the top with your other includes
+#ifdef _WIN32
+#define POPEN _popen
+#define PCLOSE _pclose
+#else
+#define POPEN popen
+#define PCLOSE pclose
+#endif
+
+// Add this implementation
+char* fg_exec(const char* cmd) {
+    if (!cmd) return fg_cs("", ""); 
+
+    char buffer[128];
+    size_t size = 1024;
+    size_t len = 0;
+    
+    char* result = (char*)GC_MALLOC(size);
+    if (!result) fg_re("Memory allocation failed in fg_exec");
+    result[0] = '\0';
+
+    // Open a pipe to the command
+    FILE* pipe = POPEN(cmd, "r");
+    if (!pipe) return fg_cs("Error: Failed to execute command.", "");
+
+    // Read the STDOUT/STDERR chunk by chunk
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+        size_t chunk_len = strlen(buffer);
+        if (len + chunk_len + 1 > size) {
+            size *= 2;
+            char* new_result = (char*)GC_MALLOC(size);
+            if (!new_result) fg_re("Memory allocation failed in fg_exec");
+            memcpy(new_result, result, len + 1);
+            result = new_result;
+        }
+        strcpy(result + len, buffer);
+        len += chunk_len;
+    }
+    PCLOSE(pipe);
+    return result;
+}

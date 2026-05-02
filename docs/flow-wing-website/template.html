@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} - Hybrid-Typed Language</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #050505; --bg-panel: #0d1117; --text-main: #f0f6fc;
+            --text-muted: #8b949e; --border-color: #30363d;
+
+            /* Syntax Shades */
+            --hl-kw: #ff7b72;      /* Keywords - Reddish */
+            --hl-mod: #a5d6ff;     /* Modules - Light Cyan/Blue */
+            --hl-cls: #d2a8ff;     /* Classes - Purple */
+            --hl-fn: #79c0ff;      /* Functions - Sky Blue */
+            --hl-str: #7ee787;     /* Strings - Green */
+            --hl-num: #ffbd2e;     /* Numbers - Yellow */
+            --hl-com: #8b949e;     /* Comments - Gray */
+        }
+
+        body, html {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base); color: var(--text-main);
+        }
+
+        /* --- Custom Scrollbars to blend with UI --- */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 5px; border: 2px solid var(--bg-panel); }
+        ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+        
+        /* Fix for the white corner at the bottom right of scrollable textareas */
+        ::-webkit-scrollbar-corner { background: transparent; }
+        
+        .editor-wrapper::-webkit-scrollbar-thumb { border-color: #010409; }
+        .tab-content::-webkit-scrollbar-thumb { border-color: #010409; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+        /* Navigation */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 2rem 0; margin-bottom: 2rem; }
+        .nav-logo { font-size: 1.25rem; font-weight: 600; color: #fff; text-decoration: none;}
+        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 2rem; font-size: 0.9rem; }
+
+        /* Hero */
+        .hero { text-align: center; margin-bottom: 4rem; }
+        .version { display: inline-block; padding: 0.3rem 1rem; border-radius: 50px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.85rem; margin-bottom: 2rem; }
+        h1 { font-size: 4.5rem; font-weight: 600; letter-spacing: -0.04em; margin: 0 0 1.5rem 0; line-height: 1.1;}
+        .tagline { font-size: 1.25rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 3rem auto; line-height: 1.6; }
+        
+        .actions { display: flex; justify-content: center; align-items: flex-start; gap: 1rem; margin-bottom: 4rem; }
+
+        .download-container { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+
+        .platform-labels { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0.02em; }
+        .btn { padding: 0.8rem 2rem; border-radius: 6px; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid var(--border-color); white-space: nowrap;}
+        .btn-primary { background: var(--text-main); color: var(--bg-base); }
+        .btn-secondary { background: transparent; color: var(--text-main); }
+
+        /* Static Code Showcase */
+        .static-code-window {
+            background: #010409; border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 1.5rem; text-align: left; max-width: 700px; margin: 0 auto 6rem auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .static-code-window .mac-dots { margin-bottom: 1.5rem; }
+        .static-code-window pre { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #d1d5db; margin: 0; line-height: 1.5; overflow-x: auto; }
+
+        /* Live Playground */
+        .playground-header { text-align: center; margin-bottom: 2rem; }
+        .playground-header p { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .playground-container {
+            display: flex; gap: 1rem; background: var(--bg-panel); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 1rem; margin-bottom: 6rem; height: 500px;
+        }
+
+        .pane { flex: 1; display: flex; flex-direction: column; background: #010409; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; }
+        .pane-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #0d1117; border-bottom: 1px solid var(--border-color); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+        .pane-title { color: var(--text-main); text-align: center; flex: 1; margin-left: -20px;}
+
+        /* Editor Overlays */
+        .editor-wrapper { position: relative; flex: 1; overflow: hidden; background: #010409;}
+        .code-input, .code-highlight {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 1.5;
+            border: none; margin: 0; box-sizing: border-box; white-space: pre; overflow: auto;
+        }
+        .code-input { color: transparent; caret-color: var(--text-main); background: transparent; z-index: 2; resize: none; outline: none; }
+        .code-highlight { color: #d1d5db; z-index: 1; pointer-events: none; }
+
+        /* Highlight classes based on specific shades */
+        .hl-keyword  { color: var(--hl-kw); }
+        .hl-module   { color: var(--hl-mod); }
+        .hl-class    { color: var(--hl-cls); }
+        .hl-func     { color: var(--hl-fn); }
+        .hl-string   { color: var(--hl-str); }
+        .hl-comment  { color: var(--hl-com); }
+        .hl-number   { color: var(--hl-num); }
+
+        .mac-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .tabs { display: flex; gap: 1rem; }
+        .tab-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;}
+        .tab-btn.active { color: #fff; border-bottom: 2px solid var(--text-main); }
+        .tab-content { flex: 1; padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        .run-btn { background: var(--text-main); color: var(--bg-base); font-family: 'Inter', sans-serif; font-weight: 600; padding: 0.4rem 1rem; border-radius: 6px; border: none; cursor: pointer; transition: opacity 0.2s;}
+        .run-btn:hover { opacity: 0.8; }
+
+        /* Features Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 6rem; }
+        .card { background: transparent; border: 1px solid var(--border-color); border-radius: 12px; padding: 2.5rem; }
+        .card h3 { margin-top: 0; font-size: 1.25rem; font-weight: 500; }
+        .card p { color: var(--text-muted); line-height: 1.6; margin-bottom: 0; }
+
+        /* Footer */
+        footer { text-align: center; padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem; }
+
+        /* =========================================
+           MOBILE & RESPONSIVE FIXES ADDED HERE 
+           ========================================= */
+        @media (max-width: 768px) {
+            .container { padding: 0 1rem; }
+            nav { flex-direction: column; gap: 1rem; }
+            .nav-links { display: flex; gap: 1rem; }
+            .nav-links a { margin-left: 0; }
+            
+            h1 { font-size: 2.8rem; }
+            .tagline { font-size: 1.1rem; margin-bottom: 2rem; }
+            .actions { flex-direction: column; align-items: center; width: 100%; gap: 1.5rem;}
+            .download-container, .btn-secondary { width: 100%; }
+            .btn { width: 100%; box-sizing: border-box; text-align: center; }
+
+            /* Adjust code blocks */
+            .static-code-window { padding: 1rem; margin-bottom: 3rem; border-radius: 8px;}
+            .static-code-window pre { font-size: 0.8rem; }
+            
+            /* Stack the Playground panes */
+            .playground-container { 
+                flex-direction: column; 
+                height: 800px; /* Make taller to accommodate stacked views */
+                margin-bottom: 3rem;
+                padding: 0.5rem;
+            }
+            .pane { flex: none; height: calc(50% - 0.5rem); } /* Split 50/50 */
+            .code-input, .code-highlight { font-size: 0.85rem; padding: 1rem; }
+            
+            .run-btn { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+            
+            .platform-grid { gap: 1.5rem !important; }
+            .card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav>
+        <a href="/" class="nav-logo">{{TITLE}}</a>
+        <div class="nav-links">
+            <a href="{{DOCS_URL}}">Documentation</a>
+            <a href="{{GITHUB_URL}}">GitHub</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="version">Build <span id="latest-version">Loading...</span></div>
+        <h1>An Experimental<br>Hybrid-Typed Language.</h1>
+        <div class="tagline">{{TAGLINE}}</div>
+        
+        <div class="actions">
+            <div class="download-container">
+                <a href="#downloads" class="btn btn-primary">Download Release</a>
+                <div class="platform-labels">macOS, Windows, Linux</div>
+            </div>
+            <a href="{{DOCS_URL}}" class="btn btn-secondary">Read the Docs</a>
+        </div>
+    </header>
+
+    <div class="static-code-window">
+        <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+<pre><code><span class="hl-keyword">bring</span> <span class="hl-module">vortex</span>
+
+<span class="hl-comment">/; Server Setup</span>
+<span class="hl-keyword">var</span> app: <span class="hl-module">vortex</span>::<span class="hl-class">Server</span> = <span class="hl-keyword">new</span> <span class="hl-module">vortex</span>::<span class="hl-class">Server</span>()
+<span class="hl-keyword">var</span> port = <span class="hl-number">3000</span>
+
+app.<span class="hl-func">listen</span>(port)
+<span class="hl-func">println</span>(<span class="hl-string">"Server running at http://127.0.0.1:"</span> + port)
+
+<span class="hl-comment">/; Route: Home Page (GET)</span>
+<span class="hl-keyword">while</span> <span class="hl-keyword">true</span> {
+    <span class="hl-keyword">var</span> req: <span class="hl-module">vortex</span>::<span class="hl-class">Request</span>, res: <span class="hl-module">vortex</span>::<span class="hl-class">Response</span> = app.<span class="hl-func">accept</span>()
+
+    <span class="hl-keyword">if</span> req.<span class="hl-func">getMethod</span>() == <span class="hl-string">"GET"</span> &amp;&amp; req.<span class="hl-func">getPath</span>() == <span class="hl-string">"/"</span> {
+        res.<span class="hl-func">status</span>(<span class="hl-number">200</span>)
+           .<span class="hl-func">header</span>(<span class="hl-string">"Content-Type"</span>, <span class="hl-string">"text/html"</span>)
+           .<span class="hl-func">send</span>(<span class="hl-string">"&lt;h1&gt;Welcome to Flow-Wing&lt;/h1&gt;"</span>)
+    }
+}</code></pre>
+    </div>
+
+    <section class="playground-section">
+        <div class="playground-container">
+            <div class="pane">
+                <div class="pane-header">
+                    <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                    <span class="pane-title">main.fg</span>
+                    <button class="run-btn" onclick="runCode()">Run Code 🚀</button>
+                </div>
+                <div class="editor-wrapper">
+                    <textarea id="codeInput" class="code-input" spellcheck="false" oninput="updateHighlight()" onscroll="syncScroll()">bring io
+bring sys
+bring Err
+
+fun fgMain() -> nthg {
+    /; Static type
+    var greeting: str = "Hello"
+    
+    /; Dynamic type natively supported
+    var target = "Developer" 
+    
+    println(greeting + ", " + target + "! Enter a number:")
+    
+    var inputStr: str, err: Err::Result = io::readLine()
+    if Err::isErr(err) {
+        return :
+    }
+
+    /; Interoperability: dynamic * static
+    var num = Int32(inputStr) /; Dynamic holding int
+    var multiplier: int = 10  /; Static int
+    
+    var result = num * multiplier 
+    
+    println("Your number multiplied by 10 is: " , String(result))
+}
+
+fgMain()</textarea>
+                    <pre class="code-highlight" id="codeHighlight" aria-hidden="true"></pre>
+                </div>
+            </div>
+
+            <div class="pane">
+                <div class="pane-header">
+                    <div class="tabs">
+                        <button id="btn-output" class="tab-btn active" onclick="switchTab('output')">Console Output</button>
+                        <button id="btn-input" class="tab-btn" onclick="switchTab('input')">Standard Input</button>
+                    </div>
+                </div>
+                <div id="tab-output" class="tab-content" style="color: var(--text-muted);">[Output will appear here]</div>
+                <div id="tab-input" class="tab-content" style="display: none; padding: 0;">
+                    <textarea id="stdInput" style="box-sizing: border-box; width:100%; height:100%; background:transparent; border:none; color:#fff; font-family:'JetBrains Mono', monospace; padding:1.5rem; resize:none; outline:none;" placeholder="Enter STDIN here...">42</textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="downloads" class="download-options" style="text-align: center; margin-bottom: 6rem; padding: 2.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.02);">
+        <h2 style="font-size: 1.5rem; margin-bottom: 2rem; font-weight: 500;">Get the Flow-Wing SDK</h2>
+        <div class="platform-grid" style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;">
+            
+            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
+                <span style="font-size: 2rem;"></span>
+                <span style="font-weight: 500; color: var(--text-main);">macOS</span>
+                <span style="font-size: 0.8rem;">Apple Silicon</span>
+            </a>
+
+            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
+                <span style="font-size: 2rem;">⊞</span>
+                <span style="font-weight: 500; color: var(--text-main);">Windows</span>
+                <span style="font-size: 0.8rem;">x64 Installer / Zip</span>
+            </a>
+
+            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
+                <span style="font-size: 2rem;">🐧</span>
+                <span style="font-weight: 500; color: var(--text-main);">Linux</span>
+                <span style="font-size: 0.8rem;">x64 (.deb / .zip)</span>
+            </a>
+
+        </div>
+        <p style="margin-top: 2rem; color: var(--text-muted); font-size: 0.85rem;">Artifacts include the AOT compiler, JIT tool, and standard library.</p>
+    </section>
+
+    <div class="grid">
+        <div class="card">
+            <h3>{{CARD_1_TITLE}}</h3>
+            <p>{{CARD_1_DESC}}</p>
+        </div>
+        <div class="card">
+            <h3>{{CARD_2_TITLE}}</h3>
+            <p>{{CARD_2_DESC}}</p>
+        </div>
+        <div class="card">
+            <h3>{{CARD_3_TITLE}}</h3>
+            <p>{{CARD_3_DESC}}</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 The Flow-Wing Project. Built with LLVM & C++.</p>
+    </footer>
+</div>
+
+<script>
+    async function fetchVersion() {
+        try {
+            const response = await fetch('https://api.github.com/repos/kushagra1212/Flow-Wing/releases/latest');
+            const data = await response.json();
+            document.getElementById('latest-version').innerText = data.tag_name || "v1.0.0";
+        } catch (e) {
+            document.getElementById('latest-version').innerText = "v1.0.0-rc.1";
+        }
+    }
+    fetchVersion();
+
+    function applySyntax(text) {
+        let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        const keywords =['bring', 'fun', 'var', 'const', 'class', 'type', 'init', 'new', 'return', 'if', 'else', 'while', 'for', 'true', 'false', 'null', 'break', 'continue', 'expose', 'super'];
+        const builtInTypes =['int', 'deci', 'str', 'bool', 'nthg', 'dyn', 'int8', 'int64', 'char', 'deci32'];
+        const modules =['io', 'sys', 'Err', 'vortex', 'file', 'text', 'json', 'vec', 'map', 'raylib'];
+
+        const regex = /("(?:\\.|[^"\\])*")|(\/;.*)|(\b\d+(?:\.\d+)?(?:f|l)?\b)|([a-zA-Z_]\w*)(?=\s*\()|([a-zA-Z_]\w*)(?=\s*::)|\b([a-zA-Z_]\w*)\b/g;
+        
+        return safeText.replace(regex, function(match, str, comment, num, func, ns, word) {
+            if (str) return `<span class="hl-string">${str}</span>`;
+            if (comment) return `<span class="hl-comment">${comment}</span>`;
+            if (num) return `<span class="hl-number">${num}</span>`;
+            if (func) return `<span class="hl-func">${func}</span>`;
+            if (ns) return modules.includes(ns) ? `<span class="hl-module">${ns}</span>` : `<span class="hl-class">${ns}</span>`;
+            if (word) {
+                if (keywords.includes(word)) return `<span class="hl-keyword">${word}</span>`;
+                if (builtInTypes.includes(word)) return `<span class="hl-module">${word}</span>`;
+                if (modules.includes(word)) return `<span class="hl-module">${word}</span>`;
+                if (/^[A-Z]/.test(word)) return `<span class="hl-class">${word}</span>`;
+                return word;
+            }
+            return match;
+        });
+    }
+
+    function updateHighlight() {
+        const input = document.getElementById('codeInput');
+        const highlight = document.getElementById('codeHighlight');
+        highlight.innerHTML = applySyntax(input.value) + '<br/>'; 
+    }
+
+    function syncScroll() {
+        const input = document.getElementById('codeInput');
+        const highlight = document.getElementById('codeHighlight');
+        highlight.scrollTop = input.scrollTop;
+        highlight.scrollLeft = input.scrollLeft;
+    }
+
+    function switchTab(tab) {
+        document.getElementById('tab-output').style.display = tab === 'output' ? 'block' : 'none';
+        document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
+        document.getElementById('btn-output').className = tab === 'output' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btn-input').className = tab === 'input' ? 'tab-btn active' : 'tab-btn';
+    }
+
+    // =========================================
+    // ANSI ESCAPE CODE FIX ADDED HERE
+    // =========================================
+    function ansiToHtml(text) {
+        return text.replace(/\x1b\[1;31m/g, '<span style="color: #ff7b72; font-weight: bold;">')
+                   .replace(/\x1b\[91m/g, '<span style="color: #ff7b72;">')   /* <- Added Bright Red (Your error color) */
+                   .replace(/\x1b\[1;32m/g, '<span style="color: #27c93f; font-weight: bold;">')
+                   .replace(/\x1b\[1;33m/g, '<span style="color: #ffbd2e; font-weight: bold;">')
+                   .replace(/\x1b\[1;37m/g, '<span style="color: #ffffff; font-weight: bold;">')
+                   .replace(/\x1b\[0m/g, '</span>')
+                   .replace(/\x1b\[[0-9;]*m/g, ''); /* <- Catch-All to strip unsupported ANSI codes so they don't break UI */
+    }
+
+    async function runCode() {
+        switchTab('output');
+        const out = document.getElementById('tab-output');
+        out.style.color = "var(--text-muted)";
+        out.innerText = "Compiling and executing via Flow-Wing JIT...";
+        try {
+            const response = await fetch('/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: document.getElementById('codeInput').value, input: document.getElementById('stdInput').value })
+            });
+            const safeText = (await response.text()).replace(/[\x00-\x1F]/g, c => (c==='\n'||c==='\r'||c==='\t'||c==='\x1b') ? c : '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4));
+            const result = JSON.parse(safeText);
+            out.style.color = "var(--text-main)";
+            out.innerHTML = ansiToHtml(result.output);
+        } catch (err) {
+            out.style.color = "#ff7b72";
+            out.innerText = "Execution failed: " + ansiToHtml(err.message);
+        }
+    }
+    updateHighlight();
+</script>
+</body>
+</html>

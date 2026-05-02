@@ -1,21 +1,28 @@
 bring io
 bring sys
 bring Err
+
 fun fg_main() -> nthg {
     /; Static type
     var greeting: str = "Hello"
+    
     /; Dynamic type natively supported
-    var target = "Developer"
-    println(greeting + ", " + target + "! Enter a number:")
+    var target = "Developer" 
+    
+    io::printLogln(greeting + ", " + target + "! Enter a number:")
+    
     var inputStr: str, err: Err::Result = io::readLine()
     if Err::isErr(err) {
         return :
     }
+
     /; Interoperability: dynamic * static
     var num = Int32(inputStr) /; Dynamic holding int
-    var multiplier: int = 10
-    /; Static int
-    var result = num * multiplier
-    println("Your number multiplied by 10 is: ", String(result))
+    var multiplier: int = 10  /; Static int
+    
+    var result = num * multiplier 
+    
+    io::printLogln("Your number multiplied by 10 is: " + String(result))
 }
+
 fg_main()

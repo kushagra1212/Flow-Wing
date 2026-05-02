@@ -12,7 +12,7 @@ import CodeBlock from "@site/src/components/common/CodeBlock";
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
     <img src={require('../../static/img/flowwing-icon.png').default} alt="Flow-Wing Logo" style={{ maxWidth: '100%', height: 'auto' }} />
-    <strong style={{ margin: '20px 0' }}>Flow-Wing: A programming language</strong>
+    <strong style={{ margin: '20px 0' }}>Flow-Wing: An experimental programming language</strong>
 </div>
 
 **Flow-Wing** (`.fg` sources) builds on LLVM. One compiler project gives you two tools: an **ahead-of-time (AOT)** binary that compiles to a native executable, and a separate **just-in-time (JIT)** binary that runs programs in one step. The runtime uses the **Boehm** garbage collector for heap data — you never pair allocations with manual `free`.
