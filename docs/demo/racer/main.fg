@@ -1,0 +1,17 @@
+bring raylib
+bring {SCREEN_WIDTH, SCREEN_HEIGHT } from "./Constants.fg"
+bring {RacingGame } from "./Game.fg"
+bring {renderGame } from "./Renderer.fg"
+fun startGame() -> nthg {
+    var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Flow-Wing Neon Racer")
+    var game: RacingGame = new RacingGame()
+    while !win.shouldClose() {
+        var dt: deci32 = win.getFrameTime()
+        win.begin()
+        win.clear(new raylib::Color(0, 0, 0, 255))
+        game.update(dt, win)
+        renderGame(win, game)
+        win.end()
+    }
+}
+startGame()

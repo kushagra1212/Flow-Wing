@@ -1,0 +1,4 @@
+expose const SCREEN_WIDTH: int = 1024
+expose const SCREEN_HEIGHT: int = 768
+expose const KEY_ENTER: int = 257
+expose const KEY_P: int = 80
