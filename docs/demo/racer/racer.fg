@@ -1,0 +1,187 @@
+bring raylib
+const SCREEN_WIDTH: int = 800
+const SCREEN_HEIGHT: int = 600
+class RacingGame {
+    var pos: deci32
+    var playerX: deci32
+    var speed: deci32
+    var maxSpeed: deci32
+    var time: deci32
+    init() -> nthg {
+        self.pos = 0.0f
+        self.playerX = 0.0f
+        self.speed = 0.0f
+        self.maxSpeed = 1600.0f
+        self.time = 0.0f
+    }
+    fun update(dt: deci32, win: raylib::Window) -> nthg {
+        /; 1. Acceleration & Braking
+        if win.isKeyDown(raylib::KEY_UP) {
+            self.speed = self.speed + (1000.0f * dt)
+            if self.speed > self.maxSpeed {
+                self.speed = self.maxSpeed
+            }
+        } else if win.isKeyDown(raylib::KEY_DOWN) {
+            self.speed = self.speed - (1500.0f * dt)
+            if self.speed < 0.0f {
+                self.speed = 0.0f
+            }
+        } else {
+            /; Natural Friction
+            self.speed = self.speed - (400.0f * dt)
+            if self.speed < 0.0f {
+                self.speed = 0.0f
+            }
+        }
+        /; 2. Steering (Scales with speed)
+        var steerSpeed: deci32 = 900.0f * (self.speed / self.maxSpeed)
+        if steerSpeed < 200.0f && self.speed > 0.0f {
+            steerSpeed = 200.0f
+        }
+        if win.isKeyDown(raylib::KEY_LEFT) {
+            self.playerX = self.playerX - (steerSpeed * dt)
+        }
+        if win.isKeyDown(raylib::KEY_RIGHT) {
+            self.playerX = self.playerX + (steerSpeed * dt)
+        }
+        /; 3. Centrifugal Force (Pushes car outward on curves!)
+        var currentCurve: deci32 = raylib::getSin(self.pos * 0.001f) * 3.0f
+        self.playerX = self.playerX - (currentCurve * self.speed * dt * 0.25f)
+        /; 4. Off-road Penalty (Grass slows you down)
+        if self.playerX > 450.0f || self.playerX < -450.0f {
+            if self.speed > 400.0f {
+                self.speed = self.speed - (2500.0f * dt)
+            }
+        }
+        /; 5. Advance World
+        self.pos = self.pos + (self.speed * dt)
+        self.time = self.time + dt
+    }
+    fun draw(win: raylib::Window) -> nthg {
+        /; Draw Parallax Sky
+        self.drawSky(win)
+        var cGrassDark: raylib::Color = new raylib::Color(34, 139, 34, 255)
+        var cGrassLight: raylib::Color = new raylib::Color(50, 205, 50, 255)
+        var cRoadDark: raylib::Color = new raylib::Color(105, 105, 105, 255)
+        var cRoadLight: raylib::Color = new raylib::Color(128, 128, 128, 255)
+        var cRumbleRed: raylib::Color = new raylib::Color(220, 20, 60, 255)
+        var cRumbleWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+        /; PSEUDO-3D RASTER SCANNER
+        /; We draw the road line-by-line from the bottom of the screen up to the horizon
+        var current_x: deci32 = 400.0f
+        var dx: deci32 = 0.0f
+        var min_y: int = 300
+        /; Horizon line (SCREEN_HEIGHT / 2)
+        for (var y: int = SCREEN_HEIGHT to min_y : -1) {
+            var scale: deci32 = Decimal32(y - min_y) / Decimal32(min_y)
+            if scale <= 0.0f {
+                continue
+            }
+            var worldZ: deci32 = self.pos + (500.0f / scale)
+            /; Combine two sine waves to create organic, unpredictable track curves
+            var curve1: deci32 = raylib::getSin(worldZ * 0.001f) * 2.0f
+            var curve2: deci32 = raylib::getSin(worldZ * 0.0005f) * 1.5f
+            var curve: deci32 = curve1 + curve2
+            /; Accumulate the curve to bend the road
+            dx = dx + curve
+            current_x = current_x + dx
+            /; Project 3D space to 2D Screen Space
+            var cx: deci32 = current_x - (self.playerX * scale)
+            var w: deci32 = 400.0f * scale
+            var rw: deci32 = w + (50.0f * scale)
+            /; Checkerboard pattern calculation
+            var isDark: bool = (Int32(worldZ / 300.0f) % 2) == 0
+            var cGrass: raylib::Color = isDark ? cGrassDark : cGrassLight
+            var cRumble: raylib::Color = isDark ? cRumbleRed : cRumbleWhite
+            var cRoad: raylib::Color = isDark ? cRoadDark : cRoadLight
+            /; 1. Draw Grass (Fills entire horizontal line)
+            win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(y)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 1.0f), cGrass)
+            /; 2. Draw Rumble Strips (Edges)
+            win.drawRectangle(new raylib::Vec2(cx - rw, Decimal32(y)), new raylib::Vec2(rw * 2.0f, 1.0f), cRumble)
+            /; 3. Draw Asphalt
+            win.drawRectangle(new raylib::Vec2(cx - w, Decimal32(y)), new raylib::Vec2(w * 2.0f, 1.0f), cRoad)
+            /; 4. Draw Center Line
+            if !isDark {
+                var cw: deci32 = 10.0f * scale
+                var cLine: raylib::Color = new raylib::Color(255, 255, 255, 255)
+                win.drawRectangle(new raylib::Vec2(cx - cw, Decimal32(y)), new raylib::Vec2(cw * 2.0f, 1.0f), cLine)
+            }
+        }
+        self.drawCar(win)
+        self.drawHUD(win)
+    }
+    fun drawSky(win: raylib::Window) -> nthg {
+        /; Draw a Sunset Gradient dynamically using rectangles
+        for (var y: int = 0 to 300 : 5) {
+            var factor: deci32 = Decimal32(y) / 300.0f
+            /; Interpolate from Dark Blue to Neon Pink
+            var r: int = Int32(15.0f + (229.0f * factor))
+            var g: int = Int32(23.0f + (91.0f * factor))
+            var b: int = Int32(42.0f + (140.0f * factor))
+            win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(y)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 5.0f), new raylib::Color(r, g, b, 255))
+        }
+        /; Draw Parallax Sun (Moves opposite to your steering & road curve)
+        var sunX: deci32 = 400.0f - (self.playerX * 0.1f) - (raylib::getSin(self.pos * 0.001f) * 100.0f)
+        win.drawCircle(new raylib::Vec2(sunX, 150.0f), 60.0f, new raylib::Color(253, 224, 71, 255))
+        win.drawCircle(new raylib::Vec2(sunX, 150.0f), 80.0f, new raylib::Color(253, 224, 71, 100)) /; Sun Glow
+    }
+    fun drawCar(win: raylib::Window) -> nthg {
+        var carW: deci32 = 140.0f
+        var cx: deci32 = 400.0f
+        var cy: deci32 = 500.0f
+        /; Tilt the car chassis based on steering input
+        var tilt: deci32 = 0.0f
+        if win.isKeyDown(raylib::KEY_LEFT) {
+            tilt = -6.0f
+        }
+        if win.isKeyDown(raylib::KEY_RIGHT) {
+            tilt = 6.0f
+        }
+        var cRed: raylib::Color = new raylib::Color(220, 38, 38, 255)
+        var cDark: raylib::Color = new raylib::Color(24, 24, 27, 255)
+        var cGlass: raylib::Color = new raylib::Color(56, 189, 248, 255)
+        var cLight: raylib::Color = new raylib::Color(252, 165, 165, 255)
+        /; Left and Right Tires (Offset Y by tilt to fake 3D suspension)
+        win.drawRectangle(new raylib::Vec2(cx - (carW / 2.0f) - 10.0f, cy + 10.0f + tilt), new raylib::Vec2(20.0f, 30.0f), cDark)
+        win.drawRectangle(new raylib::Vec2(cx + (carW / 2.0f) - 10.0f, cy + 10.0f - tilt), new raylib::Vec2(20.0f, 30.0f), cDark)
+        /; Car Body Main
+        win.drawRectangle(new raylib::Vec2(cx - (carW / 2.0f), cy + 20.0f), new raylib::Vec2(carW, 30.0f), cRed)
+        /; Cabin / Roof
+        win.drawRectangle(new raylib::Vec2(cx - (carW / 2.5f), cy), new raylib::Vec2(carW * 0.8f, 20.0f), cDark)
+        /; Windshield
+        win.drawRectangle(new raylib::Vec2(cx - (carW / 2.8f), cy + 2.0f), new raylib::Vec2(carW * 0.7f, 15.0f), cGlass)
+        /; Racing Stripes
+        win.drawRectangle(new raylib::Vec2(cx - 15.0f, cy + 20.0f), new raylib::Vec2(10.0f, 30.0f), cLight)
+        win.drawRectangle(new raylib::Vec2(cx + 5.0f, cy + 20.0f), new raylib::Vec2(10.0f, 30.0f), cLight)
+        /; Tail Lights (Brighten when braking)
+        var tailColor: raylib::Color = new raylib::Color(120, 0, 0, 255)
+        if win.isKeyDown(raylib::KEY_DOWN) {
+            tailColor = new raylib::Color(255, 20, 20, 255)
+        }
+        win.drawRectangle(new raylib::Vec2(cx - (carW / 2.0f) + 10.0f, cy + 25.0f), new raylib::Vec2(25.0f, 10.0f), tailColor)
+        win.drawRectangle(new raylib::Vec2(cx + (carW / 2.0f) - 35.0f, cy + 25.0f), new raylib::Vec2(25.0f, 10.0f), tailColor)
+    }
+    fun drawHUD(win: raylib::Window) -> nthg {
+        var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+        var speedKmh: int = Int32(self.speed / 8.0f) /; Convert virtual speed to a fun KM/H number
+        win.drawText("SPEED: " + String(speedKmh) + " KM/H", 20, 20, 30, cWhite)
+        win.drawText("DISTANCE: " + String(Int32(self.pos / 1000.0f)) + " M", 20, 60, 20, cWhite)
+        /; Draw a Nitro/RPM style bar using primitive rectangles
+        var barW: deci32 = 200.0f * (self.speed / self.maxSpeed)
+        win.drawRectangle(new raylib::Vec2(20.0f, 90.0f), new raylib::Vec2(200.0f, 15.0f), new raylib::Color(24, 24, 27, 255))
+        win.drawRectangle(new raylib::Vec2(20.0f, 90.0f), new raylib::Vec2(barW, 15.0f), new raylib::Color(34, 211, 238, 255))
+    }
+}
+fun start_game() -> nthg {
+    var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Flow-Wing OutRun")
+    var game: RacingGame = new RacingGame()
+    while !win.shouldClose() {
+        var dt: deci32 = win.getFrameTime()
+        win.begin()
+        win.clear(new raylib::Color(0, 0, 0, 255))
+        game.update(dt, win)
+        game.draw(win)
+        win.end()
+    }
+}
+start_game()

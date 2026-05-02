@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,11 +53,12 @@ FunctionReturnTypeExpressionSyntax::getChildren() const {
     if (m_as_keyword) {
       m_children.push_back(m_as_keyword);
     }
-    for (const auto &node : m_type_expressions) {
-      m_children.push_back(node.get());
-    }
-    for (const auto *node : m_comma_tokens) {
-      m_children.push_back(node);
+    for (size_t i = 0; i < m_type_expressions.size(); ++i) {
+      m_children.push_back(m_type_expressions[i].get());
+      if (i + 1 < m_type_expressions.size() &&
+          i < m_comma_tokens.size() && m_comma_tokens[i]) {
+        m_children.push_back(m_comma_tokens[i]);
+      }
     }
   }
 

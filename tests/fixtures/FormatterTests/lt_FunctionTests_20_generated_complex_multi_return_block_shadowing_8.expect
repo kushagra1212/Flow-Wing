@@ -1,5 +1,5 @@
 /; from LatestTests/FunctionTests/20_generated_complex/multi_return_block_shadowing_8.fg
-fun getMulti_8() -> int str, {
+fun getMulti_8() -> int, str {
     return 8, "test8"
 }
 var x: int = 999
