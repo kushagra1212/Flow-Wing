@@ -1,17 +1,1 @@
-type B = {
-    a: int
-}
-type T = {
-    a: int
-    b: B
-}
-var arr: T[2]
-arr[0].b = {a : 0}
-fun update(arr: T) -> nthg {
-    arr.a = 1
-    arr.b.a = 2
-}
-{
-    update(arr[0])
-    println(arr)
-}
+println("Hello World")
