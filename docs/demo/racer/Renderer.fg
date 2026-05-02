@@ -4,31 +4,80 @@ bring {SCREEN_WIDTH, SCREEN_HEIGHT } from "./Constants.fg"
 bring {getTrackX, getTrackYaw } from "./Track.fg"
 bring {RacingGame } from "./Game.fg"
 bring {drawHUD, drawMenu, drawGameOver, drawPause } from "./UI.fg"
+/; ==========================================
+/; MEMORY POOLING: Prevent JIT Memory Leaks
+/; ==========================================
+var tPos: raylib::Vec2 = new raylib::Vec2(0.0f, 0.0f)
+var tSize: raylib::Vec2 = new raylib::Vec2(0.0f, 0.0f)
+var tVec1: raylib::Vec2 = new raylib::Vec2(0.0f, 0.0f)
+var tVec2: raylib::Vec2 = new raylib::Vec2(0.0f, 0.0f)
+var tVec3: raylib::Vec2 = new raylib::Vec2(0.0f, 0.0f)
+fun drawRectFast(win: raylib::Window, x: deci32, y: deci32, w: deci32, h: deci32, c: raylib::Color) -> nthg {
+    tPos.x = x
+    tPos.y = y
+    tSize.x = w
+    tSize.y = h
+    win.drawRectangle(tPos, tSize, c)
+}
+
+fun drawCircFast(win: raylib::Window, x: deci32, y: deci32, r: deci32, c: raylib::Color) -> nthg {
+    tPos.x = x
+    tPos.y = y
+    win.drawCircle(tPos, r, c)
+}
+
+fun drawTriFast(win: raylib::Window, x1: deci32, y1: deci32, x2: deci32, y2: deci32, x3: deci32, y3: deci32, c: raylib::Color) -> nthg {
+    tVec1.x = x1
+    tVec1.y = y1
+    tVec2.x = x2
+    tVec2.y = y2
+    tVec3.x = x3
+    tVec3.y = y3
+    win.drawTriangle(tVec1, tVec2, tVec3, c)
+}
+
+/; ==========================================
 fun drawSky(win: raylib::Window, game: RacingGame, bgShift: deci32) -> nthg {
     var min_y: int = Int32(SCREEN_HEIGHT / 2)
+    /; Sky Gradient
     for (var y: int = 0 to min_y : 5) {
         var factor: deci32 = Decimal32(y) / Decimal32(min_y)
-        var r: int = Int32(10.0f + (200.0f * factor))
-        var g: int = Int32(5.0f + (50.0f * factor))
-        var b: int = Int32(30.0f + (100.0f * factor))
-        win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(y)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 5.0f), new raylib::Color(r, g, b, 255))
+        var cSky: raylib::Color = new raylib::Color(Int32(10.0f + (200.0f * factor)), Int32(5.0f + (50.0f * factor)), Int32(30.0f + (100.0f * factor)), 255)
+        drawRectFast(win, 0.0f, Decimal32(y), Decimal32(SCREEN_WIDTH), 5.0f, cSky)
     }
+    /; Synthwave Sun
     var sunX: deci32 = (Decimal32(SCREEN_WIDTH) / 2.0f) - (game.playerX * 100.0f) - bgShift
-    win.drawCircle(new raylib::Vec2(sunX, 150.0f), 100.0f, new raylib::Color(255, 50, 100, 255))
+    var cSun: raylib::Color = new raylib::Color(255, 50, 100, 255)
+    var cSunLine: raylib::Color = new raylib::Color(20, 5, 30, 255)
+    drawCircFast(win, sunX, 150.0f, 100.0f, cSun)
     for (var i: int = 0 to 5 : 1) {
-        win.drawRectangle(new raylib::Vec2(sunX - 110.0f, 150.0f + Decimal32(i * 15)), new raylib::Vec2(220.0f, 5.0f), new raylib::Color(20, 5, 30, 255))
+        drawRectFast(win, sunX - 110.0f, 150.0f + Decimal32(i * 15), 220.0f, 5.0f, cSunLine)
     }
+    /; Distant Mountains
     var mtnColor: raylib::Color = new raylib::Color(20, 10, 40, 255)
     for (var i: int = -5 to 5 : 1) {
         var mX: deci32 = Decimal32(i * 400) - bgShift
-        win.drawTriangle(new raylib::Vec2(mX + 200.0f, Decimal32(min_y - 120)), new raylib::Vec2(mX, Decimal32(min_y)), new raylib::Vec2(mX + 400.0f, Decimal32(min_y)), mtnColor)
+        drawTriFast(win, mX + 200.0f, Decimal32(min_y - 120), mX, Decimal32(min_y), mX + 400.0f, Decimal32(min_y), mtnColor)
     }
 }
 
 fun drawObjects(win: raylib::Window, game: RacingGame, center_x: deci32, min_y: int, cameraTrackX: deci32, cameraZ: deci32, cameraYaw: deci32) -> nthg {
     var dist: deci32 = 8000.0f
+    var cTreeTrunk: raylib::Color = new raylib::Color(60, 40, 20, 255)
+    var cTree1: raylib::Color = new raylib::Color(20, 60, 20, 255)
+    var cTree2: raylib::Color = new raylib::Color(30, 90, 30, 255)
+    var cTree3: raylib::Color = new raylib::Color(40, 120, 40, 255)
+    var cCoin1: raylib::Color = new raylib::Color(218, 165, 32, 255)
+    var cCoin2: raylib::Color = new raylib::Color(255, 215, 0, 255)
+    var cCoinShine: raylib::Color = new raylib::Color(255, 255, 255, 180)
+    var cShadow: raylib::Color = new raylib::Color(10, 10, 10, 180)
+    var cTire: raylib::Color = new raylib::Color(15, 15, 15, 255)
+    var cGlass: raylib::Color = new raylib::Color(40, 50, 70, 255)
+    var cTail: raylib::Color = new raylib::Color(255, 30, 30, 255)
+    var cSpoiler: raylib::Color = new raylib::Color(20, 20, 20, 255)
     while dist > 0.0f {
         dist = dist - 200.0f
+        /; Draw Trees
         for (var i: int = 0 to game.treeZ.size() - 1 : 1) {
             var tz: deci32 = Decimal32(game.treeZ.get(i))
             var distFromPlayer: deci32 = tz - game.pos
@@ -42,12 +91,13 @@ fun drawObjects(win: raylib::Window, game: RacingGame, center_x: deci32, min_y: 
                 var sx: deci32 = center_x + ((viewX - (game.playerX * center_x)) * scale) + (tx * center_x * scale)
                 var tw: deci32 = 300.0f * scale
                 var th: deci32 = 600.0f * scale
-                win.drawRectangle(new raylib::Vec2(sx - (tw * 0.08f), sy - (th * 0.3f)), new raylib::Vec2(tw * 0.16f, th * 0.3f), new raylib::Color(60, 40, 20, 255))
-                win.drawCircle(new raylib::Vec2(sx, sy - (th * 0.35f)), tw * 0.45f, new raylib::Color(20, 60, 20, 255))
-                win.drawCircle(new raylib::Vec2(sx, sy - (th * 0.55f)), tw * 0.35f, new raylib::Color(30, 90, 30, 255))
-                win.drawCircle(new raylib::Vec2(sx, sy - (th * 0.75f)), tw * 0.25f, new raylib::Color(40, 120, 40, 255))
+                drawRectFast(win, sx - (tw * 0.08f), sy - (th * 0.3f), tw * 0.16f, th * 0.3f, cTreeTrunk)
+                drawCircFast(win, sx, sy - (th * 0.35f), tw * 0.45f, cTree1)
+                drawCircFast(win, sx, sy - (th * 0.55f), tw * 0.35f, cTree2)
+                drawCircFast(win, sx, sy - (th * 0.75f), tw * 0.25f, cTree3)
             }
         }
+        /; Draw Coins
         for (var i: int = 0 to game.coinZ.size() - 1 : 1) {
             var cz: deci32 = Decimal32(game.coinZ.get(i))
             var distFromPlayer: deci32 = cz - game.pos
@@ -56,18 +106,18 @@ fun drawObjects(win: raylib::Window, game: RacingGame, center_x: deci32, min_y: 
                 var scale: deci32 = 500.0f / distFromPlayer
                 var sy: deci32 = Decimal32(min_y) + (Decimal32(min_y) * scale)
                 var absoluteTrackX: deci32 = getTrackX(cz)
-                var dz_cam: deci32 = cz - cameraZ
-                var viewX: deci32 = absoluteTrackX - cameraTrackX - (cameraYaw * dz_cam)
+                var viewX: deci32 = absoluteTrackX - cameraTrackX - (cameraYaw * (cz - cameraZ))
                 var cx: deci32 = Decimal32(game.coinX.get(i))
                 var sx: deci32 = center_x + ((viewX - (game.playerX * center_x)) * scale) + (cx * center_x * scale)
                 var cw: deci32 = 120.0f * scale
                 var ch: deci32 = 120.0f * scale
                 var hoverY: deci32 = raylib::getSin(game.time * 5.0f + Decimal32(i)) * (20.0f * scale)
-                win.drawCircle(new raylib::Vec2(sx, sy - (ch * 0.5f) + hoverY), cw * 0.4f, new raylib::Color(218, 165, 32, 255))
-                win.drawCircle(new raylib::Vec2(sx, sy - (ch * 0.5f) + hoverY), cw * 0.25f, new raylib::Color(255, 215, 0, 255))
-                win.drawRectangle(new raylib::Vec2(sx - (cw * 0.05f), sy - (ch * 0.7f) + hoverY), new raylib::Vec2(cw * 0.1f, ch * 0.4f), new raylib::Color(255, 255, 255, 180))
+                drawCircFast(win, sx, sy - (ch * 0.5f) + hoverY, cw * 0.4f, cCoin1)
+                drawCircFast(win, sx, sy - (ch * 0.5f) + hoverY, cw * 0.25f, cCoin2)
+                drawRectFast(win, sx - (cw * 0.05f), sy - (ch * 0.7f) + hoverY, cw * 0.1f, ch * 0.4f, cCoinShine)
             }
         }
+        /; Draw Opponent Cars
         for (var i: int = 0 to game.oppZ.size() - 1 : 1) {
             var oz: deci32 = Decimal32(game.oppZ.get(i))
             var distFromPlayer: deci32 = oz - game.pos
@@ -75,24 +125,23 @@ fun drawObjects(win: raylib::Window, game: RacingGame, center_x: deci32, min_y: 
                 var scale: deci32 = 500.0f / distFromPlayer
                 var sy: deci32 = Decimal32(min_y) + (Decimal32(min_y) * scale)
                 var absoluteTrackX: deci32 = getTrackX(oz)
-                var dz_cam: deci32 = oz - cameraZ
-                var viewX: deci32 = absoluteTrackX - cameraTrackX - (cameraYaw * dz_cam)
+                var viewX: deci32 = absoluteTrackX - cameraTrackX - (cameraYaw * (oz - cameraZ))
                 var ox: deci32 = Decimal32(game.oppX.get(i))
                 var sx: deci32 = center_x + ((viewX - (game.playerX * center_x)) * scale) + (ox * center_x * scale)
                 var cBody: raylib::Color = new raylib::Color(Int32(Decimal32(game.oppR.get(i))), Int32(Decimal32(game.oppG.get(i))), Int32(Decimal32(game.oppB.get(i))), 255)
                 var cw: deci32 = 260.0f * scale
                 var ch: deci32 = 100.0f * scale
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 1.8f), sy - (ch * 0.2f)), new raylib::Vec2(cw * 1.1f, ch * 0.3f), new raylib::Color(10, 10, 10, 180))
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 2.2f), sy - (ch * 0.4f)), new raylib::Vec2(cw * 0.25f, ch * 0.4f), new raylib::Color(15, 15, 15, 255))
-                win.drawRectangle(new raylib::Vec2(sx + (cw / 2.2f) - (cw * 0.25f), sy - (ch * 0.4f)), new raylib::Vec2(cw * 0.25f, ch * 0.4f), new raylib::Color(15, 15, 15, 255))
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 2.0f), sy - (ch * 0.7f)), new raylib::Vec2(cw, ch * 0.5f), cBody)
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 2.8f), sy - ch), new raylib::Vec2(cw * 0.7f, ch * 0.3f), cBody)
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 3.2f), sy - (ch * 0.95f)), new raylib::Vec2(cw * 0.6f, ch * 0.25f), new raylib::Color(40, 50, 70, 255))
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 2.2f), sy - (ch * 0.6f)), new raylib::Vec2(cw * 0.25f, ch * 0.15f), new raylib::Color(255, 30, 30, 255))
-                win.drawRectangle(new raylib::Vec2(sx + (cw / 2.2f) - (cw * 0.25f), sy - (ch * 0.6f)), new raylib::Vec2(cw * 0.25f, ch * 0.15f), new raylib::Color(255, 30, 30, 255))
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 1.9f), sy - (ch * 0.8f)), new raylib::Vec2(cw * 1.05f, ch * 0.08f), new raylib::Color(20, 20, 20, 255))
-                win.drawRectangle(new raylib::Vec2(sx - (cw / 2.2f), sy - (ch * 0.8f)), new raylib::Vec2(cw * 0.05f, ch * 0.15f), new raylib::Color(20, 20, 20, 255))
-                win.drawRectangle(new raylib::Vec2(sx + (cw / 2.2f) - (cw * 0.05f), sy - (ch * 0.8f)), new raylib::Vec2(cw * 0.05f, ch * 0.15f), new raylib::Color(20, 20, 20, 255))
+                drawRectFast(win, sx - (cw / 1.8f), sy - (ch * 0.2f), cw * 1.1f, ch * 0.3f, cShadow)
+                drawRectFast(win, sx - (cw / 2.2f), sy - (ch * 0.4f), cw * 0.25f, ch * 0.4f, cTire)
+                drawRectFast(win, sx + (cw / 2.2f) - (cw * 0.25f), sy - (ch * 0.4f), cw * 0.25f, ch * 0.4f, cTire)
+                drawRectFast(win, sx - (cw / 2.0f), sy - (ch * 0.7f), cw, ch * 0.5f, cBody)
+                drawRectFast(win, sx - (cw / 2.8f), sy - ch, cw * 0.7f, ch * 0.3f, cBody)
+                drawRectFast(win, sx - (cw / 3.2f), sy - (ch * 0.95f), cw * 0.6f, ch * 0.25f, cGlass)
+                drawRectFast(win, sx - (cw / 2.2f), sy - (ch * 0.6f), cw * 0.25f, ch * 0.15f, cTail)
+                drawRectFast(win, sx + (cw / 2.2f) - (cw * 0.25f), sy - (ch * 0.6f), cw * 0.25f, ch * 0.15f, cTail)
+                drawRectFast(win, sx - (cw / 1.9f), sy - (ch * 0.8f), cw * 1.05f, ch * 0.08f, cSpoiler)
+                drawRectFast(win, sx - (cw / 2.2f), sy - (ch * 0.8f), cw * 0.05f, ch * 0.15f, cSpoiler)
+                drawRectFast(win, sx + (cw / 2.2f) - (cw * 0.05f), sy - (ch * 0.8f), cw * 0.05f, ch * 0.15f, cSpoiler)
             }
         }
     }
@@ -109,37 +158,38 @@ fun drawCar(win: raylib::Window, game: RacingGame) -> nthg {
     var cDarkCyan: raylib::Color = new raylib::Color(0, 150, 150, 255)
     var cBlack: raylib::Color = new raylib::Color(15, 15, 15, 255)
     var cGlass: raylib::Color = new raylib::Color(20, 20, 30, 255)
-    win.drawRectangle(new raylib::Vec2(cx - 70.0f, cy + 40.0f), new raylib::Vec2(140.0f, 15.0f), new raylib::Color(0, 0, 0, 150))
-    win.drawRectangle(new raylib::Vec2(cx - 55.0f + frontShift, cy - 10.0f), new raylib::Vec2(22.0f, 30.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx + 33.0f + frontShift, cy - 10.0f), new raylib::Vec2(22.0f, 30.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx - 45.0f + frontShift, cy - 5.0f), new raylib::Vec2(90.0f, 20.0f), cCyan)
+    var cShadow: raylib::Color = new raylib::Color(0, 0, 0, 150)
+    var cWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    drawRectFast(win, cx - 70.0f, cy + 40.0f, 140.0f, 15.0f, cShadow)
+    drawRectFast(win, cx - 55.0f + frontShift, cy - 10.0f, 22.0f, 30.0f, cBlack)
+    drawRectFast(win, cx + 33.0f + frontShift, cy - 10.0f, 22.0f, 30.0f, cBlack)
+    drawRectFast(win, cx - 45.0f + frontShift, cy - 5.0f, 90.0f, 20.0f, cCyan)
     if turn < -0.05f {
-        var w: deci32 = turn * -30.0f
-        win.drawRectangle(new raylib::Vec2(cx + 65.0f + cabShift, cy - 5.0f), new raylib::Vec2(w, 35.0f), cDarkCyan)
+        drawRectFast(win, cx + 65.0f + cabShift, cy - 5.0f, turn * -30.0f, 35.0f, cDarkCyan)
     } else if turn > 0.05f {
         var w: deci32 = turn * 30.0f
-        win.drawRectangle(new raylib::Vec2(cx - 65.0f - w + cabShift, cy - 5.0f), new raylib::Vec2(w, 35.0f), cDarkCyan)
+        drawRectFast(win, cx - 65.0f - w + cabShift, cy - 5.0f, w, 35.0f, cDarkCyan)
     }
-    win.drawRectangle(new raylib::Vec2(cx - 50.0f + cabShift, cy - 35.0f), new raylib::Vec2(100.0f, 45.0f), cCyan)
-    win.drawRectangle(new raylib::Vec2(cx - 40.0f + cabShift, cy - 30.0f), new raylib::Vec2(80.0f, 15.0f), cGlass)
-    win.drawRectangle(new raylib::Vec2(cx - 45.0f + cabShift, cy - 10.0f), new raylib::Vec2(90.0f, 25.0f), cGlass)
-    win.drawRectangle(new raylib::Vec2(cx - 80.0f + rearShift, cy + 15.0f), new raylib::Vec2(40.0f, 35.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx + 40.0f + rearShift, cy + 15.0f), new raylib::Vec2(40.0f, 35.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx - 85.0f + rearShift, cy + 10.0f), new raylib::Vec2(170.0f, 30.0f), cCyan)
-    win.drawRectangle(new raylib::Vec2(cx - 65.0f + rearShift, cy + 20.0f), new raylib::Vec2(130.0f, 15.0f), cBlack)
+    drawRectFast(win, cx - 50.0f + cabShift, cy - 35.0f, 100.0f, 45.0f, cCyan)
+    drawRectFast(win, cx - 40.0f + cabShift, cy - 30.0f, 80.0f, 15.0f, cGlass)
+    drawRectFast(win, cx - 45.0f + cabShift, cy - 10.0f, 90.0f, 25.0f, cGlass)
+    drawRectFast(win, cx - 80.0f + rearShift, cy + 15.0f, 40.0f, 35.0f, cBlack)
+    drawRectFast(win, cx + 40.0f + rearShift, cy + 15.0f, 40.0f, 35.0f, cBlack)
+    drawRectFast(win, cx - 85.0f + rearShift, cy + 10.0f, 170.0f, 30.0f, cCyan)
+    drawRectFast(win, cx - 65.0f + rearShift, cy + 20.0f, 130.0f, 15.0f, cBlack)
     if win.isKeyDown(raylib::KEY_UP) {
         var cFlame: raylib::Color = new raylib::Color(0, 255, 255, 200)
         var rad: deci32 = Decimal32(raylib::getRandomNumber(5, 12))
-        win.drawCircle(new raylib::Vec2(cx - 40.0f + rearShift, cy + 30.0f), rad, cFlame)
-        win.drawCircle(new raylib::Vec2(cx + 40.0f + rearShift, cy + 30.0f), rad, cFlame)
+        drawCircFast(win, cx - 40.0f + rearShift, cy + 30.0f, rad, cFlame)
+        drawCircFast(win, cx + 40.0f + rearShift, cy + 30.0f, rad, cFlame)
     }
     var cBrake: raylib::Color = win.isKeyDown(raylib::KEY_DOWN) ? new raylib::Color(255, 200, 200, 255) : new raylib::Color(255, 0, 0, 255)
-    win.drawRectangle(new raylib::Vec2(cx - 60.0f + rearShift, cy + 22.0f), new raylib::Vec2(30.0f, 10.0f), cBrake)
-    win.drawRectangle(new raylib::Vec2(cx + 30.0f + rearShift, cy + 22.0f), new raylib::Vec2(30.0f, 10.0f), cBrake)
-    win.drawRectangle(new raylib::Vec2(cx - 15.0f + rearShift, cy + 20.0f), new raylib::Vec2(30.0f, 12.0f), new raylib::Color(255, 255, 255, 255))
-    win.drawRectangle(new raylib::Vec2(cx - 95.0f + cabShift, cy - 2.0f), new raylib::Vec2(190.0f, 10.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx - 85.0f + cabShift, cy + 5.0f), new raylib::Vec2(15.0f, 15.0f), cBlack)
-    win.drawRectangle(new raylib::Vec2(cx + 70.0f + cabShift, cy + 5.0f), new raylib::Vec2(15.0f, 15.0f), cBlack)
+    drawRectFast(win, cx - 60.0f + rearShift, cy + 22.0f, 30.0f, 10.0f, cBrake)
+    drawRectFast(win, cx + 30.0f + rearShift, cy + 22.0f, 30.0f, 10.0f, cBrake)
+    drawRectFast(win, cx - 15.0f + rearShift, cy + 20.0f, 30.0f, 12.0f, cWhite)
+    drawRectFast(win, cx - 95.0f + cabShift, cy - 2.0f, 190.0f, 10.0f, cBlack)
+    drawRectFast(win, cx - 85.0f + cabShift, cy + 5.0f, 15.0f, 15.0f, cBlack)
+    drawRectFast(win, cx + 70.0f + cabShift, cy + 5.0f, 15.0f, 15.0f, cBlack)
 }
 expose fun renderGame(win: raylib::Window, game: RacingGame) -> nthg {
     var cGrassDark: raylib::Color = new raylib::Color(25, 100, 25, 255)
@@ -148,6 +198,7 @@ expose fun renderGame(win: raylib::Window, game: RacingGame) -> nthg {
     var cRoadLight: raylib::Color = new raylib::Color(80, 80, 85, 255)
     var cRumbleRed: raylib::Color = new raylib::Color(220, 20, 60, 255)
     var cRumbleWhite: raylib::Color = new raylib::Color(255, 255, 255, 255)
+    var cDamage: raylib::Color = new raylib::Color(255, 0, 0, 0)
     var center_x: deci32 = Decimal32(SCREEN_WIDTH) / 2.0f
     var min_y: int = Int32(SCREEN_HEIGHT / 2)
     var cameraZ: deci32 = game.pos + 940.0f
@@ -168,22 +219,22 @@ expose fun renderGame(win: raylib::Window, game: RacingGame) -> nthg {
         var w: deci32 = center_x * scale
         var rw: deci32 = w + (40.0f * scale)
         var isDark: bool = (Int32(worldZ / 300.0f) % 2) == 0
-        win.drawRectangle(new raylib::Vec2(0.0f, Decimal32(y)), new raylib::Vec2(Decimal32(SCREEN_WIDTH), 1.0f), (isDark ? cGrassDark : cGrassLight))
-        win.drawRectangle(new raylib::Vec2(cx - rw, Decimal32(y)), new raylib::Vec2(rw * 2.0f, 1.0f), (isDark ? cRumbleRed : cRumbleWhite))
-        win.drawRectangle(new raylib::Vec2(cx - w, Decimal32(y)), new raylib::Vec2(w * 2.0f, 1.0f), (isDark ? cRoadDark : cRoadLight))
+        drawRectFast(win, 0.0f, Decimal32(y), Decimal32(SCREEN_WIDTH), 1.0f, (isDark ? cGrassDark : cGrassLight))
+        drawRectFast(win, cx - rw, Decimal32(y), rw * 2.0f, 1.0f, (isDark ? cRumbleRed : cRumbleWhite))
+        drawRectFast(win, cx - w, Decimal32(y), w * 2.0f, 1.0f, (isDark ? cRoadDark : cRoadLight))
         if !isDark {
             var cw: deci32 = 12.0f * scale
-            win.drawRectangle(new raylib::Vec2(cx - cw, Decimal32(y)), new raylib::Vec2(cw * 2.0f, 1.0f), cRumbleWhite)
+            drawRectFast(win, cx - cw, Decimal32(y), cw * 2.0f, 1.0f, cRumbleWhite)
         }
     }
     drawObjects(win, game, center_x, min_y, cameraTrackX, cameraZ, cameraYaw)
     drawCar(win, game)
     if game.crashFlash > 0.0f {
-        var alpha: int = Int32(game.crashFlash * 300.0f)
-        if alpha > 255 {
-            alpha = 255
+        cDamage.a = Int32(game.crashFlash * 300.0f)
+        if cDamage.a > 255 {
+            cDamage.a = 255
         }
-        win.drawRectangle(new raylib::Vec2(0.0f, 0.0f), new raylib::Vec2(Decimal32(SCREEN_WIDTH), Decimal32(SCREEN_HEIGHT)), new raylib::Color(255, 0, 0, alpha))
+        drawRectFast(win, 0.0f, 0.0f, Decimal32(SCREEN_WIDTH), Decimal32(SCREEN_HEIGHT), cDamage)
     }
     if game.state == 1 {
         drawHUD(win, game)
