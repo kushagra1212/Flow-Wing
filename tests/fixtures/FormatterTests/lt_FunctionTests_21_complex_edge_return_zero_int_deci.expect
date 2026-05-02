@@ -2,6 +2,7 @@
 fun zeroInt() -> int {
     return 0
 }
+
 fun zeroDeci() -> deci {
     return 0.0
 }

@@ -45,6 +45,14 @@
      default:
        return std::nullopt;
      }
+
+   case TK::kOpenBracketToken:
+     switch (left) {
+     case TK::kModuleKeyword:
+       return true; // `module [name]` not `module[name]`
+     default:
+       return std::nullopt;
+     }
  
    default:
      // All other combinations (including punctuation, closing braces, 

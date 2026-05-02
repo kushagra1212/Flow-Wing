@@ -2,6 +2,7 @@
 fun noop() -> nthg {
     println(0)
 }
+
 fun get() -> int {
     return 9
 }

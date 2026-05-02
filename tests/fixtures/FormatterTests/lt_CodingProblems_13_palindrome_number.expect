@@ -8,6 +8,7 @@ fun reverseNum(n: int) -> int {
     }
     return rev
 }
+
 fun isPalindrome(n: int) -> bool {
     return n == reverseNum(n)
 }

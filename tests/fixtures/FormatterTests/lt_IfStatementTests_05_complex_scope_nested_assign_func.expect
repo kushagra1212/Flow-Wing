@@ -2,6 +2,7 @@
 fun getOuter() -> int {
     return 10
 }
+
 fun getInner() -> int {
     return 5
 }

@@ -2,6 +2,7 @@
 fun seven() -> int {
     return 7
 }
+
 fun word() -> str {
     return "word"
 }

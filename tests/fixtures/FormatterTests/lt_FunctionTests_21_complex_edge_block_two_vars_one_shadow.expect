@@ -2,6 +2,7 @@
 fun getA() -> int {
     return 10
 }
+
 fun getB() -> int {
     return 20
 }

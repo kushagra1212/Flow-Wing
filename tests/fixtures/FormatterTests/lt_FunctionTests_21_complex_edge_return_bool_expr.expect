@@ -2,6 +2,7 @@
 fun eq(a: int, b: int) -> bool {
     return a == b
 }
+
 fun lt(a: int, b: int) -> bool {
     return a < b
 }

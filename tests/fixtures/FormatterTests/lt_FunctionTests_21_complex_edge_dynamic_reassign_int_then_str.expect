@@ -2,6 +2,7 @@
 fun i() -> int {
     return 1
 }
+
 fun s() -> str {
     return "s"
 }

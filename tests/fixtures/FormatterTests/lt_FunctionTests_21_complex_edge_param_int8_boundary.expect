@@ -2,6 +2,7 @@
 fun maxInt8() -> int8 {
     return 127
 }
+
 fun minInt8() -> int8 {
     return -128
 }

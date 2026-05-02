@@ -6,6 +6,7 @@ type Rng = {
 fun span(r: Rng) -> int {
     return r.hi - r.lo
 }
+
 fun run() -> nthg {
     var d: int[2] = [1, 2]
     var m: Rng = {

@@ -2,6 +2,7 @@
 fun inner() -> nthg {
     println(1)
 }
+
 fun outer() -> nthg {
     println(0)
     inner()
