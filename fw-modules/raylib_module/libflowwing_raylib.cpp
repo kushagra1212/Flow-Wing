@@ -150,6 +150,11 @@ void _ray_draw_rectangle(float posX, float posY, float width, float height,
                 unpackColor(color_packed));
 }
 
+
+void _ray_draw_triangle(float x1, float y1, float x2, float y2, float x3, float y3, int64_t color_packed) {
+  DrawTriangle(Vector2{(float)x1, (float)y1}, Vector2{(float)x2, (float)y2}, Vector2{(float)x3, (float)y3}, unpackColor(color_packed));
+}
+
 void _ray_draw_text(const char *text, int32_t posX, int32_t posY,
                     int32_t fontSize, int64_t color_packed) {
   DrawText(text, posX, posY, fontSize, unpackColor(color_packed));

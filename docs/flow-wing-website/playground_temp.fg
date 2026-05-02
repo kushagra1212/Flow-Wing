@@ -2,14 +2,14 @@ bring io
 bring sys
 bring Err
 
-fun fg_main() -> nthg {
+fun fgMain() -> nthg {
     /; Static type
     var greeting: str = "Hello"
     
     /; Dynamic type natively supported
     var target = "Developer" 
     
-    io::printLogln(greeting + ", " + target + "! Enter a number:")
+    println(greeting + ", " + target + "! Enter a number:")
     
     var inputStr: str, err: Err::Result = io::readLine()
     if Err::isErr(err) {
@@ -22,7 +22,7 @@ fun fg_main() -> nthg {
     
     var result = num * multiplier 
     
-    io::printLogln("Your number multiplied by 10 is: " + String(result))
+    println("Your number multiplied by 10 is: " , String(result))
 }
 
-fg_main()
+fgMain()
