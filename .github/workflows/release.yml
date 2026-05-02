@@ -705,9 +705,8 @@ jobs:
     # Homebrew / Chocolatey / apt feeds:
     #   * Chocolatey community moderation is asynchronous (hours → days). `choco install
     #     flowwing` in the same CI run routinely fails with "package not found".
-    #   * The Homebrew tap PR created by publish-homebrew is not auto-merged, so
-    #     `brew install kushagra1212/flowwing/flowwing` may install an older / missing
-    #     formula until a human merges it.
+#   * The Homebrew tap PR is merged automatically by publish-homebrew (same PAT as PR create);
+#     if merge fails (branch protection, token scope), `brew install .../flowwing` may lag until fixed.
     # The .pkg / NSIS .exe / .deb we upload to the GitHub Release IS exactly what end
     # users download, so verifying them is both more reliable and a stronger signal.
     # The per-package-manager install paths are still covered by `brew test` /
