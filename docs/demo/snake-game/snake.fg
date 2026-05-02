@@ -1,5 +1,7 @@
 bring raylib
 bring vec
+bring file
+bring Err
 const SCREEN_WIDTH: int = 800
 const SCREEN_HEIGHT: int = 600
 const CELL_SIZE: deci32 = 20.0f
@@ -11,19 +13,29 @@ class Food {
     var pos: raylib::Vec2
     var active: bool
     var pulseTime: deci32
+    var colorCore: raylib::Color
+    var colorGlow: raylib::Color
     init(x: deci32, y: deci32) -> nthg {
         self.pos = new raylib::Vec2(x, y)
         self.active = true
         self.pulseTime = 0.0f
+        self.colorCore = new raylib::Color(244, 63, 94, 255)
+        self.colorGlow = new raylib::Color(244, 63, 94, 80)
     }
     fun respawn() -> nthg {
-        var cols: int = Int32(SCREEN_WIDTH / 20)
-        var rows: int = Int32(SCREEN_HEIGHT / 20)
+        var cols: int = Int32(SCREEN_WIDTH / CELL_SIZE)
+        var rows: int = Int32(SCREEN_HEIGHT / CELL_SIZE)
         var rx: int = raylib::getRandomNumber(0, cols - 1)
         var ry: int = raylib::getRandomNumber(0, rows - 1)
-        self.pos.x = Decimal32(rx * 20)
-        self.pos.y = Decimal32(ry * 20)
+        self.pos.x = Decimal32(rx) * CELL_SIZE
+        self.pos.y = Decimal32(ry) * CELL_SIZE
         self.active = true
+        /; Randomize food color for extra flair!
+        var r: int = raylib::getRandomNumber(100, 255)
+        var g: int = raylib::getRandomNumber(100, 255)
+        var b: int = raylib::getRandomNumber(100, 255)
+        self.colorCore = new raylib::Color(r, g, b, 255)
+        self.colorGlow = new raylib::Color(r, g, b, 80)
     }
     fun draw(dt: deci32, win: raylib::Window) -> nthg {
         if !self.active {
@@ -34,11 +46,9 @@ class Food {
         var sine: deci32 = raylib::getSin(self.pulseTime)
         var radius: deci32 = 6.0f + (sine * 2.0f) /; Pulses between 4.0 and 8.0
         var center: raylib::Vec2 = new raylib::Vec2(self.pos.x + HALF_CELL, self.pos.y + HALF_CELL)
-        var cGlow: raylib::Color = new raylib::Color(244, 63, 94, 80)
-        var cCore: raylib::Color = new raylib::Color(244, 63, 94, 255)
         /; Draw glow and core
-        win.drawCircle(center, radius + 5.0f, cGlow)
-        win.drawCircle(center, radius, cCore)
+        win.drawCircle(center, radius + 5.0f, self.colorGlow)
+        win.drawCircle(center, radius, self.colorCore)
     }
 }
 /; ─────────────────────────────────────────────────────────
@@ -180,6 +190,13 @@ fun start_game() -> nthg {
     var snake: Snake = new Snake()
     var food: Food = new Food(0.0f, 0.0f)
     food.respawn()
+    /; Set up file persistence for High Score
+    var highScore: int = 0
+    var hsPath: str = file::__DIR__ + "./highscore.txt"
+    var hsStr: str, hsErr: Err::Result = file::readText(hsPath)
+    if !hsErr.isErr() {
+        highScore = Int32(hsStr)
+    }
     var cBG: raylib::Color = new raylib::Color(24, 24, 27, 255)
     var cGrid: raylib::Color = new raylib::Color(39, 39, 42, 255)
     var cScore: raylib::Color = new raylib::Color(161, 161, 170, 255)
@@ -189,7 +206,15 @@ fun start_game() -> nthg {
         /; ── Update ────────────────────────────────────────
         if !snake.isDead {
             snake.update(dt, win, food)
+            /; Check if snake just died to update High Score
+            if snake.isDead {
+                if snake.score > highScore {
+                    highScore = snake.score
+                    var _, werr: Err::Result = file::writeText(hsPath, String(highScore))
+                }
+            }
         } else {
+            /; Restart Game
             if win.isKeyPressed(raylib::KEY_SPACE) {
                 snake = new Snake()
                 food.respawn()
@@ -209,10 +234,11 @@ fun start_game() -> nthg {
         snake.draw(win)
         /; HUD
         win.drawText("SCORE: " + String(snake.score), 15, 15, 20, cScore)
+        win.drawText("HIGH SCORE: " + String(highScore), 15, 40, 20, cScore)
         if snake.isDead {
-            var w1: int = win.measureText("GAME OVER", 50)
+            var w1: int = win.measureText("GAME OVER", 40)
             var w2: int = win.measureText("Press SPACE to Restart", 20)
-            win.drawText("GAME OVER", Int32((SCREEN_WIDTH / 2) - (w1 / 2)), Int32((SCREEN_HEIGHT / 2) - 30), 50, cRed)
+            win.drawText("GAME OVER", Int32((SCREEN_WIDTH / 2) - (w1 / 2)), Int32((SCREEN_HEIGHT / 2) - 20), 40, cRed)
             win.drawText("Press SPACE to Restart", Int32((SCREEN_WIDTH / 2) - (w2 / 2)), Int32((SCREEN_HEIGHT / 2) + 30), 20, cScore)
         }
         win.end()
