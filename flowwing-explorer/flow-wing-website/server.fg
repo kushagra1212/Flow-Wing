@@ -49,8 +49,8 @@ fun fg_main() -> nthg {
             var parsed: json::JsonNode = json::parse(body)
             var userCode: str = parsed.get("code").strVal
             var stdInput: str = parsed.get("input").strVal
-            var tempFile: str = CURRENT_DIR + "./playground_temp.fg"
-            var inFile: str = CURRENT_DIR + "./playground_in.txt"
+            var tempFile: str = CURRENT_DIR + "/playground_temp.fg"
+            var inFile: str = CURRENT_DIR + "/playground_in.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
             var cmd: str = "flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
