@@ -51,7 +51,7 @@ fun fg_main() -> nthg {
             var inFile: str = file::__DIR__ + "./playground_in.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
-            var cmd: str = "/Users/apple/code/per/Flow-Wing/flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
+            var cmd: str = "flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
             var output: str = sys::exec(cmd)
             /; Safely escape JSON strings to prevent frontend crashes on compilation errors
             output = text::replace(output, "\\", "\\\\")
