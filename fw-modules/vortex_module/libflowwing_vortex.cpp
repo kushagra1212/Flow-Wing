@@ -68,6 +68,34 @@ struct VortexServer {
 
 extern "C" {
 
+
+  void vortex_res_send_file(int64_t req_handle, const char *filepath, const char *content_type) {
+    if (!req_handle || !filepath || !content_type) return;
+    HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
+  
+    // Read the file in binary mode
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file) {
+      ctx->res->status = 404;
+      ctx->res->set_content("File Not Found", "text/plain");
+    } else {
+      // Read the entire file buffer into a string safely (preserves null bytes)
+      std::ostringstream oss;
+      oss << file.rdbuf();
+      std::string data = oss.str();
+      
+      // Use the explicit length set_content method so httplib doesn't truncate it
+      ctx->res->set_content(data.c_str(), data.size(), content_type);
+    }
+  
+    // Unblock the FlowWing thread
+    {
+      std::lock_guard<std::mutex> lock(ctx->mtx);
+      ctx->handled = true;
+    }
+    ctx->cv.notify_one();
+  }
+
 int64_t vortex_server_new() {
   VortexServer *server = new VortexServer();
   // Catch-all route to intercept every request and pipe it to FlowWing

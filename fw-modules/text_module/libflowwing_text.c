@@ -58,6 +58,18 @@ char* strReverse(const char* str) {
     new_str[len] = '\0';
     return new_str;
 }
+int32_t strStartsWith(const char* str, const char* prefix) {
+    if (!str || !prefix) return -1;
+    
+    size_t prefix_len = strlen(prefix);
+    return strncmp(str, prefix, prefix_len) == 0 ? 1 : 0;
+}
+
+int32_t strEndsWith(const char* str, const char* suffix) {
+    if (!str || !suffix) return -1;
+    size_t suffix_len = strlen(suffix);
+    return strncmp(str + strlen(str) - suffix_len, suffix, suffix_len) == 0 ? 1 : 0;
+}
 
 // 5. Trim (Removes leading and trailing whitespace)
 char* strTrim(const char* str) {
