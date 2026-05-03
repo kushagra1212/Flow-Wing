@@ -12,6 +12,7 @@ fun fg_main() -> nthg {
         io::printErrorLogln("Failed to start server", "red")
         return :
     }
+    const CURRENT_DIR: str = file::__DIR__ == "" ? "." : file::__DIR__
     io::printLogln("Flow-Wing Live Environment running at http://127.0.0.1:8080", "cyan")
     while true {
         var req: vortex::Request, res: vortex::Response = app.accept()
@@ -22,7 +23,7 @@ fun fg_main() -> nthg {
         var path: str = req.getPath()
         var pathAsText: text::Text = new text::Text(path)
         if method == "GET" && path == "/" {
-            var tplPath: str = file::__DIR__ + "/template.html"
+            var tplPath: str = CURRENT_DIR + "/template.html"
             var content: str, rerr: Err::Result = file::readText(tplPath)
             if Err::isErr(rerr) {
                 res.status(500).header("Content-Type", "text/html").send("<h1>Missing template.html</h1>")
@@ -48,8 +49,8 @@ fun fg_main() -> nthg {
             var parsed: json::JsonNode = json::parse(body)
             var userCode: str = parsed.get("code").strVal
             var stdInput: str = parsed.get("input").strVal
-            var tempFile: str = file::__DIR__ + "./playground_temp.fg"
-            var inFile: str = file::__DIR__ + "./playground_in.txt"
+            var tempFile: str = CURRENT_DIR + "./playground_temp.fg"
+            var inFile: str = CURRENT_DIR + "./playground_in.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
             var cmd: str = "flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
@@ -63,7 +64,7 @@ fun fg_main() -> nthg {
             responseObj.put("output", json::newString(output))
             res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
         } else if method == "GET" && pathAsText.startsWith("/assets/") {
-            var assetPath: str = file::__DIR__ + pathAsText.get()
+            var assetPath: str = CURRENT_DIR + pathAsText.get()
             /; Default to icon
             var contentType: str = "image/x-icon"
             /; Dynamically assign the correct MIME type
