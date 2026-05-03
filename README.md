@@ -81,10 +81,7 @@ flowwing-jit --version
 ### Hello World
 Create a file named `main.fg`:
 ```fg
-fun fg_main() -> int {
-    print("Hello, Flow-Wing!")
-    return 0
-}
+print("Hello, Flow-Wing!")
 ```
 **Run directly (JIT):**
 ```bash
@@ -134,7 +131,7 @@ Using the built-in `vortex` module to handle requests:
 bring vortex
 bring Err
 
-fun fg_main() -> nthg {
+fun server() -> nthg {
   var app: vortex::Server = new vortex::Server()
   var err: Err::Result = app.listen(8080)
   
@@ -157,7 +154,7 @@ fun fg_main() -> nthg {
   }
 }
 
-fg_main()
+server()
 ```
 
 ---
