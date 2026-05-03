@@ -8,8 +8,8 @@ Complete reference for installing Flow-Wing across all supported platforms using
 
 1. [Supported Platforms](#supported-platforms)
 2. [Quick Start](#quick-start)
-3. [Method 1: Pre-built Installers (Recommended)](#method-1-pre-built-installers-recommended)
-4. [Method 2: Package Managers](#method-2-package-managers)
+3. [Method 1: Package Managers](#method-1-package-managers)
+4. [Method 2: Pre-built Installers](#method-2-pre-built-installers)
 5. [Method 3: Build from Source](#method-3-build-from-source)
 6. [Post-Installation Verification](#post-installation-verification)
 7. [Troubleshooting](#troubleshooting)
@@ -34,7 +34,7 @@ Every release ships two compiler binaries — use whichever fits your workflow:
 | Binary | Mode | When to use |
 |--------|------|-------------|
 | `FlowWing` (`flowwing`) | AOT — compiles `.fg` → native executable | Shipping standalone executables, benchmarking, production |
-| `FlowWing-jit` (`flowwing-jit`) | JIT — interprets `.fg` directly, no separate artifact | Quick iteration, scripting, REPL-style runs |
+| `FlowWing-jit` (`flowwing-jit`) | JIT — interprets `.fg` directly, no separate artifact | Quick iteration, scripting |
 
 Both share the same SDK layout (`lib/modules/` for `.fg` standard library modules, `lib/<platform>/` for the runtime libraries), and both ship inside the installer / zip / package-manager artifact — no second download needed.
 
@@ -58,7 +58,61 @@ make run-aot-debug FILE=examples/hello.fg
 
 ---
 
-## Method 1: Pre-built Installers (Recommended)
+## Method 1: Package Managers
+
+### Homebrew (macOS)
+
+Flow-Wing is distributed via a community tap. The tap formula installs both compiler binaries into `/opt/homebrew/bin/`, so PATH is wired up automatically:
+
+```bash
+brew tap kushagra1212/flowwing
+brew install flowwing
+FlowWing --version
+FlowWing-jit --version
+```
+
+Or in one shot:
+
+```bash
+brew install kushagra1212/flowwing/flowwing
+```
+
+> **Note:** The tap ships an Apple Silicon (arm64) macOS SDK zip. On Intel Macs, `brew install` will stop with a clear message; use Linux/Windows binaries or build from source. Linux is supported via the `.deb` asset in the formula.
+
+### Chocolatey (Windows)
+
+The package downloads the release **zip** into the Chocolatey package `tools` folder (full `bin/` + `lib/` tree) and adds `tools/bin` to the **machine** PATH (requires an elevated/admin Chocolatey install). Chocolatey also creates shims for every `.exe` in the package, so `FlowWing` and `FlowWing-jit` are both invokable from any shell:
+
+```powershell
+choco install flowwing
+FlowWing --version
+FlowWing-jit --version
+```
+
+If Chocolatey is not installed, first run:
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadScript('https://community.chocolatey.org/install.ps1'))
+```
+
+### APT (Linux)
+
+Flow-Wing is published to a custom APT repository. After adding the repo:
+
+```bash
+curl -fsSL https://kushagra1212.github.io/Flow-Wing/flowwing.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/flowwing.gpg && \
+echo "deb [signed-by=/etc/apt/keyrings/flowwing.gpg] https://kushagra1212.github.io/Flow-Wing/ ./" | sudo tee /etc/apt/sources.list.d/flowwing.list > /dev/null && \
+sudo apt update && sudo apt install -y flowwing
+flowwing --version
+flowwing-jit --version
+```
+
+> **Note:** The APT repository URL is a placeholder — check the official release workflow for the actual repo configuration. The published package is the same `.deb` shipped as a GitHub Release asset, so `postinst`/`prerm` PATH symlinks (`flowwing`, `flowwing-jit`) apply here too.
+
+---
+
+
+## Method 2: Pre-built Installers 
 
 Download pre-built binaries from the [Flow-Wing releases page](https://flowwing.is-a.dev/).
 
@@ -169,58 +223,6 @@ FlowWing --version
 
 ---
 
-## Method 2: Package Managers
-
-### Homebrew (macOS)
-
-Flow-Wing is distributed via a community tap. The tap formula installs both compiler binaries into `/opt/homebrew/bin/`, so PATH is wired up automatically:
-
-```bash
-brew tap kushagra1212/flowwing
-brew install flowwing
-FlowWing --version
-FlowWing-jit --version
-```
-
-Or in one shot:
-
-```bash
-brew install kushagra1212/flowwing/flowwing
-```
-
-> **Note:** The tap ships an Apple Silicon (arm64) macOS SDK zip. On Intel Macs, `brew install` will stop with a clear message; use Linux/Windows binaries or build from source. Linux is supported via the `.deb` asset in the formula.
-
-### Chocolatey (Windows)
-
-The package downloads the release **zip** into the Chocolatey package `tools` folder (full `bin/` + `lib/` tree) and adds `tools/bin` to the **machine** PATH (requires an elevated/admin Chocolatey install). Chocolatey also creates shims for every `.exe` in the package, so `FlowWing` and `FlowWing-jit` are both invokable from any shell:
-
-```powershell
-choco install flowwing
-FlowWing --version
-FlowWing-jit --version
-```
-
-If Chocolatey is not installed, first run:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadScript('https://community.chocolatey.org/install.ps1'))
-```
-
-### APT (Linux)
-
-Flow-Wing is published to a custom APT repository. After adding the repo:
-
-```bash
-curl -fsSL https://kushagra1212.github.io/Flow-Wing/flowwing.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/flowwing.gpg && \
-echo "deb [signed-by=/etc/apt/keyrings/flowwing.gpg] https://kushagra1212.github.io/Flow-Wing/ ./" | sudo tee /etc/apt/sources.list.d/flowwing.list > /dev/null && \
-sudo apt update && sudo apt install -y flowwing
-flowwing --version
-flowwing-jit --version
-```
-
-> **Note:** The APT repository URL is a placeholder — check the official release workflow for the actual repo configuration. The published package is the same `.deb` shipped as a GitHub Release asset, so `postinst`/`prerm` PATH symlinks (`flowwing`, `flowwing-jit`) apply here too.
-
----
 
 ## Method 3: Build from Source
 
@@ -306,7 +308,7 @@ Choose one or more build modes. Each mode produces a compiler binary staged at `
 |--------|-------------|--------|
 | `make build-aot-debug` | AOT compiler, debug symbols + assertions | Debug build for development |
 | `make build-aot-release` | AOT compiler, optimized | Production-ready binary |
-| `make build-jit-debug` | JIT interpreter, debug mode | For interactive REPL use |
+| `make build-jit-debug` | JIT interpreter, debug mode | 
 | `make build-jit-release` | JIT interpreter, optimized | Fastest runtime interpretation |
 
 #### Step 4: Run a Flow-Wing Program
