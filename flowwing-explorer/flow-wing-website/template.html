@@ -387,7 +387,12 @@ fgMain()</textarea>
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: document.getElementById('codeInput').value, input: document.getElementById('stdInput').value })
             });
-            const safeText = (await response.text()).replace(/[\x00-\x1F]/g, c => (c==='\n'||c==='\r'||c==='\t'||c==='\x1b') ? c : '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4));
+            const responseText = await response.text();
+
+// Escape all control characters so JSON.parse doesn't choke
+const safeText = responseText.replace(/[\x00-\x1F]/g, c => 
+    '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')
+);
             const result = JSON.parse(safeText);
             out.style.color = "var(--text-main)";
             out.innerHTML = ansiToHtml(result.output);

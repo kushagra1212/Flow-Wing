@@ -106,6 +106,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 Flow-Wing is published to a custom APT repository. After adding the repo:
 
 ```bash
+sudo apt update
+sudo apt install -y gnupg build-essential
+
+
 curl -fsSL https://kushagra1212.github.io/Flow-Wing/flowwing.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/flowwing.gpg && \
 echo "deb [signed-by=/etc/apt/keyrings/flowwing.gpg] https://kushagra1212.github.io/Flow-Wing/ ./" | sudo tee /etc/apt/sources.list.d/flowwing.list > /dev/null && \
 sudo apt update && sudo apt install -y flowwing
