@@ -1,0 +1,6 @@
+println(1 - 1) /; integer subtraction
+println(1.0 * 1.0) /; Output: 1
+println("Hello"+ 2.0) /; Output: Hello2
+println(1 / 2) /; Output: 0.5
+println(3// 2) /; Output: 1
+println("Hello"+"FlowWing") /; Output: HelloFlowWing

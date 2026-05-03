@@ -1,0 +1,2 @@
+var n = null
+print(null == null, "\\n")

@@ -1,0 +1,9 @@
+bring "../examples/bring/choosy_lib.fg"
+print(x)
+print(k)
+callS(88)
+var p:T
+p = {a:2}
+print("print p ", p)
+var g:A = new A({})
+g.printY()

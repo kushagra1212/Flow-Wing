@@ -1,0 +1,14 @@
+bring map
+
+var m: map::Map = new map::Map()
+m.set("key1", "value1")
+m.set("key2", "value2")
+
+println(m.has("key1"))
+println(m.remove("key1"))
+println(m.has("key1"))
+println(m.size())
+
+m.clear()
+println(m.size())
+println(m.isEmpty())

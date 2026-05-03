@@ -1,0 +1,9 @@
+bring json
+
+var obj: json::JsonNode = json::newObject()
+obj.put("name", json::newString("FlowWing"))
+obj.put("year", json::newNumber(2024))
+obj.put("active", json::newBool(true))
+
+var jsonStr: str = json::stringify(obj)
+println(jsonStr)

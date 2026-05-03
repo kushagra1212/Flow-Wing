@@ -1,0 +1,13 @@
+bring io
+bring Err
+
+io::printLogln("Starting...")
+
+var line: str, err: Err::Result = io::readLine()
+if err.isErr() {
+    io::printErrorLogln("Could not read input")
+} else {
+    io::printLogln("You typed: ", line)
+}
+
+io::flush()

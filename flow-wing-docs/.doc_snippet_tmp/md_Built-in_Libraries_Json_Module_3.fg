@@ -1,0 +1,7 @@
+bring json
+
+var raw: str = "{\"x\":10,\"y\":[1,2,3],\"ok\":true}"
+var root: json::JsonNode = json::parse(raw)
+
+println("x = ", root.get("x").numVal)
+println("y[0] = ", root.get("y").getAt(0).numVal)

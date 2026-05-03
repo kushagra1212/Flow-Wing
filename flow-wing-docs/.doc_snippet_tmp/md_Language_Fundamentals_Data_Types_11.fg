@@ -1,0 +1,4 @@
+var x = 42       /; x is dyn, currently holds int
+print(x + 1)     /; 43 — works, x acts as int
+x = "hello"      /; x now holds str
+print(x + "world")  /; helloworld — works, x acts as str

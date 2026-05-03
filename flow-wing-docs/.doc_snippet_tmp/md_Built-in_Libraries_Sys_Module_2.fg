@@ -1,0 +1,5 @@
+bring sys
+
+println("before")
+sys::exit(42)
+println("after")      /; this never runs

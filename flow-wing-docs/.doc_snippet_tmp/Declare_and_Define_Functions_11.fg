@@ -1,0 +1,13 @@
+type Person = {
+    name: str
+    age: int
+}
+var p: Person = {
+    name: "a",
+    age: 1
+}
+fun add(inout person: Person) -> nthg {
+    person.age = 2
+}
+add(p)
+

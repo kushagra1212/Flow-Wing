@@ -1,0 +1,12 @@
+type Person = {
+    name: str,
+    age: int,
+}
+
+fun printPerson(person: Person) -> nthg {
+    print(person.name, " is ", person.age, " years old.")
+}
+
+var person: Person = { name: "Alice", age: 30 }
+
+printPerson(person)

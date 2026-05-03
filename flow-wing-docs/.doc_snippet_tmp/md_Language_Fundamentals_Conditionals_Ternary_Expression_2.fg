@@ -1,0 +1,6 @@
+var a: int = 10
+var b: int = 5
+var r = a > b ? a + 1 : b + 1        /; works
+var r2 = (a > b) ? (a + 1) : (b + 1)  /; also works, clearer
+print(r)
+print(r2)

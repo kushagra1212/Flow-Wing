@@ -1,0 +1,11 @@
+bring vec
+
+var list: vec::Vec = new vec::Vec()
+list.push(10)
+list.push("FlowWing")
+list.push(3.14159)
+println(list.size())
+println(list.get(0))
+list.set(0, 99)
+println(list.get(0))
+list.removeAt(1)

@@ -1,0 +1,14 @@
+type Person = {
+    name: str
+}
+var people: Person[6] = [
+    {name: "a"},
+    {name: "b"},
+    {name: "c"},
+    {name: "d"},
+    {name: "e"},
+    {name: "f"}
+]
+for (var i: int = 0 to 5 : 1) {
+    print(people[i].name + " ")
+}

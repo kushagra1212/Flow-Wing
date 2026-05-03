@@ -1,0 +1,15 @@
+bring file
+bring Err
+
+var path: str = "example.txt"
+var _, werr: Err::Result = file::writeText(path, "Hello\\n")
+if werr.isErr() {
+  println(werr.getMessage())
+} else {
+  var content: str, rerr: Err::Result = file::readText(path)
+  if rerr.isErr() {
+    println(rerr.getMessage())
+  } else {
+    println(content)
+  }
+}

@@ -1,0 +1,9 @@
+class Animal {
+    var name: str
+}
+
+class Dog extends Animal {
+    fun bark() -> nthg {
+        print("Woof!")
+    }
+}

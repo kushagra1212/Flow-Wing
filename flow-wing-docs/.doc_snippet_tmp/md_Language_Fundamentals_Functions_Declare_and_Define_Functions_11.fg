@@ -1,0 +1,16 @@
+class Person {
+    var name: str
+    var age: int
+    init(name: str, age: int) -> nthg {
+        self.name = name
+        self.age = age
+    }
+    toString() -> str {
+        return "Name: " + self.name + ", Age: " + age
+    }
+}
+fun add(x: int, y: int) -> Person {
+    return new Person("Alice", 30)
+}
+var person: Person = add(2, 3)
+print(person.toString())

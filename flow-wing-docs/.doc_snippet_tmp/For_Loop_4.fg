@@ -1,0 +1,16 @@
+type Person = {
+    name: str
+}
+var people: Person[6] = [
+    {name: "a"},
+    {name: "b"},
+    {name: "c"},
+    {name: "d"},
+    {name: "e"},
+    {name: "f"}
+]
+var last: int = 5
+for (var i: int = 0 to last : 1) {
+    print(people[i].name + " ")
+}
+

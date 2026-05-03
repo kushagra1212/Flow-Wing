@@ -1,0 +1,11 @@
+fun getInput() -> str {
+    return "quit"
+}
+
+while (true) {
+    switch getInput() {
+        case "quit": {
+            break  /; exits the switch, not the while
+        }
+    }
+}

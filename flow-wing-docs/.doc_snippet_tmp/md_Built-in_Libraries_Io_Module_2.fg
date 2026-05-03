@@ -1,0 +1,8 @@
+bring io
+bring Err
+
+var input: str, err: Err::Result = io::readLine()
+if err.isErr() {
+    println("EOF or error reading input")
+}
+println("Input was: ", input)

@@ -1,0 +1,12 @@
+bring json
+
+var user: json::JsonNode = json::newObject()
+    .put("name", json::newString("Alice"))
+    .put("age", json::newNumber(30))
+
+var address: json::JsonNode = json::newObject()
+    .put("city", json::newString("New York"))
+    .put("zip", json::newString("10001"))
+
+user.put("address", address)
+println(json::stringify(user))

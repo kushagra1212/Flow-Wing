@@ -1,0 +1,2 @@
+bring Err
+print(Err::CODE.NOT_FOUND)

@@ -1,0 +1,5 @@
+var integer: int = 10
+var decimal: deci = 5.5
+var _string: str = "Hello, Flow-Wing!"
+var _boolean: bool = true
+var someThing = "Hello, Flow-Wing!"

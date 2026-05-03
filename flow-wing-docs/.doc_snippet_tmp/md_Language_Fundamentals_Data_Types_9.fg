@@ -1,0 +1,2 @@
+var big: int64 = 10000000000l
+var small: int64 = -42l

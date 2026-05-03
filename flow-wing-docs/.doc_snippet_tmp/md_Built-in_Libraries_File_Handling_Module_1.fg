@@ -1,0 +1,16 @@
+bring file
+bring Err
+
+var f: file::File = new file::File("example.txt")
+var err: Err::Result = f.open("r")
+if err.isErr() {
+  println(err.getMessage())
+} else {
+  var line: str, rerr: Err::Result = f.readLine()
+  if rerr.isErr() {
+    println(rerr.getMessage())
+  } else {
+    println(line)
+  }
+  f.close()
+}

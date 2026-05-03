@@ -1,0 +1,2 @@
+bring "../examples/modules/local-module.fg"
+var localInstance: local::T = {}

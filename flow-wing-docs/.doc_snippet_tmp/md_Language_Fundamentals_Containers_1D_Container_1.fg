@@ -1,0 +1,18 @@
+type Person = {
+    name: str
+}
+var arr: Person[10] = [
+    {name: "1"},
+    {name: "2"},
+    {name: "3"},
+    {name: "4"},
+    {name: "5"},
+    {name: "6"},
+    {name: "7"},
+    {name: "8"},
+    {name: "9"},
+    {name: "10"}
+]
+for (var i: int = 0 to 9 : 1) {
+    print(arr[i].name, " ")
+}

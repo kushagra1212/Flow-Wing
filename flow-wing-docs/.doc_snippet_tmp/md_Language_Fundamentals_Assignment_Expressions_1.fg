@@ -1,0 +1,8 @@
+type Person = {
+    name: str,
+    age: int,
+}
+
+var person: Person = { name: "Alice", age: 30 }
+person = { name: "Bob" }
+print(person)

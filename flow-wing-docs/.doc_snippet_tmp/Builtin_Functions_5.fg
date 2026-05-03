@@ -1,0 +1,1 @@
+var myStr: str = String(123)

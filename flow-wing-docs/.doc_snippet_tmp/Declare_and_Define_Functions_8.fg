@@ -1,0 +1,22 @@
+fun add(x: int, y: int) -> int[2] {
+    return [x + y, x - y]
+}
+
+fun update(inout x: int[2]) -> int[2] {
+    x[0] = 2
+    return x
+}
+
+type Person = {
+    name: str,
+}
+
+var person: Person = { name: "Alice" }
+var people: Person[2] = [person, { name: "Bob" }]
+
+fun addPerson(inout people: Person[2], person: Person) -> Person[2] {
+    people[1] = person
+    return people
+}
+
+var result: int[2] = add(2, 3)

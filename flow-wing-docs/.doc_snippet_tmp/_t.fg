@@ -1,0 +1,3 @@
+bring "../../tests/fixtures/LatestTests/ModuleTests/ModuleImportTestUsingClass/local-module.fg"
+var localInstance: local::T = {}
+print(localInstance)

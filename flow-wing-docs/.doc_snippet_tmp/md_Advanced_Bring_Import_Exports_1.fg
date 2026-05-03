@@ -1,0 +1,3 @@
+bring "../examples/bring/choosy_lib.fg"
+print(x)
+callS(88)

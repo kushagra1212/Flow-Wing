@@ -1,0 +1,10 @@
+fun doNothing() -> nthg {
+    /; This function does not return anything
+}
+
+fun doNothing2() -> nthg {
+    if true {
+        return :
+    }
+}
+

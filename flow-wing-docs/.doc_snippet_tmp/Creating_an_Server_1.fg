@@ -1,0 +1,19 @@
+bring vortex
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8080)
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return :
+  }
+  /; Wait for one request, then answer (use a loop for many requests in production)
+  var req: vortex::Request, res: vortex::Response = app.accept()
+  if req.getMethod() == "GET" && req.getPath() == "/" {
+    res.status(200).send("Hello from Vortex")
+  } else {
+    res.status(404).send("Not found")
+  }
+}
+fg_main()

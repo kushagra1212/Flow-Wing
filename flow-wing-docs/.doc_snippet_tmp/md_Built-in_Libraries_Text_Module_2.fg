@@ -1,0 +1,5 @@
+bring text
+
+var t: text::Text = new text::Text("hello")
+t.toUpper()
+println(t.get())

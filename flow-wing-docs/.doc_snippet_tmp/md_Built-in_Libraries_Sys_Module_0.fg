@@ -1,0 +1,6 @@
+bring sys
+
+println("Program: ", sys::getArg(0))
+println("Script dir: ", sys::scriptDir())
+println("Timestamp: ", sys::timestamp())
+println("Arg count: ", sys::getArgCount())

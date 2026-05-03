@@ -1,0 +1,2 @@
+fun external_lib_func(x: int) -> int decl
+fun add(x: int, y: int) -> int decl

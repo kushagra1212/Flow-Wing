@@ -1,0 +1,9 @@
+bring sys
+
+fun fg_main() -> int {
+    var count: int = sys::getArgCount()
+    for (var i: int = 0 to count - 1 : 1) {
+        print("Arg " + sys::getArg(i))
+    }
+    return 0
+}

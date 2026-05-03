@@ -1,0 +1,10 @@
+type Point = {
+    x:int,
+    y:int
+  }
+
+var arr: Point[3] = [ 3 fill {x: 0, y: 0} ]
+
+arr = [ 2 fill { x: 5 } ]
+
+print(arr)

@@ -1,0 +1,3 @@
+var letter: char = 'A'
+var emoji: char = '🚀'
+print(letter, " ", emoji)

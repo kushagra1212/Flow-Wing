@@ -1,0 +1,17 @@
+bring Err
+
+fun handle_error() -> nthg {
+  var err1: Err::Result = new Err::Result("File not found", Err::CODE.NOT_FOUND)
+  print(err1.getMessage())
+
+  var err2: Err::Result = err1.withMessage("Please check the path")
+  print(err2.toString())
+
+  var err3: Err::Result = err2.withDetails("The file might have been deleted")
+  print(err3.toString())
+
+  var err4: Err::Result = new Err::Result("Invalid argument", Err::CODE.INVALID_ARGUMENT)
+  print(err4.toString())
+}
+
+handle_error()

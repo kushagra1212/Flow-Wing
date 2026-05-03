@@ -1,0 +1,6 @@
+bring text
+
+var s: str = "  FlowWing  "
+println(text::trim(s))
+println(text::toUpper("abc"))
+println(text::length("hi"))

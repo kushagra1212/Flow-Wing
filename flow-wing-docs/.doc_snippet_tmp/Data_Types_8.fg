@@ -1,0 +1,11 @@
+var n = null
+print(null == null, "\n")
+
+bring file
+bring Err
+var text: str, err: Err::Result = file::readText("file.txt")
+if err.isErr() {
+    print(err.getMessage())
+} else {
+    print(text)
+}

@@ -1,0 +1,2 @@
+/; This is a comment
+print("Hello")  /; Everything after /; on this line is a comment

@@ -1,0 +1,6 @@
+var x: int = 10
+{
+    var x: int = 20  /; shadows outer x
+    print(x)  /; 20
+}
+print(x)  /; 10
