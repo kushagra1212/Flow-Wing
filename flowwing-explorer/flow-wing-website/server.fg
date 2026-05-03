@@ -21,7 +21,7 @@ fun fg_main() -> nthg {
         var method: str = req.getMethod()
         var path: str = req.getPath()
         if method == "GET" && path == "/" {
-            var tplPath: str = file::__DIR__ + "/template.html"
+            var tplPath: str = file::__DIR__ + "./template.html"
             var content: str, rerr: Err::Result = file::readText(tplPath)
             if Err::isErr(rerr) {
                 res.status(500).header("Content-Type", "text/html").send("<h1>Missing template.html</h1>")
@@ -47,8 +47,8 @@ fun fg_main() -> nthg {
             var parsed: json::JsonNode = json::parse(body)
             var userCode: str = parsed.get("code").strVal
             var stdInput: str = parsed.get("input").strVal
-            var tempFile: str = file::__DIR__ + "/playground_temp.fg"
-            var inFile: str = file::__DIR__ + "/playground_in.txt"
+            var tempFile: str = file::__DIR__ + "./playground_temp.fg"
+            var inFile: str = file::__DIR__ + "./playground_in.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
             var cmd: str = "/Users/apple/code/per/Flow-Wing/flowwing-jit " + tempFile + " < " + inFile + " 2>&1"
