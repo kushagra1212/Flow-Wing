@@ -1,0 +1,2 @@
+var x: deci = Decimal("123.45")
+var y: deci32 = Decimal32("123.45")

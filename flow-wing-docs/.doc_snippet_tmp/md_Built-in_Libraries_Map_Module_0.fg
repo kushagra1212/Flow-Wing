@@ -1,0 +1,8 @@
+bring map
+
+var m: map::Map = new map::Map()
+m.set("a", 1)
+m.set("b", "two")
+println(m.get("a"))
+println(m.get("b"))
+println(m.size())

@@ -1,0 +1,12 @@
+type Person = {
+    name: str,
+    age: int,
+}
+
+var person: Person =  { name: "Alice", age: 30 }
+
+var people: Person[2] = [{ name: "Alice", age: 30 }, { name: "Bob", age: 30 }]
+
+people <- [{ name: "Charlie", age: 30 }]
+
+print(people) 

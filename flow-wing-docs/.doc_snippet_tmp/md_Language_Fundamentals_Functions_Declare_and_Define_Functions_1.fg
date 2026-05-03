@@ -1,0 +1,9 @@
+fun doNothing() -> nthg {
+    /; This function returns nothing
+}
+
+fun doNothing2() -> nthg {
+    if true {
+        return :
+    }
+}

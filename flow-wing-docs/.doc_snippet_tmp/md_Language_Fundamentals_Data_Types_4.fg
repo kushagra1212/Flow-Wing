@@ -1,0 +1,3 @@
+var name: str = "Flow"
+print(name[0])  /; 'F'
+print(name[3])  /; 'w'

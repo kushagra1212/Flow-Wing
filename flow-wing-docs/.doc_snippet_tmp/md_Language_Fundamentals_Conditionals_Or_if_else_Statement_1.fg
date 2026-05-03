@@ -1,0 +1,9 @@
+var a: int = 5
+
+if (a > 10) {
+    print("greater than 10")
+} or if (a > 3) {
+    print("a is between 4 and 10")
+} else {
+    print("a is 3 or less")
+}

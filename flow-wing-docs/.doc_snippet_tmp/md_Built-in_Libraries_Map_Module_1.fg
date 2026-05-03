@@ -1,0 +1,9 @@
+bring map
+
+var m: map::Map = new map::Map()
+m.set("x", 42)
+
+var a = m.getOr("x", 0)
+var b = m.getOr("missing", 0)
+println(a)
+println(b)

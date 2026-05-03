@@ -1,0 +1,7 @@
+module [local]
+
+type T = {
+    a:int
+}
+
+var x:int

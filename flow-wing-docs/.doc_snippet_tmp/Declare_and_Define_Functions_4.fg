@@ -1,0 +1,7 @@
+fun add(x: int, y: int) -> int {
+    return x + y
+}
+
+var result: int = add(2, 3)
+
+print(result)

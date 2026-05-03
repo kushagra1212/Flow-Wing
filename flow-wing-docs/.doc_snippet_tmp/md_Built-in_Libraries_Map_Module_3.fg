@@ -1,0 +1,17 @@
+bring map
+bring vec
+
+var m: map::Map = new map::Map()
+var keys: vec::Vec = new vec::Vec()
+
+m.set("a", 1)
+keys.push("a")
+m.set("b", 2)
+keys.push("b")
+m.set("c", 3)
+keys.push("c")
+
+for (var i: int = 0 to keys.size() - 1 : 1) {
+    var k = keys.get(i)
+    println(k, " = ", m.get(k))
+}

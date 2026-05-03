@@ -1,0 +1,1 @@
+var flag: bool = Bool(1)

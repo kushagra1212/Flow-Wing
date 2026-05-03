@@ -1,0 +1,6 @@
+type Person = {
+    name: str
+}
+fun add(x: int, y: int) -> Person {
+    return {name: "Alice" }
+}

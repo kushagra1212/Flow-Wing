@@ -1,0 +1,2 @@
+const maxUsers: int = 100
+/; maxUsers = 200  /; Error: cannot reassign constant

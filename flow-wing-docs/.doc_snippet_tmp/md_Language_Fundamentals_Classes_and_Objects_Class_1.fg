@@ -1,0 +1,13 @@
+class Person {
+    var name: str
+    var age: int
+    init(name: str, age: int) -> nthg {
+        self.name = name
+        self.age = age
+    }
+    /; Second constructor — name only, default age
+    fun init(n: str) -> nthg {
+        self.name = n
+        self.age = 0
+    }
+}

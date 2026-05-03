@@ -1,0 +1,2 @@
+var name: str = "flowwing"
+print(name, name[2])

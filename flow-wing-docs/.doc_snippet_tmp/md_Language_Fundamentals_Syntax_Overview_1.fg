@@ -1,0 +1,16 @@
+/; Imports
+bring io
+
+/; Types
+type Point = { x: int, y: int }
+
+/; Functions
+fun greet(name: str) -> nthg {
+    print("Hello, " + name)
+}
+
+/; Entry point
+fun fg_main() -> int {
+    greet("World")
+    return 0
+}

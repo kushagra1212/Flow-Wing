@@ -1,0 +1,2 @@
+println(true ? "Hello" : "World")
+print(2 > 1 ? "Hello" : "World")

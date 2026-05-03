@@ -1,0 +1,9 @@
+fun greet(name: str) -> nthg {
+    print("Hello, " + name)
+}
+
+fun runCallback(callback: [(str) -> nthg]) -> nthg {
+    callback("World")
+}
+
+runCallback(greet)

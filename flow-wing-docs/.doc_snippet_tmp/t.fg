@@ -1,0 +1,3 @@
+bring {x, k, callS} from "../../tests/fixtures/LatestTests/BringTests/BringTestBasicTestAllChoosy/file1.fg"
+print(x)
+callS(1)

@@ -1,0 +1,6 @@
+fun maybePrint(shouldPrint: bool) -> nthg {
+    if (!shouldPrint) {
+        return :
+    }
+    print("Hello")
+}

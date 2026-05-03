@@ -1,0 +1,8 @@
+bring "../examples/modules/local-module.fg"
+
+var objectInstance: local::A = new local::A()
+
+print(objectInstance.u)
+
+objectInstance.x = {a:21}
+print(objectInstance.x)

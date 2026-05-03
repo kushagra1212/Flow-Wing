@@ -1,0 +1,10 @@
+bring vec
+
+var list: vec::Vec = new vec::Vec()
+list.push(10)
+list.push(20)
+list.push(30)
+
+for (var i: int = 0 to list.size() - 1 : 1) {
+    println("list[", i, "] = ", list.get(i))
+}

@@ -1,0 +1,4 @@
+/; Count down from 10 to 0
+for (var i: int = 10 to 0 : -1) {
+    print(i + " ")
+}

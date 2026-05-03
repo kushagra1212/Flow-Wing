@@ -1,0 +1,9 @@
+bring file
+bring Err
+
+var content: str, err: Err::Result = file::readText("missing.txt")
+if err.isErr() {
+    println(err.toString())
+} else {
+    println(content)
+}

@@ -1,0 +1,10 @@
+bring raylib
+
+var window: raylib::Window = new raylib::Window(800, 600, "My Game")
+
+while (!window.shouldClose()) {
+    window.begin()
+    window.clear(new raylib::Color(245, 245, 245, 255))
+    window.drawText("Hello from Flow-Wing!", 190, 200, 20, new raylib::Color(200, 200, 200, 255))
+    window.end()
+}

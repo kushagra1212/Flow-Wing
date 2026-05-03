@@ -1,0 +1,7 @@
+bring io
+
+io::printLogln("Info: Application started")
+io::printLog("Processing...")
+io::printLogln(" done")
+io::printErrorLogln("Error: Something went wrong")
+io::flush()

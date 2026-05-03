@@ -1,0 +1,11 @@
+bring sys
+
+/; sys::getArg(0) is the program name
+/; sys::getArg(1) is "hello"
+/; sys::getArg(2) is "world"
+/; sys::getArg(3) is "42"
+
+var count: int = sys::getArgCount()
+for (var i: int = 0 to count - 1 : 1) {
+    println(i, ": ", sys::getArg(i))
+}

@@ -1,0 +1,3 @@
+var x: int = 42
+var name: str = "Flow-Wing"
+var pi: deci = 3.14

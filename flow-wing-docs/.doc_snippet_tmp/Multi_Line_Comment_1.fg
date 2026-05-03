@@ -1,0 +1,6 @@
+/# This is a multi line comment
+   Commented on line 1
+   Commented on line 2
+   #/
+
+   print("Hello, World!")

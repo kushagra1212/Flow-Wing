@@ -1,0 +1,8 @@
+fun add(x: int, y: int) -> int, int {
+    return x + y, x - y
+}
+
+var first: int, second: int = add(2, 3)
+
+print("First: ", first)
+print("\\nSecond: ", second)

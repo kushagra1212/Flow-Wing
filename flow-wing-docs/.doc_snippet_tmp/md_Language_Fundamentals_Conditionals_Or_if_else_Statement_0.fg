@@ -1,0 +1,10 @@
+var x: int = 10
+var y: int = 10
+
+if (x == 10) {
+    print("x is 10")
+} or if (y == 20) {
+    print("y is 20")
+} else {
+    print("neither condition matched")
+}

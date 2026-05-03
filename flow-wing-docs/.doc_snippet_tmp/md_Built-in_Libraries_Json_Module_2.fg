@@ -1,0 +1,11 @@
+bring json
+
+var arr: json::JsonNode = json::newArray()
+    .push(json::newNumber(1))
+    .push(json::newNumber(2))
+    .push(json::newNumber(3))
+
+println(json::stringify(arr))
+
+/; Access by index
+println("Index 1: ", arr.getAt(1).numVal)

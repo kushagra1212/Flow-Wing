@@ -1,0 +1,13 @@
+bring file
+bring Err
+
+fun loadData() -> nthg {
+    var content: str, werr: Err::Result = file::readText("data.txt")
+    if (werr.isErr()) {
+        println("Failed: " + werr.getMessage())
+        return :
+    }
+    /; use content ...
+}
+
+loadData()

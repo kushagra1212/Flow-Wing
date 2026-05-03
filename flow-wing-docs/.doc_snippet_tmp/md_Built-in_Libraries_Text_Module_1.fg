@@ -1,0 +1,6 @@
+bring text
+
+var s: str = "Hello World"
+println(text::substring(s, 0, 5))
+println(text::substring(s, 6, 11))
+println(text::indexOf(s, "World"))

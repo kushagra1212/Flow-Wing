@@ -1,0 +1,5 @@
+{
+    var x: int = 10
+    print(x)  /; 10
+}
+/; x is out of scope here — gone

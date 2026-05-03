@@ -1,0 +1,12 @@
+class Animal {
+    var age: int
+    init(age: int) -> nthg {
+        self.age = age
+    }
+}
+class Dog extends Animal {
+    init(age: int) -> nthg {
+        super(age)
+    }
+}
+

@@ -1,0 +1,4 @@
+bring {x, k, callS} from "../examples/bring/choosy_lib.fg"
+
+print(x)
+callS(99)

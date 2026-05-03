@@ -1,0 +1,6 @@
+/#
+This entire
+block is a comment.
+It can span multiple lines.
+#/
+print("Hello")

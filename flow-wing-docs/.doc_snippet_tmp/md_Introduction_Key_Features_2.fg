@@ -1,0 +1,2 @@
+var items: int[3] = [1, 2, 3]
+items[1] = 10

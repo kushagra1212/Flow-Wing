@@ -1,0 +1,15 @@
+fun printX(x: int, y: deci, p: str, u: bool, callback: [(str) -> nthg]) -> nthg {
+    print("Printing X:", x)
+    print(y, p, u)
+    callback("Hello") /; Calling the callback function
+}
+
+fun printString(message: str) -> nthg {
+    print("\\nFrom printString:", message)
+}
+
+fun mainFunction(handler: [(int, deci, str, bool, [(str) -> nthg]) -> nthg]) -> nthg {
+    handler(2, 2.2, "Sample String", false, printString) /; Passing arguments and the function
+}
+
+mainFunction(printX) /; Calling mainFunction with printX as the handler
