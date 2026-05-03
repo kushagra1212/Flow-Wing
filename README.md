@@ -4,7 +4,7 @@ Flow-Wing is an experimental, hybrid-typed programming language built on LLVM. I
 
 Currently a work in progress, Flow-Wing supports object-oriented programming, automatic memory management (via Boehm GC), and modularity. It ships with both Ahead-of-Time (AOT) and Just-In-Time (JIT) compilers, alongside built-in modules for creating HTTP servers, building 2D/3D games, and handling standard I/O.
 
-[Download Flow-Wing](https://flowwing.is-a.dev/) | [Official Documentation](https://flow-wing-docs.vercel.app/)
+[Download Flow-Wing](https://flowwing.frii.site/) | [Official Documentation](https://flow-wing-docs.vercel.app/)
 
 ---
 
