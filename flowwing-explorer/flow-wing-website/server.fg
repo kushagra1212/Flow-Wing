@@ -49,12 +49,18 @@ fun fg_main() -> nthg {
             var parsed: json::JsonNode = json::parse(body)
             var userCode: str = parsed.get("code").strVal
             var stdInput: str = parsed.get("input").strVal
-            var tempFile: str = "/tmp/submissions/playground_temp.fg"
-            var inFile: str = "/tmp/submissions/playground_in.txt"
+            /; Generate a unique identifier using the system timestamp to prevent race conditions
+            var uniqueId: str = text::replace(sys::exec("date +%s%N"), "\n", "")
+            var subDir: str = "/tmp/submissions/" + uniqueId
+            sys::exec("mkdir -p " + subDir)
+            var tempFile: str = subDir + "/code.fg"
+            var inFile: str = subDir + "/input.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
-            var cmd: str = "docker run --rm --network none --cpus=0.5 --memory=128m -v /tmp/submissions:/sandbox flowwing-sandbox sh -c 'flowwing-jit /sandbox/playground_temp.fg < /sandbox/playground_in.txt 2>&1'"
+            var cmd: str = "timeout 5s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
             var output: str = sys::exec(cmd)
+            /; Clean up the unique submission files immediately after execution
+            sys::exec("rm -rf " + subDir)
             /; Safely escape JSON strings to prevent frontend crashes on compilation errors
             output = text::replace(output, "\\", "\\\\")
             output = text::replace(output, "\"", "\\\"")
