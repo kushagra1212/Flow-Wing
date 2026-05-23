@@ -22,12 +22,12 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
+#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/expression/StringLiteralExpressionSyntax/StringLiteralExpressionSyntax.h"
-#include "src/syntax/NodeKind/NodeKind.h"
 #include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "src/syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
@@ -130,14 +130,17 @@ StatementBinder::bindModuleStatement(syntax::ModuleStatementSyntax *statement) {
   auto saved = m_context->getSymbolTable();
   m_context->switchSymbolTable(module_table);
 
+  m_context->pushModuleScope(name_expr->getValue());
+
   std::vector<std::unique_ptr<BoundStatement>> inner;
   for (const auto &st : statement->getModuleMemberStatements()) {
     inner.push_back(bind(st.get()));
   }
+  m_context->popModuleScope();
   m_context->switchSymbolTable(saved);
 
-  return std::make_unique<BoundModuleStatement>(
-      std::move(inner), name_expr->getSourceLocation());
+  return std::make_unique<BoundModuleStatement>(std::move(inner),
+                                                name_expr->getSourceLocation());
 }
 } // namespace binding
 } // namespace flow_wing

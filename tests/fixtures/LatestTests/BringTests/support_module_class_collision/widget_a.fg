@@ -1,0 +1,18 @@
+
+module [widget_a]
+
+class Widget {
+    var tag: int
+    init(tag: int) -> nthg {
+        self.tag = tag
+    }
+    fun greet() -> int {
+        return self.tag + 100
+    }
+    fun describe() -> str {
+        return "A"
+    }
+}
+fun makeWidget(tag: int) -> widget_a::Widget {
+    return new widget_a::Widget(tag)
+}

@@ -408,7 +408,7 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
       malloc_call, struct_type->getPointerTo(), "new." + class_type->getName());
   builder->CreateStore(llvm::ConstantAggregateZero::get(struct_type), heap_ptr);
 
-  const std::string vt_name = std::string("__vt_") + ct->getName();
+  const std::string vt_name = std::string("__vt_") + ct->getQualifiedName();
   llvm::GlobalVariable *vt_global =
       m_ir_gen_context.getLLVMModule()->getGlobalVariable(vt_name, true);
   assert(vt_global && "class vtable global must exist before new()");
