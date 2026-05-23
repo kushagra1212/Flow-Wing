@@ -60,6 +60,19 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     return "flowwing_raylib";
 #endif
   }
+
+  if (file_name == "mongo-module.fg") {
+
+#if defined(__APPLE__)
+    return "flowwing_mongo -framework CoreFoundation -framework Security "
+           "-lresolv ";
+
+#elif defined(_WIN32)
+    return "flowwing_mongo ws2_32 secur32 crypt32 dnsapi";
+#else
+    return "flowwing_mongo ssl crypto pthread resolv m dl";
+#endif
+  }
   return "";
 }
 

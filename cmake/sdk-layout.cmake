@@ -39,7 +39,8 @@ set(SDK_LIBRARY_TARGETS
     flowwing_io
     flowwing_vortex
     flowwing_raylib
-    
+    flowwing_mongo
+
     # Add other custom library target names here as you create them
     CACHE INTERNAL "List of custom library targets to include in the SDK."
 )
