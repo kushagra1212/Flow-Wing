@@ -1,0 +1,71 @@
+/; tests/local/mongo_test.fg
+/;
+/; CRUD-lite test for the mongo module.
+/; Requires a reachable mongod at mongodb://127.0.0.1:27017.
+/; Run:  make run-aot-release FILE=tests/local/mongo_test.fg ARGS="--emit=exe"
+/; Expected last line: `mongo_test ok`
+
+bring mongo
+bring io
+
+fun fg_main() -> nthg {
+    var uri: str = "mongodb://127.0.0.1:27017"
+    var mc: mongo::Client = new mongo::Client(uri)
+    if !mc.isOk() {
+        io::printErrorLogln("connect failed: " + mongo::lastError(), "red")
+        return :
+    }
+
+    var db_name: str = "fw_test"
+    var coll_name: str = "events"
+    var coll: mongo::Collection = mc.getCollection(db_name, coll_name)
+
+    var doc: str = "{\"k\":\"test\",\"n\":1}"
+    var ok1: bool = coll.insertOne(doc)
+    if !ok1 {
+        io::printErrorLogln("insertOne failed: " + mongo::lastError(), "red")
+        mc.close()
+        return :
+    }
+    io::printLogln("insertOne ok", "cyan")
+
+    var many: str = "[{\"k\":\"test\",\"n\":2},{\"k\":\"test\",\"n\":3}]"
+    var ok2: bool = coll.insertMany(many)
+    if !ok2 {
+        io::printErrorLogln("insertMany failed: " + mongo::lastError(), "red")
+        mc.close()
+        return :
+    }
+    io::printLogln("insertMany ok", "cyan")
+
+    var filter: str = "{\"k\":\"test\"}"
+    var n: int64 = coll.count(filter)
+    io::printLogln("count: " + n, "cyan")
+
+    var one: str = coll.findOne(filter)
+    if one == "" {
+        var emsg: str = mongo::lastError()
+        if emsg != "" {
+            io::printErrorLogln("findOne err: " + emsg, "red")
+            mc.close()
+            return :
+        }
+    }
+    io::printLogln("findOne: " + one, "white")
+
+    var lim: int64 = 3
+    var cur: mongo::Cursor = coll.find(filter, lim)
+    var s: str = cur.next()
+    var seen: int64 = 0
+    while s != "" {
+        seen = seen + 1
+        s = cur.next()
+    }
+    cur.close()
+    io::printLogln("iterated: " + seen, "cyan")
+
+    mc.close()
+    io::printLogln("mongo_test ok", "green")
+}
+
+fg_main()

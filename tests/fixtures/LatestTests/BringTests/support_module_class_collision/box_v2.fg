@@ -1,0 +1,12 @@
+
+module [box_v2]
+
+class Box {
+    var label: str
+    init(label: str) -> nthg {
+        self.label = label
+    }
+    fun unwrap() -> str {
+        return "[v2] " + self.label
+    }
+}

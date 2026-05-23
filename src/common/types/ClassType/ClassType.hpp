@@ -22,6 +22,15 @@ class ClassType : public Type {
 public:
   ClassType(const std::string &name, std::shared_ptr<ClassType> base_class);
 
+  void setModuleName(std::string module_name) {
+    m_module_name = std::move(module_name);
+  }
+  const std::string &getModuleName() const { return m_module_name; }
+  std::string getQualifiedName() const {
+    return m_module_name.empty() ? getName()
+                                 : (m_module_name + "." + getName());
+  }
+
   bool defineMember(std::shared_ptr<analysis::Symbol> member);
   bool defineMember(const std::string &key,
                     std::shared_ptr<analysis::Symbol> member);
@@ -86,6 +95,8 @@ private:
   mutable std::vector<std::shared_ptr<analysis::FunctionSymbol>>
       m_vtable_entries;
   mutable bool m_vtable_cache_dirty = true;
+
+  std::string m_module_name;
 };
 
 } // namespace types

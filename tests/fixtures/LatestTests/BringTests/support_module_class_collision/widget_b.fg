@@ -1,0 +1,23 @@
+/; Module B defining a class also named `Widget` with identical method
+/; signatures. With the pre-fix mangler, `Widget.greet.void` and
+/; `Widget.describe.void` would collide between the two modules and the
+/; linker would pick one body, silently breaking the other.
+
+module [widget_b]
+
+class Widget {
+    var tag: int
+    init(tag: int) -> nthg {
+        self.tag = tag
+    }
+    fun greet() -> int {
+        return self.tag + 200
+    }
+    fun describe() -> str {
+        return "B"
+    }
+}
+
+fun makeWidget(tag: int) -> widget_b::Widget {
+    return new widget_b::Widget(tag)
+}

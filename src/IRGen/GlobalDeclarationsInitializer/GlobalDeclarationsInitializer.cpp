@@ -397,7 +397,7 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
   llvm::Module *module = m_ir_gen_context.getLLVMModule();
   llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
   llvm::PointerType *i8p = llvm::Type::getInt8PtrTy(ctx);
-  const std::string vt_global_name = "__vt_" + class_type->getName();
+  const std::string vt_global_name = "__vt_" + class_type->getQualifiedName();
   // Avoid duplicate globals if this visitor is ever reached twice for the same
   // class (should not happen for a well-formed program).
   if (module->getGlobalVariable(vt_global_name, true)) {
@@ -458,7 +458,7 @@ void GlobalDeclarationsInitializer::declareImportedClassExterns(
 
   llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
   llvm::PointerType *i8p = llvm::Type::getInt8PtrTy(ctx);
-  const std::string vt_global_name = "__vt_" + class_type->getName();
+  const std::string vt_global_name = "__vt_" + class_type->getQualifiedName();
   if (llvm_module->getGlobalVariable(vt_global_name, true)) {
     return;
   }
@@ -490,7 +490,7 @@ void GlobalDeclarationsInitializer::declareClassSymbolsFromGlobalScope(
           return;
         }
         llvm::Module *module = m_ir_gen_context.getLLVMModule();
-        const std::string vt_global_name = "__vt_" + class_type->getName();
+        const std::string vt_global_name = "__vt_" + class_type->getQualifiedName();
         if (module->getGlobalVariable(vt_global_name, true)) {
           return;
         }

@@ -1,0 +1,104 @@
+/;
+/; FlowWing Compiler
+/; Copyright (C) 2023-2026 Kushagra Rathore
+/;
+/; This program is free software; you can redistribute it and/or modify
+/; it under the terms of the GNU General Public License as published by
+/; the Free Software Foundation; either version 2 of the License, or
+/; (at your option) any later version.
+/;
+/; This program is distributed in the hope that it will be useful,
+/; but WITHOUT ANY WARRANTY; without even the implied warranty of
+/; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/; GNU General Public License for more details.
+/;
+/; You should have received a copy of the GNU General Public License along
+/; with this program; if not, write to the Free Software Foundation, Inc.,
+/; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+/;
+/; mongo-module.fg — Flow-Wing binding to libmongoc (C driver, v2.x).
+/;
+/;   bring mongo
+/;   var uri: str = "mongodb://127.0.0.1:27017"
+/;   var mc: mongo::Client = new mongo::Client(uri)
+/;   if !mc.isOk() { /; mongo::lastError() }
+/;   var db: str = "app"
+/;   var coll: str = "events"
+/;   var events: mongo::Collection = mc.getCollection(db, coll)
+/;   var doc: str = "{\"k\":\"hi\"}"
+/;   var ok: bool = events.insertOne(doc)
+/;
+
+/; ---- FFI extern declarations (internal use) ----
+fun _mongo_client_new(uri: as str) -> as int64 decl
+fun _mongo_client_close(h: as int64) -> as nthg decl
+fun _mongo_get_collection(client: as int64, db: as str, coll: as str) -> as int64 decl
+fun _mongo_insert_one(coll: as int64, json: as str) -> as int64 decl
+fun _mongo_insert_many(coll: as int64, jsonArray: as str) -> as int64 decl
+fun _mongo_find_one(coll: as int64, filterJson: as str) -> as str decl
+fun _mongo_find(coll: as int64, filterJson: as str, limit: as int64) -> as int64 decl
+fun _mongo_count(coll: as int64, filterJson: as str) -> as int64 decl
+fun _mongo_cursor_next(cur: as int64) -> as str decl
+fun _mongo_cursor_close(cur: as int64) -> as nthg decl
+fun _mongo_last_error() -> as str decl
+
+module [mongo]
+
+class Cursor {
+    var _h: int64
+    init(h: int64) -> nthg {
+        self._h = h
+    }
+    fun next() -> str {
+        return _mongo_cursor_next(self._h)
+    }
+    fun close() -> nthg {
+        _mongo_cursor_close(self._h)
+    }
+}
+
+class Collection {
+    var _h: int64
+    init(h: int64) -> nthg {
+        self._h = h
+    }
+    fun insertOne(json: str) -> bool {
+        var ok: int64 = _mongo_insert_one(self._h, json)
+        return ok == 1
+    }
+    fun insertMany(jsonArr: str) -> bool {
+        var ok: int64 = _mongo_insert_many(self._h, jsonArr)
+        return ok == 1
+    }
+    fun findOne(filterJson: str) -> str {
+        return _mongo_find_one(self._h, filterJson)
+    }
+    fun find(filterJson: str, limit: int64) -> mongo::Cursor {
+        var ch: int64 = _mongo_find(self._h, filterJson, limit)
+        return new mongo::Cursor(ch)
+    }
+    fun count(filterJson: str) -> int64 {
+        return _mongo_count(self._h, filterJson)
+    }
+}
+
+class Client {
+    var _h: int64
+    init(uri: str) -> nthg {
+        self._h = _mongo_client_new(uri)
+    }
+    fun isOk() -> bool {
+        return self._h != 0
+    }
+    fun getCollection(db: str, coll: str) -> mongo::Collection {
+        var ch: int64 = _mongo_get_collection(self._h, db, coll)
+        return new mongo::Collection(ch)
+    }
+    fun close() -> nthg {
+        _mongo_client_close(self._h)
+    }
+}
+
+fun lastError() -> str {
+    return _mongo_last_error()
+}

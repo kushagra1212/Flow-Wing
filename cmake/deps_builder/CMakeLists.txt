@@ -179,6 +179,32 @@ endif()
         GIT_PROGRESS TRUE
     )
 
+    ExternalProject_Add(
+        mongo_c_driver_external
+        GIT_REPOSITORY  "https://github.com/mongodb/mongo-c-driver.git"
+        GIT_TAG         "2.3.0"
+        GIT_SHALLOW     TRUE
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+            -DBUILD_SHARED_LIBS=OFF
+            -DENABLE_TESTS=OFF
+            -DENABLE_EXAMPLES=OFF
+            -DENABLE_SASL=OFF
+            -DENABLE_SRV=OFF
+            -DENABLE_SNAPPY=OFF
+            -DENABLE_ZSTD=OFF
+            -DENABLE_ZLIB=BUNDLED
+            -DENABLE_MONGOC=ON
+            -DENABLE_BSON=ON
+            -DENABLE_STATIC=ON
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_CONFIGURE true
+        USES_TERMINAL_BUILD true
+        USES_TERMINAL_INSTALL true
+        GIT_PROGRESS TRUE
+    )
+
     set(LLVM_BUILD_SHARED OFF)
 
     if(NOT WIN32)

@@ -15,4 +15,5 @@ add_subdirectory(file_module)
 add_subdirectory(io_module) 
 add_subdirectory(vortex_module)
 add_subdirectory(raylib_module)
+add_subdirectory(mongo_module)
 

@@ -1,0 +1,15 @@
+
+bring "../support_module_class_collision/widget_a.fg"
+bring "../support_module_class_collision/widget_b.fg"
+var t1: int = 7
+var t2: int = 9
+var a: widget_a::Widget = new widget_a::Widget(t1)
+var b: widget_b::Widget = new widget_b::Widget(t2)
+println(a.greet())
+println(b.greet())
+println(a.describe())
+println(b.describe())
+var a2: widget_a::Widget = widget_a::makeWidget(t1)
+var b2: widget_b::Widget = widget_b::makeWidget(t2)
+println(a2.greet())
+println(b2.greet())
