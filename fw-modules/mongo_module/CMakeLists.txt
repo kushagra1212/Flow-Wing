@@ -58,16 +58,6 @@ if(APPLE)
     # Delegated to a standalone script: inline `sh -c "..."` here was
     # corrupted by Ninja's command-line escaping (semicolons and &&'s broke
     # the -c body apart). See merge_apple_static.sh for the full rationale.
-    add_custom_command(TARGET flowwing_mongo POST_BUILD
-        COMMAND sh
-            "${CMAKE_CURRENT_SOURCE_DIR}/merge_apple_static.sh"
-            "$<TARGET_FILE:flowwing_mongo>"
-            "${MONGOC_LIB}"
-            "${BSON_LIB}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Merging libmongoc + libbson into flowwing_mongo (dedup-by-basename)"
-        VERBATIM
-    )
     target_link_libraries(flowwing_mongo PUBLIC
         "-framework CoreFoundation"
         "-framework Security"
@@ -85,12 +75,10 @@ elseif(UNIX AND NOT APPLE)
         m
         dl
     )
-    # Same per-archive-prefix merge as macOS: a flat `ar -x` of mongoc + bson
-    # into one directory dropped every common-*.c.o duplicate (e.g. the
-    # mongoc-prefixed copy of common-string.c.o was overwritten by bson's),
-    # which surfaced on CI Linux as `undefined symbol:
-    # _mongoc_mcommon_string_new_with_capacity` / `_mongoc_mcommon_b64_*`
-    # at FlowWing link time. The script is platform-neutral.
+    # Linux merge — kept as POST_BUILD (works on CI today, per user). Uses
+    # the same per-archive-prefix script as macOS so common-*.c.o duplicates
+    # don't clobber each other (a flat `ar -x` lost them and surfaced as
+    # `undefined symbol: _mongoc_mcommon_string_*` at FlowWing link time).
     add_custom_command(TARGET flowwing_mongo POST_BUILD
         COMMAND sh
             "${CMAKE_CURRENT_SOURCE_DIR}/merge_apple_static.sh"
@@ -123,5 +111,29 @@ elseif(WIN32)
     target_compile_definitions(flowwing_mongo PRIVATE
         MONGOC_STATIC
         BSON_STATIC
+    )
+endif()
+
+# macOS-only: ensure the mongoc + bson static archives are folded into
+# libflowwing_mongo.a on every build. Done as an `ALL` custom target
+# (NOT add_custom_command POST_BUILD) because POST_BUILD silently skips
+# when ninja considers flowwing_mongo up-to-date — which is exactly what
+# GitHub Actions cache restoration produces on the Mac runner, leaving the
+# JIT link to fail with `undefined symbol: mongoc_client_destroy` on a
+# pre-merge archive. Linux + Windows already work via their respective
+# POST_BUILD / PUBLIC link above, so they are intentionally untouched.
+# The script is idempotent: it checks for `mongoc_client_destroy` in the
+# archive's symbol table and exits early if the merge is already done.
+if(APPLE)
+    add_custom_target(flowwing_mongo_merge ALL
+        COMMAND sh
+            "${CMAKE_CURRENT_SOURCE_DIR}/merge_apple_static.sh"
+            "$<TARGET_FILE:flowwing_mongo>"
+            "${MONGOC_LIB}"
+            "${BSON_LIB}"
+        DEPENDS flowwing_mongo
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Merging libmongoc + libbson into flowwing_mongo (dedup-by-basename)"
+        VERBATIM
     )
 endif()
