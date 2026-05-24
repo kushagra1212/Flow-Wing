@@ -19,11 +19,22 @@
 
 add_library(flowwing_mongo STATIC libflowwing_mongo.cpp)
 
-# mongo-c-driver 2.3.0 installs as libmongoc2.a / libbson2.a (verified via
-# .fw_dependencies/install/lib). Headers under include/mongoc-2.3.0 + bson-2.3.0.
-# Use explicit .a filenames so cmake doesn't pick the sibling .dylib.
-find_library(MONGOC_LIB NAMES libmongoc2.a PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
-find_library(BSON_LIB   NAMES libbson2.a   PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
+# mongo-c-driver 2.3.0 installs as libmongoc2.a / libbson2.a on Unix
+# (verified via .fw_dependencies/install/lib) and mongoc2.lib / bson2.lib on
+# Windows. Headers under include/mongoc-2.3.0 + bson-2.3.0. Use explicit
+# filenames so cmake doesn't pick the sibling .dylib on macOS.
+if(WIN32)
+    # mongo-c-driver 2.x with BUILD_SHARED_LIBS=OFF installs mongoc2.lib /
+    # bson2.lib; older 1.x layouts produced mongoc-static-1.0 / bson-static-1.0,
+    # try both as a fallback. cmake adds the .lib suffix automatically.
+    set(_MONGOC_LIB_NAMES mongoc2 mongoc-static-2.0)
+    set(_BSON_LIB_NAMES   bson2   bson-static-2.0)
+else()
+    set(_MONGOC_LIB_NAMES libmongoc2.a)
+    set(_BSON_LIB_NAMES   libbson2.a)
+endif()
+find_library(MONGOC_LIB NAMES ${_MONGOC_LIB_NAMES} PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
+find_library(BSON_LIB   NAMES ${_BSON_LIB_NAMES}   PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 
 target_include_directories(flowwing_mongo PUBLIC
     "${DEPS_INSTALL_DIR}/include/mongoc-2.3.0"
