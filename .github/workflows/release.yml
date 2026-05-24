@@ -658,7 +658,10 @@ jobs:
                   set -euo pipefail
                   VER="${TAG#v}"
                   echo "Setting package.json version to ${VER}"
-                  npm version "${VER}" --no-git-tag-version
+                  # --allow-same-version: package.json may already be at this
+                  # version when the release tag is cut from a commit that
+                  # already bumped it; without the flag npm errors out.
+                  npm version "${VER}" --no-git-tag-version --allow-same-version
 
             - name: Compile extension
               working-directory: src/lsp
