@@ -135,7 +135,13 @@ jobs:
               uses: actions/cache/restore@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  # Include a source-content hash so a re-run on the same tag
+                  # picks up source changes instead of restoring a stale (and
+                  # possibly broken) binary from the first attempt at that tag.
+                  # Cache was previously keyed on tag alone, which meant a
+                  # buggy v1.0.6 build (pre-mongo-link-fixes) kept getting
+                  # restored and the JIT smoke test exited 127.
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-${{ hashFiles('src/**', 'fw-modules/**', 'cmake/**', 'CMakeLists.txt', 'makefile') }}
 
             # --- Build Project Dependencies ---
             # --- Restore/Build Project Dependencies ---
@@ -333,7 +339,13 @@ jobs:
               uses: actions/cache/save@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
+                  # Include a source-content hash so a re-run on the same tag
+                  # picks up source changes instead of restoring a stale (and
+                  # possibly broken) binary from the first attempt at that tag.
+                  # Cache was previously keyed on tag alone, which meant a
+                  # buggy v1.0.6 build (pre-mongo-link-fixes) kept getting
+                  # restored and the JIT smoke test exited 127.
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-${{ hashFiles('src/**', 'fw-modules/**', 'cmake/**', 'CMakeLists.txt', 'makefile') }}
 
             # --- Smoke-test the staged SDK before packaging ---
             # Verifies both AOT and JIT binaries run, find their modules, and resolve the bundled linker.
