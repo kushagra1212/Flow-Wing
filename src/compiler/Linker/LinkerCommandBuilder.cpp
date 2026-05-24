@@ -239,7 +239,8 @@ void LinkerCommandBuilder::addSystemLibraries(
   for (const auto &lib :
        {"ucrt.lib", "vcruntime.lib", "kernel32.lib", "user32.lib",
         "advapi32.lib", "msvcrt.lib", "legacy_stdio_definitions.lib",
-        "/SUBSYSTEM:CONSOLE", "/IGNORE:4210"}) {
+
+        "bcrypt.lib", "ncrypt.lib", "/SUBSYSTEM:CONSOLE", "/IGNORE:4210"}) {
     args.push_back(lib);
   }
 #endif
