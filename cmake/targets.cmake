@@ -29,7 +29,10 @@
 
 # --- Custom Version Target ---
 add_custom_target(version
-    COMMAND ${CMAKE_COMMAND} -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake
+    COMMAND ${CMAKE_COMMAND}
+        -DVERSION=${PROJECT_VERSION}
+        -DOUTPUT_DIR=${CMAKE_BINARY_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake
     COMMENT "Generating version information")
 
 # --- Source File Configuration ---
@@ -108,6 +111,10 @@ message(STATUS "[LLVM_INCLUDE_DIRS]: ${LLVM_INCLUDE_DIRS}")
 
 # --- Include Directories ---
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    # Build dir first so generated headers (e.g. src/common/version.h written
+    # by cmake/version.cmake from PROJECT_VERSION) shadow any stale committed
+    # copies. PROJECT_VERSION itself comes from the top-level VERSION file.
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
 
     # Add LLVM and Clang headers explicitly for the FetchContent build

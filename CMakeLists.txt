@@ -25,7 +25,14 @@
 # from the '/cmake' directory to configure the build process.
 # =============================================================================
 cmake_minimum_required(VERSION 3.29)
-project(FlowWing VERSION 1.0.5 LANGUAGES C CXX)
+
+# Single source of truth for the project version. Bump the top-level VERSION
+# file and `scripts/sync-version.sh` propagates the value to package.json /
+# lockfiles. cmake/version.cmake writes ${BUILD}/src/common/version.h from
+# PROJECT_VERSION so the C++ side picks it up automatically.
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" FW_VERSION LIMIT_COUNT 1)
+string(STRIP "${FW_VERSION}" FW_VERSION)
+project(FlowWing VERSION ${FW_VERSION} LANGUAGES C CXX)
 
 # Install prefix for release builds - baked into compiler binary at compile time
 set(FLOWWING_INSTALL_PREFIX ""

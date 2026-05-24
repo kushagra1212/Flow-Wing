@@ -1,6 +1,6 @@
 #
 # FlowWing Compiler
-# Copyright (C) 2023-2025 Kushagra Rathore
+# Copyright (C) 2023-2026 Kushagra Rathore
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,4 +19,10 @@
 
 
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/src/common/version.h "#define VERSION_INFO \"${VERSION}\"\n")
+# Invoked via `cmake -P` from the `version` custom target; OUTPUT_DIR comes
+# from the parent CMakeLists so the header lands inside the real build tree,
+# not wherever cmake -P happens to be run.
+if(NOT DEFINED OUTPUT_DIR)
+    message(FATAL_ERROR "version.cmake: OUTPUT_DIR not set")
+endif()
+file(WRITE "${OUTPUT_DIR}/src/common/version.h" "#define VERSION_INFO \"${VERSION}\"\n")
