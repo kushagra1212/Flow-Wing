@@ -1,0 +1,15 @@
+bring mongo
+
+/; mongoc_client_get_collection() returns a handle without any network round
+/; trip — it just attaches db+collection names to the client. Safe to test
+/; without a running mongod.
+
+var mc: mongo::Client = new mongo::Client("mongodb://127.0.0.1:27017")
+println(mc.isOk())
+
+var c1: mongo::Collection = mc.getCollection("flowwing_test_db", "events")
+var c2: mongo::Collection = mc.getCollection("flowwing_test_db", "users")
+println(true)
+
+mc.close()
+println(true)

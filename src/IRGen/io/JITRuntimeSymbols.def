@@ -164,3 +164,17 @@ FW_JIT_RUNTIME_SYMBOL(vortex_res_stream_write)
 FW_JIT_RUNTIME_SYMBOL(vortex_server_accept)
 FW_JIT_RUNTIME_SYMBOL(vortex_server_listen)
 FW_JIT_RUNTIME_SYMBOL(vortex_server_new)
+
+// ---- fw-modules/mongo_module/libflowwing_mongo.cpp -----------------------
+// Names match the externs in fw-modules/mongo_module/mongo-module.fg.
+FW_JIT_RUNTIME_SYMBOL(_mongo_client_new)
+FW_JIT_RUNTIME_SYMBOL(_mongo_client_close)
+FW_JIT_RUNTIME_SYMBOL(_mongo_get_collection)
+FW_JIT_RUNTIME_SYMBOL(_mongo_insert_one)
+FW_JIT_RUNTIME_SYMBOL(_mongo_insert_many)
+FW_JIT_RUNTIME_SYMBOL(_mongo_find_one)
+FW_JIT_RUNTIME_SYMBOL(_mongo_find)
+FW_JIT_RUNTIME_SYMBOL(_mongo_count)
+FW_JIT_RUNTIME_SYMBOL(_mongo_cursor_next)
+FW_JIT_RUNTIME_SYMBOL(_mongo_cursor_close)
+FW_JIT_RUNTIME_SYMBOL(_mongo_last_error)

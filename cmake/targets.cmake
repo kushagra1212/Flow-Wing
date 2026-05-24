@@ -211,6 +211,12 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:flowwing_io>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
+            # flowwing_mongo already has libmongoc + libbson merged into it
+            # by the libtool POST_BUILD step in mongo_module/CMakeLists.txt,
+            # so force-loading the single archive pulls everything in. The
+            # CoreFoundation/Security frameworks and resolv come via the
+            # PUBLIC link on flowwing_mongo.
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_mongo>"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
             "-framework CoreFoundation"
@@ -218,6 +224,14 @@ if(NOT BUILD_AOT)
             "-framework Cocoa"
             "-framework OpenGL"
             "-framework CoreVideo"
+            # flowwing_mongo pulls in mongo-c-driver built against Apple's
+            # Secure Transport TLS backend (SSL*, SecCertificate*, SecKey*,
+            # SecTrust*) and uses resolv for DNS. The `-Wl,-force_load`
+            # syntax above takes the archive path as a raw string, not a
+            # target reference, so CMake never walks flowwing_mongo's
+            # transitive PUBLIC link interface — list those deps explicitly.
+            "-framework Security"
+            resolv
         )
     elseif(UNIX)
         # This is the corrected section for Linux
@@ -232,6 +246,9 @@ if(NOT BUILD_AOT)
             flowwing_io
             flowwing_vortex
             flowwing_raylib
+            # flowwing_mongo's PUBLIC deps (libmongoc, libbson, OpenSSL,
+            # Threads, resolv, m, dl) are added transitively by CMake.
+            flowwing_mongo
             "${DEPS_LIB_DIR}/libgc.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
             "-Wl,--no-whole-archive"
@@ -253,6 +270,9 @@ if(NOT BUILD_AOT)
             flowwing_io
             flowwing_vortex
             flowwing_raylib
+            # ws2_32 / secur32 / crypt32 / dnsapi come via flowwing_mongo's
+            # PUBLIC link, as do the mongoc2.lib / bson2.lib archives.
+            flowwing_mongo
             "${DEPS_LIB_DIR}/gc.lib"
             "${DEPS_LIB_DIR}/gccpp.lib"
             "${DEPS_LIB_DIR}/atomic_ops.lib"
@@ -268,6 +288,7 @@ if(NOT BUILD_AOT)
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_io>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vortex>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_raylib>"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_mongo>"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
             "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"

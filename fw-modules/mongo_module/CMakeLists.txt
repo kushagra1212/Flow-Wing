@@ -49,12 +49,24 @@ target_compile_options(flowwing_mongo PRIVATE
 )
 
 if(APPLE)
+    # mongo-c-driver 2.x bundles its internal "common" objects (common-oid.c
+    # etc.) into BOTH libmongoc2.a and libbson2.a, so `libtool -static`'s
+    # strict preserve-all-objects semantics produced duplicate symbols
+    # (_mcommon_oid_set_zero, _kZeroObjectId, ...). Use the same ar
+    # extract+repack approach as the Linux branch: same-basename objects
+    # overwrite during extract, leaving exactly one copy.
+    # Delegated to a standalone script: inline `sh -c "..."` here was
+    # corrupted by Ninja's command-line escaping (semicolons and &&'s broke
+    # the -c body apart). See merge_apple_static.sh for the full rationale.
     add_custom_command(TARGET flowwing_mongo POST_BUILD
-        COMMAND libtool -static -o $<TARGET_FILE:flowwing_mongo>
-                $<TARGET_FILE:flowwing_mongo>
-                ${MONGOC_LIB}
-                ${BSON_LIB}
-        COMMENT "Merging libmongoc + libbson into flowwing_mongo"
+        COMMAND sh
+            "${CMAKE_CURRENT_SOURCE_DIR}/merge_apple_static.sh"
+            "$<TARGET_FILE:flowwing_mongo>"
+            "${MONGOC_LIB}"
+            "${BSON_LIB}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Merging libmongoc + libbson into flowwing_mongo (dedup-by-basename)"
+        VERBATIM
     )
     target_link_libraries(flowwing_mongo PUBLIC
         "-framework CoreFoundation"

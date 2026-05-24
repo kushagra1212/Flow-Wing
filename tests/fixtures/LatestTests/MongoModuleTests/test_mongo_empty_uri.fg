@@ -1,0 +1,9 @@
+bring mongo
+
+/; Empty URI is rejected before any network I/O — deterministic across
+/; linux / mac / windows because the check is in our own bridge code,
+/; not libmongoc.
+
+var mc: mongo::Client = new mongo::Client("")
+println(mc.isOk())
+println(mongo::lastError())
