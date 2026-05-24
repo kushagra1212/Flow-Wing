@@ -132,6 +132,7 @@ else()
   # Set the install directory for libatomic_ops
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_INSTALL_DIR}
              -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
              -Denable_gpl=OFF # Exclude GPL parts if you want
   USES_TERMINAL_DOWNLOAD true
   USES_TERMINAL_CONFIGURE true
@@ -147,7 +148,7 @@ else()
 
             # Add this to clone libatomic_ops into the source dir
             PATCH_COMMAND git clone https://github.com/ivmai/libatomic_ops.git libatomic_ops && cd libatomic_ops && git checkout v7.8.0
-            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
             "-DCMAKE_CXX_FLAGS=-DMAX_ROOT_SETS=4096"
             USES_TERMINAL_DOWNLOAD true
             USES_TERMINAL_CONFIGURE true
