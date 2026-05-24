@@ -200,6 +200,7 @@ if(NOT BUILD_AOT)
     set(DEPS_LIB_DIR "${CMAKE_SOURCE_DIR}/.fw_dependencies/install/lib")
 
     if(APPLE)
+        add_dependencies(${EXECUTABLE_NAME} flowwing_mongo_merge)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,-all_load"
             "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
