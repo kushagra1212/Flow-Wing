@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/utils/LogConfig.h"
 
 namespace flow_wing::ir_gen {
@@ -30,19 +29,23 @@ void IRGenerator::visit(
 
   auto symbol = identifier_expression->getSymbol();
 
-  auto llvm_value = m_ir_gen_context.getSymbol(symbol->getName());
+  std::string lookup_key = symbol->getName();
+  if (symbol->getKind() == analysis::SymbolKind::kVariable) {
+    lookup_key = static_cast<const analysis::VariableSymbol *>(symbol)
+                     ->getQualifiedName();
+  }
 
-  if(!llvm_value && symbol->getKind() == analysis::SymbolKind::kFunction) {
-    llvm_value = m_ir_gen_context.getLLVMModule()->getFunction(symbol->getName());
+  auto llvm_value = m_ir_gen_context.getSymbol(lookup_key);
+
+  if (!llvm_value && symbol->getKind() == analysis::SymbolKind::kFunction) {
+    llvm_value =
+        m_ir_gen_context.getLLVMModule()->getFunction(symbol->getName());
   }
 
   assert(llvm_value && "Symbol not found [BoundIdentifierExpression::visit]");
 
-
   m_last_type = symbol->getType().get();
   m_last_value = llvm_value;
-
-
 }
 
 }; // namespace flow_wing::ir_gen

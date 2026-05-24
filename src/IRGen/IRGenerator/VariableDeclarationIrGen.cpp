@@ -76,11 +76,15 @@ void IRGenerator::visit(
         if (var_type->getKind() == types::TypeKind::kClass) {
           llvm_type = llvm_type->getPointerTo();
         }
+        // For module-top globals `getQualifiedName()` is `<module>.<name>` so
+        // it matches the key set by `GlobalDeclarationsInitializer`; for
+        // locals it falls back to the bare name.
+        const std::string storage_key = variable_symbol->getQualifiedName();
         llvm::Value *storage_ptr = nullptr;
 
         if (m_ir_gen_context.isGlobalScope()) {
           llvm::Value *existing_global_variable =
-              m_ir_gen_context.getSymbol(variable_symbol->getName());
+              m_ir_gen_context.getSymbol(storage_key);
           if (existing_global_variable &&
               llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
             storage_ptr = existing_global_variable;
@@ -90,7 +94,7 @@ void IRGenerator::visit(
         if (!storage_ptr) {
           storage_ptr = m_ir_gen_context.createAlloca(
               llvm_type, variable_symbol->getName());
-          m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
+          m_ir_gen_context.setSymbol(storage_key, storage_ptr);
         }
 
         llvm::Value *gep = builder->CreateStructGEP(
@@ -114,11 +118,12 @@ void IRGenerator::visit(
       if (var_type->getKind() == types::TypeKind::kClass) {
         llvm_type = llvm_type->getPointerTo();
       }
+      const std::string storage_key = variable_symbol->getQualifiedName();
       llvm::Value *storage_ptr = nullptr;
 
       if (m_ir_gen_context.isGlobalScope()) {
         llvm::Value *existing_global_variable =
-            m_ir_gen_context.getSymbol(variable_symbol->getName());
+            m_ir_gen_context.getSymbol(storage_key);
         if (existing_global_variable &&
             llvm::isa<llvm::GlobalVariable>(existing_global_variable)) {
           storage_ptr = existing_global_variable;
@@ -128,7 +133,7 @@ void IRGenerator::visit(
       if (!storage_ptr) {
         storage_ptr = m_ir_gen_context.createAlloca(llvm_type,
                                                     variable_symbol->getName());
-        m_ir_gen_context.setSymbol(variable_symbol->getName(), storage_ptr);
+        m_ir_gen_context.setSymbol(storage_key, storage_ptr);
       }
 
       auto *init_expression = variable_symbol->getInitializerExpression().get();

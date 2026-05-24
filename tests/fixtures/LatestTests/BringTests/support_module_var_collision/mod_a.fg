@@ -1,0 +1,6 @@
+module [probe_a]
+
+var shared_var: int = 111
+const SHARED_CONST: int = 1111
+
+fun shared_fn(x: int) -> int { return x + 1 }
