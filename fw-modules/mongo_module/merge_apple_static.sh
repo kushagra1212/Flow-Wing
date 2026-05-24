@@ -59,11 +59,17 @@ done
 # `undefined symbol: mongoc_client_destroy` — either the input archive
 # never had it (build-config issue / wrong arch cache), or something is
 # stripping it. Print up front so the CI log answers the question.
+#
+# Symbol-name note: macOS Mach-O prepends `_` to every C symbol so nm
+# prints `_mongoc_client_destroy`; Linux ELF nm prints `mongoc_client_destroy`
+# bare. Match both with the regex prefix `_?` instead of pinning to one
+# platform's convention (the first version of this check was Mach-O-only
+# and false-FATAL'd a fully-working Linux merge).
 echo "merge_apple_static.sh: probing input archives (nm -gU)"
 echo "  MONGOC_LIB arch + member count: $(file "$MONGOC_LIB" | sed 's/^[^:]*: //'); $(ar -t "$MONGOC_LIB" | wc -l | tr -d ' ') members"
-for sym in _mongoc_client_destroy _mongoc_client_new_from_uri _bson_iter_init; do
-    if nm -gU "$MONGOC_LIB" 2>/dev/null | grep -q " T $sym\$" \
-       || nm -gU "$BSON_LIB"   2>/dev/null | grep -q " T $sym\$"; then
+for sym in mongoc_client_destroy mongoc_client_new_from_uri bson_iter_init; do
+    if nm -gU "$MONGOC_LIB" 2>/dev/null | grep -Eq " T _?$sym\$" \
+       || nm -gU "$BSON_LIB"   2>/dev/null | grep -Eq " T _?$sym\$"; then
         echo "  found: $sym"
     else
         echo "  MISSING from inputs: $sym" >&2
@@ -128,8 +134,9 @@ echo "merge_apple_static.sh: done; merged archive has $(ar -t "$FLOWWING_MONGO_L
 # the *.o file is in the archive, not that its global symbols survived.
 # CI Mac JIT pass-2 had 184 members but still got `undefined symbol:
 # mongoc_client_destroy`; this guards against that exact failure mode.
-for sym in _mongoc_client_destroy _bson_iter_init; do
-    if ! nm -gU "$FLOWWING_MONGO_LIB" 2>/dev/null | grep -q " T $sym\$"; then
+# Match `_?` prefix to cover both Mach-O (`_mongoc_*`) and ELF (`mongoc_*`).
+for sym in mongoc_client_destroy bson_iter_init; do
+    if ! nm -gU "$FLOWWING_MONGO_LIB" 2>/dev/null | grep -Eq " T _?$sym\$"; then
         echo "merge_apple_static.sh: FATAL — merged archive is missing global" >&2
         echo "  symbol $sym. Likely the input archive never exposed it" >&2
         echo "  (build-config / wrong-arch deps cache?)." >&2

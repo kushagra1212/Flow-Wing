@@ -444,27 +444,44 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 def fire_requests():
                     import urllib.request
                     import urllib.error
+                    import http.client
                     import time
                     import json
-                    
+
+                    # Broad enough to cover every way a vortex test connection
+                    # can fail: URLError (connection refused while server is
+                    # starting), RemoteDisconnected (server closed socket
+                    # mid-response, e.g. after streamEnd — Python 3.14 raises
+                    # this from urlopen instead of letting URLError swallow
+                    # it), and any other transport-level ConnectionError.
+                    # Without RemoteDisconnected in the tuple, the streaming
+                    # vortex_router.fg test kills the fire_requests thread
+                    # and the runner marks the whole test FAIL despite the
+                    # server code itself running correctly.
+                    EXPECTED_REQUEST_ERRORS = (
+                        urllib.error.URLError,
+                        http.client.RemoteDisconnected,
+                        ConnectionError,
+                    )
+
                     # 1. Wait for JIT compilation to finish by polling the server
                     server_up = False
                     base_url = f"http://127.0.0.1:{server_port}"
-                    
+
                     for _ in range(100):  # Try for up to 3 seconds
                         try:
                             urllib.request.urlopen(f"{base_url}/")
                             server_up = True
                             break # Success! Server is up and processed the first request.
-                        except urllib.error.URLError:
+                        except EXPECTED_REQUEST_ERRORS:
                             time.sleep(0.1)
-                            
+
                     if not server_up:
                         return # Gave up waiting
-                        
+
                     # 2. Fire specific requests based on the test file name
                     filename = file_path.name
-                    
+
                     if "vortex_router" in filename:
                         # ---------------------------------------------
                         # Requests for the vortex_router.fg test
@@ -472,8 +489,8 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         urls = [f"{base_url}/api/data", f"{base_url}/stream", f"{base_url}/404-check"]
                         for url in urls:
                             try: urllib.request.urlopen(url)
-                            except urllib.error.URLError: pass
-                            
+                            except EXPECTED_REQUEST_ERRORS: pass
+
                     elif "mission_control" in filename:
                         # ---------------------------------------------
                         # Requests for the test_mission_control.fg test
@@ -481,18 +498,18 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         urls = [f"{base_url}/crew", f"{base_url}/logs"]
                         for url in urls:
                             try: urllib.request.urlopen(url)
-                            except urllib.error.URLError: pass
-                            
+                            except EXPECTED_REQUEST_ERRORS: pass
+
                         # Fire the POST request to test the JSON Command API
                         try:
                             post_data = json.dumps({"action": "shields_on"}).encode('utf-8')
                             post_req = urllib.request.Request(
-                                f"{base_url}/api/command", 
-                                data=post_data, 
+                                f"{base_url}/api/command",
+                                data=post_data,
                                 headers={'Content-Type': 'application/json'}
                             )
                             urllib.request.urlopen(post_req)
-                        except urllib.error.URLError:
+                        except EXPECTED_REQUEST_ERRORS:
                             pass
                             
                 client_thread = threading.Thread(target=fire_requests)
