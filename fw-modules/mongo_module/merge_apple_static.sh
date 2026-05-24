@@ -64,5 +64,23 @@ rm -f bson_common-oid.c.o
 rm -f "$FLOWWING_MONGO_LIB"
 ar -rcs "$FLOWWING_MONGO_LIB" *.o
 
+# Sanity check: mongoc + bson symbols MUST resolve from the merged archive,
+# otherwise the FlowWing link silently fails later with hundreds of
+# `undefined symbol: mongoc_*` / `bson_*` errors against
+# libflowwing_mongo.cpp.o. Fail loudly here so the cause is visible in CI
+# logs at the merge step, not 100s of lines deep in the linker output.
+if ! ar -t "$FLOWWING_MONGO_LIB" | grep -q '^mongoc_'; then
+    echo "merge_apple_static.sh: FATAL — merged archive $FLOWWING_MONGO_LIB" >&2
+    echo "  is missing mongoc_*.o members. ar -t output:" >&2
+    ar -t "$FLOWWING_MONGO_LIB" | sed 's/^/    /' >&2
+    echo "  inputs were: MONGOC_LIB=$MONGOC_LIB BSON_LIB=$BSON_LIB" >&2
+    exit 1
+fi
+if ! ar -t "$FLOWWING_MONGO_LIB" | grep -q '^bson_'; then
+    echo "merge_apple_static.sh: FATAL — merged archive $FLOWWING_MONGO_LIB" >&2
+    echo "  is missing bson_*.o members." >&2
+    exit 1
+fi
+
 cd ..
 rm -rf "$WORK_DIR"

@@ -20,21 +20,21 @@
 
 // Dynamically fetch the user's active macOS SDK path at runtime
 static std::string getMacOSSDKPath() {
-    std::string result = "";
-    // Open a pipe to the native xcrun command
-    FILE* pipe = popen("xcrun --show-sdk-path 2>/dev/null", "r");
-    if (pipe) {
-        char buffer[256];
-        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-            result += buffer;
-        }
-        pclose(pipe);
+  std::string result = "";
+  // Open a pipe to the native xcrun command
+  FILE *pipe = popen("xcrun --show-sdk-path 2>/dev/null", "r");
+  if (pipe) {
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      result += buffer;
     }
-    // Strip the trailing newline character
-    if (!result.empty() && result.back() == '\n') {
-        result.pop_back();
-    }
-    return result;
+    pclose(pipe);
+  }
+  // Strip the trailing newline character
+  if (!result.empty() && result.back() == '\n') {
+    result.pop_back();
+  }
+  return result;
 }
 #endif
 
@@ -76,15 +76,15 @@ std::string LinkerCommandBuilder::generateLinkCommand() {
 
   std::string finalCommand = joinArgs(cmd);
 
-  #if defined(_WIN32)
-    // std::system on Windows invokes cmd.exe /c. If the command string starts 
-    // with a quote and contains multiple quotes, cmd.exe silently strips the 
-    // first and last quote, corrupting the command. 
-    // Fix: Wrap the entire command in an extra set of quotes.
-    finalCommand = "\"" + finalCommand + "\"";
-  #endif
-  
-    return finalCommand;
+#if defined(_WIN32)
+  // std::system on Windows invokes cmd.exe /c. If the command string starts
+  // with a quote and contains multiple quotes, cmd.exe silently strips the
+  // first and last quote, corrupting the command.
+  // Fix: Wrap the entire command in an extra set of quotes.
+  finalCommand = "\"" + finalCommand + "\"";
+#endif
+
+  return finalCommand;
 }
 
 // ========================================================
@@ -122,7 +122,8 @@ void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
     std::string sdk_path = getMacOSSDKPath();
     if (!sdk_path.empty()) {
       args.push_back("-isysroot");
-      // Wrap the path in quotes in case of spaces (e.g. "/Library/.../Command Line Tools")
+      // Wrap the path in quotes in case of spaces (e.g. "/Library/.../Command
+      // Line Tools")
       args.push_back("\"" + sdk_path + "\"");
     }
   }
@@ -131,7 +132,7 @@ void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
     args.push_back("-Wl,-w");
   }
 #elif defined(__linux__)
-args.push_back("-fuse-ld=lld");
+  args.push_back("-fuse-ld=lld");
 #elif defined(_WIN32)
   args.push_back("/nologo");
 #endif
@@ -221,7 +222,11 @@ void LinkerCommandBuilder::addRuntimeLibraries(std::vector<std::string> &args) {
   }
 
   for (const auto &lib : runtime_libraries) {
-    args.push_back(getLibLinkFlag(lib));
+    if (lib.find(' ') != std::string::npos) {
+      args.push_back(lib);
+    } else {
+      args.push_back(getLibLinkFlag(lib));
+    }
   }
 }
 
