@@ -82,6 +82,12 @@ rm -f bson_common-oid.c.o
 rm -f "$FLOWWING_MONGO_LIB"
 ar -rcs "$FLOWWING_MONGO_LIB" *.o
 
+# `ar -rcs` includes `s` = build symbol index, but on macOS CI runners
+# (Xcode-bundled `ar`) the index was silently omitted and ld64.lld failed
+# with `archive has no index; run ranlib to add one`. Run ranlib
+# unconditionally — it's a no-op if the index already exists.
+ranlib "$FLOWWING_MONGO_LIB"
+
 # Sanity check: mongoc + bson symbols MUST resolve from the merged archive,
 # otherwise the FlowWing link silently fails later with hundreds of
 # `undefined symbol: mongoc_*` / `bson_*` errors against
