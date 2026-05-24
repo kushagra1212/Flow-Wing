@@ -54,6 +54,22 @@ for f in "$FLOWWING_MONGO_LIB" "$MONGOC_LIB" "$BSON_LIB"; do
     fi
 done
 
+# Diagnostic: does the INPUT mongoc archive actually expose the symbols we
+# expect? CI Mac JIT showed "184 members" merged but linker still got
+# `undefined symbol: mongoc_client_destroy` — either the input archive
+# never had it (build-config issue / wrong arch cache), or something is
+# stripping it. Print up front so the CI log answers the question.
+echo "merge_apple_static.sh: probing input archives (nm -gU)"
+echo "  MONGOC_LIB arch + member count: $(file "$MONGOC_LIB" | sed 's/^[^:]*: //'); $(ar -t "$MONGOC_LIB" | wc -l | tr -d ' ') members"
+for sym in _mongoc_client_destroy _mongoc_client_new_from_uri _bson_iter_init; do
+    if nm -gU "$MONGOC_LIB" 2>/dev/null | grep -q " T $sym\$" \
+       || nm -gU "$BSON_LIB"   2>/dev/null | grep -q " T $sym\$"; then
+        echo "  found: $sym"
+    else
+        echo "  MISSING from inputs: $sym" >&2
+    fi
+done
+
 WORK_DIR="$(dirname "$FLOWWING_MONGO_LIB")/_mongo_merge"
 rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR/flowwing" "$WORK_DIR/mongoc" "$WORK_DIR/bson"
@@ -107,6 +123,21 @@ if ! ar -t "$FLOWWING_MONGO_LIB" | grep -q '^bson_'; then
 fi
 
 echo "merge_apple_static.sh: done; merged archive has $(ar -t "$FLOWWING_MONGO_LIB" | wc -l | tr -d ' ') members"
+
+# Final symbol-level verification — `ar -t | grep '^mongoc_'` only proves
+# the *.o file is in the archive, not that its global symbols survived.
+# CI Mac JIT pass-2 had 184 members but still got `undefined symbol:
+# mongoc_client_destroy`; this guards against that exact failure mode.
+for sym in _mongoc_client_destroy _bson_iter_init; do
+    if ! nm -gU "$FLOWWING_MONGO_LIB" 2>/dev/null | grep -q " T $sym\$"; then
+        echo "merge_apple_static.sh: FATAL — merged archive is missing global" >&2
+        echo "  symbol $sym. Likely the input archive never exposed it" >&2
+        echo "  (build-config / wrong-arch deps cache?)." >&2
+        echo "  nm -gU $FLOWWING_MONGO_LIB | grep -c ' T ' = $(nm -gU "$FLOWWING_MONGO_LIB" 2>/dev/null | grep -c ' T ')" >&2
+        exit 1
+    fi
+done
+echo "merge_apple_static.sh: symbol verification passed"
 
 cd ..
 rm -rf "$WORK_DIR"
