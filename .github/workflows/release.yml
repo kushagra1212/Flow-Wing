@@ -135,13 +135,7 @@ jobs:
               uses: actions/cache/restore@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  # Include a source-content hash so a re-run on the same tag
-                  # picks up source changes instead of restoring a stale (and
-                  # possibly broken) binary from the first attempt at that tag.
-                  # Cache was previously keyed on tag alone, which meant a
-                  # buggy v1.0.6 build (pre-mongo-link-fixes) kept getting
-                  # restored and the JIT smoke test exited 127.
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-${{ hashFiles('src/**', 'fw-modules/**', 'cmake/**', 'CMakeLists.txt', 'makefile') }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
             # --- Build Project Dependencies ---
             # --- Restore/Build Project Dependencies ---
@@ -187,13 +181,16 @@ jobs:
 
             # --- Build & install JIT (FlowWing-jit) into the same SDK bin/ ---
             # Shares the already-staged lib/modules and lib/<platform> from the AOT install,
-            # so only the JIT binary is added to the stage.
+            # so only the JIT binary is added to the stage. Windows ships AOT only — its
+            # JIT binary is not part of the released SDK, so skip the JIT build entirely on
+            # Windows runners (saves ~3 min of CI time and avoids smoke-testing a binary
+            # that's never installed by end users).
             - name: Build compiler (JIT)
-              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
               run: make release-jit-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
             - name: Stage SDK (JIT — installs as FlowWing-jit)
-              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
               run: make release-jit-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
             # Bundle the LLVM linker tool into the staged SDK bin/ so AOT linking works on
@@ -339,13 +336,7 @@ jobs:
               uses: actions/cache/save@v4
               with:
                   path: release-stage/${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
-                  # Include a source-content hash so a re-run on the same tag
-                  # picks up source changes instead of restoring a stale (and
-                  # possibly broken) binary from the first attempt at that tag.
-                  # Cache was previously keyed on tag alone, which meant a
-                  # buggy v1.0.6 build (pre-mongo-link-fixes) kept getting
-                  # restored and the JIT smoke test exited 127.
-                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-${{ hashFiles('src/**', 'fw-modules/**', 'cmake/**', 'CMakeLists.txt', 'makefile') }}
+                  key: ${{ runner.os }}-${{ runner.arch }}-staged-sdk-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}
 
             # --- Smoke-test the staged SDK before packaging ---
             # Verifies both AOT and JIT binaries run, find their modules, and resolve the bundled linker.
@@ -407,15 +398,20 @@ jobs:
                   echo "--- FlowWing --version ---"
                   "$FW" --version
 
-                  echo "--- FlowWing-jit --version ---"
-                  "$FW_JIT" --version
-
-                  # Module resolution: relies on <exe>/../lib/modules. Use a fixture that exercises
-                  # `bring vec` + `bring Err` (the same one the user highlighted in their request).
+                  # Windows release ships AOT only; FlowWing-jit.exe is not part of the
+                  # SDK we install on end-user machines, so skip every JIT probe on the
+                  # Windows runner. (The Build/Stage JIT steps above are also gated on
+                  # runner.os != 'Windows' so $FW_JIT does not even exist here.)
                   SMOKE_FG="tests/fixtures/LatestTests/VecModuleTests/vec_mix_test.fg"
+                  if [ "${{ runner.os }}" != "Windows" ]; then
+                    echo "--- FlowWing-jit --version ---"
+                    "$FW_JIT" --version
 
-                  echo "--- JIT: run $SMOKE_FG ---"
-                  "$FW_JIT" "$SMOKE_FG"
+                    # Module resolution: relies on <exe>/../lib/modules. Use a fixture that exercises
+                    # `bring vec` + `bring Err` (the same one the user highlighted in their request).
+                    echo "--- JIT: run $SMOKE_FG ---"
+                    "$FW_JIT" "$SMOKE_FG"
+                  fi
 
                   # The AOT compiler only produces an executable; it does not
                   # run it. Pipe it through a known `-o` path so we can exec
