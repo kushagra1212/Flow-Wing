@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "^3.5.2",
-    "@docusaurus/plugin-client-redirects": "3.5.2",
+    "@docusaurus/plugin-client-redirects": "^3.5.2",
     "@docusaurus/preset-classic": "^3.5.2",
     "@docusaurus/theme-classic": "^3.5.2",
     "@docusaurus/theme-common": "^3.5.2",
@@ -33,9 +33,9 @@
     "styled-components": "^6.1.13"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.5.2",
-    "@docusaurus/tsconfig": "3.5.2",
-    "@docusaurus/types": "3.5.2",
+    "@docusaurus/module-type-aliases": "^3.5.2",
+    "@docusaurus/tsconfig": "^3.5.2",
+    "@docusaurus/types": "^3.5.2",
     "typescript": "~5.5.2"
   },
   "browserslist": {
