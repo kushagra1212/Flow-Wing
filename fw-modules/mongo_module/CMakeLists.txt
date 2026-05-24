@@ -42,8 +42,11 @@ target_include_directories(flowwing_mongo PUBLIC
 )
 
 # libbson 2.x public typedef loses an alignment attribute on bson_t*; runtime
-# pointers are correctly aligned. Suppress the spurious clang diagnostic.
-target_compile_options(flowwing_mongo PRIVATE -Wno-align-mismatch)
+# pointers are correctly aligned. Suppress the spurious clang diagnostic
+# (clang-only; MSVC rejects unknown -W flags as D8021).
+target_compile_options(flowwing_mongo PRIVATE
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-align-mismatch>
+)
 
 if(APPLE)
     add_custom_command(TARGET flowwing_mongo POST_BUILD
