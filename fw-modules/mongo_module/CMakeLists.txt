@@ -109,6 +109,9 @@ elseif(WIN32)
         secur32
         crypt32
         dnsapi
+    
+        bcrypt
+        ncrypt
     )
     # mongo-c-driver 2.x headers mark every public function with
     # `__declspec(dllimport)` by default on Windows; consuming the static
