@@ -3,8 +3,10 @@
 # fw-modules/mongo_module/merge_apple_static.sh
 #
 # Invoked as a POST_BUILD step from fw-modules/mongo_module/CMakeLists.txt
-# on macOS. Merges libmongoc2.a and libbson2.a into the freshly-built
-# libflowwing_mongo.a so a single archive is enough for the SDK / JIT link.
+# on macOS **and Linux**. Merges libmongoc2.a and libbson2.a into the
+# freshly-built libflowwing_mongo.a so a single archive is enough for the
+# SDK / JIT link. Uses only POSIX `sh` + `ar` so the same script works on
+# both platforms (BSD ar on macOS, GNU ar on Linux).
 #
 # Why this script exists, take 2:
 #   mongo-c-driver 2.x bundles its internal "mongo-common" code (common-b64.c,
@@ -16,9 +18,11 @@
 #
 #   First attempt (libtool -static): preserved every object verbatim, ld then
 #   rejected with `duplicate symbol _kZeroObjectId` etc.
-#   Second attempt (ar -x in one dir): same-basename .o files overwrote, so
+#   Second attempt (ar -x in one dir — what Linux was doing inline in
+#   CMakeLists.txt until 2026-05-24): same-basename .o files overwrote, so
 #   either the mongoc-prefixed copies or the bson-prefixed copies were lost
-#   and ld came back with `Undefined symbols: __mongoc_mcommon_b64_ntop ...`.
+#   and ld came back with `undefined symbol: _mongoc_mcommon_string_*`,
+#   `_mongoc_mcommon_b64_*`, etc.
 #
 # Real fix: extract each input archive into its own subdir, prefix every
 # extracted .o file with the archive nickname so the basenames are unique,
@@ -35,6 +39,20 @@ set -eu
 FLOWWING_MONGO_LIB="$1"
 MONGOC_LIB="$2"
 BSON_LIB="$3"
+
+# Always print: CI logs gave us no signal whether this script ran on the
+# Mac runner. With these lines, a missing merge becomes obvious in the log
+# before the FlowWing link fails 100+ undefined-symbol errors later.
+echo "merge_apple_static.sh: starting"
+echo "  FLOWWING_MONGO_LIB=$FLOWWING_MONGO_LIB"
+echo "  MONGOC_LIB=$MONGOC_LIB"
+echo "  BSON_LIB=$BSON_LIB"
+for f in "$FLOWWING_MONGO_LIB" "$MONGOC_LIB" "$BSON_LIB"; do
+    if [ ! -f "$f" ]; then
+        echo "merge_apple_static.sh: FATAL — input not found: $f" >&2
+        exit 1
+    fi
+done
 
 WORK_DIR="$(dirname "$FLOWWING_MONGO_LIB")/_mongo_merge"
 rm -rf "$WORK_DIR"
@@ -81,6 +99,8 @@ if ! ar -t "$FLOWWING_MONGO_LIB" | grep -q '^bson_'; then
     echo "  is missing bson_*.o members." >&2
     exit 1
 fi
+
+echo "merge_apple_static.sh: done; merged archive has $(ar -t "$FLOWWING_MONGO_LIB" | wc -l | tr -d ' ') members"
 
 cd ..
 rm -rf "$WORK_DIR"

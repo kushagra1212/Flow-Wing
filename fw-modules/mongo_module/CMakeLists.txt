@@ -85,14 +85,21 @@ elseif(UNIX AND NOT APPLE)
         m
         dl
     )
+    # Same per-archive-prefix merge as macOS: a flat `ar -x` of mongoc + bson
+    # into one directory dropped every common-*.c.o duplicate (e.g. the
+    # mongoc-prefixed copy of common-string.c.o was overwritten by bson's),
+    # which surfaced on CI Linux as `undefined symbol:
+    # _mongoc_mcommon_string_new_with_capacity` / `_mongoc_mcommon_b64_*`
+    # at FlowWing link time. The script is platform-neutral.
     add_custom_command(TARGET flowwing_mongo POST_BUILD
-        COMMAND ar -x $<TARGET_FILE:flowwing_mongo>
-        COMMAND ar -x ${MONGOC_LIB}
-        COMMAND ar -x ${BSON_LIB}
-        COMMAND ar -rcs $<TARGET_FILE:flowwing_mongo> *.o
-        COMMAND rm *.o
+        COMMAND sh
+            "${CMAKE_CURRENT_SOURCE_DIR}/merge_apple_static.sh"
+            "$<TARGET_FILE:flowwing_mongo>"
+            "${MONGOC_LIB}"
+            "${BSON_LIB}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Merging libmongoc + libbson into flowwing_mongo using ar"
+        COMMENT "Merging libmongoc + libbson into flowwing_mongo (dedup-by-basename)"
+        VERBATIM
     )
 elseif(WIN32)
     target_link_libraries(flowwing_mongo PUBLIC
@@ -102,5 +109,16 @@ elseif(WIN32)
         secur32
         crypt32
         dnsapi
+    )
+    # mongo-c-driver 2.x headers mark every public function with
+    # `__declspec(dllimport)` by default on Windows; consuming the static
+    # archives (mongoc2.lib / bson2.lib) without these defines makes
+    # lld-link look for `__imp_bson_iter_document` etc. and fail with
+    # `undefined symbol: __declspec(dllimport) bson_*`. Both macros must
+    # propagate to anything that includes the headers (only libflowwing_mongo
+    # does today, so PRIVATE suffices).
+    target_compile_definitions(flowwing_mongo PRIVATE
+        MONGOC_STATIC
+        BSON_STATIC
     )
 endif()
