@@ -54,6 +54,18 @@ for f in "$FLOWWING_MONGO_LIB" "$MONGOC_LIB" "$BSON_LIB"; do
     fi
 done
 
+# Idempotency guard. The cmake invocation runs this script on every build
+# (ALL custom target — not POST_BUILD — because POST_BUILD silently skips
+# when ninja considers flowwing_mongo's target up-to-date, which is exactly
+# what GitHub Actions cache restoration produces). Re-running the extract /
+# rename / re-archive on an already-merged archive would dump duplicate .o
+# files (every mongoc symbol appearing twice). Check for the marker symbol
+# first; bail early if the archive is already merged.
+if nm -gU "$FLOWWING_MONGO_LIB" 2>/dev/null | grep -Eq " T _?mongoc_client_destroy\$"; then
+    echo "merge_apple_static.sh: archive already merged (mongoc_client_destroy present); skipping"
+    exit 0
+fi
+
 # Diagnostic: does the INPUT mongoc archive actually expose the symbols we
 # expect? CI Mac JIT showed "184 members" merged but linker still got
 # `undefined symbol: mongoc_client_destroy` — either the input archive
