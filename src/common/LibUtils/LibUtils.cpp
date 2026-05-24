@@ -67,7 +67,9 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
            "-lresolv";
 
 #elif defined(_WIN32)
-    return "flowwing_mongo.lib ws2_32.lib secur32.lib crypt32.lib dnsapi.lib";
+
+    return "flowwing_mongo.lib mongoc2.lib bson2.lib "
+           "ws2_32.lib secur32.lib crypt32.lib dnsapi.lib";
 #else
 
     return "-lflowwing_mongo -lssl -lcrypto -lpthread -lresolv -lm -ldl";
