@@ -35,9 +35,19 @@ public:
 
   bool isConst() const { return m_isConst; }
 
+  void setModuleName(std::string module_name) {
+    m_module_name = std::move(module_name);
+  }
+  const std::string &getModuleName() const { return m_module_name; }
+  std::string getQualifiedName() const {
+    return m_module_name.empty() ? getName()
+                                 : (m_module_name + "." + getName());
+  }
+
 private:
   std::unique_ptr<binding::BoundExpression> m_initializer_expression;
   bool m_isConst;
+  std::string m_module_name;
 };
 } // namespace analysis
 } // namespace flow_wing

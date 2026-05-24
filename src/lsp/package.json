@@ -4,7 +4,7 @@
   "description": "Language support for Flow-Wing (.fg): syntax highlighting, theme, IntelliSense, diagnostics, and format-on-save via the Flow-Wing compiler (VS Code, Cursor, VSCodium / Open VSX).",
   "author": "Kushagra Rathore",
   "license": "GPL-2.0-only",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "homepage": "https://github.com/kushagra1212/Flow-Wing",
   "repository": {
     "type": "git",

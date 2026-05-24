@@ -651,14 +651,16 @@ jobs:
               run: yarn install
 
             - name: Sync extension version from release tag
-              working-directory: src/lsp
               env:
                   TAG: ${{ github.event.release.tag_name }}
               run: |
                   set -euo pipefail
                   VER="${TAG#v}"
-                  echo "Setting package.json version to ${VER}"
-                  npm version "${VER}" --no-git-tag-version
+                  # scripts/sync-version.sh is the single entry point: it
+                  # rewrites VERSION and every package.json / package-lock.json
+                  # in src/lsp so the local repo state and the released VSIX
+                  # always match the tag.
+                  ./scripts/sync-version.sh "${VER}"
 
             - name: Compile extension
               working-directory: src/lsp

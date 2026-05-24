@@ -1,0 +1,10 @@
+bring mongo
+
+/; libmongoc connects lazily, so constructing a Client against a valid URI
+/; succeeds on every platform even without a running mongod. No network I/O
+/; happens until an operation (insertOne / count / find) is invoked.
+
+var mc: mongo::Client = new mongo::Client("mongodb://127.0.0.1:27017")
+println(mc.isOk())
+mc.close()
+println(true)

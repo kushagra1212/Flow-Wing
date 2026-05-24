@@ -1,0 +1,14 @@
+/; Module B declaring the same identifiers as module A. Pre-fix, both
+/; modules emitted `_init_global_var_shared_var` (unqualified) and the
+/; linker silently picked one definition, so both reads resolved to the
+/; same storage. Post-fix, the globals are emitted as
+/; `_init_global_var_probe_a.shared_var` and
+/; `_init_global_var_probe_b.shared_var` and both modules' values are
+/; observable.
+
+module [probe_b]
+
+var shared_var: int = 222
+const SHARED_CONST: int = 2221
+
+fun shared_fn(x: int) -> int { return x + 2 }
