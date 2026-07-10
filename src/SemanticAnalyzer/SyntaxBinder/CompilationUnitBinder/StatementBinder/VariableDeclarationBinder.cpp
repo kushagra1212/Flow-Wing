@@ -19,20 +19,20 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
-#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/ExpressionBinder/ExpressionBinder.hpp"
 #include "src/SemanticAnalyzer/TypeResolver/TypeResolver.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "src/utils/LogConfig.h"
@@ -70,6 +70,12 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
 
     auto variable_symbol = std::make_shared<analysis::VariableSymbol>(
         identifier_expression->getValue(), type, has_const_keyword);
+
+    if (const std::string *mod = m_context->peekModuleName()) {
+      if (symbol_table->getCurrentFunctionSymbol() == nullptr) {
+        variable_symbol->setModuleName(*mod);
+      }
+    }
 
     if (!symbol_table->define(variable_symbol)) {
 
@@ -163,9 +169,9 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
           auto error_expression = std::make_unique<BoundErrorExpression>(
               expr->getSourceLocation(),
               diagnostic::DiagnosticCode::kInitializerExpressionTypeMismatch,
-              diagnostic::DiagnosticArgs{
-                  variable_type->getName(), expression_type->getName(),
-                  variable_symbols[var_idx]->getName()});
+              diagnostic::DiagnosticArgs{variable_type->getName(),
+                                         expression_type->getName(),
+                                         variable_symbols[var_idx]->getName()});
           m_context->reportError(error_expression.get());
           static_cast<analysis::VariableSymbol *>(
               variable_symbols[var_idx].get())
@@ -208,7 +214,8 @@ std::unique_ptr<BoundStatement> StatementBinder::bindVariableDeclaration(
             auto *ternary = static_cast<BoundTernaryExpression *>(expr.get());
             auto error_expression = std::make_unique<BoundErrorExpression>(
                 expr->getSourceLocation(),
-                diagnostic::DiagnosticCode::kIncompatibleTypesForTernaryExpression,
+                diagnostic::DiagnosticCode::
+                    kIncompatibleTypesForTernaryExpression,
                 diagnostic::DiagnosticArgs{
                     ternary->getTrueExpression()->getType()->getName(),
                     ternary->getFalseExpression()->getType()->getName()});

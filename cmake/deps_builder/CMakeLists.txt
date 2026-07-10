@@ -132,6 +132,7 @@ else()
   # Set the install directory for libatomic_ops
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_INSTALL_DIR}
              -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
              -Denable_gpl=OFF # Exclude GPL parts if you want
   USES_TERMINAL_DOWNLOAD true
   USES_TERMINAL_CONFIGURE true
@@ -147,7 +148,7 @@ else()
 
             # Add this to clone libatomic_ops into the source dir
             PATCH_COMMAND git clone https://github.com/ivmai/libatomic_ops.git libatomic_ops && cd libatomic_ops && git checkout v7.8.0
-            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
             "-DCMAKE_CXX_FLAGS=-DMAX_ROOT_SETS=4096"
             USES_TERMINAL_DOWNLOAD true
             USES_TERMINAL_CONFIGURE true
@@ -175,6 +176,32 @@ endif()
         USES_TERMINAL_DOWNLOAD true 
         USES_TERMINAL_CONFIGURE true 
         USES_TERMINAL_BUILD true 
+        USES_TERMINAL_INSTALL true
+        GIT_PROGRESS TRUE
+    )
+
+    ExternalProject_Add(
+        mongo_c_driver_external
+        GIT_REPOSITORY  "https://github.com/mongodb/mongo-c-driver.git"
+        GIT_TAG         "2.3.0"
+        GIT_SHALLOW     TRUE
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+            -DBUILD_SHARED_LIBS=OFF
+            -DENABLE_TESTS=OFF
+            -DENABLE_EXAMPLES=OFF
+            -DENABLE_SASL=OFF
+            -DENABLE_SRV=OFF
+            -DENABLE_SNAPPY=OFF
+            -DENABLE_ZSTD=OFF
+            -DENABLE_ZLIB=BUNDLED
+            -DENABLE_MONGOC=ON
+            -DENABLE_BSON=ON
+            -DENABLE_STATIC=ON
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_CONFIGURE true
+        USES_TERMINAL_BUILD true
         USES_TERMINAL_INSTALL true
         GIT_PROGRESS TRUE
     )

@@ -25,6 +25,7 @@
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SourceTokenizer/TokenKind/TokenKind.h"
+#include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/utils/LogConfig.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
@@ -42,13 +43,22 @@ void IRGenerator::visit(binding::BoundForStatement *statement) {
   std::string var_name;
   types::Type *var_type = nullptr;
 
+  auto variable_storage_key =
+      [](const analysis::Symbol *symbol) -> std::string {
+    if (symbol->getKind() == analysis::SymbolKind::kVariable) {
+      return static_cast<const analysis::VariableSymbol *>(symbol)
+          ->getQualifiedName();
+    }
+    return symbol->getName();
+  };
+
   if (statement->getVariableDeclaration() != nullptr) {
     auto *var_decl = static_cast<binding::BoundVariableDeclaration *>(
         statement->getVariableDeclaration().get());
     auto &symbols = var_decl->getSymbols();
     assert(!symbols.empty() &&
            "For loop variable declaration must have one symbol");
-    var_name = symbols[0]->getName();
+    var_name = variable_storage_key(symbols[0].get());
     var_type = symbols[0]->getType().get();
   } else {
     auto *assign = static_cast<binding::BoundAssignmentExpression *>(
@@ -58,7 +68,7 @@ void IRGenerator::visit(binding::BoundForStatement *statement) {
            left[0]->getKind() == binding::NodeKind::kIdentifierExpression);
     auto *ident =
         static_cast<binding::BoundIdentifierExpression *>(left[0].get());
-    var_name = ident->getSymbol()->getName();
+    var_name = variable_storage_key(ident->getSymbol());
     var_type = assign->getType().get();
   }
   assert(var_type && "For loop variable type must be set");

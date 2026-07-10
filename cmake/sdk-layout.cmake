@@ -39,7 +39,8 @@ set(SDK_LIBRARY_TARGETS
     flowwing_io
     flowwing_vortex
     flowwing_raylib
-    
+    flowwing_mongo
+
     # Add other custom library target names here as you create them
     CACHE INTERNAL "List of custom library targets to include in the SDK."
 )
@@ -60,6 +61,13 @@ file(GLOB THIRD_PARTY_LIBS
     "${DEPS_LIB_DIR}/gc.lib"
     "${DEPS_LIB_DIR}/gccpp.lib"
     "${DEPS_LIB_DIR}/atomic_ops.lib"
+
+    # Windows-only: ship mongoc2/bson2 archives alongside flowwing_mongo.lib.
+    # On macOS + Linux the merge POST_BUILD step in mongo_module/CMakeLists.txt
+    # folds these into libflowwing_mongo.a, but Windows has no such merge —
+    # the FlowWing user-code link line must reference the archives directly.
+    "${DEPS_LIB_DIR}/mongoc2.lib"
+    "${DEPS_LIB_DIR}/bson2.lib"
 
     # This glob will also find any other .a files you might need.
 )

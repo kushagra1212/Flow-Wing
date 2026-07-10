@@ -1,0 +1,9 @@
+
+bring "../support_module_class_collision/box_v1.fg"
+bring "../support_module_class_collision/box_v2.fg"
+var lbl: str = "hello"
+var lbl2: str = "world"
+var b1: box_v1::Box = new box_v1::Box(lbl)
+var b2: box_v2::Box = new box_v2::Box(lbl2)
+println(b1.unwrap())
+println(b2.unwrap())

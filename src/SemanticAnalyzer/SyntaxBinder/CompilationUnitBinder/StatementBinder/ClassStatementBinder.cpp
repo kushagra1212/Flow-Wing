@@ -132,6 +132,10 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
   if (!class_type) {
     class_type =
         std::make_shared<types::ClassType>(class_name, parent_class_type);
+
+    if (const std::string *mod = m_context->peekModuleName()) {
+      class_type->setModuleName(*mod);
+    }
   }
 
   m_context->getSymbolTable()->enterScope();
@@ -201,8 +205,12 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
         false);
     auto function_symbol = std::make_shared<analysis::FunctionSymbol>(
         function_name, std::move(function_type));
+
+    const std::string *enclosing_module = m_context->peekModuleName();
+    const std::string module_prefix =
+        enclosing_module ? (*enclosing_module + ".") : std::string();
     function_symbol->setMangledName(
-        class_name + "." + function_name + "." +
+        module_prefix + class_name + "." + function_name + "." +
         mangleVisibleParamTypes(visible_for_mangle));
     function_symbol->setDeclarationSite(
         m_context->getCompilationContext().getAbsoluteSourceFilePath(),

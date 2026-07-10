@@ -1,0 +1,10 @@
+bring mongo
+
+/; _mongo_client_close guards against double-free by zeroing the slot, so
+/; calling close() twice is safe. No I/O, no platform-specific behaviour.
+
+var mc: mongo::Client = new mongo::Client("mongodb://127.0.0.1:27017")
+println(mc.isOk())
+mc.close()
+mc.close()
+println(true)

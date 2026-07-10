@@ -53,11 +53,27 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
   if (file_name == "raylib-module.fg") {
 
 #if defined(__APPLE__)
-    return "flowwing_raylib -framework CoreVideo -framework IOKit -framework "
-           "Cocoa -framework GLUT -framework OpenGL ";
-
+    return "-lflowwing_raylib -framework CoreVideo -framework IOKit "
+           "-framework Cocoa -framework GLUT -framework OpenGL";
 #else
     return "flowwing_raylib";
+#endif
+  }
+
+  if (file_name == "mongo-module.fg") {
+
+#if defined(__APPLE__)
+    return "-lflowwing_mongo -framework CoreFoundation -framework Security "
+           "-lresolv";
+
+#elif defined(_WIN32)
+
+    return "flowwing_mongo.lib mongoc2.lib bson2.lib "
+           "ws2_32.lib secur32.lib crypt32.lib dnsapi.lib "
+           "bcrypt.lib ncrypt.lib";
+#else
+
+    return "-lflowwing_mongo -lssl -lcrypto -lpthread -lresolv -lm -ldl";
 #endif
   }
   return "";

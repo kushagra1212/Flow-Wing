@@ -181,13 +181,16 @@ jobs:
 
             # --- Build & install JIT (FlowWing-jit) into the same SDK bin/ ---
             # Shares the already-staged lib/modules and lib/<platform> from the AOT install,
-            # so only the JIT binary is added to the stage.
+            # so only the JIT binary is added to the stage. Windows ships AOT only — its
+            # JIT binary is not part of the released SDK, so skip the JIT build entirely on
+            # Windows runners (saves ~3 min of CI time and avoids smoke-testing a binary
+            # that's never installed by end users).
             - name: Build compiler (JIT)
-              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
               run: make release-jit-build RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
             - name: Stage SDK (JIT — installs as FlowWing-jit)
-              if: steps.cache-staged-sdk.outputs.cache-hit != 'true'
+              if: steps.cache-staged-sdk.outputs.cache-hit != 'true' && runner.os != 'Windows'
               run: make release-jit-install RELEASE_INSTALL_PREFIX="${{ env.INSTALL_PREFIX }}"
 
             # Bundle the LLVM linker tool into the staged SDK bin/ so AOT linking works on
@@ -395,15 +398,20 @@ jobs:
                   echo "--- FlowWing --version ---"
                   "$FW" --version
 
-                  echo "--- FlowWing-jit --version ---"
-                  "$FW_JIT" --version
-
-                  # Module resolution: relies on <exe>/../lib/modules. Use a fixture that exercises
-                  # `bring vec` + `bring Err` (the same one the user highlighted in their request).
+                  # Windows release ships AOT only; FlowWing-jit.exe is not part of the
+                  # SDK we install on end-user machines, so skip every JIT probe on the
+                  # Windows runner. (The Build/Stage JIT steps above are also gated on
+                  # runner.os != 'Windows' so $FW_JIT does not even exist here.)
                   SMOKE_FG="tests/fixtures/LatestTests/VecModuleTests/vec_mix_test.fg"
+                  if [ "${{ runner.os }}" != "Windows" ]; then
+                    echo "--- FlowWing-jit --version ---"
+                    "$FW_JIT" --version
 
-                  echo "--- JIT: run $SMOKE_FG ---"
-                  "$FW_JIT" "$SMOKE_FG"
+                    # Module resolution: relies on <exe>/../lib/modules. Use a fixture that exercises
+                    # `bring vec` + `bring Err` (the same one the user highlighted in their request).
+                    echo "--- JIT: run $SMOKE_FG ---"
+                    "$FW_JIT" "$SMOKE_FG"
+                  fi
 
                   # The AOT compiler only produces an executable; it does not
                   # run it. Pipe it through a known `-o` path so we can exec
@@ -651,14 +659,16 @@ jobs:
               run: yarn install
 
             - name: Sync extension version from release tag
-              working-directory: src/lsp
               env:
                   TAG: ${{ github.event.release.tag_name }}
               run: |
                   set -euo pipefail
                   VER="${TAG#v}"
-                  echo "Setting package.json version to ${VER}"
-                  npm version "${VER}" --no-git-tag-version
+                  # scripts/sync-version.sh is the single entry point: it
+                  # rewrites VERSION and every package.json / package-lock.json
+                  # in src/lsp so the local repo state and the released VSIX
+                  # always match the tag.
+                  ./scripts/sync-version.sh "${VER}"
 
             - name: Compile extension
               working-directory: src/lsp

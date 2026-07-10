@@ -25,7 +25,26 @@
 # from the '/cmake' directory to configure the build process.
 # =============================================================================
 cmake_minimum_required(VERSION 3.29)
-project(FlowWing VERSION 1.0.4 LANGUAGES C CXX)
+
+# Single source of truth for the project version. Bump VERSION.txt at the
+# repo root and `scripts/sync-version.sh` propagates the value to
+# package.json / lockfiles. cmake/version.cmake writes
+# ${BUILD}/src/common/version.h from PROJECT_VERSION so the C++ side picks
+# it up automatically.
+#
+# NOTE: this file is intentionally named VERSION.txt, not VERSION. macOS and
+# Windows ship case-insensitive filesystems, and the repo root is on the
+# compiler include path (-I${CMAKE_SOURCE_DIR}); a bare `VERSION` collides
+# with the C++20 standard header <version> and any #include <version> from
+# libc++/MSVC STL ends up parsing this file as C++.
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt" FW_VERSION LIMIT_COUNT 1)
+string(STRIP "${FW_VERSION}" FW_VERSION)
+project(FlowWing VERSION ${FW_VERSION} LANGUAGES C CXX)
+
+# Re-run CMake whenever VERSION.txt changes so the generated version header
+# stays in sync without a manual `rm -rf build`.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt")
 
 # Install prefix for release builds - baked into compiler binary at compile time
 set(FLOWWING_INSTALL_PREFIX ""

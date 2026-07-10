@@ -3,7 +3,7 @@
   "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
   "author": "Kushagra Rathore",
   "license": "GPL-2.0-only",
-  "version": "0.0.1",
+  "version": "1.0.6",
   "publisher": "Kushagra",
   "icon": "src/resources/icon.png",
   "repository": {

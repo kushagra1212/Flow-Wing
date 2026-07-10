@@ -1,0 +1,10 @@
+bring "../support_module_var_collision/mod_a.fg"
+bring "../support_module_var_collision/mod_b.fg"
+
+println("var_a=" + probe_a::shared_var)
+println("var_b=" + probe_b::shared_var)
+println("const_a=" + probe_a::SHARED_CONST)
+println("const_b=" + probe_b::SHARED_CONST)
+var n: int = 10
+println("fn_a=" + probe_a::shared_fn(n))
+println("fn_b=" + probe_b::shared_fn(n))

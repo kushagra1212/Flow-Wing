@@ -19,18 +19,17 @@
 
 #include "GlobalDeclarationsInitializer.hpp"
 #include "src/IRGen/IRGenContext/IRGenContext.hpp"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundCharacterLiteralExpression/BoundCharacterLiteralExpression.hpp"
-#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundFloatLiteralExpression/BoundFloatLiteralExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundIntegerLiteralExpression/BoundIntegerLiteralExpression.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundExposeStatement/BoundExposeStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundCompilationUnit.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"
-#include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/ModuleSymbol.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
 #include "src/common/Symbol/Symbol.hpp"
@@ -78,7 +77,8 @@ namespace {
 /// without it LLVM may not follow the ABI and callers read uninitialized
 /// memory. Do **not** apply on AArch64 / Apple Silicon: the ABI differs and
 /// adding `sret` miscompiles (e.g. runtime null receiver).
-void addHiddenStructReturnAttr(IRGenContext &ir_ctx, llvm::Function *llvm_function,
+void addHiddenStructReturnAttr(IRGenContext &ir_ctx,
+                               llvm::Function *llvm_function,
                                const types::FunctionType *function_type) {
   if (!needsHiddenReturnPointer(function_type))
     return;
@@ -112,8 +112,7 @@ void GlobalDeclarationsInitializer::declareFunctionsRecursively(
   symbol_table->lookupSymbol(
       [&](const analysis::Symbol *symbol) {
         if (symbol->getKind() == analysis::SymbolKind::kModule) {
-          const auto *mod =
-              static_cast<const analysis::ModuleSymbol *>(symbol);
+          const auto *mod = static_cast<const analysis::ModuleSymbol *>(symbol);
           auto *inner = mod->getModuleSymbolTable().get();
           // Module self-alias (`m` in module `m`'s table) points at the same
           // symbol table; avoid infinite recursion.
@@ -126,9 +125,9 @@ void GlobalDeclarationsInitializer::declareFunctionsRecursively(
       analysis::SymbolKind::kModule);
 }
 
-void GlobalDeclarationsInitializer::declareGlobalVariablesFromSymbolTableRecursively(
-    analysis::ScopedSymbolTable *symbol_table,
-    bool inside_brought_module) {
+void GlobalDeclarationsInitializer::
+    declareGlobalVariablesFromSymbolTableRecursively(
+        analysis::ScopedSymbolTable *symbol_table, bool inside_brought_module) {
   declareGlobalVariablesFromSymbolTable(symbol_table, inside_brought_module);
   symbol_table->lookupSymbol(
       [&](const analysis::Symbol *symbol) {
@@ -139,7 +138,7 @@ void GlobalDeclarationsInitializer::declareGlobalVariablesFromSymbolTableRecursi
             const bool nested_inside =
                 inside_brought_module || mod->isImportedViaBring();
             declareGlobalVariablesFromSymbolTableRecursively(inner,
-                                                               nested_inside);
+                                                             nested_inside);
           }
         }
         return true;
@@ -264,8 +263,9 @@ void GlobalDeclarationsInitializer::emitGlobalVariableForSymbol(
     if (init_expr &&
         init_expr->getKind() == binding::NodeKind::kNumberLiteralExpression &&
         variable_type == analysis::Builtins::m_int32_type_instance.get()) {
-      const auto *lit = static_cast<const binding::BoundIntegerLiteralExpression *>(
-          init_expr);
+      const auto *lit =
+          static_cast<const binding::BoundIntegerLiteralExpression *>(
+              init_expr);
       default_value = llvm::ConstantInt::get(
           llvm::cast<llvm::IntegerType>(llvm_type),
           static_cast<uint64_t>(lit->getValue()), /*isSigned=*/true);
@@ -274,44 +274,48 @@ void GlobalDeclarationsInitializer::emitGlobalVariableForSymbol(
     }
   }
 
+  const std::string qualified_name = variable_symbol->getQualifiedName();
 
-
-  // Imported globals are extern declarations (resolved in another .o).
-  // Definitions use external linkage so the symbol is exported from its .o.
   auto *globalVar = new llvm::GlobalVariable(
-      *module, llvm_type, is_llvm_constant,
-      llvm::GlobalValue::ExternalLinkage ,
-      imported ? nullptr : default_value,"_init_global_var_" + variable_symbol->getName());
+      *module, llvm_type, is_llvm_constant, llvm::GlobalValue::ExternalLinkage,
+      imported ? nullptr : default_value, "_init_global_var_" + qualified_name);
 
-      if (!imported && default_value != nullptr) {
-        globalVar->setLinkage(llvm::GlobalValue::WeakODRLinkage);
-    }
+  if (!imported && default_value != nullptr) {
+    globalVar->setLinkage(llvm::GlobalValue::WeakODRLinkage);
+  }
 
-  m_ir_gen_context.setSymbol(variable_symbol->getName(), globalVar);
+  m_ir_gen_context.setSymbol(qualified_name, globalVar);
 
-  CODEGEN_DEBUG_LOG("Global Variable Declared", variable_symbol->getName());
+  CODEGEN_DEBUG_LOG("Global Variable Declared", qualified_name);
 }
 
 void GlobalDeclarationsInitializer::declareGlobalVariablesFromSymbolTable(
-    analysis::ScopedSymbolTable *symbol_table, bool force_extern_for_variables) {
+    analysis::ScopedSymbolTable *symbol_table,
+    bool force_extern_for_variables) {
   llvm::Module *llvm_module = m_ir_gen_context.getLLVMModule();
   symbol_table->forEachGlobalSymbol(
       [&](const std::string &name,
           const std::shared_ptr<analysis::Symbol> &symbol) {
+        (void)name;
         if (symbol->getKind() != analysis::SymbolKind::kVariable) {
           return;
         }
-        if (m_ir_gen_context.getSymbol(name)) {
+
+        const auto *variable_symbol =
+            static_cast<const analysis::VariableSymbol *>(symbol.get());
+        const std::string qualified_name = variable_symbol->getQualifiedName();
+        const std::string llvm_global_name =
+            "_init_global_var_" + qualified_name;
+        if (m_ir_gen_context.getSymbol(qualified_name)) {
           return;
         }
         if (llvm::GlobalVariable *gv =
-                llvm_module->getGlobalVariable(name, true)) {
-          m_ir_gen_context.setSymbol(name, gv);
+                llvm_module->getGlobalVariable(llvm_global_name, true)) {
+          m_ir_gen_context.setSymbol(qualified_name, gv);
           return;
         }
-        emitGlobalVariableForSymbol(
-            static_cast<const analysis::VariableSymbol *>(symbol.get()),
-            force_extern_for_variables);
+        emitGlobalVariableForSymbol(variable_symbol,
+                                    force_extern_for_variables);
       });
 }
 
@@ -387,7 +391,6 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
         auto *llvm_function_type =
             m_ir_gen_context.getTypeBuilder()->convertFunction(function_type);
 
-
         llvm::Function *llvm_fn = llvm::Function::Create(
             llvm_function_type, llvm::Function::ExternalLinkage,
             function_symbol->getMangledName(), llvm_module);
@@ -397,7 +400,7 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
   llvm::Module *module = m_ir_gen_context.getLLVMModule();
   llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
   llvm::PointerType *i8p = llvm::Type::getInt8PtrTy(ctx);
-  const std::string vt_global_name = "__vt_" + class_type->getName();
+  const std::string vt_global_name = "__vt_" + class_type->getQualifiedName();
   // Avoid duplicate globals if this visitor is ever reached twice for the same
   // class (should not happen for a well-formed program).
   if (module->getGlobalVariable(vt_global_name, true)) {
@@ -458,7 +461,7 @@ void GlobalDeclarationsInitializer::declareImportedClassExterns(
 
   llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
   llvm::PointerType *i8p = llvm::Type::getInt8PtrTy(ctx);
-  const std::string vt_global_name = "__vt_" + class_type->getName();
+  const std::string vt_global_name = "__vt_" + class_type->getQualifiedName();
   if (llvm_module->getGlobalVariable(vt_global_name, true)) {
     return;
   }
@@ -484,13 +487,14 @@ void GlobalDeclarationsInitializer::declareClassSymbolsFromGlobalScope(
         if (symbol->getKind() != analysis::SymbolKind::kClass) {
           return;
         }
-        auto class_type = std::dynamic_pointer_cast<types::ClassType>(
-            symbol->getType());
+        auto class_type =
+            std::dynamic_pointer_cast<types::ClassType>(symbol->getType());
         if (!class_type) {
           return;
         }
         llvm::Module *module = m_ir_gen_context.getLLVMModule();
-        const std::string vt_global_name = "__vt_" + class_type->getName();
+        const std::string vt_global_name =
+            "__vt_" + class_type->getQualifiedName();
         if (module->getGlobalVariable(vt_global_name, true)) {
           return;
         }

@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "src/SemanticAnalyzer/DeclarationAnalyzer/DeclarationAnalyzer.hpp"
 #include "src/common/Symbol/ScopedSymbolTable/ScopedSymbolTable.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/common/Symbol/Symbol.hpp"
 #include "src/common/types/ClassType/ClassType.hpp"
+#include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 
@@ -47,6 +45,10 @@ void analysis::DeclarationAnalyzer::visit(syntax::ClassStatementSyntax *node) {
 
   auto class_type =
       std::make_shared<types::ClassType>(class_name, parent_class_type);
+
+  if (const std::string *mod = m_binder_context.peekModuleName()) {
+    class_type->setModuleName(*mod);
+  }
   auto class_symbol = std::make_shared<analysis::Symbol>(
       class_name, analysis::SymbolKind::kClass, class_type);
   class_symbol->setDeclarationSite(
