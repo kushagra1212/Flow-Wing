@@ -31,6 +31,7 @@
 # - Define the custom library targets to be installed ---
 set(SDK_LIBRARY_TARGETS
     built_in_module
+    flowwing_gc
     dynamic
     flowwing_map
     flowwing_vec
@@ -55,13 +56,6 @@ set(DEPS_LIB_DIR "${CMAKE_SOURCE_DIR}/.fw_dependencies/install/lib")
 
 # --Find all required third-party dependencies ---
 file(GLOB THIRD_PARTY_LIBS
-    "${DEPS_LIB_DIR}/libgc.a"
-    "${DEPS_LIB_DIR}/libgccpp.a"
-    "${DEPS_LIB_DIR}/libatomic_ops.a"
-    "${DEPS_LIB_DIR}/gc.lib"
-    "${DEPS_LIB_DIR}/gccpp.lib"
-    "${DEPS_LIB_DIR}/atomic_ops.lib"
-
     # Windows-only: ship mongoc2/bson2 archives alongside flowwing_mongo.lib.
     # On macOS + Linux the merge POST_BUILD step in mongo_module/CMakeLists.txt
     # folds these into libflowwing_mongo.a, but Windows has no such merge —

@@ -165,7 +165,42 @@ void IRGenerator::visit(
 
     const auto &brought_paths =
         m_ir_gen_context.getCompilationContext().getBroughtSourcePaths();
+
+    // Capture the top of main's frame so the GC can bound its stack scan.
+    // Must run before fg_init_runtime (inside emitGlobalVariableForScriptAnchor).
+    {
+      auto *set_base = mod->getFunction(
+          std::string(constants::functions::kGC_set_stack_base_fn));
+      if (set_base) {
+        llvm::Type *i8p = llvm::Type::getInt8PtrTy(ctx);
+        auto *anchor =
+            builder.CreateAlloca(llvm::Type::getInt8Ty(ctx), nullptr,
+                                 "__gc_stack_anchor");
+        builder.CreateCall(set_base,
+                           {builder.CreateBitCast(anchor, i8p)});
+      }
+    }
+
     emitGlobalVariableForScriptAnchor();
+
+    // Register pointer-typed globals (object/array/class heap slots) as GC roots.
+    {
+      auto *add_root = mod->getFunction(
+          std::string(constants::functions::kGC_add_root_fn));
+      if (add_root) {
+        llvm::Type *i8pp = llvm::PointerType::get(
+            llvm::Type::getInt8PtrTy(ctx), 0);
+        for (auto &g : mod->globals()) {
+          if (!g.getName().starts_with("_init_global_var_"))
+            continue;
+          if (!g.getValueType()->isPointerTy())
+            continue;
+          builder.CreateCall(add_root,
+                             {builder.CreateBitCast(&g, i8pp)});
+        }
+      }
+    }
+
     for (size_t i = 0; i < brought_paths.size(); ++i) {
       auto module_name = utils::PathUtils::getFileName(brought_paths[i]);
       const std::string name =
@@ -399,10 +434,14 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
   const llvm::DataLayout &dl =
       m_ir_gen_context.getLLVMModule()->getDataLayout();
   uint64_t type_size_bytes = dl.getTypeAllocSize(struct_type);
+  auto *desc =
+      m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(struct_type);
   llvm::CallInst *malloc_call = builder->CreateCall(
-      gc_malloc, llvm::ConstantInt::get(
-                     llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-                     type_size_bytes));
+      gc_malloc,
+      {llvm::ConstantInt::get(
+           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+           type_size_bytes),
+       desc});
   malloc_call->setTailCall(false);
   auto *heap_ptr = builder->CreateBitCast(
       malloc_call, struct_type->getPointerTo(), "new." + class_type->getName());

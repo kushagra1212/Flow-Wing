@@ -664,10 +664,17 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
 
   uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
 
+  llvm::Constant *desc =
+      dest_llvm_type->isStructTy()
+          ? m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(
+                llvm::cast<llvm::StructType>(dest_llvm_type))
+          : m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
   llvm::CallInst *malloc_call = builder->CreateCall(
-      fun, llvm::ConstantInt::get(
-               llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-               type_size_bytes));
+      fun,
+      {llvm::ConstantInt::get(
+           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+           type_size_bytes),
+       desc});
   malloc_call->setTailCall(false);
 
   // Cast the result of 'malloc' to a pointer to int
@@ -710,10 +717,26 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
       m_ir_gen_context.getLLVMModule()->getDataLayout();
   uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
 
+  llvm::Constant *desc = nullptr;
+  {
+    types::Type *elem_fw_type = dest_array_type->getUnderlyingType().get();
+    llvm::Type *elem_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(elem_fw_type);
+    if (elem_llvm_type->isStructTy()) {
+      auto *elem_struct_ty = llvm::cast<llvm::StructType>(elem_llvm_type);
+      uint64_t elem_size = dl.getTypeAllocSize(elem_llvm_type);
+      desc = m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitArray(
+          elem_struct_ty, elem_size);
+    } else {
+      desc = m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
+    }
+  }
   llvm::CallInst *malloc_call = builder->CreateCall(
-      fun, llvm::ConstantInt::get(
-               llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-               type_size_bytes));
+      fun,
+      {llvm::ConstantInt::get(
+           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+           type_size_bytes),
+       desc});
   malloc_call->setTailCall(false);
 
   auto new_array_ptr = builder->CreateBitCast(

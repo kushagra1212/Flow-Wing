@@ -14,7 +14,7 @@
  #include <stdint.h>
  #include <math.h>
 #include <time.h>
- #include <gc.h> // Boehm GC
+ #include "fw_gc.h"
  #ifdef _MSC_VER
  #  define FG_THREAD_LOCAL __declspec(thread)
  #else
@@ -71,7 +71,7 @@ char* fg_cs(const char* str1, const char* str2) {
     size_t len2 = strlen(str2);
     size_t totalLen = len1 + len2;
 
-    char* concatStr = (char*)GC_MALLOC(totalLen + 1);
+    char* concatStr = (char*)fw_gc_alloc(totalLen + 1, &fw_blob_desc);
     if (concatStr == NULL) fg_re("Memory allocation failed in fg_cs");
 
     memcpy(concatStr, str1, len1);
@@ -86,7 +86,7 @@ int fg_sl(const char* str) {
 }
 
 char* fg_itos(int num) {
-    char* buffer = (char*)GC_MALLOC(12);
+    char* buffer = (char*)fw_gc_alloc(12, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_itos");
     snprintf(buffer, 12, "%d", num);
     return buffer;
@@ -94,14 +94,14 @@ char* fg_itos(int num) {
 
 char* fg_i8tos(int8_t num) {
     // -128 requires 4 chars + 1 null terminator = 5 bytes
-    char* buffer = (char*)GC_MALLOC(5); 
+    char* buffer = (char*)fw_gc_alloc(5, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_i8tos");
     snprintf(buffer, 5, "%d", num);
     return buffer;
 }
 
 char* fg_lltos(long long num) {
-    char* buffer = (char*)GC_MALLOC(24);
+    char* buffer = (char*)fw_gc_alloc(24, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_lltos");
     snprintf(buffer, 24, "%lld", num);
     return buffer;
@@ -109,7 +109,7 @@ char* fg_lltos(long long num) {
 
 char* fg_ctos(int c) {
     // 1. Allocate 5 bytes (Max UTF-8 char is 4 bytes + 1 null terminator)
-    char* buffer = (char*)GC_MALLOC(5);
+    char* buffer = (char*)fw_gc_alloc(5, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_ctos");
 
     // 2. Encode 32-bit int 'c' into UTF-8 bytes
@@ -142,7 +142,7 @@ char* fg_ctos(int c) {
 
 // SMART FORMATTING: Double
 char* fg_dtos(double f) {
-    char* buffer = (char*)GC_MALLOC(64);
+    char* buffer = (char*)fw_gc_alloc(64, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_dtos");
 
     double abs_f = fabs(f);
@@ -165,7 +165,7 @@ char* fg_dtos(double f) {
 
 // SMART FORMATTING: Float
 char* fg_ftos(float f) {
-    char* buffer = (char*)GC_MALLOC(64);
+    char* buffer = (char*)fw_gc_alloc(64, &fw_blob_desc);
     if (buffer == NULL) fg_re("Memory allocation failed in fg_ftos");
 
     float abs_f = fabsf(f);
@@ -188,7 +188,7 @@ char* fg_ftos(float f) {
 
 char* fg_gmosc(const char* str) {
     size_t len = strlen(str);
-    char* strPtr = (char*)GC_MALLOC(len + 1);
+    char* strPtr = (char*)fw_gc_alloc(len + 1, &fw_blob_desc);
     if (strPtr == NULL) fg_re("Memory allocation failed in fg_gmosc");
     memcpy(strPtr, str, len + 1);
     return strPtr;
@@ -316,7 +316,7 @@ float fg_stf(const char* str) {
  void fg_init_runtime() {
     static bool initialized = false;
   if (!initialized) {
-        GC_INIT();
+        fw_gc_init();
         initialized = true;
     }
  }
@@ -399,8 +399,8 @@ void fg_print_exit_object() {
 }
 
 void fg_idx_oob(long long index, long long size) {
-    char* msg = (char*)GC_MALLOC(256); 
-    
+    char* msg = (char*)fw_gc_alloc(256, &fw_blob_desc);
+
     if (msg == NULL) {
         fprintf(stderr, "\033[91mFatal Error: OOM during Index Out of Bounds check.\033[0m\n");
         exit(1);
@@ -428,7 +428,7 @@ int fg_str_idx(const char* s, long long idx) {
     }
     long long len = (long long)strlen(s);
     if (idx < 0 || idx >= len) {
-        char* msg = (char*)GC_MALLOC(256);
+        char* msg = (char*)fw_gc_alloc(256, &fw_blob_desc);
         if (msg == NULL) {
             fprintf(stderr, "\033[91mFatal Error: OOM during string index bounds check.\033[0m\n");
             exit(1);
@@ -462,7 +462,7 @@ void fg_str_set(char* s, long long idx, int value) {
 
     long long len = (long long)strlen(s);
     if (idx < 0 || idx >= len) {
-        char* msg = (char*)GC_MALLOC(256);
+        char* msg = (char*)fw_gc_alloc(256, &fw_blob_desc);
         if (msg == NULL) {
             fprintf(stderr, "\033[91mFatal Error: OOM during string index bounds check.\033[0m\n");
             exit(1);
@@ -494,7 +494,7 @@ static char* fg_script_dir = NULL;
 void fg_set_script_anchor(const char* absolute_dir_path) {
     // No need to search for slashes; we trust the compiler sent the dir
     size_t len = strlen(absolute_dir_path);
-    fg_script_dir = (char*)GC_MALLOC_ATOMIC(len + 1);
+    fg_script_dir = (char*)fw_gc_alloc(len + 1, &fw_blob_desc);
     memcpy(fg_script_dir, absolute_dir_path, len + 1);
     
 }
@@ -561,7 +561,7 @@ char* fg_exec(const char* cmd) {
     size_t size = 1024;
     size_t len = 0;
     
-    char* result = (char*)GC_MALLOC(size);
+    char* result = (char*)fw_gc_alloc(size, &fw_blob_desc);
     if (!result) fg_re("Memory allocation failed in fg_exec");
     result[0] = '\0';
 
@@ -574,7 +574,7 @@ char* fg_exec(const char* cmd) {
         size_t chunk_len = strlen(buffer);
         if (len + chunk_len + 1 > size) {
             size *= 2;
-            char* new_result = (char*)GC_MALLOC(size);
+            char* new_result = (char*)fw_gc_alloc(size, &fw_blob_desc);
             if (!new_result) fg_re("Memory allocation failed in fg_exec");
             memcpy(new_result, result, len + 1);
             result = new_result;

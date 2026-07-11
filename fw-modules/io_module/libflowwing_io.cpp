@@ -23,7 +23,7 @@
  */
 
 #include <cstring>
-#include <gc/gc.h>
+#include "fw_gc.h"
 #include <iostream>
 #include <string>
 
@@ -39,7 +39,7 @@ int32_t io_last_error() { return last_io_error; }
 // Declared as static to prevent linker conflicts with other FFI modules (like
 // file_ffi)
 static const char *alloc_gc_string_io(const std::string &str) {
-  char *cstr = (char *)GC_MALLOC_ATOMIC(str.length() + 1);
+  char *cstr = (char *)fw_gc_alloc(str.length() + 1, &fw_blob_desc);
   if (cstr) {
     std::memcpy(cstr, str.c_str(), str.length());
     cstr[str.length()] = '\0';

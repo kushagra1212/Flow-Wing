@@ -18,6 +18,7 @@
  */
 
 #include "IRGenContext.hpp"
+#include "src/IRGen/GCDescriptor/GCDescriptorEmitter.hpp"
 #include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -72,6 +73,14 @@ void IRGenContext::initializeLLVM() {
 
 const std::unique_ptr<LLVMTypeBuilder> &IRGenContext::getTypeBuilder() const {
   return m_type_builder;
+}
+
+GCDescriptorEmitter *IRGenContext::getGCDescriptorEmitter() {
+  if (!m_gc_descriptor_emitter) {
+    m_gc_descriptor_emitter =
+        std::make_unique<GCDescriptorEmitter>(m_llvm_module, m_llvm_context);
+  }
+  return m_gc_descriptor_emitter.get();
 }
 
 llvm::Module *IRGenContext::getLLVMModule() const { return m_llvm_module; }

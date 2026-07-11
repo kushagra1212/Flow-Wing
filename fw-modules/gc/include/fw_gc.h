@@ -55,12 +55,51 @@ typedef struct FWTypeDescriptor {
   size_t                         elem_size;  /* bytes per element */
 } FWTypeDescriptor;
 
+/* Shared, process-wide descriptors for the two most common runtime shapes. */
+extern const FWTypeDescriptor fw_blob_desc;  /* raw byte buffers: strings */
+extern const FWTypeDescriptor fw_dyn_desc;   /* boxed {i32 tag; i64 value} */
+
 /* Descriptor-word packing (descriptor pointer + mark/pin bits). */
 uintptr_t                 fw_word_pack(const FWTypeDescriptor *desc);
 const FWTypeDescriptor   *fw_word_desc(uintptr_t word);
 int                       fw_word_marked(uintptr_t word);
 uintptr_t                 fw_word_set_mark(uintptr_t word);
 uintptr_t                 fw_word_clear_mark(uintptr_t word);
+
+typedef struct {
+  size_t live_objects;   /* objects currently on the heap */
+  size_t live_bytes;     /* payload bytes currently on the heap */
+  size_t total_allocs;   /* cumulative allocations since init */
+  size_t total_frees;    /* cumulative frees since init */
+} FWGCStats;
+
+void       fw_gc_init(void);
+void      *fw_gc_alloc(size_t size, const FWTypeDescriptor *desc);
+/* Allocate a container backing store: `n` elements described by an ARRAY
+   descriptor (whose elem_size and elem_desc are set). */
+void *fw_gc_alloc_array(const FWTypeDescriptor *array_desc, size_t n);
+void       fw_gc_collect(void);
+FWGCStats  fw_gc_stats(void);
+void       fw_gc_set_stress(int on);   /* 1 = collect on every alloc */
+
+/* A shadow-stack frame: lists the addresses of a function's pointer locals.
+   Codegen (later milestone) pushes/pops these; M0 tests build them by hand. */
+typedef struct FWFrame {
+  struct FWFrame *prev;   /* caller's frame */
+  uint32_t        n;      /* number of root slots */
+  void          **roots;  /* array of n slots, each a void** to a heap object */
+} FWFrame;
+
+extern FWFrame *fw_gc_shadow_top;    /* current top frame (NULL when empty) */
+
+void fw_gc_add_root(void **slot);
+void fw_gc_remove_root(void **slot);
+
+/* Record the high end of the C call stack (typically `&argc` in main) so the
+   conservative scanner knows the range to sweep for on-stack roots. */
+void fw_gc_set_stack_base(void *stack_base);
+
+void fw_gc_register_finalizer(void *obj, void (*fn)(void *));
 
 #ifdef __cplusplus
 }

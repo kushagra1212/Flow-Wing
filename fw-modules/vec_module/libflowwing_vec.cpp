@@ -19,7 +19,7 @@
 
  #include <cstdint>
  #include <vector>
- #include <gc/gc.h>
+ #include "fw_gc.h"
  #include <algorithm>
  #include <cstring>
  
@@ -52,12 +52,14 @@
          handle->values = nullptr;
      }
  
+     static void finalizeVecHandle1(void *raw) { finalizeVecHandle(raw, nullptr); }
+
      VecHandle *allocateVecHandle() {
-         auto *handle = static_cast<VecHandle *>(GC_MALLOC(sizeof(VecHandle)));
+         auto *handle = static_cast<VecHandle *>(fw_gc_alloc(sizeof(VecHandle), &fw_blob_desc));
          if (handle == nullptr) return nullptr;
  
          handle->values = new std::vector<DynamicValue>();
-         GC_register_finalizer(handle, finalizeVecHandle, nullptr, nullptr, nullptr);
+         fw_gc_register_finalizer(handle, finalizeVecHandle1);
          return handle;
      }
  

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/IRGen/GCDescriptor/GCDescriptorEmitter.hpp"
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 
@@ -58,6 +59,7 @@ public:
   // Getters
   const CompilationContext &getCompilationContext() const;
   const std::unique_ptr<LLVMTypeBuilder> &getTypeBuilder() const;
+  GCDescriptorEmitter *getGCDescriptorEmitter();
   llvm::Module *getLLVMModule() const;
   llvm::LLVMContext *getLLVMContext() const;
   const std::unique_ptr<llvm::IRBuilder<>> &getLLVMBuilder() const;
@@ -111,6 +113,7 @@ private:
   std::vector<LoopTargets> m_loop_stack;
 
   std::unique_ptr<LLVMTypeBuilder> m_type_builder;
+  std::unique_ptr<GCDescriptorEmitter> m_gc_descriptor_emitter;
   void initializeLLVM();
   void initializeTargetMachine();
   llvm::TargetMachine *m_target_machine = nullptr;

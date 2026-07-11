@@ -91,7 +91,7 @@ jobs:
 
             - name: Install Tools (macOS)
               if: runner.os == 'macOS'
-              run: brew install ninja ccache automake autoconf libtool llvm@17 create-dmg librsvg
+              run: brew install ninja ccache llvm@17 create-dmg librsvg
 
             - name: Set Compiler Environment (macOS)
               if: runner.os == 'macOS'
@@ -119,7 +119,7 @@ jobs:
               if: runner.os == 'Linux'
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ruby ruby-dev build-essential
+                  sudo apt-get install -y clang-17 lld ninja-build ccache wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ruby ruby-dev build-essential
                   sudo gem install --no-document fpm
 
             - name: Set Compiler Environment (Linux)

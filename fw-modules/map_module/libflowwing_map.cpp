@@ -20,7 +20,7 @@
 
 #include <cstdint>
 #include <cstring>
-#include <gc/gc.h>
+#include "fw_gc.h"
 #include <string>
 #include <unordered_map>
 
@@ -49,12 +49,15 @@ namespace {
     }
 
     template <typename Handle>
+    void finalizeHandle1(void *raw) { finalizeHandle<Handle>(raw, nullptr); }
+
+    template <typename Handle>
     Handle *allocateHandle() {
-        auto *handle = static_cast<Handle *>(GC_MALLOC(sizeof(Handle)));
+        auto *handle = static_cast<Handle *>(fw_gc_alloc(sizeof(Handle), &fw_blob_desc));
         if (handle == nullptr) return nullptr;
 
         handle->values = new typename Handle::map_type();
-        GC_register_finalizer(handle, finalizeHandle<Handle>, nullptr, nullptr, nullptr);
+        fw_gc_register_finalizer(handle, finalizeHandle1<Handle>);
         return handle;
     }
 

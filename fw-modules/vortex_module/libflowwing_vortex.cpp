@@ -24,7 +24,7 @@
 #include "httplib.h"
 #include <condition_variable>
 #include <cstring>
-#include <gc/gc.h>
+#include "fw_gc.h"
 #include <mutex>
 #include <queue>
 #include <string>
@@ -32,7 +32,7 @@
 
 // Helper: Allocate a GC-tracked string to return to FlowWing
 static const char *alloc_gc_string(const std::string &str) {
-  char *cstr = (char *)GC_MALLOC_ATOMIC(str.length() + 1);
+  char *cstr = (char *)fw_gc_alloc(str.length() + 1, &fw_blob_desc);
   if (cstr) {
     std::memcpy(cstr, str.c_str(), str.length());
     cstr[str.length()] = '\0';

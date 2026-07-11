@@ -3,15 +3,14 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-// Forward declare GC_malloc if Flow-Wing manages memory via Garbage Collection.
-// If you aren't using a GC for strings yet, replace GC_malloc with standard malloc.
-extern void* GC_malloc(size_t size);
+// Allocate via Flow-Wing GC so strings are reclaimed automatically.
+#include "fw_gc.h"
 
 // Helper function to allocate memory for strings crossing the FFI boundary
 static char* allocate_string(size_t length) {
-    // Use GC_malloc so Flow-Wing's garbage collector cleans it up later.
+    // Use the Flow-Wing GC so strings are reclaimed automatically.
     // Add +1 for the null terminator.
-    return (char*)GC_malloc(length + 1); 
+    return (char*)fw_gc_alloc(length + 1, &fw_blob_desc);
 }
 
 // 1. Length
