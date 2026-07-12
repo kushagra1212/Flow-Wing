@@ -1,6 +1,7 @@
 #include "fw_gc.h"
 #include "test_harness.h"
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* A dummy descriptor; contents don't matter for packing. */
@@ -168,11 +169,11 @@ static void test_shadow_stack_roots(void) {
   void *keep = fw_gc_alloc(8, &g_blob);   /* reachable only via a shadow frame */
   (void)fw_gc_alloc(8, &g_blob);          /* garbage */
 
-  /* Simulate main() -> foo(): two nested frames. foo holds `keep`. */
-  void *foo_slots[1] = { keep };
+  /* Slot-address model: roots[i] holds &local; GC reads *roots[i]. */
+  void *foo_slots[1] = { (void *)&keep };
   FWFrame foo_frame = { .prev = NULL, .n = 1, .roots = foo_slots };
 
-  void *main_slots[0];
+  void *main_slots[1];
   FWFrame main_frame = { .prev = NULL, .n = 0, .roots = main_slots };
 
   fw_gc_shadow_top = &main_frame;          /* push main */
@@ -181,6 +182,12 @@ static void test_shadow_stack_roots(void) {
 
   fw_gc_collect();
   CHECK(fw_gc_stats().live_objects == 1);  /* keep survived, garbage freed */
+
+  /* Reassign the rooted local; the frame slot is unchanged (slot-address),
+     so the GC must see the NEW object and free the old one. */
+  keep = fw_gc_alloc(8, &g_blob);
+  fw_gc_collect();
+  CHECK(fw_gc_stats().live_objects == 1);  /* only the new object survives */
 
   fw_gc_shadow_top = foo_frame.prev;       /* pop foo */
   fw_gc_shadow_top = main_frame.prev;      /* pop main -> NULL */
@@ -243,87 +250,18 @@ static void test_stress_survives(void) {
   CHECK(fw_gc_stats().live_objects == 101);  /* n1 + 100, nothing lost */
 }
 
-/* --- Conservative C-stack scanning ------------------------------------ */
-
-/* Allocate a blob, hold it only in a plain (non-root-registered) local, and
-   collect. The conservative scanner must find the pointer on this frame's
-   stack (or in a callee-saved register) and keep the object alive. Marked
-   noinline so the frame really exists; `volatile` reads stop the compiler
-   dropping the local before the collect. */
-__attribute__((noinline)) static void conservative_keep_helper(void) {
-  void *p = fw_gc_alloc(32, &fw_blob_desc);
-  volatile void *sink = p;          /* force `p` to stay materialized */
-  fw_gc_collect();
-  CHECK(fw_gc_stats().total_frees == 0);   /* object survived via stack root */
-  (void)sink;
-  ((volatile char *)p)[0] = 1;      /* touch after collect: still valid */
-}
-
-static void test_conservative_stack_root(void) {
-  fw_gc_init();
-  int anchor = 0;
-  fw_gc_set_stack_base(&anchor);    /* high end of the stack for this test */
-  conservative_keep_helper();
-  fw_gc_set_stack_base(NULL);       /* disable so later tests are unaffected */
-}
-
-/* Like above, but the only live reference is an INTERIOR pointer (p + 8).
-   fw_gc_object_containing must accept interior pointers. */
-__attribute__((noinline)) static void conservative_interior_helper(void) {
-  char *p = (char *)fw_gc_alloc(32, &fw_blob_desc);
-  volatile char *interior = p + 8;  /* keep only a mid-object pointer */
-  fw_gc_collect();
-  CHECK(fw_gc_stats().total_frees == 0);   /* interior pointer kept it alive */
-  interior[0] = 2;                  /* still valid memory */
-  (void)interior;
-}
-
-static void test_conservative_interior_pointer(void) {
-  fw_gc_init();
-  int anchor = 0;
-  fw_gc_set_stack_base(&anchor);
-  conservative_interior_helper();
-  fw_gc_set_stack_base(NULL);
-}
-
-/* Allocate an object in a callee frame and let the only reference die with
-   that frame. Because the pointer never returns to the caller, it is not a
-   live local once this returns. Kept noinline so the frame (and its spill
-   slots) are real and separate from the caller. */
-__attribute__((noinline)) static void alloc_and_drop(void) {
-  void *garbage = fw_gc_alloc(16, &fw_blob_desc);
-  volatile void *sink = garbage;   /* force it live only within THIS frame */
-  (void)sink;
-}
-
-/* Overwrite the stack region just vacated by alloc_and_drop with non-pointer
-   values, so any stale copy of the dropped pointer left in a spill slot is
-   genuinely gone — mimicking how real generated code reuses that space. */
-__attribute__((noinline)) static void scrub_stack(void) {
-  volatile uintptr_t buf[64];
-  for (int i = 0; i < 64; i++) buf[i] = (uintptr_t)(0xA5A50000u + i);
-  uintptr_t acc = 0;
-  for (int i = 0; i < 64; i++) acc += buf[i];
-  CHECK(acc != 0);                 /* keep buf alive; not a pointer pattern */
-}
-
-/* An unrelated non-pointer int local must neither crash the scan nor corrupt
-   the local, and a genuinely-unreachable object (no live copy of its address
-   anywhere on the stack) must be freed. */
-static void test_conservative_negative(void) {
-  fw_gc_init();
-  int anchor = 0;
-  volatile int junk = 0x12345678;   /* arbitrary non-pointer bit pattern */
-  fw_gc_set_stack_base(&anchor);
-
-  alloc_and_drop();                 /* object becomes unreachable */
-  scrub_stack();                    /* erase any stale pointer bits */
-  fw_gc_collect();
-
-  CHECK((int)junk == 0x12345678);   /* scan did not corrupt the local */
-  CHECK(fw_gc_stats().total_frees == 1);   /* unreachable object WAS freed */
-
-  fw_gc_set_stack_base(NULL);
+static void test_stress_env_toggle(void) {
+  setenv("FW_GC_STRESS", "1", 1);
+  fw_gc_init();                      /* should pick up the env and enable stress */
+  size_t before = fw_gc_stats().total_frees;
+  void *a = fw_gc_alloc(8, &g_blob); /* unrooted */
+  (void)a;
+  void *b = fw_gc_alloc(8, &g_blob); /* under stress, this alloc forces a collect
+                                        that frees the unrooted `a` */
+  (void)b;
+  CHECK(fw_gc_stats().total_frees > before);
+  unsetenv("FW_GC_STRESS");
+  fw_gc_init();                      /* reset stress off for later tests */
 }
 
 int main(void) {
@@ -339,8 +277,6 @@ int main(void) {
   RUN_TEST(test_cycle_is_collected);
   RUN_TEST(test_deep_chain_no_overflow);
   RUN_TEST(test_stress_survives);
-  RUN_TEST(test_conservative_stack_root);
-  RUN_TEST(test_conservative_interior_pointer);
-  RUN_TEST(test_conservative_negative);
+  RUN_TEST(test_stress_env_toggle);
   return TEST_SUMMARY();
 }

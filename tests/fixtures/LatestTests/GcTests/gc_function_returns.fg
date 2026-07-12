@@ -1,0 +1,45 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Return-value temp-safety. A function's returned GC value lives in the caller's
+/; ret_slot and must survive the next allocation (copying it into the destination
+/; variable). Covers single-object/string/array returns (bugs #2, #9), inferred
+/; dynamic returns (bug #5), and array-of-objects returns rooting ALL leaves (#9).
+/; --------------------------------------------------------------------------
+
+type P = { x: int, y: str }
+
+/; returns a freshly-built object with a string field
+fun makeP(n: int, s: str) -> P { return { x: n, y: "v" + s } }
+var a: P = makeP(1, "one")
+println(a.x)
+println(a.y)
+
+/; returns a string (single-pointer ret_slot)
+fun label(n: int) -> str { return "L" + String(n) }
+println(label(7))
+
+/; inferred-dynamic return of a concatenation (no return type annotation)
+fun combine(a: str, b: str) { return a + b }
+var c: str = combine("left" + "L", "right" + "R")
+println(c)
+
+/; returns an ARRAY of objects with string fields — every element leaf must root
+fun three() -> P[3] {
+  return [{x: 1, y: "a"}, {x: 2, y: "b"}, {x: 3, y: "c"}]
+}
+var arr: P[3] = three()
+println(arr[0].y)
+println(arr[1].y)
+println(arr[2].y)
+
+/; returns a global array (round-trips through ret_slot, then a copy)
+var g: str[3] = ["gx" + "1", "gy" + "2", "gz" + "3"]
+fun fetch() -> str[3] { return g }
+var f: str[3] = fetch()
+println(f[0])
+println(f[1])
+println(f[2])
+
+/; a value returned then immediately used as an argument
+println(wrap(label(9)))
+fun wrap(s: str) -> str { return "<" + s + ">" }

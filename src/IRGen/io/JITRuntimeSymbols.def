@@ -187,5 +187,7 @@ FW_JIT_RUNTIME_SYMBOL(fw_gc_collect)
 FW_JIT_RUNTIME_SYMBOL(fw_gc_add_root)
 FW_JIT_RUNTIME_SYMBOL(fw_gc_remove_root)
 FW_JIT_RUNTIME_SYMBOL(fw_gc_register_finalizer)
-FW_JIT_RUNTIME_SYMBOL(fw_gc_set_stack_base)
 FW_JIT_RUNTIME_SYMBOL(fw_gc_stats)
+// Data global (not a function): the shadow-stack top pointer. `&fw_gc_shadow_top`
+// resolves to the variable's address, which is what JIT'd IR references.
+FW_JIT_RUNTIME_SYMBOL(fw_gc_shadow_top)

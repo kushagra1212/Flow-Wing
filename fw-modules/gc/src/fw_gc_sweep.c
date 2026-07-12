@@ -31,7 +31,11 @@ static void fw_gc_sweep(void) {
 }
 
 void fw_gc_collect(void) {
+  /* Snapshot the (stable) live set into a sorted index so resolve_object is
+     O(log N) during marking; drop it before the sweep frees objects. */
+  fw_gc_build_object_index();
   fw_gc_mark_from_roots();
+  fw_gc_free_object_index();
   fw_gc_sweep();
 
   /* Heap-growth policy: schedule the next collection relative to how much

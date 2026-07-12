@@ -167,6 +167,28 @@ llvm::AllocaInst *IRGenContext::createAlloca(llvm::Type *type,
   return temp_builder.CreateAlloca(type, nullptr, varName);
 }
 
+void IRGenContext::addGcRootAlloca(llvm::AllocaInst *root_alloca) {
+  m_gc_root_allocas.push_back(root_alloca);
+}
+
+std::vector<llvm::AllocaInst *> &IRGenContext::getGcRootAllocas() {
+  return m_gc_root_allocas;
+}
+
+void IRGenContext::clearGcRootAllocas() {
+  m_gc_root_allocas.clear();
+  m_gc_root_slots.clear();
+}
+
+void IRGenContext::addGcRootSlot(llvm::AllocaInst *base, uint64_t byte_offset) {
+  m_gc_root_slots.emplace_back(base, byte_offset);
+}
+
+std::vector<std::pair<llvm::AllocaInst *, uint64_t>> &
+IRGenContext::getGcRootSlots() {
+  return m_gc_root_slots;
+}
+
 void IRGenContext::pushScope() { m_symbol_table.emplace_back(); }
 void IRGenContext::popScope() { m_symbol_table.pop_back(); }
 void IRGenContext::setSymbol(const std::string &name, llvm::Value *value) {

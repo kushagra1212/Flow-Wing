@@ -106,6 +106,15 @@ bool Type::isNirast() const {
 
 bool Type::isPrimitive() const { return m_kind == TypeKind::kPrimitive; }
 
+bool Type::isString() const {
+  return this == analysis::Builtins::m_str_type_instance.get();
+}
+
+bool Type::isGcReference() const {
+  return m_kind == TypeKind::kObject || m_kind == TypeKind::kClass ||
+         m_kind == TypeKind::kArray || isString();
+}
+
 bool Type::isInteger() const {
   return m_kind == TypeKind::kPrimitive &&
          (m_name == "int8" || m_name == "int" || m_name == "int64");

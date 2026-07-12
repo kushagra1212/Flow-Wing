@@ -43,6 +43,11 @@ public:
   virtual bool isPrimitive() const;
   virtual bool isNirast() const;
   virtual bool isInteger() const;
+  bool isString() const;
+  // True for types whose runtime value is a single traced GC heap pointer:
+  // objects, classes, arrays and strings. Dynamic is boxed inline (a struct),
+  // not a single pointer, so it is intentionally excluded.
+  bool isGcReference() const;
 
   static std::string toString(TypeKind kind);
 

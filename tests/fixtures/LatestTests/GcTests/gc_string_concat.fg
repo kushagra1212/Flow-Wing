@@ -1,0 +1,35 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; String-concatenation temp-safety. Every `+` produces a fresh heap string in
+/; an SSA temp that must survive the NEXT allocation (the materialize / the next
+/; concat). Covers bug #4 (concat result) and chained concats.
+/; --------------------------------------------------------------------------
+
+/; simple two-operand concat
+var a: str = "Hello" + "World"
+println(a)
+
+/; long left-associative chain: each intermediate becomes the next left operand
+var b: str = "a" + "b" + "c" + "d" + "e" + "f"
+println(b)
+
+/; concat mixing a literal and a variable
+var name: str = "Flow"
+var greet: str = "Hi, " + name + "!"
+println(greet)
+
+/; concat re-assigned in place (the old value is replaced each step)
+var acc: str = ""
+acc = acc + "1"
+acc = acc + "2"
+acc = acc + "3"
+println(acc)
+
+/; concat as a function argument (arg held while the callee's body allocates)
+fun wrap(s: str) -> str { return "[" + s + "]" }
+println(wrap("x" + "y"))
+
+/; concat feeding another concat feeding a field
+type Box = { v: str }
+var box: Box = { v: "p" + "q" + "r" }
+println(box.v)

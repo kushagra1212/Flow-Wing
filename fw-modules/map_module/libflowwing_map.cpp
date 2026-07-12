@@ -20,7 +20,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <cstdlib>
 #include "fw_gc.h"
+#include "fw_gc_container.h"
 #include <string>
 #include <unordered_map>
 
@@ -41,11 +43,37 @@ namespace {
 
     using DynMapHandle = TypedMapHandle<DynamicValue>;
 
+    // Entries live in a C++-owned std::unordered_map on the malloc heap, which the
+    // precise GC cannot scan. A value whose tag is STRING/OBJECT/ARRAY holds a GC
+    // heap pointer that would be collected out from under us (fatal under
+    // FW_GC_STRESS). Rather than copy, we register a custom trace hook on the
+    // handle's descriptor: while the handle is reachable the collector calls
+    // traceHandle, which marks every contained GC-pointer value. Keys are
+    // std::string (own their bytes, no GC). Zero copies, correct lifetime and
+    // identity, and works for ANY GC value type — present or future.
+    template <typename Handle>
+    void traceHandle(void *obj, void (*mark)(void *)) {
+        auto *handle = static_cast<Handle *>(obj);
+        if (handle->values == nullptr) return;
+        for (const auto &kv : *handle->values) {
+            const DynamicValue &v = kv.second;
+            if (fw_dyn_tag_is_gc_ptr(v.tag) && v.value != 0)
+                mark(reinterpret_cast<void *>(v.value));
+        }
+    }
+
+    template <typename Handle>
+    const FWTypeDescriptor &handleDesc() {
+        static const FWTypeDescriptor desc =
+            fw_make_container_desc("map_handle", traceHandle<Handle>);
+        return desc;
+    }
+
     template <typename Handle>
     void finalizeHandle(void *raw_handle, void *) {
         auto *handle = static_cast<Handle *>(raw_handle);
-        delete handle->values;
-        handle->values = nullptr;
+        delete handle->values;   // frees the map buffer; the GC owns the element
+        handle->values = nullptr;// strings/objects and reclaims them itself
     }
 
     template <typename Handle>
@@ -53,7 +81,7 @@ namespace {
 
     template <typename Handle>
     Handle *allocateHandle() {
-        auto *handle = static_cast<Handle *>(fw_gc_alloc(sizeof(Handle), &fw_blob_desc));
+        auto *handle = static_cast<Handle *>(fw_gc_alloc(sizeof(Handle), &handleDesc<Handle>()));
         if (handle == nullptr) return nullptr;
 
         handle->values = new typename Handle::map_type();
@@ -107,8 +135,8 @@ void dyn_map_set(int64_t raw_handle, const char *key, DynamicValue* value) {
 void dyn_map_get_or(DynamicValue *ret_slot, int64_t raw_handle, const char *key, DynamicValue *fallback) {
     if (ret_slot == nullptr) return;
     void* map_handle = reinterpret_cast<void*>(raw_handle);
-    
-    DynamicValue fb = (fallback != nullptr) ? *fallback : DynamicValue{7, 0}; 
+
+    DynamicValue fb = (fallback != nullptr) ? *fallback : DynamicValue{7, 0};
     *ret_slot = mapGetOr<DynMapHandle>(map_handle, key, fb);
 }
 
@@ -130,7 +158,7 @@ int32_t dyn_map_size(int64_t raw_handle) {
     return map == nullptr ? 0 : static_cast<int32_t>(map->size());
 }
 
-void dyn_map_clear(int64_t raw_handle) { 
+void dyn_map_clear(int64_t raw_handle) {
     void* map_handle = reinterpret_cast<void*>(raw_handle);
     auto *map = getMap<DynMapHandle>(map_handle);
     if (map) map->clear();

@@ -1,0 +1,50 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Deep nesting & edge cases. Long object chains (the work-list must not recurse),
+/; empty strings, single-element containers, and boundary conditions — all under
+/; maximal collection pressure.
+/; --------------------------------------------------------------------------
+
+/; a 5-level nested object; each level has a string field built by concat
+type L5 = { v: str }
+type L4 = { v: str, c: L5 }
+type L3 = { v: str, c: L4 }
+type L2 = { v: str, c: L3 }
+type L1 = { v: str, c: L2 }
+var deep: L1 = {
+  v: "l" + "1",
+  c: { v: "l" + "2", c: { v: "l" + "3", c: { v: "l" + "4", c: { v: "l" + "5" } } } }
+}
+println(deep.v)
+println(deep.c.v)
+println(deep.c.c.v)
+println(deep.c.c.c.v)
+println(deep.c.c.c.c.v)
+
+/; empty string handling
+var e: str = "" + ""
+println("[" + e + "]")
+var e2: str = "x" + ""
+println(e2)
+
+/; single-element container
+bring vec
+var single: vec::Vec = new vec::Vec()
+single.push("only" + "One")
+println(single.size())
+println(single.get(0))
+
+/; a longer array of freshly-allocated strings, read in order
+var many: str[6] = ["s" + "0", "s" + "1", "s" + "2", "s" + "3", "s" + "4", "s" + "5"]
+for var i: int = 0 to 5 {
+  println(many[i])
+}
+
+/; repeated construction in a loop stresses the collector hard
+var vv: vec::Vec = new vec::Vec()
+for var k: int = 0 to 9 {
+  vv.push("e" + String(k))
+}
+println(vv.size())
+println(vv.get(0))
+println(vv.get(9))

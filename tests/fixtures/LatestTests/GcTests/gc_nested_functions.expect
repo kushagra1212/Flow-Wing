@@ -1,0 +1,8 @@
+head
+t0
+second
+t1
+third
+t2
+head:t0
+second|third

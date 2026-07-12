@@ -119,7 +119,6 @@ const std::string_view kMalloc_fn = "malloc";
 const std::string_view kGC_malloc_fn = "fw_gc_alloc";
 const std::string_view kGC_init_fn = "fw_gc_init";
 const std::string_view kGC_add_root_fn = "fw_gc_add_root";
-const std::string_view kGC_set_stack_base_fn = "fw_gc_set_stack_base";
 
 // Entry Point
 

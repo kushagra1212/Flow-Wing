@@ -496,7 +496,16 @@ void fg_set_script_anchor(const char* absolute_dir_path) {
     size_t len = strlen(absolute_dir_path);
     fg_script_dir = (char*)fw_gc_alloc(len + 1, &fw_blob_desc);
     memcpy(fg_script_dir, absolute_dir_path, len + 1);
-    
+
+    // The anchor lives for the whole program but is referenced only by this
+    // static C pointer, invisible to the precise shadow-stack scan. Register its
+    // slot as a permanent GC root so the blob is never collected out from under
+    // fg_get_script_dir(). Called once at startup, so a single add is correct.
+    static bool rooted = false;
+    if (!rooted) {
+        fw_gc_add_root((void**)&fg_script_dir);
+        rooted = true;
+    }
 }
 
 // The API exposed to the .fg script (The equivalent of __dirname)

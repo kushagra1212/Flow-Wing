@@ -21,10 +21,12 @@
  * Requires: cpp-httplib (https://github.com/yhirose/cpp-httplib)
  */
 
+#include "fw_gc.h"
 #include "httplib.h"
 #include <condition_variable>
 #include <cstring>
-#include "fw_gc.h"
+#include <map>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -40,6 +42,8 @@ static const char *alloc_gc_string(const std::string &str) {
   return cstr;
 }
 
+struct VortexServer;
+
 // Represents a single HTTP transaction
 struct HttpContext {
   const httplib::Request *req;
@@ -54,6 +58,9 @@ struct HttpContext {
   std::string stream_content_type;
   std::queue<std::string> stream_chunks;
   bool stream_done = false;
+
+  // Owning server, so completion handlers can drop the keep-alive reference.
+  VortexServer *server = nullptr;
 };
 
 // Represents the Vortex Server
@@ -64,37 +71,63 @@ struct VortexServer {
   std::queue<HttpContext *> req_queue;
   std::mutex queue_mtx;
   std::condition_variable queue_cv;
+
+  // Keep-alive registry: FlowWing holds each HttpContext by a RAW int64 pointer
+  // across many FFI calls, but the C++ side (the httplib worker thread and the
+  // chunked content-provider) owns the real lifetime. Under GC stress FlowWing
+  // runs ~100x slower, so httplib can tear down the response — and destroy the
+  // context — while FlowWing is still using its raw pointer (e.g. mid-stream),
+  // giving "mutex lock failed: Invalid argument". Holding a shared_ptr here
+  // keeps every in-flight context alive until FlowWing signals it is done (send
+  // / streamEnd), independent of the httplib teardown timing.
+  std::map<HttpContext *, std::shared_ptr<HttpContext>> live_ctxs;
+  std::mutex live_mtx;
 };
+
+// Drop the server's keep-alive reference once FlowWing is finished with a
+// request. Any still-live C++ owner (worker thread / content provider) keeps
+// the object alive until it, too, is done; this only removes the extra safety
+// ref.
+static void vortex_release_ctx(HttpContext *ctx) {
+  if (ctx == nullptr || ctx->server == nullptr)
+    return;
+  std::lock_guard<std::mutex> lock(ctx->server->live_mtx);
+  ctx->server->live_ctxs.erase(ctx);
+}
 
 extern "C" {
 
+void vortex_res_send_file(int64_t req_handle, const char *filepath,
+                          const char *content_type) {
+  if (!req_handle || !filepath || !content_type)
+    return;
+  HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
 
-  void vortex_res_send_file(int64_t req_handle, const char *filepath, const char *content_type) {
-    if (!req_handle || !filepath || !content_type) return;
-    HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
-  
-    // Read the file in binary mode
-    std::ifstream file(filepath, std::ios::binary);
-    if (!file) {
-      ctx->res->status = 404;
-      ctx->res->set_content("File Not Found", "text/plain");
-    } else {
-      // Read the entire file buffer into a string safely (preserves null bytes)
-      std::ostringstream oss;
-      oss << file.rdbuf();
-      std::string data = oss.str();
-      
-      // Use the explicit length set_content method so httplib doesn't truncate it
-      ctx->res->set_content(data.c_str(), data.size(), content_type);
-    }
-  
-    // Unblock the FlowWing thread
-    {
-      std::lock_guard<std::mutex> lock(ctx->mtx);
-      ctx->handled = true;
-    }
+  // Read the file in binary mode
+  std::ifstream file(filepath, std::ios::binary);
+  if (!file) {
+    ctx->res->status = 404;
+    ctx->res->set_content("File Not Found", "text/plain");
+  } else {
+    // Read the entire file buffer into a string safely (preserves null bytes)
+    std::ostringstream oss;
+    oss << file.rdbuf();
+    std::string data = oss.str();
+
+    // Use the explicit length set_content method so httplib doesn't truncate it
+    ctx->res->set_content(data.c_str(), data.size(), content_type);
+  }
+
+  // Unblock the FlowWing thread. Notify under the lock so the worker cannot
+  // wake, return, and destroy this HttpContext before notify completes (see
+  // vortex_res_send for the full rationale).
+  {
+    std::lock_guard<std::mutex> lock(ctx->mtx);
+    ctx->handled = true;
     ctx->cv.notify_one();
   }
+  vortex_release_ctx(ctx); // FlowWing is done with this request
+}
 
 int64_t vortex_server_new() {
   VortexServer *server = new VortexServer();
@@ -109,6 +142,15 @@ int64_t vortex_server_new() {
     auto ctx = std::make_shared<HttpContext>();
     ctx->req = &req;
     ctx->res = &res;
+    ctx->server = server;
+
+    // Register a keep-alive reference so FlowWing's raw pointer stays valid for
+    // the whole request even if httplib tears the response down first (dropped
+    // when FlowWing finishes via send/streamEnd → vortex_release_ctx).
+    {
+      std::lock_guard<std::mutex> lock(server->live_mtx);
+      server->live_ctxs[ctx.get()] = ctx;
+    }
 
     // Push to FlowWing queue
     {
@@ -170,7 +212,6 @@ bool vortex_server_listen(int64_t handle, int32_t port) {
   server->listener_thread =
       std::thread([server, port]() { server->svr.listen("0.0.0.0", port); });
 
- 
   server->svr.wait_until_ready();
 
   if (!server->svr.is_running()) {
@@ -251,12 +292,19 @@ void vortex_res_send(int64_t req_handle, const char *body) {
   }
 
   // Unblock the C++ worker thread so it can send the HTTP response to the
-  // client
+  // client. Notify WHILE holding the lock: once `handled` is set and the lock
+  // is released, the worker's universal_handler wakes and, for a non-streaming
+  // request, returns and drops the last shared_ptr — destroying this
+  // HttpContext (mutex + condvar). Notifying after unlocking would then touch a
+  // freed condvar ("mutex lock failed: Invalid argument" under GC stress, which
+  // widens the window). Under the lock the worker cannot re-acquire and destroy
+  // the context until notify has completed.
   {
     std::lock_guard<std::mutex> lock(ctx->mtx);
     ctx->handled = true;
+    ctx->cv.notify_one();
   }
-  ctx->cv.notify_one();
+  vortex_release_ctx(ctx); // FlowWing is done with this request
 }
 
 // --- Stream FFI ---
@@ -288,9 +336,14 @@ void vortex_res_stream_end(int64_t req_handle) {
     return;
   HttpContext *ctx = reinterpret_cast<HttpContext *>(req_handle);
 
-  std::lock_guard<std::mutex> lock(ctx->mtx);
-  ctx->stream_done = true;
-  ctx->cv.notify_one();
+  {
+    std::lock_guard<std::mutex> lock(ctx->mtx);
+    ctx->stream_done = true;
+    ctx->cv.notify_one();
+  }
+  // FlowWing is done producing the stream. Drop the keep-alive ref; the chunked
+  // content-provider keeps the context alive until it has flushed and finished.
+  vortex_release_ctx(ctx);
 }
 }
 

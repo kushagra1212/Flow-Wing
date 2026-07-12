@@ -1,0 +1,52 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Class instances & method chaining. A method returning `new` (or `self`) creates
+/; a fresh instance held in a temp across the chain; its string fields must survive.
+/; This is the shape behind the text::Text.substring().get() bug — the intermediate
+/; instance and its buffer must not be collected mid-chain.
+/; --------------------------------------------------------------------------
+
+class Box {
+  var _buffer: str
+  init(source: str) -> nthg { self._buffer = source }
+  makeChild(suffix: str) -> Box {
+    var combined = self._buffer + suffix
+    return new Box(combined)
+  }
+  fun get() -> str { return self._buffer }
+  append(extra: str) -> Box {
+    self._buffer = self._buffer + extra
+    return self
+  }
+}
+
+/; construct then read
+var b: Box = new Box("hello")
+println(b.get())
+
+/; method returns a new instance whose buffer is a fresh concat
+var c: Box = b.makeChild("X")
+println(c.get())
+
+/; chained: makeChild(...).makeChild(...).get()
+println(b.makeChild("1").makeChild("2").get())
+
+/; mutating chain returning self
+var d: Box = new Box("a")
+d.append("b").append("c").append("d")
+println(d.get())
+
+/; a Vec of class instances
+class Point {
+  var name: str
+  var n: int
+  init(nm: str, num: int) -> nthg {
+    self.name = nm
+    self.n = num
+  }
+  fun show() -> str { return self.name + ":" + String(self.n) }
+}
+var p1: Point = new Point("or" + "igin", 0)
+var p2: Point = new Point("un" + "it", 1)
+println(p1.show())
+println(p2.show())

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,14 @@ llvm::Value *IRGenerator::getStringResult(llvm::Value *left_value,
 
   auto string_left_value =
       convertToString(left_value, left_value->getType(), is_left_type_char);
+  // Temp-safety: converting the right operand (and `fg_cs` itself) may hit a
+  // `fw_gc_alloc` safepoint, which could free the freshly-converted left string
+  // while it lives only in an SSA temp. Root the left string before converting
+  // the right one. Non-moving GC: the SSA values stay valid once rooted.
+  spillToRoot(string_left_value, "concat.lhs");
   auto string_right_value =
       convertToString(right_value, right_value->getType(), is_right_type_char);
+  spillToRoot(string_right_value, "concat.rhs");
 
   switch (operator_kind) {
   case lexer::TokenKind::kPlusToken: {
@@ -46,9 +52,16 @@ llvm::Value *IRGenerator::getStringResult(llvm::Value *left_value,
         m_ir_gen_context.getLLVMModule()->getFunction(
             constants::functions::kConcat_strings_fn);
 
-    return m_ir_gen_context.getLLVMBuilder()->CreateCall(
+    llvm::Value *result = m_ir_gen_context.getLLVMBuilder()->CreateCall(
         string_concatenate_func, {string_left_value, string_right_value},
         "string_concatenate_result");
+    // Temp-safety: the concatenation result is a freshly `fw_gc_alloc`'d string
+    // held only in an SSA temp. The caller typically copies it via
+    // materializeMutableString (fg_gmosc) — a safepoint — before storing it, and
+    // in a chained concat (`a + b + c`) it becomes the left operand of the next
+    // `fg_cs`, past further safepoints. Root it so it survives until consumed.
+    spillToRoot(result, "concat.result");
+    return result;
   }
   default:
     assert(false && "Unsupported string operator");

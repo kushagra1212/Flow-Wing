@@ -166,20 +166,9 @@ void IRGenerator::visit(
     const auto &brought_paths =
         m_ir_gen_context.getCompilationContext().getBroughtSourcePaths();
 
-    // Capture the top of main's frame so the GC can bound its stack scan.
-    // Must run before fg_init_runtime (inside emitGlobalVariableForScriptAnchor).
-    {
-      auto *set_base = mod->getFunction(
-          std::string(constants::functions::kGC_set_stack_base_fn));
-      if (set_base) {
-        llvm::Type *i8p = llvm::Type::getInt8PtrTy(ctx);
-        auto *anchor =
-            builder.CreateAlloca(llvm::Type::getInt8Ty(ctx), nullptr,
-                                 "__gc_stack_anchor");
-        builder.CreateCall(set_base,
-                           {builder.CreateBitCast(anchor, i8p)});
-      }
-    }
+    // (M2) The precise GC roots every live pointer through global roots, the
+    // shadow stack, traced descriptor fields, and container trace hooks, so no
+    // conservative C-stack scan is emitted — `fw_gc_set_stack_base` is gone.
 
     emitGlobalVariableForScriptAnchor();
 
@@ -193,10 +182,20 @@ void IRGenerator::visit(
         for (auto &g : mod->globals()) {
           if (!g.getName().starts_with("_init_global_var_"))
             continue;
-          if (!g.getValueType()->isPointerTy())
-            continue;
-          builder.CreateCall(add_root,
-                             {builder.CreateBitCast(&g, i8pp)});
+          llvm::Type *vt = g.getValueType();
+          if (vt->isPointerTy()) {
+            builder.CreateCall(add_root, {builder.CreateBitCast(&g, i8pp)});
+          } else if (auto *st = llvm::dyn_cast<llvm::StructType>(vt)) {
+            // Dynamic globals are boxed inline (`%fg_dyn_type = { i32, i64 }`);
+            // register the payload field's address so a boxed heap value is
+            // traced. Non-pointer payloads are filtered by fw_gc_resolve_object.
+            if (st->hasName() && st->getName() == "fg_dyn_type") {
+              llvm::Value *payload =
+                  builder.CreateStructGEP(st, &g, 1, "dyn_root_payload");
+              builder.CreateCall(add_root,
+                                 {builder.CreateBitCast(payload, i8pp)});
+            }
+          }
         }
       }
     }
@@ -235,6 +234,11 @@ void IRGenerator::visit(
   // Brought dependency .o: no `main`; top-level statements live in
   // __fw_brought_init_<i> (called from the primary TU's `main`).
 
+  // Top-level (script) locals become roots of the current entry function
+  // (`main` or the brought-init function). Reset the per-function root list
+  // before generating those statements so it holds only this function's roots.
+  m_ir_gen_context.clearGcRootAllocas();
+
   for (const auto &statement : compilation_unit->getStatements()) {
     statement->accept(this);
   }
@@ -249,11 +253,22 @@ void IRGenerator::visit(
     if (cur && !cur->getTerminator()) {
       builder->CreateRetVoid();
     }
+
+    // Emit the shadow frame for the brought-init function's top-level roots.
+    if (brought_init_fn) {
+      emitGcShadowFrame(brought_init_fn);
+    }
+
     verifyModule();
     return;
   }
 
   handleReturn();
+
+  // Emit the shadow frame for `main`'s top-level pointer roots (push in the
+  // entry block, pop before the ret created by handleReturn).
+  emitGcShadowFrame(entry_point_function);
+
   CODEGEN_DEBUG_LOG("Verifying Entry Point Function", "IR GENERATION");
   llvm::verifyFunction(*entry_point_function);
   verifyModule();
@@ -434,6 +449,35 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
   const llvm::DataLayout &dl =
       m_ir_gen_context.getLLVMModule()->getDataLayout();
   uint64_t type_size_bytes = dl.getTypeAllocSize(struct_type);
+
+  // FFI wrapper classes store a `fw_gc_alloc`'d native handle in an `int64`
+  // field (conventionally `_handle`) via reinterpret_cast. The precise GC cannot
+  // see a heap pointer through an int64, so the handle would be collected while
+  // the wrapper still lives. Mark such a field's byte offset as a GC pointer so
+  // the descriptor keeps the handle alive for the wrapper's lifetime and
+  // finalizes it on drop. An unset (`0`) handle is skipped by the runtime's
+  // fw_gc_resolve_object heap-membership guard, so the mark is always safe.
+  const llvm::StructLayout *sl = dl.getStructLayout(struct_type);
+  for (const types::ClassType *cur = ct; cur != nullptr;
+       cur = cur->getBaseClass().get()) {
+    for (const auto &[field_name, member] : cur->getFieldMembers()) {
+      if (member->getKind() != analysis::SymbolKind::kVariable)
+        continue;
+      if (field_name != "_handle")
+        continue;
+      if (member->getType().get() !=
+          analysis::Builtins::m_int64_type_instance.get())
+        continue;
+      int llvm_idx = ct->getMemberFieldIndex(field_name);
+      if (llvm_idx < 0 ||
+          static_cast<unsigned>(llvm_idx) >= struct_type->getNumElements())
+        continue;
+      uint64_t off = sl->getElementOffset(static_cast<unsigned>(llvm_idx));
+      m_ir_gen_context.getGCDescriptorEmitter()->registerNativeHandleOffset(
+          struct_type, static_cast<uint32_t>(off));
+    }
+  }
+
   auto *desc =
       m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(struct_type);
   llvm::CallInst *malloc_call = builder->CreateCall(
@@ -446,6 +490,18 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
   auto *heap_ptr = builder->CreateBitCast(
       malloc_call, struct_type->getPointerTo(), "new." + class_type->getName());
   builder->CreateStore(llvm::ConstantAggregateZero::get(struct_type), heap_ptr);
+
+  // Temp-safety: root the freshly-allocated instance *before* any field
+  // initializer runs. The default-string-field and field-initializer emission
+  // below hit `fw_gc_alloc` safepoints; without a root the object could be
+  // collected while it lives only in the `heap_ptr` SSA temp. The GC is
+  // non-moving, so keeping the object reachable through this slot also keeps
+  // `heap_ptr` valid across those safepoints — no reload needed. This slot also
+  // serves as the expression result (`m_last_value`) and the `self` argument.
+  llvm::AllocaInst *alloca = m_ir_gen_context.createAlloca(
+      builder->getPtrTy(), "new." + class_type->getName() + ".slot");
+  builder->CreateStore(heap_ptr, alloca);
+  m_ir_gen_context.addGcRootAlloca(alloca);
 
   const std::string vt_name = std::string("__vt_") + ct->getQualifiedName();
   llvm::GlobalVariable *vt_global =
@@ -462,11 +518,9 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
 
   emitClassInstanceFieldInitializers(ct, struct_type, heap_ptr);
 
-  // Store heap pointer into a local alloca so that the rest of the pipeline
-  // (emitTypedStore, argument passing) can treat it uniformly as alloca→ptr.
-  llvm::Value *alloca = m_ir_gen_context.createAlloca(
-      builder->getPtrTy(), "new." + class_type->getName() + ".slot");
-  builder->CreateStore(heap_ptr, alloca);
+  // `alloca` (rooted above) already holds the heap pointer; the rest of the
+  // pipeline (emitTypedStore, argument passing) treats it uniformly as
+  // alloca→ptr.
 
   const auto &ctor_args = new_expr->getArguments();
   std::vector<std::shared_ptr<types::Type>> ctor_arg_types;
@@ -540,6 +594,16 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
             "init_arg");
         val = resolveValue(m_last_value, m_last_type);
         emitTypedStore(arg_slot, param_raw_type, val, m_last_type);
+      }
+      // Temp-safety: root an already-evaluated GC-pointer arg so it survives
+      // the allocations performed while evaluating later ctor arguments (e.g. an
+      // object-literal arg calling fw_gc_alloc). Mirrors the argument rooting in
+      // dispatchUserDefinedOrExternalFunctionCall. Dynamic args are boxed inline
+      // (not a raw pointer) and are intentionally skipped.
+      if (auto *slot = llvm::dyn_cast<llvm::AllocaInst>(arg_slot)) {
+        if (param_raw_type->isGcReference() &&
+            slot->getAllocatedType()->isPointerTy())
+          m_ir_gen_context.addGcRootAlloca(slot);
       }
       llvm_args.push_back(arg_slot);
       clearLast();

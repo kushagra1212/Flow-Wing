@@ -1,0 +1,35 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Multi-return temp-safety. A multi-return packs its results inline in one slot;
+/; unpacking field-by-field hits safepoints, so every heap-pointer leaf of the
+/; slot must be rooted. Covers BOTH the declaration form (`var a,b = f()`) and
+/; the assignment form (`a,b = f()`) — bug #7.
+/; --------------------------------------------------------------------------
+
+fun triple() -> int, deci, str {
+  return 1, 2.5, "th" + "ree"
+}
+
+/; declaration form
+var a: int, b: deci, c: str = triple()
+println(a)
+println(b)
+println(c)
+
+/; assignment form (targets already declared)
+var x: int = 0
+var y: deci = 0.0
+var z: str = ""
+x, y, z = triple()
+println(x)
+println(y)
+println(z)
+
+/; multiple strings in a multi-return — all must survive
+fun names() -> str, str, str {
+  return "al" + "pha", "be" + "ta", "gam" + "ma"
+}
+var n1: str, n2: str, n3: str = names()
+println(n1)
+println(n2)
+println(n3)

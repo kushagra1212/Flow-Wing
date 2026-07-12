@@ -60,11 +60,17 @@ typedef struct FWFinalizer {
 } FWFinalizer;
 extern FWFinalizer *g_finalizers;
 
-/* Conservative stack scanning (defined in fw_gc_conservative.c). */
-extern void *g_stack_base;                    /* high end of the C stack */
-void fw_gc_scan_stack_conservative(void);
-
 /* Push a non-NULL heap object onto the mark work-list (defined in
-   fw_gc_mark.c). Shared by the root-seeding paths and the conservative
-   scanner. */
+   fw_gc_mark.c). Shared by the precise root-seeding paths. */
 void fw_gc_push_root_object(void *obj);
+
+/* Resolve an arbitrary (possibly interior, possibly non-heap) pointer to the
+   base of the live heap object containing it, or NULL. Defined in fw_gc_core.c
+   next to the all-objects list. */
+void *fw_gc_resolve_object(void *p);
+
+/* Build / free the per-collection sorted object index that makes
+   fw_gc_resolve_object O(log N). The collector builds it before marking (when
+   the live set is stable) and frees it after sweeping. Defined in fw_gc_core.c. */
+void fw_gc_build_object_index(void);
+void fw_gc_free_object_index(void);

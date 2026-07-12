@@ -40,17 +40,102 @@ void fw_gc_run_finalizer_if_any(void *obj) {
 /* forward-declared; implemented in Task 5 */
 void fw_gc_collect(void);
 
+/* ---- Per-collection object index ---------------------------------------
+   fw_gc_resolve_object is called for every candidate pointer while marking.
+   A linear scan of g_all_objects makes marking O(objects^2), which is fatal
+   for large live heaps. Since no allocation happens during a collection, the
+   set of live objects is stable, so we snapshot their payload ranges into a
+   sorted array once per collection and binary-search it — O(log N) per lookup,
+   O(N log N) marking overall. Interior pointers (e.g. `&arr[i]` into an inline
+   array) are supported via the range check. */
+typedef struct {
+  uintptr_t lo;   /* payload base */
+  uintptr_t hi;   /* one past the last payload byte */
+} FWObjRange;
+
+static FWObjRange *g_index = NULL;
+static size_t      g_index_n = 0;
+
+static int fw_range_cmp(const void *a, const void *b) {
+  uintptr_t la = ((const FWObjRange *)a)->lo;
+  uintptr_t lb = ((const FWObjRange *)b)->lo;
+  return (la < lb) ? -1 : (la > lb) ? 1 : 0;
+}
+
+void fw_gc_build_object_index(void) {
+  size_t n = 0;
+  for (FWObjHeader *h = g_all_objects; h != NULL; h = h->next) n++;
+  g_index = n ? (FWObjRange *)malloc(n * sizeof(FWObjRange)) : NULL;
+  if (g_index == NULL) { g_index_n = 0; return; } /* OOM -> linear fallback */
+  size_t i = 0;
+  for (FWObjHeader *h = g_all_objects; h != NULL && i < n; h = h->next) {
+    uintptr_t lo = (uintptr_t)fw_payload(h);
+    g_index[i].lo = lo;
+    g_index[i].hi = lo + h->size;
+    i++;
+  }
+  g_index_n = i;
+  qsort(g_index, g_index_n, sizeof(FWObjRange), fw_range_cmp);
+}
+
+void fw_gc_free_object_index(void) {
+  free(g_index);
+  g_index = NULL;
+  g_index_n = 0;
+}
+
+/* Resolve an arbitrary pointer to the base of the live heap object that
+   contains it (interior pointers included), or NULL if it points at no live
+   object. A precise root or object field normally points at an exact object
+   base, but a string value may legitimately point at a static string constant
+   (e.g. the empty string) that is NOT GC-managed and has no object header;
+   marking must skip such pointers instead of reading a garbage header. */
+void *fw_gc_resolve_object(void *p) {
+  if (p == NULL) return NULL;
+  uintptr_t q = (uintptr_t)p;
+
+  /* Fast path: binary-search the per-collection sorted index. Find the
+     rightmost range whose base <= q, then range-check it. */
+  if (g_index != NULL) {
+    size_t lo = 0, hi = g_index_n;               /* search over [lo, hi)     */
+    while (lo < hi) {
+      size_t mid = lo + (hi - lo) / 2;
+      if (g_index[mid].lo <= q) lo = mid + 1; else hi = mid;
+    }
+    if (lo > 0) {                                /* candidate is g_index[lo-1] */
+      const FWObjRange *r = &g_index[lo - 1];
+      if (q >= r->lo && q < r->hi) return (void *)r->lo;
+    }
+    return NULL;
+  }
+
+  /* Fallback (no active index, e.g. a call outside a collection): linear. */
+  for (FWObjHeader *h = g_all_objects; h != NULL; h = h->next) {
+    uintptr_t lo = (uintptr_t)fw_payload(h);
+    uintptr_t hi = lo + h->size;                 /* one past the last byte */
+    if (q >= lo && q < hi) return (void *)lo;
+  }
+  return NULL;
+}
+
 void fw_gc_init(void) {
   g_all_objects = NULL;
   memset(&g_stats, 0, sizeof(g_stats));
   g_stress = 0;
   g_threshold = 1u << 20;
-  fw_gc_shadow_top = NULL;
+  /* Do NOT reset fw_gc_shadow_top here. The compiled `main` pushes its own
+     shadow frame at entry (before it calls fw_gc_init via the runtime-init
+     preamble), so clearing the top would orphan main's frame and leave its
+     roots invisible for the rest of the program. The shadow stack is
+     compiler-managed and push/pop balanced; at true process start it is
+     already NULL (BSS), so no reset is needed. */
   free(g_global_roots);
   g_global_roots = NULL;
   g_global_roots_len = 0;
   g_global_roots_cap = 0;
   while (g_finalizers) { FWFinalizer *n = g_finalizers->next; free(g_finalizers); g_finalizers = n; }
+  const char *stress = getenv("FW_GC_STRESS");
+  if (stress && stress[0] == '1' && stress[1] == '\0') g_stress = 1;
 }
 
 void fw_gc_add_root(void **slot) {

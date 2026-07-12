@@ -34,6 +34,17 @@ typedef enum {
   FW_KIND_ARRAY = 3   /* repeat an element descriptor N times (containers) */
 } FWKind;
 
+/* Custom trace callback: for objects whose live GC pointers live in memory the
+   static layout fields cannot describe — e.g. an FFI container that keeps its
+   elements in a C++-owned std::vector/std::unordered_map on the malloc heap. The
+   collector calls `trace(obj, mark)` while marking the object; the callback
+   invokes `mark(ptr)` once per contained GC pointer. `mark` is the GC's internal
+   enqueue primitive: non-heap or already-marked pointers are handled/skipped for
+   you, so the callback may pass any candidate pointer safely. This lets a native
+   container hold ANY GC value (string, object, array, nested container) with zero
+   copies and correct lifetime/identity. NULL for ordinary types. */
+typedef void (*fw_trace_fn)(void *obj, void (*mark)(void *ptr));
+
 /* Static, one-per-type map of where pointers live. 8-byte aligned so the
    low 3 bits of a pointer to it are free for GC flags. */
 typedef struct FWTypeDescriptor {
@@ -53,6 +64,10 @@ typedef struct FWTypeDescriptor {
   /* ARRAY */
   const struct FWTypeDescriptor *elem_desc;  /* how to scan one element */
   size_t                         elem_size;  /* bytes per element */
+
+  /* CUSTOM (appended last so existing field offsets are unchanged; codegen
+     emits this field too, so the C and LLVM layouts stay byte-identical). */
+  fw_trace_fn                    trace;      /* deep-scan hook, or NULL */
 } FWTypeDescriptor;
 
 /* Shared, process-wide descriptors for the two most common runtime shapes. */
@@ -82,22 +97,20 @@ void       fw_gc_collect(void);
 FWGCStats  fw_gc_stats(void);
 void       fw_gc_set_stress(int on);   /* 1 = collect on every alloc */
 
-/* A shadow-stack frame: lists the addresses of a function's pointer locals.
-   Codegen (later milestone) pushes/pops these; M0 tests build them by hand. */
+/* A shadow-stack frame: lists the ADDRESSES of a function's pointer locals.
+   Slot-address model: each roots[i] is a void** pointing at a pointer local;
+   the GC reads *roots[i] to get that local's current value at collect time.
+   Codegen pushes/pops these per function (see M2). */
 typedef struct FWFrame {
   struct FWFrame *prev;   /* caller's frame */
   uint32_t        n;      /* number of root slots */
-  void          **roots;  /* array of n slots, each a void** to a heap object */
+  void          **roots;  /* array of n slot addresses (each a void**) */
 } FWFrame;
 
 extern FWFrame *fw_gc_shadow_top;    /* current top frame (NULL when empty) */
 
 void fw_gc_add_root(void **slot);
 void fw_gc_remove_root(void **slot);
-
-/* Record the high end of the C call stack (typically `&argc` in main) so the
-   conservative scanner knows the range to sweep for on-stack roots. */
-void fw_gc_set_stack_base(void *stack_base);
 
 void fw_gc_register_finalizer(void *obj, void (*fn)(void *));
 

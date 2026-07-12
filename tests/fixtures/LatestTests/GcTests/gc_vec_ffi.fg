@@ -1,0 +1,56 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; FFI trace hook — Vec. The Vec's elements live in a native C++ std::vector the
+/; precise GC cannot scan directly. The handle's descriptor `trace` hook marks
+/; every contained GC pointer (strings/objects) so they survive collection while
+/; the Vec is reachable. Exercises push/get/set/insert/pop/removeAt/sort/reverse,
+/; chained calls, and mixed element types.
+/; --------------------------------------------------------------------------
+
+bring vec
+
+/; strings pushed via chained calls (each literal is a fresh allocation)
+var v: vec::Vec = new vec::Vec()
+v.push("Zebra").push("Apple").push("Mango").push("Delta")
+println(v.size())
+println(v.get(0))
+println(v.get(1))
+println(v.get(2))
+println(v.get(3))
+
+/; concatenated strings pushed (freshly-allocated element values)
+var w: vec::Vec = new vec::Vec()
+w.push("a" + "1").push("b" + "2").push("c" + "3")
+println(w.get(0))
+println(w.get(1))
+println(w.get(2))
+
+/; sort strings ascending, then read back
+v.sort(true)
+println(v.get(0))
+println(v.get(3))
+
+/; set / insert / removeAt
+v.set(0, "First")
+v.insert(1, "Inserted")
+println(v.get(0))
+println(v.get(1))
+println(v.get(2))
+println(v.removeAt(1))
+println(v.size())
+
+/; pop returns and shrinks
+println(v.pop())
+println(v.size())
+
+/; mixed types survive (int / str / bool / char)
+var m: vec::Vec = new vec::Vec()
+m.push(100).push("txt" + "!").push(true).push('Z')
+println(m.get(0))
+println(m.get(1))
+println(m.get(2))
+println(m.get(3))
+
+/; indexOf on strings
+println(m.indexOf("txt!"))
+println(m.indexOf("absent"))

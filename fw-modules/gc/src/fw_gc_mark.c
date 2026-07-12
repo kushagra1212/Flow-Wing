@@ -6,7 +6,12 @@
 static void **s_work = NULL;
 static size_t s_work_len = 0, s_work_cap = 0;
 
-static void work_push(void *obj) {
+static void work_push(void *p) {
+  /* Precise roots and object fields normally hold exact object bases, but a
+     string value may point at a static constant (empty string / literal) that
+     is not GC-managed. Resolve through the all-objects list so such pointers
+     (and any junk) are skipped instead of having a garbage header read. */
+  void *obj = fw_gc_resolve_object(p);
   if (obj == NULL) return;
   if (s_work_len == s_work_cap) {
     s_work_cap = s_work_cap ? s_work_cap * 2 : 64;
@@ -15,9 +20,8 @@ static void work_push(void *obj) {
   s_work[s_work_len++] = obj;
 }
 
-/* Seed a root object onto the work-list. Exported so the conservative stack
-   scanner (fw_gc_conservative.c) can enqueue the objects it discovers using
-   the exact same path as the global-root / shadow-stack seeding below. */
+/* Seed a root object onto the work-list, using the exact same path as the
+   global-root / shadow-stack seeding below. */
 void fw_gc_push_root_object(void *obj) {
   work_push(obj);
 }
@@ -27,6 +31,13 @@ void fw_gc_push_root_object(void *obj) {
    Recursion here is bounded by descriptor NESTING depth (ARRAY of TAGGED),
    not by the object graph, so it cannot overflow the stack. */
 static void scan_fields(char *base, const FWTypeDescriptor *desc, size_t size) {
+  /* Custom deep-scan hook (independent of `kind`): lets a native container mark
+     GC pointers held in memory the layout fields cannot describe (e.g. a C++
+     std::vector on the malloc heap). `work_push` is the enqueue primitive and
+     already resolves/skips non-heap pointers, so it is the `mark` callback. */
+  if (desc->trace != NULL)
+    desc->trace((void *)base, work_push);
+
   switch (desc->kind) {
     case FW_KIND_BLOB:
       break;                                  /* no pointers */
@@ -82,12 +93,13 @@ void fw_gc_mark_from_roots(void) {
   /* Shadow-stack roots: walk frames, then each frame's slots. */
   for (FWFrame *f = fw_gc_shadow_top; f != NULL; f = f->prev)
     for (uint32_t i = 0; i < f->n; i++)
-      push_root_slot(&f->roots[i]);
+      push_root_slot((void **)f->roots[i]);
 
-  /* Conservative C-stack roots: any live-object pointer sitting in a machine
-     register or stack slot keeps its object alive. Seeds directly onto the
-     work-list, so it must run before the drain below. */
-  fw_gc_scan_stack_conservative();
+  /* Precise-only (M2): every live GC pointer is reachable through a global root,
+     a shadow-stack slot (locals/params/args), a traced descriptor field, or a
+     container trace hook. Conservative C-stack scanning is being removed — its
+     call is disabled here while the remaining codegen temp-safety gaps are
+     closed. Once precise-only stress is fully green the scanner code is deleted. */
 
   /* Drain the work-list. */
   while (s_work_len > 0) {

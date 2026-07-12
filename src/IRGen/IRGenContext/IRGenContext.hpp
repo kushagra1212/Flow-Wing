@@ -98,6 +98,22 @@ public:
   llvm::BasicBlock *getCurrentLoopCond() const;
   llvm::BasicBlock *getCurrentLoopAfter() const;
 
+  // --- Per-function GC shadow-stack roots ---
+  // Pointer-typed local/param allocas that hold a single heap pointer. The
+  // shadow-frame emitter (IRGenerator::emitGcShadowFrame) consumes this list at
+  // the end of each function and clears it per function via clearGcRootAllocas.
+  void addGcRootAlloca(llvm::AllocaInst *root_alloca);
+  std::vector<llvm::AllocaInst *> &getGcRootAllocas();
+  void clearGcRootAllocas();
+
+  // Additional GC root "slots" expressed as (base alloca, byte offset) pairs.
+  // Used to root individual heap-pointer leaves inside a wider stack aggregate
+  // (e.g. the pointer fields of a multi-return `ret_slot`) that the single-word
+  // per-alloca root model cannot reach. The shadow-frame emitter computes
+  // `i8* base + offset` in the prologue and appends each as a `void**` root.
+  void addGcRootSlot(llvm::AllocaInst *base, uint64_t byte_offset);
+  std::vector<std::pair<llvm::AllocaInst *, uint64_t>> &getGcRootSlots();
+
 private:
   CompilationContext &m_context;
   llvm::LLVMContext *m_llvm_context;
@@ -111,6 +127,11 @@ private:
     llvm::BasicBlock *after_block = nullptr;
   };
   std::vector<LoopTargets> m_loop_stack;
+
+  // Reset at each function entry; holds pointer-typed root allocas for the
+  // shadow frame emitted when the function's body + terminator are complete.
+  std::vector<llvm::AllocaInst *> m_gc_root_allocas;
+  std::vector<std::pair<llvm::AllocaInst *, uint64_t>> m_gc_root_slots;
 
   std::unique_ptr<LLVMTypeBuilder> m_type_builder;
   std::unique_ptr<GCDescriptorEmitter> m_gc_descriptor_emitter;

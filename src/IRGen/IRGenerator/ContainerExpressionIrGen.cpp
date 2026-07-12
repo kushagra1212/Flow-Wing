@@ -37,6 +37,13 @@ void IRGenerator::visit(
 
   auto array_ptr = getTempArray(flow_type.get(), flow_type.get(), nullptr);
 
+  // Temp-safety: `array_ptr` is a fresh heap array held only in an SSA temp,
+  // but each element expression below is evaluated at a `fw_gc_alloc` safepoint.
+  // Root it so the backing store (and the elements already written into it)
+  // survive later element allocations. Non-moving GC: the element GEPs computed
+  // from `array_ptr` stay valid, so no reload is needed.
+  spillToRoot(array_ptr, "arrlit.slot");
+
   auto elements_size = container_expression->getElements().size();
 
   for (size_t i = 0; i < elements_size; i++) {

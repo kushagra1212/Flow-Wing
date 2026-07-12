@@ -30,6 +30,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 namespace flow_wing {
 namespace ir_gen {
@@ -39,7 +40,7 @@ namespace ir_gen {
 /// its field order with `_Static_assert`s in fw_gc_descriptors.c; this mirror
 /// lets codegen assert that the LLVM struct it builds lays out to the very same
 /// number of bytes the runtime reads back.
-constexpr uint64_t kFWTypeDescriptorAbiSize = 64;
+constexpr uint64_t kFWTypeDescriptorAbiSize = 72;
 
 /// Emits `FWTypeDescriptor` LLVM global constants whose in-memory layout
 /// matches the C struct in fw-modules/gc/include/fw_gc.h byte-for-byte, and
@@ -65,6 +66,17 @@ public:
   /// `struct_ty`. Returned as `i8*`.
   llvm::Constant *getOrEmitPlain(llvm::StructType *struct_ty);
 
+  /// Register an additional GC-pointer byte offset for `struct_ty` that the
+  /// DataLayout-based scan cannot discover on its own. Used for FFI wrapper
+  /// classes whose native handle is stored in an `int64` field that actually
+  /// holds a `fw_gc_alloc`'d heap pointer (e.g. `Vec._handle`). Marking the slot
+  /// makes the GC keep the handle alive for the wrapper's lifetime and finalize
+  /// it on drop; the runtime's fw_gc_resolve_object heap-membership guard makes a
+  /// non-heap value (an unset `0` handle) harmless. Must be called before the
+  /// first `getOrEmitPlain(struct_ty)` so the offset lands in the cached
+  /// descriptor. Idempotent per (struct_ty, offset).
+  void registerNativeHandleOffset(llvm::StructType *struct_ty, uint32_t offset);
+
   /// Shared BLOB descriptor (`FW_KIND_BLOB`) for raw byte buffers / strings —
   /// no interior pointers. Cached. Returned as `i8*`.
   llvm::Constant *getBlob();
@@ -75,13 +87,25 @@ public:
   llvm::Constant *getDynamic();
 
   /// ARRAY descriptor (`FW_KIND_ARRAY`) over an element descriptor. `elem_desc`
-  /// points at the PLAIN descriptor for `elem_struct_ty`; `elem_size` is the
+  /// points at the PLAIN descriptor for `elem_struct_ty` — except for the boxed
+  /// dynamic struct (`fg_dyn_type`), where the shared TAGGED descriptor is used
+  /// so that boxed pointers inside each element are traced. `elem_size` is the
   /// caller-supplied per-element byte size. Cached per element struct type.
   /// Returned as `i8*`.
   llvm::Constant *getOrEmitArray(llvm::StructType *elem_struct_ty,
                                  uint64_t elem_size);
 
+  /// ARRAY descriptor whose elements are bare GC pointers (e.g. `str[]`, or the
+  /// pointer slots of an array of arrays). The element descriptor is a PLAIN
+  /// shape with a single pointer at offset 0. `elem_size` is the pointer size
+  /// (8 on LP64). Cached (one shared instance). Returned as `i8*`.
+  llvm::Constant *getOrEmitArrayOfPointer(uint64_t elem_size);
+
 private:
+  /// PLAIN descriptor describing a single pointer at offset 0 (used as the
+  /// element descriptor of a pointer-element array). Cached.
+  llvm::Constant *getSinglePointerElem();
+
   /// Bitcast any constant pointer to `i8*` (a no-op under opaque pointers, but
   /// kept explicit to match the codebase's typed-pointer idiom).
   llvm::Constant *asI8Ptr(llvm::Constant *ptr);
@@ -95,8 +119,14 @@ private:
   llvm::StructType *m_desc_ty = nullptr;
   std::unordered_map<llvm::StructType *, llvm::Constant *> m_plain_cache;
   std::unordered_map<llvm::StructType *, llvm::Constant *> m_array_cache;
+  /// Extra GC-pointer byte offsets per struct that the layout scan can't infer
+  /// (native handles stored in int64 fields). Consulted by getOrEmitPlain.
+  std::unordered_map<llvm::StructType *, std::vector<uint32_t>>
+      m_extra_ptr_offsets;
   llvm::Constant *m_blob = nullptr;
   llvm::Constant *m_dyn = nullptr;
+  llvm::Constant *m_array_ptr = nullptr;
+  llvm::Constant *m_single_ptr_elem = nullptr;
 };
 
 } // namespace ir_gen
