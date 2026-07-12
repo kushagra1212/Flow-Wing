@@ -129,6 +129,15 @@ llvm::Value *IRGenerator::getDynamicBinaryResult(llvm::Value *left_value,
   m_ir_gen_context.getLLVMBuilder()->CreateCall(
       func, {resultAlloca, left_dyn_ptr, right_dyn_ptr, opCodeVal});
 
+  // Temp-safety: the boxed result may hold a freshly-allocated GC string (e.g.
+  // `res + "\"" + key + ...` concatenation), and it lives across further
+  // fg_perform_dynamic_op calls in a chain — each a `fw_gc_alloc` safepoint that
+  // would otherwise collect it, leaving an empty accumulator. Root the box; the
+  // shadow-frame emitter roots its payload and fw_gc_resolve_object skips
+  // non-pointer payloads.
+  if (auto *slot = llvm::dyn_cast<llvm::AllocaInst>(resultAlloca))
+    m_ir_gen_context.addGcRootAlloca(slot);
+
   return resultAlloca;
 }
 

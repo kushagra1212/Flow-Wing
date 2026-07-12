@@ -1,0 +1,32 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Root-list scoping. Top-level `fun` definitions are emitted INLINE while main
+/; is still constructing globals. A nested definition must NOT wipe the enclosing
+/; function's already-accumulated GC roots (bug #3 — the structural one). Here the
+/; globals `head`/`arr` are built, THEN functions are defined between more global
+/; construction, THEN everything is read back.
+/; --------------------------------------------------------------------------
+
+type Node = { label: str, tag: str }
+
+/; global object constructed before any function definition
+var head: Node = { label: "he" + "ad", tag: "t" + "0" }
+
+fun describe(n: Node) -> str { return n.label + ":" + n.tag }
+
+/; more global construction AFTER a function definition
+var second: Node = { label: "se" + "cond", tag: "t" + "1" }
+
+fun join(a: str, b: str) -> str { return a + "|" + b }
+
+var third: Node = { label: "th" + "ird", tag: "t" + "2" }
+
+/; read them all back — if roots were wiped, these would be empty/garbage
+println(head.label)
+println(head.tag)
+println(second.label)
+println(second.tag)
+println(third.label)
+println(third.tag)
+println(describe(head))
+println(join(second.label, third.label))

@@ -200,6 +200,11 @@ if(NOT BUILD_AOT)
     set(DEPS_LIB_DIR "${CMAKE_SOURCE_DIR}/.fw_dependencies/install/lib")
 
     if(APPLE)
+        # flowwing_gc is force_load'd via a raw "-Wl,-force_load,$<TARGET_FILE:...>"
+        # string below, which does NOT create an automatic build-order edge, so
+        # the dependency must be declared explicitly. (On Linux/Windows it is a
+        # plain target in target_link_libraries, so CMake infers the order.)
+        add_dependencies(${EXECUTABLE_NAME} flowwing_gc)
         add_dependencies(${EXECUTABLE_NAME} flowwing_mongo_merge)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,-all_load"
@@ -218,8 +223,7 @@ if(NOT BUILD_AOT)
             # CoreFoundation/Security frameworks and resolv come via the
             # PUBLIC link on flowwing_mongo.
             "-Wl,-force_load,$<TARGET_FILE:flowwing_mongo>"
-            "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
-            "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_gc>"
             "-framework CoreFoundation"
             "-framework IOKit"
             "-framework Cocoa"
@@ -250,8 +254,7 @@ if(NOT BUILD_AOT)
             # flowwing_mongo's PUBLIC deps (libmongoc, libbson, OpenSSL,
             # Threads, resolv, m, dl) are added transitively by CMake.
             flowwing_mongo
-            "${DEPS_LIB_DIR}/libgc.a"
-            "${DEPS_LIB_DIR}/libatomic_ops.a"
+            flowwing_gc
             "-Wl,--no-whole-archive"
 
             # This flag forces all global symbols to be added to the dynamic symbol table,
@@ -274,9 +277,7 @@ if(NOT BUILD_AOT)
             # ws2_32 / secur32 / crypt32 / dnsapi come via flowwing_mongo's
             # PUBLIC link, as do the mongoc2.lib / bson2.lib archives.
             flowwing_mongo
-            "${DEPS_LIB_DIR}/gc.lib"
-            "${DEPS_LIB_DIR}/gccpp.lib"
-            "${DEPS_LIB_DIR}/atomic_ops.lib"
+            flowwing_gc
         )
 
         target_link_options(${EXECUTABLE_NAME} PRIVATE
@@ -290,9 +291,7 @@ if(NOT BUILD_AOT)
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_vortex>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_raylib>"
             "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_mongo>"
-            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
-            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
-            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"
+            "/WHOLEARCHIVE:$<TARGET_FILE:flowwing_gc>"
         )
     endif()
 endif()

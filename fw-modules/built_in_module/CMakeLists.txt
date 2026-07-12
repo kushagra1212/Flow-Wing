@@ -3,15 +3,4 @@ add_library(built_in_module STATIC
     built_in_module.c
 )
 
-if(WIN32)
-    add_compile_definitions(
-        built_in_module
-        PRIVATE
-        GC_NOT_DLL
-    )
-endif()
-
-# This module needs to know where the Boehm GC headers are.
-target_include_directories(built_in_module PRIVATE
-    ${DEPS_INCLUDE_DIR}
-)
+target_link_libraries(built_in_module PRIVATE flowwing_gc)

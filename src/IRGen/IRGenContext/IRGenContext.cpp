@@ -18,6 +18,7 @@
  */
 
 #include "IRGenContext.hpp"
+#include "src/IRGen/GCDescriptor/GCDescriptorEmitter.hpp"
 #include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
@@ -72,6 +73,14 @@ void IRGenContext::initializeLLVM() {
 
 const std::unique_ptr<LLVMTypeBuilder> &IRGenContext::getTypeBuilder() const {
   return m_type_builder;
+}
+
+GCDescriptorEmitter *IRGenContext::getGCDescriptorEmitter() {
+  if (!m_gc_descriptor_emitter) {
+    m_gc_descriptor_emitter =
+        std::make_unique<GCDescriptorEmitter>(m_llvm_module, m_llvm_context);
+  }
+  return m_gc_descriptor_emitter.get();
 }
 
 llvm::Module *IRGenContext::getLLVMModule() const { return m_llvm_module; }
@@ -156,6 +165,28 @@ llvm::AllocaInst *IRGenContext::createAlloca(llvm::Type *type,
 
   llvm::IRBuilder<> temp_builder(&fn->getEntryBlock(), insert_pt);
   return temp_builder.CreateAlloca(type, nullptr, varName);
+}
+
+void IRGenContext::addGcRootAlloca(llvm::AllocaInst *root_alloca) {
+  m_gc_root_allocas.push_back(root_alloca);
+}
+
+std::vector<llvm::AllocaInst *> &IRGenContext::getGcRootAllocas() {
+  return m_gc_root_allocas;
+}
+
+void IRGenContext::clearGcRootAllocas() {
+  m_gc_root_allocas.clear();
+  m_gc_root_slots.clear();
+}
+
+void IRGenContext::addGcRootSlot(llvm::AllocaInst *base, uint64_t byte_offset) {
+  m_gc_root_slots.emplace_back(base, byte_offset);
+}
+
+std::vector<std::pair<llvm::AllocaInst *, uint64_t>> &
+IRGenContext::getGcRootSlots() {
+  return m_gc_root_slots;
 }
 
 void IRGenContext::pushScope() { m_symbol_table.emplace_back(); }

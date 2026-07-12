@@ -24,6 +24,7 @@
 #include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/types/FunctionType/FunctionType.hpp"
 #include "src/utils/LogConfig.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 namespace flow_wing::ir_gen {
 
@@ -61,6 +62,22 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       *m_ir_gen_context.getLLVMContext(), "entry", llvm_function);
 
   builder->SetInsertPoint(entry_block);
+
+  // Top-level `fun` definitions are emitted INLINE within the enclosing
+  // function's statement loop (e.g. `main` while it is still constructing
+  // globals). The GC root lists are shared, so save the enclosing function's
+  // accumulated roots/slots here and restore them after this function's frame is
+  // emitted — otherwise clearGcRootAllocas() below would wipe the enclosing
+  // function's roots and its live objects would be collected mid-construction.
+  std::vector<llvm::AllocaInst *> saved_root_allocas =
+      m_ir_gen_context.getGcRootAllocas();
+  std::vector<std::pair<llvm::AllocaInst *, uint64_t>> saved_root_slots =
+      m_ir_gen_context.getGcRootSlots();
+
+  // Reset the per-function GC root list; it is consumed by emitGcShadowFrame
+  // once this function's body and terminator are complete.
+  m_ir_gen_context.clearGcRootAllocas();
+  m_ir_gen_context.getGcRootSlots().clear();
 
   m_ir_gen_context.pushScope();
 
@@ -125,6 +142,23 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       }
       CODEGEN_DEBUG_LOG("Setting Symbol", param_name);
       m_ir_gen_context.setSymbol(param_name, local_copy);
+
+      // Register the param's local spill slot as a GC root when it holds a
+      // single heap pointer (object/class/string spill to `alloca ptr`).
+      // Array params spill inline (alloca of the array), so the pointer-type
+      // gate excludes them — EXCEPT a by-value dynamic array, which copies
+      // `[N x %fg_dyn_type]` onto the stack. Those boxed elements' payloads are
+      // GC pointers invisible to any descriptor (the copy is not heap-allocated),
+      // so the alloca must be rooted; the shadow-frame emitter roots each
+      // element's payload.
+      if (auto *param_alloca = llvm::dyn_cast<llvm::AllocaInst>(local_copy)) {
+        llvm::Type *alloc_ty = param_alloca->getAllocatedType();
+        const bool is_dyn_array = dynArrayElemCount(alloc_ty) > 0;
+        if ((param_raw_type->isGcReference() && alloc_ty->isPointerTy()) ||
+            is_dyn_array) {
+          m_ir_gen_context.addGcRootAlloca(param_alloca);
+        }
+      }
     }
     param_index++;
   }
@@ -142,6 +176,17 @@ void IRGenerator::visit(binding::BoundFunctionStatement *function_statement) {
       builder->CreateRet(llvm::Constant::getNullValue(return_type));
     }
   }
+
+  // Body + all terminators now exist: emit the shadow frame push/pop for the
+  // pointer roots collected while generating this function. This consumes and
+  // clears the alloca root list.
+  emitGcShadowFrame(llvm_function);
+
+  // Restore the enclosing function's GC roots/slots so its own frame (emitted
+  // later, when its body completes) still sees the roots it accumulated before
+  // this nested definition was encountered.
+  m_ir_gen_context.getGcRootAllocas() = std::move(saved_root_allocas);
+  m_ir_gen_context.getGcRootSlots() = std::move(saved_root_slots);
 
   if (saved_block) {
     builder->SetInsertPoint(saved_block, saved_point);

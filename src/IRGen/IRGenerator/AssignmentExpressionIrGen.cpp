@@ -51,6 +51,12 @@ void IRGenerator::visit(
       llvm::Value *struct_ptr = m_last_value;
       llvm::Type *struct_type = m_last_llvm_type;
 
+      // Root the multi-return slot's heap-pointer leaves so a later field's
+      // string/object survives the fw_gc_alloc safepoints performed while an
+      // earlier field is extracted and stored (e.g. materializeMutableString on
+      // a str target). Mirrors the multi-variable-declaration path.
+      rootMultiReturnSlotLeaves(struct_ptr, struct_type);
+
       size_t num_returns = expr->getMultipleTypes().size();
       for (size_t i = 0; i < num_returns; ++i) {
         if (var_idx >= left_expressions.size())

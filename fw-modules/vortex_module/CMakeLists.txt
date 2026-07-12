@@ -3,14 +3,4 @@ add_library(flowwing_vortex STATIC
     libflowwing_vortex.cpp
 )
 
-if(WIN32)
-    add_compile_definitions(
-        flowwing_vortex
-        PRIVATE 
-        GC_NOT_DLL
-    )
-endif()
-
-target_include_directories(flowwing_vortex PRIVATE
-    ${DEPS_INCLUDE_DIR}
-)
+target_link_libraries(flowwing_vortex PRIVATE flowwing_gc)

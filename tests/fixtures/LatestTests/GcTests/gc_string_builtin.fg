@@ -1,0 +1,35 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Conversion temp-safety. `String(int)` lowers to a fresh heap string (fg_itos),
+/; and unboxing a non-string dynamic to a string allocates too. That freshly
+/; produced string must be rooted before the materialize safepoint (bug #8).
+/; --------------------------------------------------------------------------
+
+/; String() of each numeric width
+var a: str = String(10)
+println(a)
+var b: str = String(255)
+println(b)
+
+/; String() reassigned into an existing variable
+var x: str = "old"
+x = String(42)
+println(x)
+
+/; String() of an uninitialized int (defaults to 0)
+var u: int
+var y: str = String(u)
+println(y)
+
+/; String() results concatenated together
+println(String(1) + "-" + String(2) + "-" + String(3))
+
+/; String() inside a container element conversion
+var xi = 5
+var ys = "Hello"
+var mixed: str[4] = [xi, ys]
+println(mixed)
+
+/; String() feeding a function argument
+fun show(s: str) -> str { return "=" + s + "=" }
+println(show(String(99)))

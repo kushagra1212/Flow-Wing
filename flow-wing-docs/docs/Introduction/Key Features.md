@@ -38,7 +38,7 @@ The AOT compiler produces a native executable you run directly. The JIT tool run
 
 ## Heap Memory
 
-The runtime uses Boehm GC for heap allocation — you never manage memory manually. No `free` needed.
+The runtime uses a built-in garbage collector for heap allocation — you never manage memory manually. No `free` needed.
 
 <CodeBlock code={
 `var items: int[3] = [1, 2, 3]

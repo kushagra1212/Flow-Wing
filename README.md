@@ -2,7 +2,7 @@
 
 Flow-Wing is an experimental, hybrid-typed programming language built on LLVM. It is designed to explore the combination of a strict static type system with supported dynamic primitives. 
 
-Currently a work in progress, Flow-Wing supports object-oriented programming, automatic memory management (via Boehm GC), and modularity. It ships with both Ahead-of-Time (AOT) and Just-In-Time (JIT) compilers, alongside built-in modules for creating HTTP servers, building 2D/3D games, and handling standard I/O.
+Currently a work in progress, Flow-Wing supports object-oriented programming, automatic memory management (via a built-in garbage collector), and modularity. It ships with both Ahead-of-Time (AOT) and Just-In-Time (JIT) compilers, alongside built-in modules for creating HTTP servers, building 2D/3D games, and handling standard I/O.
 
 [Download Flow-Wing](https://flowwing.frii.site/) | [Official Documentation](https://flow-wing-docs.vercel.app/)
 
@@ -36,7 +36,7 @@ Flow-Wing includes `Vortex`, an HTTP server framework for building APIs and serv
 
 * **Hybrid Typing:** Combines static types (`int`, `str`, `deci`) with a dynamic `dyn` type for flexibility when needed.
 * **Dual Execution Modes:** Compile to native executables (AOT) or run scripts directly (JIT).
-* **Memory Management:** Heap memory is managed automatically via the Boehm Garbage Collector. No manual `free()` required.
+* **Memory Management:** Heap memory is managed automatically by Flow-Wing's built-in garbage collector. No manual `free()` required.
 * **Object-Oriented:** Full support for classes, methods, inheritance (`extends`), and custom types.
 * **Native C Interop:** Easily link external C/C++ libraries using standard linker flags (`-l`, `-L`).
 * **Built-in Modules:** Ships with modules for file handling (`file`), JSON parsing (`json`), HTTP servers (`vortex`), graphics (`raylib`), and dynamic data structures (`vec`, `map`).

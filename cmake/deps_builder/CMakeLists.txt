@@ -22,52 +22,15 @@ project(DependencySuperbuild NONE)
 
 include(ExternalProject)
 
-# --- Prerequisite Instructions ---
-#
-# macOS: brew install automake autoconf libtool
-# Linux (Ubuntu/Debian): sudo apt-get install automake autoconf libtool
-# Windows (Visual Studio): No prerequisites needed.
-#
-# --- End Prerequisite Instructions ---
-if(UNIX)
-    find_program(LIBTOOLIZE_EXECUTABLE NAMES glibtoolize libtoolize REQUIRED)
-    find_program(AUTOCONF_EXECUTABLE autoconf REQUIRED)
-    find_program(AUTOMAKE_EXECUTABLE automake REQUIRED)
-    message(STATUS "Found Autotools for UNIX build.")
-endif()
-
 set(LLVM_ASSERTIONS_SETTING OFF)
 set(CMAKE_CONFIG_TYPE ${CMAKE_BUILD_TYPE})
 
-# --- Environment flags for Autotools ---
-set(AUTOTOOLS_ENV_ARGS)
-
-if(UNIX)
-    set(ENV_C_FLAGS "")
-    set(ENV_CXX_FLAGS "")
-
-    if(APPLE)
-        execute_process(COMMAND xcrun --show-sdk-path OUTPUT_VARIABLE MACOSX_SDK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-        if(EXISTS "${MACOSX_SDK_PATH}")
-            message(STATUS "Found macOS SDK. Will pass it to compiler: ${MACOSX_SDK_PATH}")
-            set(ENV_C_FLAGS "${ENV_C_FLAGS} -isysroot ${MACOSX_SDK_PATH}")
-            set(ENV_CXX_FLAGS "${ENV_CXX_FLAGS} -isysroot ${MACOSX_SDK_PATH}")
-        endif()
-    endif()
-
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(LLVM_ASSERTIONS_SETTING ON)
-        set(ENV_C_FLAGS "${ENV_C_FLAGS} -g -O0")
-        set(ENV_CXX_FLAGS "${ENV_CXX_FLAGS} -g -O0")
-        message(STATUS "Configuring for a Debug build: LLVM Assertions ON, Autotools debug flags ON.")
-    else()
-        set(CMAKE_CONFIG_TYPE "Release") # Default to Release
-        message(STATUS "Configuring for a Release build: LLVM Assertions OFF.")
-    endif()
-
-    # Build the list of environment variables correctly for the 'env' command
-    list(APPEND AUTOTOOLS_ENV_ARGS "CFLAGS=${ENV_C_FLAGS}" "CXXFLAGS=${ENV_CXX_FLAGS}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LLVM_ASSERTIONS_SETTING ON)
+    message(STATUS "Configuring for a Debug build: LLVM Assertions ON.")
+else()
+    set(CMAKE_CONFIG_TYPE "Release") # Default to Release
+    message(STATUS "Configuring for a Release build: LLVM Assertions OFF.")
 endif()
 
 set(DEPS_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/../install")
@@ -79,87 +42,6 @@ message("STAMP FILE: ${STAMP_FILE}")
 if(EXISTS "${STAMP_FILE}")
     message(STATUS "Dependencies already built in ${DEPS_INSTALL_DIR}")
 else()
-    set(GC_DEPENDENCY "")
-
-    if(UNIX)
-        ExternalProject_Add(
-            libatomic_ops_external
-            GIT_REPOSITORY "https://github.com/ivmai/libatomic_ops.git"
-            GIT_TAG "v7.8.0"
-            UPDATE_COMMAND ""
-            BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND ./autogen.sh && env ${AUTOTOOLS_ENV_ARGS} ./configure --prefix=${DEPS_INSTALL_DIR} --enable-static --disable-shared
-            BUILD_COMMAND make
-            INSTALL_COMMAND make install
-            USES_TERMINAL_DOWNLOAD true
-            USES_TERMINAL_CONFIGURE true
-            USES_TERMINAL_BUILD true
-            USES_TERMINal_INSTALL true
-
-            GIT_PROGRESS TRUE
-        )
-
-        # FIX: Append the library/include path flags to the list for bdw-gc
-        set(BDWGC_ENV_ARGS ${AUTOTOOLS_ENV_ARGS})
-        list(APPEND BDWGC_ENV_ARGS "CPPFLAGS=-I${DEPS_INSTALL_DIR}/include -DMAX_ROOT_SETS=2048" "LDFLAGS=-L${DEPS_INSTALL_DIR}/lib")
-
-        ExternalProject_Add(
-            bdwgc_external
-            DEPENDS libatomic_ops_external
-            GIT_REPOSITORY "https://github.com/ivmai/bdwgc.git"
-            GIT_TAG "v8.2.4"
-            UPDATE_COMMAND ""
-            BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND ./autogen.sh && env ${BDWGC_ENV_ARGS} ./configure --prefix=${DEPS_INSTALL_DIR} --enable-static --disable-shared --enable-cplusplus --enable-large-config
-            BUILD_COMMAND make
-            INSTALL_COMMAND make install
-            USES_TERMINAL_DOWNLOAD true
-            USES_TERMINAL_CONFIGURE true
-            USES_TERMINAL_BUILD true
-            USES_TERMINAL_INSTALL true
-
-            GIT_PROGRESS TRUE
-        )
-        set(GC_DEPENDENCY "bdwgc_external")
-
-   elseif(WIN32)
-
-   ExternalProject_Add(
-  libatomic_ops_external
-  GIT_REPOSITORY "https://github.com/ivmai/libatomic_ops.git"
-  GIT_TAG "v7.8.0" # Use a specific version for stability
-
-  # Set the install directory for libatomic_ops
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_INSTALL_DIR}
-             -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
-             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-             -Denable_gpl=OFF # Exclude GPL parts if you want
-  USES_TERMINAL_DOWNLOAD true
-  USES_TERMINAL_CONFIGURE true
-  USES_TERMINAL_BUILD true
-  USES_TERMINAL_INSTALL true
-  GIT_PROGRESS TRUE
-)
-
-    ExternalProject_Add(
-            bdwgc_external
-            GIT_REPOSITORY "https://github.com/ivmai/bdwgc.git"
-            GIT_TAG "v8.2.4"
-
-            # Add this to clone libatomic_ops into the source dir
-            PATCH_COMMAND git clone https://github.com/ivmai/libatomic_ops.git libatomic_ops && cd libatomic_ops && git checkout v7.8.0
-            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF         "-DCMAKE_C_FLAGS=-DMAX_ROOT_SETS=4096"
-            "-DCMAKE_CXX_FLAGS=-DMAX_ROOT_SETS=4096"
-            USES_TERMINAL_DOWNLOAD true
-            USES_TERMINAL_CONFIGURE true
-            USES_TERMINAL_BUILD true
-            USES_TERMINAL_INSTALL true
-
-            GIT_PROGRESS TRUE
-        )
-    set(GC_DEPENDENCY "bdwgc_external")
-endif()
-
    ExternalProject_Add(
         raylib_external
         GIT_REPOSITORY  "https://github.com/raysan5/raylib.git"
@@ -215,7 +97,6 @@ endif()
     # (LLVM and GTest sections remain unchanged)
     ExternalProject_Add(
         llvm_external
-        DEPENDS ${GC_DEPENDENCY}
 
         # --- REPLACED a URL download with a Git Clone ---
         GIT_REPOSITORY "https://github.com/llvm/llvm-project.git"

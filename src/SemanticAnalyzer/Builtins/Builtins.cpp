@@ -375,7 +375,15 @@ void Builtins::initializeInternalFunctions() {
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kGC_malloc_fn),
-      {Builtins::m_int64_type_instance}, {Builtins::m_str_type_instance});
+      {Builtins::m_int64_type_instance, Builtins::m_str_type_instance},
+      {Builtins::m_str_type_instance});
+
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kGC_init_fn), {},
+      {Builtins::m_nthg_type_instance});
+  createInternalFunction(
+      std::string(ir_gen::constants::functions::kGC_add_root_fn),
+      {Builtins::m_str_type_instance}, {Builtins::m_nthg_type_instance});
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kString_to_float_fn),

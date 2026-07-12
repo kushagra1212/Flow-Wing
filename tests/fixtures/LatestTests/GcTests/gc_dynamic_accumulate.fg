@@ -1,0 +1,45 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Dynamic-value temp-safety. `var x = a + b` with no annotation infers `dynamic`
+/; (boxed inline). The box's payload must be rooted (bug #6), and a dynamic value
+/; accumulated in a loop through fg_perform_dynamic_op must survive each iteration
+/; and each nested call's allocations (bug #11 — the JSON-builder shape).
+/; --------------------------------------------------------------------------
+
+/; inferred-dynamic local holding a heap string, passed to a str parameter
+/; across a `new` allocation (the shape of bug #6).
+class Holder {
+  var s: str
+  init(v: str) -> nthg { self.s = v }
+  fun get() -> str { return self.s }
+}
+var combined = "foo" + "bar"
+var h: Holder = new Holder(combined)
+println(h.get())
+
+/; dynamic → str assignment
+var out: str = "one" + "two"
+println(out)
+
+/; dynamic accumulator built in a loop with nested-call allocations
+fun deco(n: int) -> str { return "<" + String(n) + ">" }
+
+var res = "["
+for var i: int = 0 to 4 {
+  res = res + deco(i)
+  if i < 4 { res = res + "," }
+}
+res = res + "]"
+println(res)
+
+/; string built by repeated dynamic +=
+var s = ""
+for var j: int = 0 to 5 {
+  s = s + "ab"
+}
+println(s)
+
+/; dynamic values flowing through a function boundary
+fun tagIt(x) { return "#" + x }
+var t = tagIt("val" + "ue")
+println(t)

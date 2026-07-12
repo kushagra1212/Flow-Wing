@@ -25,7 +25,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <gc/gc.h>
+#include "fw_gc.h"
 #include <sstream>
 #include <string>
 
@@ -40,7 +40,7 @@ int32_t file_last_error() { return last_file_error; }
 
 // Helper: Allocate a GC-tracked string to return to FlowWing
 static const char *alloc_gc_string(const std::string &str) {
-  char *cstr = (char *)GC_MALLOC_ATOMIC(str.length() + 1);
+  char *cstr = (char *)fw_gc_alloc(str.length() + 1, &fw_blob_desc);
   if (cstr) {
     std::memcpy(cstr, str.c_str(), str.length());
     cstr[str.length()] = '\0';
@@ -127,13 +127,15 @@ void finalizeFileHandle(void *raw_handle, void *) {
   handle->stream.~fstream_t(); // Explicit destructor call using decltype
 }
 
+static void finalizeFileHandle1(void *raw) { finalizeFileHandle(raw, nullptr); }
+
 int64_t file_open(const char *path, const char *mode) {
-  auto *handle = static_cast<FileHandle *>(GC_MALLOC(sizeof(FileHandle)));
+  auto *handle = static_cast<FileHandle *>(fw_gc_alloc(sizeof(FileHandle), &fw_blob_desc));
   if (!handle)
     return 0;
 
   new (&handle->stream) std::fstream(); // Placement new
-  GC_register_finalizer(handle, finalizeFileHandle, nullptr, nullptr, nullptr);
+  fw_gc_register_finalizer(handle, finalizeFileHandle1);
 
   std::ios_base::openmode std_mode = std::ios::binary;
   if (std::strcmp(mode, "r") == 0)

@@ -1,0 +1,44 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; FFI trace hook — Map. Values live in a native std::unordered_map; the handle's
+/; trace hook marks each GC-pointer value. Access is by key (deterministic) —
+/; never by iteration order. Exercises set/get/getOr/has/remove/overwrite and
+/; freshly-concatenated keys & values.
+/; --------------------------------------------------------------------------
+
+bring map
+
+var m: map::Map = new map::Map()
+
+/; string values, including concatenated ones
+m.set("name", "Flow" + "Wing")
+m.set("kind", "lang" + "uage")
+m.set("count", 42)
+m.set("ok", true)
+println(m.get("name"))
+println(m.get("kind"))
+println(m.get("count"))
+println(m.get("ok"))
+
+/; chained sets
+m.set("a", "x" + "1").set("b", "y" + "2").set("c", "z" + "3")
+println(m.get("a"))
+println(m.get("b"))
+println(m.get("c"))
+
+/; overwrite an existing key with a fresh value
+m.set("name", "New" + "Name")
+println(m.get("name"))
+
+/; getOr fallbacks for missing keys
+println(m.getOr("missing", "fall" + "back"))
+println(m.getOr("count", -1))
+
+/; has / remove
+println(m.has("a"))
+println(m.remove("a"))
+println(m.has("a"))
+println(m.getOr("a", "gone"))
+
+/; size after all the churn
+println(m.size())

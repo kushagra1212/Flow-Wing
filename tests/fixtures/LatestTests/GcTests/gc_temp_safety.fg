@@ -1,0 +1,33 @@
+type Pair = {
+  x:str,
+  y:str
+}
+
+fun combine(a:str, b:str) {
+  return a + b
+}
+
+/; Chained concat: the a+b intermediate is a heap string held only in an SSA
+/; temp while the next concat allocates. Under stress it must survive.
+var chained:str = "aa" + "bb" + "cc" + "dd"
+println(chained)
+
+/; Object literal whose field values are freshly-allocated (concatenated)
+/; strings. The tmp object is held in a temp while each field RHS allocates.
+var p:Pair = {x: "hello" + "world", y: "foo" + "bar"}
+println(p.x)
+println(p.y)
+
+/; Container literal whose elements are freshly-allocated objects with
+/; freshly-allocated string fields. The array backing store is held in a temp
+/; while each element (and its fields) allocate.
+var arr:Pair[2] = [{x: "a" + "1", y: "b" + "2"}, {x: "c" + "3", y: "d" + "4"}]
+println(arr[0].x)
+println(arr[0].y)
+println(arr[1].x)
+println(arr[1].y)
+
+/; Call passing two freshly-allocated arguments. The first arg is a heap string
+/; held in a slot while the second arg allocates.
+var r:str = combine("left" + "L", "right" + "R")
+println(r)

@@ -29,7 +29,7 @@ jobs:
 
       - name: Install Tools
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: brew install ninja ccache automake autoconf libtool llvm@17
+        run: brew install ninja ccache llvm@17
 
       - name: Set Compiler Environment
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -60,7 +60,7 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
       - name: Install Tools
-        run: brew install ninja ccache automake autoconf libtool llvm@17
+        run: brew install ninja ccache llvm@17
 
       - name: Restore Dependencies from Cache
         id: cache-deps
@@ -229,7 +229,7 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+          sudo apt-get install -y clang-17 lld ninja-build ccache wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Install Dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -255,7 +255,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld ninja-build ccache automake autoconf libtool wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
+          sudo apt-get install -y clang-17 lld ninja-build ccache wget libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev
 
       - name: Restore Dependencies from Cache
         id: cache-deps

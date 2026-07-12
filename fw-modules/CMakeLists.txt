@@ -6,6 +6,7 @@
 # which in turn define the library targets for the SDK.
 # =============================================================================
 
+add_subdirectory(gc)
 add_subdirectory(built_in_module)
 add_subdirectory(dynamic)
 add_subdirectory(map_module)

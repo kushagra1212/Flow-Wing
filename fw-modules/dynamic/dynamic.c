@@ -12,7 +12,7 @@
  #include <string.h>
  #include <stdbool.h>
  #include <stdint.h>
- #include <gc.h> // Boehm GC
+ #include "fw_gc.h"
  
  // ==========================================
  // Constants & Definitions

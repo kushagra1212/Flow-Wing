@@ -157,7 +157,15 @@
     "--compile-commands-dir=${workspaceFolder}",
     "--query-driver=${command:cmake.compilerPath}"
   ],
-  "cSpell.words": ["cmdl", "flowwing", "Kushagra", "Nirast", "Nthg", "Rathore"],
+  "cSpell.words": [
+    "cmdl",
+    "flowwing",
+    "fptrunc",
+    "Kushagra",
+    "Nirast",
+    "Nthg",
+    "Rathore"
+  ],
   "roo-cline.autoApprovalSettings": {
     "read_file": true,
     "list_files": true,

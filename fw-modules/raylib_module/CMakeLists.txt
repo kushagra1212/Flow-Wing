@@ -41,7 +41,6 @@ elseif(UNIX AND NOT APPLE)
     )
 elseif(WIN32)
     target_link_libraries(flowwing_raylib PUBLIC ${RAYLIB_LIB} winmm gdi32 shell32)
-    target_compile_definitions(flowwing_raylib PRIVATE GC_NOT_DLL)
 endif()
 
 target_include_directories(flowwing_raylib PUBLIC ${DEPS_INCLUDE_DIR})

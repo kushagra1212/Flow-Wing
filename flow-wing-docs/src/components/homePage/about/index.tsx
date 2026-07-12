@@ -26,7 +26,7 @@ export default function AboutSection() {
         <h3 className={styles.subheading}>For contributors &amp; curious readers</h3>
         <p className={styles.details}>
           The open-source <strong>Flow-Wing</strong> repository builds the toolchain with
-          LLVM, optional AOT/JIT products, a Boehm–GC-based runtime, and a root{" "}
+          LLVM, optional AOT/JIT products, a garbage-collected runtime, and a root{" "}
           <code>makefile</code> for dependencies and targets. If you are hacking the
           compiler, see the repository README.
         </p>

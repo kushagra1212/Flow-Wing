@@ -65,6 +65,13 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       !source_type->isDynamic()) {
     llvm::Value *source_value = resolveValue(source_raw_value, source_type);
     if (source_type == analysis::Builtins::m_str_type_instance.get()) {
+      // Temp-safety: a freshly-produced source string (a call result — e.g.
+      // `String(10)` → fg_i8tos, or a function returning str) lives only in an
+      // SSA temp. materializeMutableString runs fg_gmosc, a `fw_gc_alloc`
+      // safepoint that would collect it, storing an empty string. Root it first.
+      // A source loaded from an already-rooted variable needs no extra root.
+      if (llvm::isa<llvm::CallInst>(source_value))
+        spillToRoot(source_value, "strstore.src");
       source_value = materializeMutableString(source_value);
     } else {
       source_value = convertToTargetType(source_value, target_type, source_type);
@@ -414,6 +421,11 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
 
     auto *unboxed_val = builder->CreateCall(func, {unbox_arg});
     if (target_type == analysis::Builtins::m_str_type_instance.get()) {
+      // For a non-string dynamic (e.g. int `5`), fg_unbox_string itos-allocates a
+      // fresh GC string ("5"). It lives only in an SSA temp while
+      // materializeMutableString's fg_gmosc runs — a `fw_gc_alloc` safepoint that
+      // would otherwise collect it, yielding an empty string. Root it first.
+      spillToRoot(unboxed_val, "unbox.str");
       unboxed_val = materializeMutableString(unboxed_val);
     }
     
@@ -664,10 +676,17 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
 
   uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
 
+  llvm::Constant *desc =
+      dest_llvm_type->isStructTy()
+          ? m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(
+                llvm::cast<llvm::StructType>(dest_llvm_type))
+          : m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
   llvm::CallInst *malloc_call = builder->CreateCall(
-      fun, llvm::ConstantInt::get(
-               llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-               type_size_bytes));
+      fun,
+      {llvm::ConstantInt::get(
+           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+           type_size_bytes),
+       desc});
   malloc_call->setTailCall(false);
 
   // Cast the result of 'malloc' to a pointer to int
@@ -678,6 +697,13 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
   builder->CreateStore(default_val, new_struct_alloc);
 
   if (src_val != nullptr) {
+    // Temp-safety: the field-by-field copy below hits `fw_gc_alloc` safepoints
+    // (e.g. string fields are copied via fg_gmosc). `new_struct_alloc` is a fresh
+    // heap object held only in an SSA temp — root it so it survives those
+    // collections until the caller stores it into a rooted destination. Without
+    // this the object is reclaimed mid-construction and its fields read back
+    // zeroed. Non-moving GC: the pointer stays valid, so no reload is needed.
+    spillToRoot(new_struct_alloc, "objconv.slot");
 
     emitStructuralCopy(new_struct_alloc,
                        static_cast<types::CustomObjectType *>(dest_type),
@@ -710,10 +736,34 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
       m_ir_gen_context.getLLVMModule()->getDataLayout();
   uint64_t type_size_bytes = dl.getTypeAllocSize(dest_llvm_type);
 
+  llvm::Constant *desc = nullptr;
+  {
+    types::Type *elem_fw_type = dest_array_type->getUnderlyingType().get();
+    llvm::Type *elem_llvm_type =
+        m_ir_gen_context.getTypeBuilder()->getLLVMType(elem_fw_type);
+    if (elem_llvm_type->isStructTy()) {
+      auto *elem_struct_ty = llvm::cast<llvm::StructType>(elem_llvm_type);
+      uint64_t elem_size = dl.getTypeAllocSize(elem_llvm_type);
+      desc = m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitArray(
+          elem_struct_ty, elem_size);
+    } else if (elem_llvm_type->isPointerTy()) {
+      // Elements are bare GC pointers (e.g. `str[]`, or the pointer slots of an
+      // array of arrays). A BLOB descriptor would treat them as opaque bytes and
+      // the referenced strings / sub-arrays would be collected.
+      uint64_t elem_size = dl.getTypeAllocSize(elem_llvm_type);
+      desc =
+          m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitArrayOfPointer(
+              elem_size);
+    } else {
+      desc = m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
+    }
+  }
   llvm::CallInst *malloc_call = builder->CreateCall(
-      fun, llvm::ConstantInt::get(
-               llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-               type_size_bytes));
+      fun,
+      {llvm::ConstantInt::get(
+           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
+           type_size_bytes),
+       desc});
   malloc_call->setTailCall(false);
 
   auto new_array_ptr = builder->CreateBitCast(
@@ -723,6 +773,11 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
   builder->CreateStore(default_val, new_array_ptr);
 
   if (src_val != nullptr) {
+    // Temp-safety: the element conversion loop below hits `fw_gc_alloc`
+    // safepoints (e.g. fg_gmosc/fg_itos when converting to str). Root the
+    // freshly-allocated destination array so it isn't collected mid-copy; the
+    // GC is non-moving, so `new_array_ptr` stays valid across those safepoints.
+    spillToRoot(new_array_ptr, "temparr.slot");
     auto *src_array_type = static_cast<types::ArrayType *>(src_type);
     emitArrayCopy(new_array_ptr, dest_array_type, src_val, src_array_type);
   }

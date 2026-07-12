@@ -7,7 +7,10 @@
 
 namespace llvm {
 class StructType;
-}
+class GlobalVariable;
+class AllocaInst;
+class Function;
+} // namespace llvm
 
 namespace flow_wing {
 namespace types {
@@ -263,6 +266,27 @@ private:
                              llvm::Value *src_val);
   llvm::Value *getTempArray(types::Type *dest_type, types::Type *src_type,
                             llvm::Value *src_val);
+
+  // --- GC precise shadow-stack frame emission (M2) ---
+  // Mirrors the runtime `FWFrame` struct and the `fw_gc_shadow_top` global,
+  // then emits a per-function push/pop of a shadow frame listing the pointer
+  // roots collected in IRGenContext for that function.
+  llvm::StructType *getOrCreateFWFrameType();
+  llvm::GlobalVariable *getOrCreateGcShadowTop(llvm::StructType *frameTy);
+  llvm::AllocaInst *spillToRoot(llvm::Value *gcPtr, const std::string &name);
+  void emitGcShadowFrame(llvm::Function *fn);
+  // Returns N if `ty` is an inline `[N x %fg_dyn_type]` (a by-value array of
+  // boxed dynamics, e.g. a dynamic-array parameter copied onto the stack), else
+  // 0. Such an alloca holds N independent maybe-pointer payloads that must each
+  // be rooted, unlike an ordinary single-pointer or scalar alloca.
+  static uint32_t dynArrayElemCount(llvm::Type *ty);
+  // Roots every heap-pointer leaf packed inline in a multi-return `ret_slot`
+  // (which stores its results inline) so results produced by the call survive
+  // the fw_gc_alloc safepoints of the field-by-field unpack. No-op unless
+  // `struct_ptr` is a stack alloca. Used by both multi-var declaration and
+  // multi-target assignment from a multi-return call.
+  void rootMultiReturnSlotLeaves(llvm::Value *struct_ptr,
+                                 llvm::Type *struct_type);
 };
 } // namespace ir_gen
 } // namespace flow_wing

@@ -1,0 +1,46 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; FFI containers under heavy GC churn. Vec and Map keep their string elements in
+/; native C++ memory; the descriptor trace hook must keep every element alive
+/; across the many collections triggered by interleaved, unrelated allocations.
+/; If the hook missed anything, a stored value would read back empty.
+/; --------------------------------------------------------------------------
+
+bring vec
+bring map
+
+/; a Vec of 20 freshly-allocated strings
+var v: vec::Vec = new vec::Vec()
+for var i: int = 0 to 19 {
+  v.push("val" + String(i))
+}
+
+/; interleave unrelated object allocations to force collections while v is alive
+type Junk = { a: str, b: str }
+for var j: int = 0 to 9 {
+  var junk: Junk = { a: "x" + String(j), b: "y" + String(j) }
+  println(junk.a)
+}
+
+/; the Vec's contents must be intact after all that pressure
+println(v.size())
+println(v.get(0))
+println(v.get(10))
+println(v.get(19))
+
+/; a Map of 10 key→value string pairs, accessed by key (deterministic)
+var m: map::Map = new map::Map()
+for var k: int = 0 to 9 {
+  m.set("key" + String(k), "value" + String(k))
+}
+
+/; more churn between building and reading the Map
+for var q: int = 0 to 9 {
+  var junk2: Junk = { a: "p" + String(q), b: "q" + String(q) }
+}
+
+println(m.size())
+println(m.get("key0"))
+println(m.get("key5"))
+println(m.get("key9"))
+println(m.getOr("absent", "default"))

@@ -2,3 +2,5 @@
 add_library(flowwing_text STATIC
     libflowwing_text.c
 )
+
+target_link_libraries(flowwing_text PRIVATE flowwing_gc)

@@ -116,11 +116,9 @@ const std::string_view kStore_args_fn = "fg_store_args";
 
 const std::string_view kMalloc_fn = "malloc";
 
-#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
-const std::string_view kGC_malloc_fn = "GC_malloc";
-#else
-const std::string_view kGC_malloc_fn = "malloc";
-#endif
+const std::string_view kGC_malloc_fn = "fw_gc_alloc";
+const std::string_view kGC_init_fn = "fw_gc_init";
+const std::string_view kGC_add_root_fn = "fw_gc_add_root";
 
 // Entry Point
 

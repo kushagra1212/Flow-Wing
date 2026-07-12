@@ -1,0 +1,43 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Object-literal and object-conversion temp-safety. A freshly-allocated object
+/; is held in a temp while its own field initializers allocate (bug #1), and
+/; when an object literal is converted to a typed object with string fields the
+/; new object must survive the per-field copy safepoints.
+/; --------------------------------------------------------------------------
+
+type AllPrimitives = {
+  i32: int
+  i64: int64
+  i8: int8
+  d: deci
+  s: str
+  ch: char
+  b: bool
+}
+
+/; every primitive type at once — the conversion copy hits safepoints
+var all: AllPrimitives = {
+  i32: 32, i64: 64, i8: 8, d: 3.14, s: "string", ch: 'A', b: true
+}
+println(all.i32)
+println(all.i64)
+println(all.i8)
+println(all.d)
+println(all.s)
+println(all.ch)
+println(all.b)
+
+/; object whose string fields are themselves freshly concatenated
+type Person = { first: str, last: str, tag: str }
+var p: Person = { first: "Ada" + "", last: "Love" + "lace", tag: "id-" + "42" }
+println(p.first)
+println(p.last)
+println(p.tag)
+
+/; nested object: outer holds inner, both with string fields
+type Inner = { note: str }
+type Outer = { name: str, inner: Inner }
+var o: Outer = { name: "outer" + "!", inner: { note: "deep" + "note" } }
+println(o.name)
+println(o.inner.note)

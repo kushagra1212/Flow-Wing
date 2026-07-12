@@ -19,9 +19,11 @@
 
  #include <cstdint>
  #include <vector>
- #include <gc/gc.h>
+ #include "fw_gc.h"
+ #include "fw_gc_container.h"
  #include <algorithm>
  #include <cstring>
+ #include <cstdlib>
  
  // Dynamic Tags from your runtime
  #define DYN_TAG_INT8    0
@@ -46,18 +48,45 @@
          std::vector<DynamicValue> *values;
      };
  
+     // The elements live in a C++-owned std::vector on the malloc heap, which the
+     // precise GC cannot scan. Each string/object/array element's `value` is a GC
+     // heap pointer that would be collected out from under us (fatal under
+     // FW_GC_STRESS). Instead of copying, we register a custom trace hook on the
+     // handle's descriptor: while the VecHandle is reachable the collector calls
+     // traceVecHandle, which marks every contained GC pointer. This keeps the
+     // elements alive for exactly the vector's lifetime, with zero copies and
+     // correct identity — and works for ANY GC value (string, object, array,
+     // nested container), present or future. Scalars carry no pointer and are
+     // skipped; work_push (the `mark` callback) also skips non-heap pointers.
+     void traceVecHandle(void *obj, void (*mark)(void *)) {
+         auto *handle = static_cast<VecHandle *>(obj);
+         if (handle->values == nullptr) return;
+         for (const auto &e : *handle->values) {
+             if (fw_dyn_tag_is_gc_ptr(e.tag) && e.value != 0)
+                 mark(reinterpret_cast<void *>(e.value));
+         }
+     }
+
+     const FWTypeDescriptor &vecHandleDesc() {
+         static const FWTypeDescriptor desc =
+             fw_make_container_desc("vec_handle", traceVecHandle);
+         return desc;
+     }
+
      void finalizeVecHandle(void *raw_handle, void *) {
          auto *handle = static_cast<VecHandle *>(raw_handle);
-         delete handle->values;
-         handle->values = nullptr;
+         delete handle->values;   // frees the std::vector buffer; the GC owns the
+         handle->values = nullptr;// element strings/objects and reclaims them itself
      }
- 
+
+     static void finalizeVecHandle1(void *raw) { finalizeVecHandle(raw, nullptr); }
+
      VecHandle *allocateVecHandle() {
-         auto *handle = static_cast<VecHandle *>(GC_MALLOC(sizeof(VecHandle)));
+         auto *handle = static_cast<VecHandle *>(fw_gc_alloc(sizeof(VecHandle), &vecHandleDesc()));
          if (handle == nullptr) return nullptr;
- 
+
          handle->values = new std::vector<DynamicValue>();
-         GC_register_finalizer(handle, finalizeVecHandle, nullptr, nullptr, nullptr);
+         fw_gc_register_finalizer(handle, finalizeVecHandle1);
          return handle;
      }
  
@@ -126,7 +155,7 @@
      void dyn_list_push(int64_t raw_handle, DynamicValue* value) {
          if (value && getVec(raw_handle)) getVec(raw_handle)->push_back(*value);
      }
- 
+
      void dyn_list_pop(DynamicValue *ret_slot, int64_t raw_handle) {
          if (!ret_slot) return;
          auto *vec = getVec(raw_handle);
@@ -137,7 +166,7 @@
              *ret_slot = DynamicValue{DYN_TAG_NIRAST, 0};
          }
      }
- 
+
      void dyn_list_get(DynamicValue *ret_slot, int64_t raw_handle, int32_t index) {
          if (!ret_slot) return;
          auto *vec = getVec(raw_handle);
@@ -147,21 +176,21 @@
              *ret_slot = DynamicValue{DYN_TAG_NIRAST, 0};
          }
      }
- 
+
      void dyn_list_set(int64_t raw_handle, int32_t index, DynamicValue* value) {
          auto *vec = getVec(raw_handle);
          if (value && vec && index >= 0 && index < vec->size()) {
              (*vec)[index] = *value;
          }
      }
- 
+
      void dyn_list_insert(int64_t raw_handle, int32_t index, DynamicValue* value) {
          auto *vec = getVec(raw_handle);
          if (value && vec && index >= 0 && index <= vec->size()) {
              vec->insert(vec->begin() + index, *value);
          }
      }
- 
+
      void dyn_list_remove_at(DynamicValue *ret_slot, int64_t raw_handle, int32_t index) {
          if (!ret_slot) return;
          auto *vec = getVec(raw_handle);

@@ -216,6 +216,26 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
         val = resolveValue(m_last_value, m_last_type);
         emitTypedStore(arg_slot, param_raw_type, val, m_last_type);
       }
+      // Temp-safety: if this argument slot holds a GC heap pointer, root it so
+      // an already-evaluated argument survives the allocations performed while
+      // evaluating later arguments (and inside the callee's prologue). Two
+      // shapes qualify: a pointer-typed slot of a reference type (object / class
+      // / array / string), and a boxed-dynamic slot (`%fg_dyn_type`) whose i64
+      // payload may hold a GC string/object/array pointer. The shadow-frame
+      // emitter registers the dynamic box's payload field as the actual root and
+      // fw_gc_resolve_object skips non-pointer payloads, so rooting the box is
+      // safe. Without this, a chained call like `v.push("a").push("b")` — which
+      // materializes every argument (each a fw_gc_alloc'd string) before making
+      // any call — frees the earlier arguments while boxing the later ones.
+      if (auto *slot = llvm::dyn_cast<llvm::AllocaInst>(arg_slot)) {
+        const bool is_gc_ref = param_raw_type->isGcReference();
+        const bool is_boxed_dynamic =
+            param_raw_type->isDynamic() &&
+            slot->getAllocatedType()->isStructTy();
+        if ((is_gc_ref && slot->getAllocatedType()->isPointerTy()) ||
+            is_boxed_dynamic)
+          m_ir_gen_context.addGcRootAlloca(slot);
+      }
       llvm_args.push_back(arg_slot);
     }
 
@@ -318,6 +338,33 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
       auto *ret_type = return_types[0];
       auto *llvm_ret_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(ret_type);
+
+      // Temp-safety: when the callee returns a GC reference (object / class /
+      // array / string) through `return_slot`, that heap pointer now lives only
+      // in the slot. Root the slot's pointer leaf (offset 0) so the returned
+      // value survives caller-side `fw_gc_alloc` safepoints — e.g. copying it
+      // into a destination variable (`var f = fetch()`) allocates first, which
+      // would otherwise collect the just-returned array/object. The shadow frame
+      // reads `*slot` each collection; non-pointer/uninitialized reads are
+      // skipped by fw_gc_resolve_object.
+      const bool ret_is_gc_ref = ret_type->isGcReference();
+      if (auto *rs = llvm::dyn_cast<llvm::AllocaInst>(return_slot)) {
+        if (ret_is_gc_ref) {
+          // Root EVERY heap-pointer leaf of the return slot. A class/string
+          // return is a single pointer at offset 0, but an array return is
+          // stored INLINE (e.g. `Obj[3]` → three string pointers at offsets 0,
+          // 8, 16), so rooting only offset 0 would leave later elements' strings
+          // to be collected. rootMultiReturnSlotLeaves walks the layout.
+          rootMultiReturnSlotLeaves(rs, return_struct_type);
+        } else if (ret_type->isDynamic()) {
+          // A dynamic return is a boxed `{ i32 tag; i64 value }`; the value at
+          // offset 8 may hold a GC string/object/array pointer (e.g. a function
+          // whose inferred return is a concatenated string). Root that payload
+          // slot so it survives caller-side safepoints (the dynamic→target
+          // conversion allocates); fw_gc_resolve_object skips non-pointer tags.
+          m_ir_gen_context.addGcRootSlot(rs, 8);
+        }
+      }
 
       if (ret_type->getKind() == types::TypeKind::kObject ||
           ret_type->getKind() == types::TypeKind::kClass) {

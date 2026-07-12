@@ -36,6 +36,12 @@ void IRGenerator::visit(binding::BoundObjectExpression *object_expression) {
 
   llvm::Value *tmp_obj = getTempObject(fg_custom_type, fg_custom_type, nullptr);
 
+  // Temp-safety: `tmp_obj` is a fresh heap object held only in an SSA temp, but
+  // each field's right-hand side below is evaluated at a `fw_gc_alloc`
+  // safepoint. Root it so it (and the field values already stored into it)
+  // survive later field allocations. Non-moving GC: no reload needed.
+  spillToRoot(tmp_obj, "objlit.slot");
+
   CODEGEN_DEBUG_LOG("Temp Object", fg_custom_type->getName());
   CODEGEN_DEBUG_LOG("Object Expression Name",
                     fg_custom_type->getCustomTypeName());

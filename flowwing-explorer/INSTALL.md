@@ -274,7 +274,7 @@ git config --system core.longpaths true
 git clone https://github.com/kushagra1212/Flow-Wing.git
 cd Flow-Wing
 
-# Download and build LLVM, GTest, bdwgc, raylib etc.
+# Download and build LLVM, GTest, raylib etc.
 make deps-install-debug    # Debug dependencies (~hundreds of MB)
 # or for release builds:
 # make deps-install-release
@@ -283,8 +283,6 @@ make deps-install-debug    # Debug dependencies (~hundreds of MB)
 This downloads and compiles the following from source via CMake ExternalProject:
 - **LLVM 17** (llvmorg-17.0.6 tag) — with Clang, LLD projects
 - **Google Test** v1.17.0 — for unit testing
-- **bdwgc** v8.2.4 — Boehm garbage collector
-- **libatomic_ops** v7.8.0 — atomic operations library
 - **raylib** 5.5 — game/media library (static build)
 
 #### Step 2: Set Environment Variables (Unix/macOS only)

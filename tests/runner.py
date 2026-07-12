@@ -43,6 +43,25 @@ def get_server_test_port(file_path):
         pass
     return None
 
+def test_forces_gc_stress(file_path):
+    """A test runs under FW_GC_STRESS=1 (collect on every allocation — maximal GC
+    pressure) if it lives in a `GcTests` directory OR declares `/; FW_GC_STRESS`
+    in its header. This makes GC temp-safety regressions fail even in a normal
+    (non-stress) `make test-jit` run — you don't have to remember the env var."""
+    try:
+        if any(part == "GcTests" for part in file_path.parts):
+            return True
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for _ in range(12):
+                line = f.readline()
+                if not line:
+                    break
+                if re.search(r'/;\s*FW_GC_STRESS\b', line):
+                    return True
+    except Exception:
+        pass
+    return False
+
 def get_mock_server_port(file_path):
     """Checks if the FlowWing client test requires a Python mock server to connect to."""
     try:
@@ -278,6 +297,12 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
         run_env["TMPDIR"] = private_temp_dir
         run_env["TEMP"] = private_temp_dir
         run_env["TMP"] = private_temp_dir
+
+        # GC temp-safety tests always run under maximal collection pressure, even
+        # when the surrounding suite isn't stressed. (A globally-set FW_GC_STRESS
+        # already covers every test; this only forces it for these on top.)
+        if test_forces_gc_stress(file_path):
+            run_env["FW_GC_STRESS"] = "1"
 
         try:
             start_time = time.time()
