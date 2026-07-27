@@ -21,8 +21,7 @@ void fw_gc_register_finalizer(void *obj, void (*fn)(void *)) {
   g_finalizers = f;
 }
 
-/* Strong definition — overrides the weak default in fw_gc_sweep.c.
-   Called with the payload pointer just before an object is freed. */
+/* Called with the payload pointer just before an object is freed. */
 void fw_gc_run_finalizer_if_any(void *obj) {
   FWFinalizer **link = &g_finalizers;
   while (*link) {

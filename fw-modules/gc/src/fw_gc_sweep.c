@@ -3,13 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void fw_gc_mark_from_roots(void);              /* from fw_gc_mark.c */
-void fw_gc_run_finalizer_if_any(void *obj);    /* from Task 8; weak default below */
-
-/* Weak default so this links before Task 8 adds finalizers.
-   Task 8 replaces it with a real registry lookup. */
-__attribute__((weak)) void fw_gc_run_finalizer_if_any(void *obj) { (void)obj; }
-
 /* Walk the all-objects list: free unmarked, clear marks on survivors. */
 static void fw_gc_sweep(void) {
   FWObjHeader **link = &g_all_objects;
