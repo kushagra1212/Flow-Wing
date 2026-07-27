@@ -74,3 +74,11 @@ void *fw_gc_resolve_object(void *p);
    the live set is stable) and frees it after sweeping. Defined in fw_gc_core.c. */
 void fw_gc_build_object_index(void);
 void fw_gc_free_object_index(void);
+
+/* Seed and drain the mark work-list from the shadow stack and global roots.
+   Defined in fw_gc_mark.c. */
+void fw_gc_mark_from_roots(void);
+
+/* Run and unregister the finalizer for a payload pointer, if one was
+   registered. Defined in fw_gc_core.c next to the finalizer list. */
+void fw_gc_run_finalizer_if_any(void *obj);
