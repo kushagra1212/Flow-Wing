@@ -1,0 +1,114 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Nested containers. A container element is a boxed dynamic, so a container
+/; handle stored inside another container is boxed with the OBJECT tag and
+/; unboxed back to a typed handle on the way out. For the GC this is the
+/; two-level trace case: the outer container's hook marks the inner handle, and
+/; the inner handle's own hook then marks its elements. Miss either level and
+/; the innermost strings are collected while still reachable.
+/; --------------------------------------------------------------------------
+
+bring vec
+bring map
+
+type Junk = { a: str }
+
+/; a Vec of Vecs
+var outer: vec::Vec = new vec::Vec()
+for var i: int = 0 to 2 {
+  var inner: vec::Vec = new vec::Vec()
+  for var j: int = 0 to 2 {
+    inner.push("v" + String(i) + String(j))
+  }
+  outer.push(inner)
+}
+println(outer.size())
+
+/; churn so the whole nest is traced through several collections
+for var q: int = 0 to 9 {
+  var junk: Junk = { a: "j" + String(q) }
+}
+
+var first: vec::Vec = outer.get(0)
+var last: vec::Vec = outer.get(2)
+println(first.size())
+println(first.get(0))
+println(first.get(2))
+println(last.get(0))
+println(last.get(2))
+
+/; a Map whose values are Vecs
+var m: map::Map = new map::Map()
+for var k: int = 0 to 2 {
+  var bucket: vec::Vec = new vec::Vec()
+  bucket.push("b" + String(k) + "-x")
+  bucket.push("b" + String(k) + "-y")
+  m.set("key" + String(k), bucket)
+}
+println(m.size())
+
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { a: "k" + String(q2) }
+}
+
+var b0: vec::Vec = m.get("key0")
+var b2: vec::Vec = m.get("key2")
+println(b0.get(0))
+println(b0.get(1))
+println(b2.get(0))
+println(b2.get(1))
+
+/; a Map inside a Map
+var inner_map: map::Map = new map::Map()
+inner_map.set("deep", "val" + "ue")
+var outer_map: map::Map = new map::Map()
+outer_map.set("nested", inner_map)
+for var q3: int = 0 to 9 {
+  var junk3: Junk = { a: "n" + String(q3) }
+}
+var back_map: map::Map = outer_map.get("nested")
+println(back_map.get("deep"))
+
+/; three levels deep: a Vec of Vecs of Vecs
+var lvl1: vec::Vec = new vec::Vec()
+for var a: int = 0 to 1 {
+  var lvl2: vec::Vec = new vec::Vec()
+  for var b: int = 0 to 1 {
+    var lvl3: vec::Vec = new vec::Vec()
+    lvl3.push("d" + String(a) + String(b))
+    lvl2.push(lvl3)
+  }
+  lvl1.push(lvl2)
+}
+for var q4: int = 0 to 9 {
+  var junk4: Junk = { a: "o" + String(q4) }
+}
+var mid: vec::Vec = lvl1.get(1)
+var leaf: vec::Vec = mid.get(1)
+println(leaf.get(0))
+
+/; an object whose field is a container handle
+type Holder = { name: str, items: vec::Vec }
+var items: vec::Vec = new vec::Vec()
+items.push("held" + "1")
+items.push("held" + "2")
+var h: Holder = { name: "hol" + "der", items: items }
+for var q5: int = 0 to 9 {
+  var junk5: Junk = { a: "h" + String(q5) }
+}
+println(h.name)
+println(h.items.size())
+println(h.items.get(0))
+println(h.items.get(1))
+
+/; a nested handle passed to a function as a typed parameter
+fun total(v: vec::Vec) -> int {
+  return v.size()
+}
+println(total(outer.get(1)))
+
+/; and returned from one
+fun pick(v: vec::Vec, i: int) -> vec::Vec {
+  return v.get(i)
+}
+println(pick(outer, 2).get(1))

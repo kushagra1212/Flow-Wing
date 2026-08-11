@@ -1,0 +1,19 @@
+a0
+replaced
+a2
+a0-copy
+replaced
+gone!
+x0/y0
+x1/y1
+x2/y2
+mutated
+y1
+a0-seen
+mk-0
+mk-1
+mk-2
+f0-0
+f5-10
+[ 1, "two", 3.5, true ]
+[ "nowStr", "two", 3.5, "alsoStr" ]

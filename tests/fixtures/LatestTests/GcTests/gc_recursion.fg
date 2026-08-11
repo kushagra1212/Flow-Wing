@@ -1,0 +1,64 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Recursion & shadow-frame depth. Every call pushes a frame onto
+/; @fw_gc_shadow_top and pops it before returning, so a recursive call chain
+/; leaves N frames live at once and the marker must walk the whole `prev` chain.
+/; A local held across a recursive call must also survive everything the entire
+/; subtree allocates.
+/; --------------------------------------------------------------------------
+
+/; classic recursive string build: each level concatenates onto the result of
+/; the level below, so every intermediate is a fresh heap string.
+fun repeatStr(s: str, n: int) -> str {
+  if n <= 0 {
+    return ""
+  }
+  return s + repeatStr(s, n - 1)
+}
+println(repeatStr("ab", 5))
+
+/; recursion that builds an object per level; the child's string is consumed by
+/; the parent's field initializer (an allocation) before being read back.
+type Wrapped = { label: str }
+fun build(depth: int) -> str {
+  if depth == 0 {
+    return "leaf"
+  }
+  var child: str = build(depth - 1)
+  var w: Wrapped = { label: "n" + String(depth) + "(" + child + ")" }
+  return w.label
+}
+println(build(4))
+
+/; a local held ACROSS the recursive call: `mine` is allocated before the
+/; recursion and compared after it, so it must survive every allocation the
+/; subtree made while this frame was suspended.
+fun deep(n: int) -> int {
+  var mine: str = "f" + String(n)
+  if n <= 0 {
+    return 0
+  }
+  var below: int = deep(n - 1)
+  if mine == "f" + String(n) {
+    return below + 1
+  }
+  return -1000
+}
+println(deep(120))
+
+/; recursion through a class method (self must stay rooted across the call)
+class Chain {
+  var tail: str
+  init(t: str) -> nthg {
+    self.tail = t
+  }
+  fun grow(n: int) -> str {
+    if n <= 0 {
+      return self.tail
+    }
+    self.tail = self.tail + String(n)
+    return self.grow(n - 1)
+  }
+}
+var c: Chain = new Chain("c" + "0")
+println(c.grow(5))

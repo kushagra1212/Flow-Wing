@@ -116,7 +116,13 @@ LLVMTypeBuilder::convertObject(const types::CustomObjectType *type) {
   for (const auto &[field_name, field_type] : type->getFieldTypesMap()) {
     auto field_llvm_type = getLLVMType(field_type.get());
     assert(field_llvm_type && "Field LLVM type is null");
-    if (field_type->getKind() == types::TypeKind::kObject) {
+    // A class-typed field is a reference, exactly like an object-typed one —
+    // the field holds the instance pointer, not the instance. Class members of
+    // a CLASS are already lowered this way (see createOrGetClassType); an object
+    // type must match, or `type Holder = { items: vec::Vec }` would embed the
+    // whole instance by value and its default-value constant would be malformed.
+    if (field_type->getKind() == types::TypeKind::kObject ||
+        field_type->getKind() == types::TypeKind::kClass) {
       elements.push_back(field_llvm_type->getPointerTo());
     } else {
       elements.push_back(field_llvm_type);

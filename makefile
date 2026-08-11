@@ -158,6 +158,7 @@ help:
 	@echo "    test-aot                 Build and run all tests in AOT mode."
 	@echo "    test-jit                 Build and run all tests in JIT mode."
 	@echo "    test-format              Build AOT and run formatter golden tests (tests/formatter_golden_test.py)."
+	@echo "    test-gc                  Build AOT and run the GC runtime unit tests (fw-modules/gc/tests)."
 	@echo "    (Example: make test-aot FILTER=MyTestSuite.*)"
 	@echo ""
 	@echo "  Dependency Management:"
@@ -450,6 +451,15 @@ test-aot: build-aot-release
 test-format: build-aot-release
 	$(ECHO_MSG) "--> Running formatter golden tests..."
 	@python3 tests/formatter_golden_test.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT)
+
+#? Unit tests for the GC runtime itself (fw-modules/gc/tests/test_gc.c).
+#? Covers descriptors, marking, sweeping, roots and finalizers directly, without
+#? going through the compiler — the language-level counterpart is
+#? tests/fixtures/LatestTests/GcTests (run by test-jit / test-aot).
+.PHONY: test-gc
+test-gc: build-aot-release
+	$(ECHO_MSG) "--> Running GC runtime unit tests..."
+	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_gc$(EXE_EXT)
 
 
 #! ----- LSP -----

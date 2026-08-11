@@ -189,7 +189,18 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
           }
         }
 
-        if ((llvm::isa<llvm::AllocaInst>(m_last_value) ||
+        // A boxed dynamic argument (a container element, e.g.
+        // `takes(outer.get(0))`) is `{ i32 tag; i64 value }`; this slot holds a
+        // bare pointer, so the payload has to be unboxed first — otherwise the
+        // tag word is passed as the instance address.
+        const bool is_boxed_dynamic_arg =
+            m_last_type != nullptr && m_last_type->isDynamic() &&
+            param_raw_type->getKind() != types::TypeKind::kFunction;
+
+        if (is_boxed_dynamic_arg) {
+          val = unboxDynamicToReference(m_last_value, m_last_type,
+                                        param_raw_type->getName());
+        } else if ((llvm::isa<llvm::AllocaInst>(m_last_value) ||
              llvm::isa<llvm::GlobalVariable>(m_last_value) ||
              llvm::isa<llvm::GetElementPtrInst>(m_last_value) ||
              llvm::isa<llvm::GEPOperator>(m_last_value)) &&

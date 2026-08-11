@@ -1,0 +1,62 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; text module under collection pressure. Every text:: helper returns a freshly
+/; allocated string from native code, and `text::Text` methods mutate `_buffer`
+/; and return `self`, so a chain keeps an intermediate instance alive only in a
+/; temp. `substring(...).get()` — the shape that originally motivated the temp
+/; rooting work — allocates a new Text AND a new buffer mid-chain.
+/; --------------------------------------------------------------------------
+
+bring text
+
+/; free functions: each result is a fresh heap string consumed by the next call
+println(text::toUpper("flow" + "wing"))
+println(text::toLower("FLOW" + "WING"))
+println(text::reverse("ab" + "cd"))
+println(text::trim("  pad" + "ded  "))
+println(text::replace("a-b-c", "-", "+"))
+println(text::concat("le" + "ft", "ri" + "ght"))
+println(text::length("hello" + "!"))
+println(text::substring("abcdefgh", 2, 5))
+println(text::indexOf("haystack", "st" + "ack"))
+println(text::startsWith("prefixed", "pre" + "fix"))
+println(text::endsWith("suffixed", "fix" + "ed"))
+println(text::isEmpty(""))
+println(text::equalsIgnoreCase("MiXeD", "mixed"))
+
+/; the Text class: mutating chain returning self
+var t: text::Text = new text::Text("  Hello World  ")
+println(t.trim().get())
+println(t.getLength())
+println(t.toUpper().get())
+println(t.reverse().get())
+
+/; substring(): allocates a new buffer AND a new Text instance held only in the
+/; chain's temp before .get() reads it
+var s: text::Text = new text::Text("abcdefghij")
+println(s.substring(2, 6).get())
+println(s.substring(0, 3).get())
+println(s.get())
+
+/; chained substring: the intermediate Text must survive the second call
+println(s.substring(1, 8).substring(2, 5).get())
+
+/; replace + concat chain, each step reallocating the buffer
+var c: text::Text = new text::Text("one,two,three")
+println(c.replace(",", "-").concat("!" + "!").get())
+
+/; Text built inside a loop, with the result accumulated outside it
+var acc: str = ""
+for var i: int = 0 to 4 {
+  var piece: text::Text = new text::Text("p" + String(i))
+  acc = acc + piece.toUpper().get()
+}
+println(acc)
+
+/; a Text passed to a function and mutated there
+fun decorate(x: text::Text) -> str {
+  return x.concat("-dec" + "orated").get()
+}
+var d: text::Text = new text::Text("bas" + "e")
+println(decorate(d))
+println(d.get())

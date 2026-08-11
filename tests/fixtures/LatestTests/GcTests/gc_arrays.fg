@@ -1,0 +1,82 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Array element rooting. An array of strings/objects is one GC object whose
+/; ARRAY descriptor scans every element, so storing a freshly-allocated value
+/; into a slot must be visible to the very next collection — and reading an
+/; element back into a local roots that element independently of the array.
+/; Also covers arrays crossing function boundaries in both directions.
+/; --------------------------------------------------------------------------
+
+/; element assignment with freshly-allocated values
+var names: str[4] = ["a" + "0", "a" + "1", "a" + "2", "a" + "3"]
+names[1] = "re" + "placed"
+names[3] = names[0] + "-copy"
+for var i: int = 0 to 3 {
+  println(names[i])
+}
+
+/; an element read into a local, then the array slot overwritten: the local
+/; must keep the original value alive
+var held: str = names[1]
+names[1] = "gone" + "!"
+type Junk = { j: str }
+for var q: int = 0 to 9 {
+  var junk: Junk = { j: "j" + String(q) }
+}
+println(held)
+println(names[1])
+
+/; array of objects: every leaf string is reachable only through the array
+type Pair = { x: str, y: str }
+var pairs: Pair[3] = [
+  {x: "x" + "0", y: "y" + "0"},
+  {x: "x" + "1", y: "y" + "1"},
+  {x: "x" + "2", y: "y" + "2"}
+]
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { j: "p" + String(q2) }
+}
+for var k: int = 0 to 2 {
+  println(pairs[k].x + "/" + pairs[k].y)
+}
+
+/; mutating a field of an element in place
+pairs[1].x = "mut" + "ated"
+println(pairs[1].x)
+println(pairs[1].y)
+
+/; arrays crossing a function boundary in both directions
+fun firstOf(a: str[4]) -> str {
+  var local: str = a[0] + "-seen"
+  return local
+}
+println(firstOf(names))
+
+fun makeArr(seed: str) -> str[3] {
+  return [seed + "-0", seed + "-1", seed + "-2"]
+}
+var made: str[3] = makeArr("m" + "k")
+for var q3: int = 0 to 9 {
+  var junk3: Junk = { j: "m" + String(q3) }
+}
+println(made[0])
+println(made[1])
+println(made[2])
+
+/; an array filled inside a loop, one fresh string per iteration
+var filled: str[6] = ["", "", "", "", "", ""]
+for var f: int = 0 to 5 {
+  filled[f] = "f" + String(f) + "-" + String(f * 2)
+}
+println(filled[0])
+println(filled[5])
+
+/; an array of dynamics holding a mix of types, mutated after the fact
+var mixed: [4] = [1, "tw" + "o", 3.5, true]
+println(mixed)
+mixed[0] = "now" + "Str"
+mixed[3] = "al" + "soStr"
+for var q4: int = 0 to 9 {
+  var junk4: Junk = { j: "d" + String(q4) }
+}
+println(mixed)

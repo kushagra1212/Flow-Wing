@@ -1,0 +1,80 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `inout` parameters. The callee writes a freshly-allocated value through the
+/; caller's slot, so the new object is reachable ONLY from the caller's frame
+/; the instant the store lands — and the callee keeps allocating afterwards.
+/; Both the old value (until it is overwritten) and the new one must be rooted
+/; at the right times.
+/; --------------------------------------------------------------------------
+
+/; a string replaced through inout, with more allocation after the store
+fun retitle(inout s: str, n: int) -> nthg {
+  s = "new" + String(n)
+  var noise: str = "noise" + String(n)
+  println(noise)
+}
+var title: str = "old" + "Title"
+retitle(title, 1)
+println(title)
+
+/; repeated inout writes in a loop: each write orphans the previous string
+fun bump(inout s: str, i: int) -> nthg {
+  s = s + "-" + String(i)
+}
+var acc: str = "b" + "ase"
+for var i: int = 0 to 4 {
+  bump(acc, i)
+}
+println(acc)
+
+/; an object replaced wholesale through inout
+type Rec = { id: int, label: str }
+fun refresh(inout r: Rec, n: int) -> nthg {
+  r = { id: n, label: "rec" + String(n) }
+  var junk: Rec = { id: -1, label: "ju" + "nk" }
+  println(junk.label)
+}
+var rec: Rec = { id: 0, label: "or" + "iginal" }
+refresh(rec, 9)
+println(rec.id)
+println(rec.label)
+
+/; a field of an inout object mutated in place
+fun relabel(inout r: Rec) -> nthg {
+  r.label = r.label + "+edit"
+}
+relabel(rec)
+println(rec.label)
+
+/; an array replaced through inout, then read element by element
+fun reseed(inout a: str[3]) -> nthg {
+  a = ["n" + "0", "n" + "1", "n" + "2"]
+  var extra: str = "ex" + "tra"
+  println(extra)
+}
+var arr: str[3] = ["o" + "0", "o" + "1", "o" + "2"]
+reseed(arr)
+println(arr[0])
+println(arr[1])
+println(arr[2])
+
+/; inout through two levels: the inner callee writes the outer caller's slot
+fun innerWrite(inout s: str) -> nthg {
+  s = "in" + "ner"
+}
+fun outerWrite(inout s: str) -> nthg {
+  innerWrite(s)
+  var after: str = "af" + "ter"
+  println(after)
+}
+var chained: str = "st" + "art"
+outerWrite(chained)
+println(chained)
+
+/; a dynamic inout slot (boxed value whose payload is a heap string)
+fun bumpDyn(inout d) -> nthg {
+  d = d + "!"
+}
+var dv = "dy" + "namic"
+bumpDyn(dv)
+println(dv)

@@ -1,0 +1,72 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Function values & callbacks. Calling through a function-typed parameter is
+/; an ordinary call as far as the shadow stack is concerned: the callee pushes
+/; its own frame, so the caller's arguments must already be rooted before the
+/; indirect call allocates. A GC value produced inside a callback and returned
+/; to the caller travels through the callee's ret_slot.
+/; --------------------------------------------------------------------------
+
+fun shout(s: str) -> str {
+  return s + "!"
+}
+
+/; the callback's result is fed straight back into the callback: the first
+/; result must survive the second call's allocations
+fun applyTwice(f: [(str) -> str], v: str) -> str {
+  return f(f(v))
+}
+println(applyTwice(shout, "hi" + "there"))
+
+/; a void callback receiving a freshly-allocated argument
+fun show(s: str) -> nthg {
+  println("<" + s + ">")
+}
+fun emit(cb: [(str) -> nthg]) -> nthg {
+  cb("from" + "Callback")
+}
+emit(show)
+
+/; callback invoked repeatedly in a loop, accumulating into a caller-owned local
+fun tag(s: str) -> str {
+  return "{" + s + "}"
+}
+fun foldTags(f: [(str) -> str], n: int) -> str {
+  var acc: str = ""
+  for var i: int = 0 to n {
+    acc = acc + f(String(i))
+  }
+  return acc
+}
+println(foldTags(tag, 4))
+
+/; the same callback passed on through a second layer of indirection: the
+/; function value crosses two frames before it is finally called
+fun relay(f: [(str) -> str], s: str) -> str {
+  return applyTwice(f, s + "-relay")
+}
+println(relay(shout, "de" + "ep"))
+
+/; callback that builds an object; the object crosses the return boundary
+type Boxed = { v: str }
+fun makeBoxed(s: str) -> Boxed {
+  return { v: "b(" + s + ")" }
+}
+fun viaCallback(f: [(str) -> Boxed], s: str) -> str {
+  var b: Boxed = f(s)
+  return b.v
+}
+println(viaCallback(makeBoxed, "in" + "ner"))
+
+/; callback mutating a container the caller keeps alive
+bring vec
+fun fillVec(v: vec::Vec, n: int) -> nthg {
+  for var i: int = 0 to n {
+    v.push("c" + String(i))
+  }
+}
+var v: vec::Vec = new vec::Vec()
+fillVec(v, 3)
+println(v.size())
+println(v.get(0))
+println(v.get(3))
