@@ -1,0 +1,48 @@
+/; Support module for gc_cross_module.fg — not a standalone test (no output).
+/; Its functions allocate GC values and hand them back across the module
+/; boundary, so their shadow frames are emitted in a different translation
+/; context from the consumer's.
+
+module [gc_support]
+
+class Label {
+  var text: str
+  var suffix: str
+  init(t: str, s: str) -> nthg {
+    self.text = t
+    self.suffix = s
+  }
+  fun render() -> str {
+    return self.text + self.suffix
+  }
+  fun extend(more: str) -> gc_support::Label {
+    return new gc_support::Label(self.text + more, self.suffix)
+  }
+}
+
+type Record = { key: str, value: str }
+
+fun makeLabel(t: str) -> gc_support::Label {
+  return new gc_support::Label("L(" + t + ")", "!")
+}
+
+fun makeRecord(n: int) -> Record {
+  return { key: "k" + String(n), value: "v" + String(n) }
+}
+
+fun joinWith(a: str, b: str, sep: str) -> str {
+  var mid: str = a + sep
+  return mid + b
+}
+
+fun repeatJoin(seed: str, n: int) -> str {
+  var acc: str = ""
+  for var i: int = 0 to n {
+    acc = joinWith(acc, seed + String(i), "-")
+  }
+  return acc
+}
+
+fun describeRecord(r: Record) -> str {
+  return r.key + "=" + r.value
+}

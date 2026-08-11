@@ -1,0 +1,85 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Sustained churn. Thousands of short-lived allocations with a handful of
+/; long-lived survivors: this is where a leaked root (nothing ever collected)
+/; or a dropped root (a survivor collected mid-run) shows up as either a hang
+/; or corrupted output. The long-lived values are re-read at the end, after
+/; every temporary around them has been created and discarded many times over.
+/; --------------------------------------------------------------------------
+
+/; long-lived globals created before the churn starts
+var anchorA: str = "anch" + "orA"
+var anchorB: str = "anch" + "orB"
+type Anchor = { tag: str, note: str }
+var anchorObj: Anchor = { tag: "t" + "ag", note: "no" + "te" }
+
+bring vec
+var survivors: vec::Vec = new vec::Vec()
+survivors.push("s" + "0")
+survivors.push("s" + "1")
+
+/; ~2000 short-lived strings, none of which is kept
+var counter: int = 0
+for var i: int = 0 to 999 {
+  var tmp: str = "tmp" + String(i)
+  var tmp2: str = tmp + "-" + String(i)
+  if tmp2 != "" {
+    counter = counter + 1
+  }
+}
+println(counter)
+
+/; short-lived objects with string fields
+type Scratch = { a: str, b: str }
+var kept: int = 0
+for var j: int = 0 to 499 {
+  var s: Scratch = { a: "a" + String(j), b: "b" + String(j) }
+  if s.a != s.b {
+    kept = kept + 1
+  }
+}
+println(kept)
+
+/; a single accumulator that survives every iteration (grows monotonically)
+var acc: str = ""
+for var k: int = 0 to 49 {
+  acc = acc + "."
+}
+println(acc)
+
+/; the anchors must be byte-for-byte intact after all of that
+println(anchorA)
+println(anchorB)
+println(anchorObj.tag)
+println(anchorObj.note)
+println(survivors.size())
+println(survivors.get(0))
+println(survivors.get(1))
+
+/; a global reassigned in a loop: only the final value may survive, and it must
+/; be correct (the intermediate values are garbage the moment they are replaced)
+var rotating: str = "seed"
+for var r: int = 0 to 199 {
+  rotating = "r" + String(r)
+}
+println(rotating)
+
+var rotatingObj: Anchor = { tag: "seed", note: "seed" }
+for var r2: int = 0 to 199 {
+  rotatingObj = { tag: "t" + String(r2), note: "n" + String(r2) }
+}
+println(rotatingObj.tag)
+println(rotatingObj.note)
+
+/; a function called many times, each call allocating and discarding
+fun spin(n: int) -> str {
+  var a: str = "x" + String(n)
+  var b: str = a + "y"
+  return b
+}
+var lastSpin: str = ""
+for var s2: int = 0 to 299 {
+  lastSpin = spin(s2)
+}
+println(lastSpin)
+println(anchorA)

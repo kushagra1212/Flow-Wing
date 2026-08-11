@@ -38,6 +38,22 @@ DynamicValueType getDynamicValueTypeTag(llvm::Type *type,
   if (flowwing_type == analysis::Builtins::m_char_type_instance.get()) {
     return DynamicValueType::CHAR;
   }
+  // Reference kinds must be decided from the FlowWing type, not the LLVM type:
+  // with opaque pointers a class instance, an object and a string are all `ptr`,
+  // so the checks below would tag every one of them STRING. The tag is what
+  // tells a later unbox (and the GC's tagged-descriptor scan) what the payload
+  // really is, so a class handle stored in a container must carry OBJECT.
+  if (flowwing_type != nullptr) {
+    switch (flowwing_type->getKind()) {
+    case types::TypeKind::kClass:
+    case types::TypeKind::kObject:
+      return DynamicValueType::OBJECT;
+    case types::TypeKind::kArray:
+      return DynamicValueType::ARRAY;
+    default:
+      break;
+    }
+  }
   if (type->isIntegerTy(8)) {
     return DynamicValueType::INT8;
   }

@@ -1,0 +1,54 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Cross-module GC values. Functions brought in from another file are emitted
+/; with their own shadow frames and their own root lists; a value allocated
+/; inside the module and returned to this file must be rooted on both sides of
+/; the boundary. Module-defined classes carry string fields whose descriptor is
+/; emitted where the class is declared, not where it is instantiated.
+/; --------------------------------------------------------------------------
+
+bring "support/gc_support_module.fg"
+
+type Junk = { j: str }
+
+/; a class instance built inside the module, used here
+var lab: gc_support::Label = gc_support::makeLabel("fir" + "st")
+println(lab.render())
+
+/; a module method returning a NEW instance (the receiver stays live too)
+var ext: gc_support::Label = lab.extend("-ext" + "ra")
+println(ext.render())
+println(lab.render())
+
+/; an object type declared in the module, built there, read here
+var rec: gc_support::Record = gc_support::makeRecord(7)
+println(rec.key)
+println(rec.value)
+println(gc_support::describeRecord(rec))
+
+/; a module function that allocates repeatedly in a loop internally
+println(gc_support::repeatJoin("s", 4))
+
+/; churn locally, then re-read everything that came from the module
+for var q: int = 0 to 9 {
+  var junk: Junk = { j: "j" + String(q) }
+}
+println(lab.render())
+println(ext.render())
+println(rec.key)
+println(rec.value)
+
+/; instances created directly from the module's class, in a loop
+var kept: gc_support::Label = new gc_support::Label("se" + "ed", "?")
+for var i: int = 0 to 4 {
+  kept = new gc_support::Label("n" + String(i), "#")
+}
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { j: "k" + String(q2) }
+}
+println(kept.render())
+
+/; a locally-built value passed INTO the module and echoed back
+var localRec: gc_support::Record = { key: "lo" + "cal", value: "va" + "lue" }
+println(gc_support::describeRecord(localRec))
+println(gc_support::joinWith("le" + "ft", "ri" + "ght", "|"))

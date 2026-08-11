@@ -310,8 +310,12 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
 
     for (const auto &[field_name, field_type] :
          customType->getFieldTypesMap()) {
-      if (field_type->getKind() == types::TypeKind::kObject) {
-
+      if (field_type->getKind() == types::TypeKind::kObject ||
+          field_type->getKind() == types::TypeKind::kClass) {
+        // Reference fields (nested object OR class instance) default to null;
+        // there is no constant that stands for an instance. Without the kClass
+        // case the field fell through to getDefaultValue, which has no answer
+        // for a class and crashed building the aggregate.
         auto *obj_type = getTypeBuilder()->getLLVMType(field_type.get());
 
         elementConstants.push_back(

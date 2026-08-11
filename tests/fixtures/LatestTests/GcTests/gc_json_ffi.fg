@@ -1,0 +1,71 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; FFI trace hook — JSON. A JsonNode owns its children in native memory, so the
+/; handle's trace hook is what keeps a child node (and every string inside it)
+/; alive while only the root node is reachable. Building a document node by node
+/; and stringifying it AFTER unrelated churn is the JSON-builder shape: each
+/; intermediate node is a temp at the moment the next allocation happens.
+/; --------------------------------------------------------------------------
+
+bring json
+
+/; build an object whose values are freshly-allocated nodes
+var doc: json::JsonNode = json::newObject()
+doc.put("name", json::newString("Flow" + "Wing"))
+   .put("kind", json::newString("lan" + "guage"))
+   .put("count", json::newNumber(3.0))
+   .put("ok", json::newBool(true))
+   .put("none", json::newNull())
+
+/; a child array built separately, then attached — between the two the array is
+/; reachable only from a local
+var tags: json::JsonNode = json::newArray()
+for var i: int = 0 to 3 {
+  tags.push(json::newString("t" + String(i)))
+}
+doc.put("tags", tags)
+
+/; unrelated allocations force collections while `doc` holds everything
+type Junk = { a: str }
+for var q: int = 0 to 9 {
+  var junk: Junk = { a: "j" + String(q) }
+}
+
+println(json::stringify(doc))
+
+/; read individual nodes back out of the document
+var nameNode: json::JsonNode = doc.get("name")
+println(nameNode.strVal)
+var tagNode: json::JsonNode = doc.get("tags")
+println(json::stringify(tagNode))
+println(tagNode.getAt(2).strVal)
+
+/; parse a string built at runtime, then churn before reading the tree
+var raw: str = "{ \"user\": \"" + "Ku" + "shagra" + "\", \"id\": 42 }"
+var parsed: json::JsonNode = json::parse(raw)
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { a: "p" + String(q2) }
+}
+println(parsed.get("user").strVal)
+println(String(parsed.get("id").numVal))
+println(json::stringify(parsed))
+
+/; overwrite a key: the replaced node becomes garbage while the new one lives
+doc.put("name", json::newString("Re" + "named"))
+for var q3: int = 0 to 9 {
+  var junk3: Junk = { a: "r" + String(q3) }
+}
+println(doc.get("name").strVal)
+
+/; a nested document: object inside array inside object
+var nest: json::JsonNode = json::newObject()
+var arr: json::JsonNode = json::newArray()
+var leaf: json::JsonNode = json::newObject()
+leaf.put("deep", json::newString("val" + "ue"))
+arr.push(leaf)
+nest.put("level1", arr)
+for var q4: int = 0 to 9 {
+  var junk4: Junk = { a: "n" + String(q4) }
+}
+println(json::stringify(nest))
+println(nest.get("level1").getAt(0).get("deep").strVal)

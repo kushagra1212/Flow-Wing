@@ -55,6 +55,17 @@ typedef struct {
 static FWObjRange *g_index = NULL;
 static size_t      g_index_n = 0;
 
+/* Address span an object occupies for resolution purposes. A zero-byte payload
+   (an empty container backing store: `fw_gc_alloc_array(desc, 0)`) still has a
+   distinct payload address that the program holds in a root, so it must span at
+   least one byte — with an empty [lo, lo) range no pointer could ever resolve to
+   it and a rooted empty array would be swept while still reachable. Widening to
+   one byte cannot make two objects overlap: `lo` is the byte just past a
+   distinct malloc block's header, which lies inside no other object's payload. */
+static inline size_t fw_range_size(size_t payload_size) {
+  return payload_size ? payload_size : 1;
+}
+
 static int fw_range_cmp(const void *a, const void *b) {
   uintptr_t la = ((const FWObjRange *)a)->lo;
   uintptr_t lb = ((const FWObjRange *)b)->lo;
@@ -70,7 +81,7 @@ void fw_gc_build_object_index(void) {
   for (FWObjHeader *h = g_all_objects; h != NULL && i < n; h = h->next) {
     uintptr_t lo = (uintptr_t)fw_payload(h);
     g_index[i].lo = lo;
-    g_index[i].hi = lo + h->size;
+    g_index[i].hi = lo + fw_range_size(h->size);
     i++;
   }
   g_index_n = i;
@@ -111,7 +122,7 @@ void *fw_gc_resolve_object(void *p) {
   /* Fallback (no active index, e.g. a call outside a collection): linear. */
   for (FWObjHeader *h = g_all_objects; h != NULL; h = h->next) {
     uintptr_t lo = (uintptr_t)fw_payload(h);
-    uintptr_t hi = lo + h->size;                 /* one past the last byte */
+    uintptr_t hi = lo + fw_range_size(h->size);  /* one past the last byte */
     if (q >= lo && q < hi) return (void *)lo;
   }
   return NULL;

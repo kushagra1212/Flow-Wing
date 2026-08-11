@@ -86,6 +86,12 @@ jobs:
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
+      # above already produced the binary, so this only runs it.
+      - name: GC runtime unit tests
+        if: success() || failure()
+        run: make test-gc
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -185,6 +191,12 @@ jobs:
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
+      # above already produced the binary, so this only runs it.
+      - name: GC runtime unit tests
+        if: success() || failure()
+        run: make test-gc
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -277,6 +289,16 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
+
+      # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
+      # above already produced the binary, so this only runs it.
+      - name: GC runtime unit tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-gc
 
       - name: Formatter golden tests
         if: success()

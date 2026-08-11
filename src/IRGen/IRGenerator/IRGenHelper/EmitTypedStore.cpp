@@ -29,6 +29,60 @@
 
 namespace flow_wing {
 namespace ir_gen {
+
+llvm::Value *
+IRGenerator::unboxDynamicToReference(llvm::Value *raw_dynamic,
+                                     types::Type *dynamic_type,
+                                     const std::string &target_type_name) {
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+  auto *module = m_ir_gen_context.getLLVMModule();
+  auto *context = m_ir_gen_context.getLLVMContext();
+  auto *dyn_struct_type =
+      m_ir_gen_context.getTypeBuilder()->getLLVMType(dynamic_type);
+
+  llvm::Value *box_ptr = ensurePointer(raw_dynamic, dynamic_type, "dynref_box");
+  auto [payload, tag] = DynamicValueHandler::extractDynamicValue(
+      box_ptr, dyn_struct_type, builder.get());
+
+  // A reference destination accepts an OBJECT payload (class instance / object)
+  // and NIRAST (the null literal). Anything else — a string, a number — would
+  // become a wild pointer the moment a method is called on it, so trap instead.
+  llvm::Value *is_object = builder->CreateICmpEQ(
+      tag, builder->getInt32(static_cast<int>(DynamicValueType::OBJECT)),
+      "dynref_is_object");
+  llvm::Value *is_null = builder->CreateICmpEQ(
+      tag, builder->getInt32(static_cast<int>(DynamicValueType::NIRAST)),
+      "dynref_is_null");
+  llvm::Value *is_reference =
+      builder->CreateOr(is_object, is_null, "dynref_ok");
+
+  llvm::Function *parent = builder->GetInsertBlock()->getParent();
+  auto *bad_block = llvm::BasicBlock::Create(*context, "dynref.bad", parent);
+  auto *ok_block = llvm::BasicBlock::Create(*context, "dynref.ok", parent);
+  builder->CreateCondBr(is_reference, ok_block, bad_block);
+
+  builder->SetInsertPoint(bad_block);
+  llvm::Function *panic_fn = module->getFunction("fg_panic");
+  if (panic_fn == nullptr) {
+    auto *panic_type = llvm::FunctionType::get(
+        builder->getVoidTy(), {builder->getPtrTy(), builder->getPtrTy()},
+        /*isVarArg=*/false);
+    panic_fn = llvm::Function::Create(
+        panic_type, llvm::Function::ExternalLinkage, "fg_panic", module);
+  }
+  builder->CreateCall(
+      panic_fn,
+      {builder->CreateGlobalStringPtr(
+           "Runtime Error: Dynamic value does not hold an object; cannot use "
+           "it as '%s'.",
+           "dynref_panic_fmt"),
+       builder->CreateGlobalStringPtr(target_type_name, "dynref_panic_type")});
+  builder->CreateUnreachable();
+
+  builder->SetInsertPoint(ok_block);
+  return builder->CreateIntToPtr(payload, builder->getPtrTy(), "dynref_ptr");
+}
+
 void IRGenerator::emitTypedStore(llvm::Value *target_addr,
                                  types::Type *target_type,
                                  llvm::Value *source_raw_value,
@@ -82,6 +136,16 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
 
   // CASE: Class variable holds pointer to instance; store the pointer.
   if (target_type->getKind() == types::TypeKind::kClass) {
+    // A boxed dynamic (e.g. the element a container's `get()` hands back) must
+    // be unboxed first: the box is `{ i32 tag; i64 value }`, twice the width of
+    // the pointer slot, and its first word is the tag, not the instance.
+    if (source_type->isDynamic()) {
+      builder->CreateStore(
+          unboxDynamicToReference(source_raw_value, source_type,
+                                  target_type->getName()),
+          target_addr);
+      return;
+    }
     llvm::Value *source_value = source_raw_value;
     if (llvm::isa<llvm::GlobalVariable>(source_raw_value)) {
       auto *expected_llvm_type =
@@ -362,11 +426,17 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       builder->CreateStore(val_to_store, target_addr);
     } else if (source_type->isPrimitive() ||
                source_type->getKind() == types::TypeKind::kObject ||
-               source_type->getKind() == types::TypeKind::kArray) {
+               source_type->getKind() == types::TypeKind::kArray ||
+               source_type->getKind() == types::TypeKind::kClass) {
       llvm::Value *val_to_store = nullptr;
 
+      // A class instance is a heap pointer exactly like an object or array, so
+      // it boxes the same way. Without this it fell through to the empty `else`
+      // below and the argument slot was passed to the callee uninitialised —
+      // `someVec.push(otherVec)` stored garbage.
       if (source_type->getKind() == types::TypeKind::kObject ||
-          source_type->getKind() == types::TypeKind::kArray) {
+          source_type->getKind() == types::TypeKind::kArray ||
+          source_type->getKind() == types::TypeKind::kClass) {
 
         if (llvm::isa<llvm::AllocaInst>(source_raw_value) ||
             llvm::isa<llvm::GEPOperator>(source_raw_value) ||

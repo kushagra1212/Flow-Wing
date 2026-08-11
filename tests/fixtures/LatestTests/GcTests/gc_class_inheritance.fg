@@ -1,0 +1,80 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Inheritance & virtual dispatch. A derived instance carries the base's string
+/; fields as well as its own, so the descriptor for the derived class must list
+/; EVERY pointer field — a base field missing from the derived descriptor is a
+/; string that gets collected while the object is still live. Virtual dispatch
+/; through a base-typed reference exercises the same object from another path.
+/; --------------------------------------------------------------------------
+
+class Animal {
+  var name: str
+  var sound: str
+  fun init(n: str, s: str) -> nthg {
+    self.name = n
+    self.sound = s
+  }
+  fun speak() -> str {
+    return self.name + " says " + self.sound
+  }
+  fun rename(n: str) -> nthg {
+    self.name = n
+  }
+}
+
+class Dog extends Animal {
+  var breed: str
+  fun init(n: str, s: str, b: str) -> nthg {
+    self.name = n
+    self.sound = s
+    self.breed = b
+  }
+  fun speak() -> str {
+    return self.name + " (" + self.breed + ") says " + self.sound
+  }
+}
+
+/; every field value is freshly concatenated, so nothing is a static literal
+var a: Animal = new Animal("Ge" + "neric", "no" + "ise")
+var d: Dog = new Dog("Re" + "x", "wo" + "of", "Lab" + "rador")
+
+println(a.speak())
+println(d.speak())
+println(d.name)
+println(d.sound)
+println(d.breed)
+
+/; churn, then read the base-class fields of the derived instance again
+type Junk = { j: str }
+for var q: int = 0 to 9 {
+  var junk: Junk = { j: "j" + String(q) }
+}
+println(d.name)
+println(d.sound)
+println(d.breed)
+
+/; a base-class method mutating a base field of a derived instance
+d.rename("Ma" + "x")
+println(d.name)
+println(d.speak())
+
+/; virtual dispatch through a base-typed reference
+var ref: Animal = d
+println(ref.speak())
+
+/; dispatch through a function parameter typed as the base class
+fun announce(x: Animal) -> str {
+  return "<" + x.speak() + ">"
+}
+println(announce(a))
+println(announce(d))
+
+/; instances created inside a loop, only the last kept
+var kept: Dog = new Dog("see" + "d", "s" + "0", "b" + "0")
+for var i: int = 0 to 4 {
+  kept = new Dog("n" + String(i), "s" + String(i), "b" + String(i))
+}
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { j: "k" + String(q2) }
+}
+println(kept.speak())

@@ -1,0 +1,60 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Err::Result under collection pressure. The error path returns an OBJECT
+/; alongside an ordinary value from a multi-return, so both leaves of the packed
+/; ret_slot must be rooted; the Result's message/detail strings are built by
+/; concatenation at the throw site and read back much later, after the caller
+/; has allocated repeatedly.
+/; --------------------------------------------------------------------------
+
+bring Err
+
+fun parseCount(flag: bool) -> int, Err::Result {
+  if flag {
+    return 7, Err::ok("count " + "ready")
+  }
+  return 0, Err::error("count " + "missing", Err::CODE.NOT_FOUND)
+}
+
+/; success path
+var okCount: int, okErr: Err::Result = parseCount(true)
+println(okCount)
+println(Err::isOk(okErr))
+println(okErr.toString())
+
+/; failure path
+var badCount: int, badErr: Err::Result = parseCount(false)
+println(badCount)
+println(badErr.isErr())
+println(badErr.toString())
+
+/; allocate heavily, then read the Results back — their strings must survive
+type Junk = { a: str }
+for var q: int = 0 to 9 {
+  var junk: Junk = { a: "j" + String(q) }
+}
+println(okErr.toString())
+println(badErr.toString())
+
+/; the builder methods each produce a fresh Result whose predecessor becomes
+/; garbage immediately
+println(badErr.withMessage("che" + "cked").toString())
+println(badErr.withCode(Err::CODE.FAILED).isErr())
+println(badErr.clearDetails().hasDetails())
+
+/; Results produced in a loop: only the last one is kept
+var last: Err::Result = Err::ok("seed")
+for var i: int = 0 to 4 {
+  last = Err::error("e" + String(i), Err::CODE.FAILED)
+}
+for var q2: int = 0 to 9 {
+  var junk2: Junk = { a: "k" + String(q2) }
+}
+println(last.toString())
+
+/; a Result flowing through another function boundary
+fun describe(r: Err::Result) -> str {
+  return "[" + r.toString() + "]"
+}
+println(describe(okErr))
+println(describe(last))

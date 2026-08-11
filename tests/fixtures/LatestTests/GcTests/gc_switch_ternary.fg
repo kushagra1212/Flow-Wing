@@ -1,0 +1,65 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Branching expressions. A `switch` arm and each side of a ternary produce a
+/; freshly-allocated string in a temp that is merged at the join point; only the
+/; taken branch's value may be kept, and it must survive the allocations that
+/; follow the merge.
+/; --------------------------------------------------------------------------
+
+/; switch arms that each allocate, with a `return` (and therefore a frame pop)
+/; inside every arm
+fun pick(n: int) -> str {
+  switch n {
+    case 1: {
+      return "on" + "e"
+    }
+    case 2: {
+      return "tw" + "o"
+    }
+    default: {
+      return "other" + String(n)
+    }
+  }
+}
+println(pick(1))
+println(pick(2))
+println(pick(9))
+
+/; switch that assigns to an outer variable instead of returning
+var label: str = ""
+var code: int = 2
+switch code {
+  case 1: {
+    label = "al" + "pha"
+  }
+  case 2: {
+    label = "be" + "ta"
+  }
+  default: {
+    label = "unk" + "nown"
+  }
+}
+println(label)
+
+/; ternary with freshly-allocated operands on both sides
+var flag: bool = true
+var t: str = flag ? "ye" + "s" : "n" + "o"
+println(t)
+println(1 < 2 ? "a" + "b" : "c" + "d")
+println(1 > 2 ? "a" + "b" : "c" + "d")
+
+/; ternary feeding a concat (the branch result is consumed by another alloc)
+var n: int = 3
+println("[" + (n == 3 ? String(n) + "-three" : "not-three") + "]")
+
+/; nested ternary: the inner branch value flows into the outer merge
+var score: int = 75
+var grade: str = score > 89 ? "A" + "!" : score > 69 ? "B" + "!" : "C" + "!"
+println(grade)
+
+/; ternary inside a loop, alternating branches so both temps churn
+var alt: str = ""
+for var i: int = 0 to 5 {
+  alt = alt + (i < 3 ? "L" + String(i) : "R" + String(i))
+}
+println(alt)

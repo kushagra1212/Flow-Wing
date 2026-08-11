@@ -266,6 +266,17 @@ private:
                              llvm::Value *src_val);
   llvm::Value *getTempArray(types::Type *dest_type, types::Type *src_type,
                             llvm::Value *src_val);
+  // Unboxes a dynamic value whose payload is a GC heap reference (a class
+  // instance or an object) into a raw pointer. Needed wherever a `dynamic`
+  // flows into a class/object-typed destination — e.g. `var v: vec::Vec =
+  // outer.get(0)`, where the container hands back a boxed element. Storing the
+  // 16-byte box into an 8-byte pointer slot instead would overrun the slot and
+  // then read the tag word as an address. Emits a tag guard that panics on a
+  // payload that is not a reference, so a mistyped element is a clean runtime
+  // error rather than a wild pointer.
+  llvm::Value *unboxDynamicToReference(llvm::Value *raw_dynamic,
+                                       types::Type *dynamic_type,
+                                       const std::string &target_type_name);
 
   // --- GC precise shadow-stack frame emission (M2) ---
   // Mirrors the runtime `FWFrame` struct and the `fw_gc_shadow_top` global,
