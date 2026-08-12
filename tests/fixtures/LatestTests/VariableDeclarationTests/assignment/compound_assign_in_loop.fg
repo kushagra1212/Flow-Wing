@@ -1,0 +1,27 @@
+/; The common use: accumulators in loops.
+var total: int = 0
+var i: int = 0
+while i < 5 {
+    total += i
+    i += 1
+}
+print(total, "\n")
+print(i, "\n")
+
+var product: int = 1
+for (var j: int = 1 to 5 : 1) {
+    product *= j
+}
+print(product, "\n")
+
+var joined: str = ""
+for (var k: int = 0 to 3 : 1) {
+    joined += String(k)
+}
+print(joined, "\n")
+
+var countdown: int = 10
+while countdown > 0 {
+    countdown -= 2
+}
+print(countdown, "\n")

@@ -1,0 +1,56 @@
+/; Compound assignment and functions: call results as the operand, parameters
+/; and inout parameters as targets, globals mutated from inside a function, and
+/; an accumulator carried through recursion.
+fun five() -> int { return 5 }
+
+var x: int = 1
+x += five()
+println(x)
+
+/; a value parameter is a local copy — safe to compound-assign
+fun doubled(n: int) -> int {
+    n *= 2
+    return n
+}
+println(doubled(21))
+
+/; an inout parameter writes through to the caller
+fun addTo(inout n: int, by: int) -> nthg {
+    n += by
+}
+var g: int = 1
+addTo(g, 7)
+println(g)
+
+/; a global mutated from inside a function
+var global_total: int = 0
+fun accumulate(n: int) -> nthg {
+    global_total += n
+}
+accumulate(3)
+accumulate(4)
+println(global_total)
+
+/; recursion building a string accumulator
+fun repeat(n: int) -> str {
+    var out: str = ""
+    if n <= 0 {
+        return out
+    }
+    out += String(n)
+    out += repeat(n - 1)
+    return out
+}
+println(repeat(4))
+
+/; multi-return call feeding two separate compound assignments
+fun pair() -> int, int { return 2, 3 }
+var a: int = 10
+var b: int = 20
+var p: int = 0
+var q: int = 0
+p, q = pair()
+a += p
+b += q
+println(a)
+println(b)

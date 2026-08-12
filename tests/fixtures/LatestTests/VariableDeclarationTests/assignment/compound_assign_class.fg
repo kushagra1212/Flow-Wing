@@ -1,0 +1,42 @@
+/; Compound assignment on class state: own fields, `self` inside methods,
+/; inherited fields, and instances held in containers.
+class Counter {
+    var n: int
+    var label: str
+    init(n: int) {
+        self.n = n
+        self.label = "c"
+    }
+    fun bump(by: int) -> nthg {
+        self.n += by
+        self.label += "!"
+    }
+    fun total() -> int { return self.n }
+}
+
+var c: Counter = new Counter(1)
+c.n += 5
+println(c.n)
+c.bump(10)
+println(c.n)
+println(c.label)
+
+/; inheritance: a compound store into a field declared by the base class
+class Base {
+    var n: int
+    init(n: int) { self.n = n }
+}
+class Derived extends Base {
+    init(n: int) { super(n) }
+    fun bumpBase() -> nthg { self.n += 5 }
+}
+var d: Derived = new Derived(1)
+d.n += 2
+d.bumpBase()
+println(d.n)
+
+/; RHS is a method call
+var e: Counter = new Counter(10)
+var acc: int = 0
+acc += e.total()
+println(acc)

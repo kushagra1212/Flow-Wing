@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,25 @@ void AssignmentExpressionSyntax::accept(visitor::ASTVisitor *visitor) {
 // Boolean Queries
 bool AssignmentExpressionSyntax::isFullReAssignment() const {
   return m_operator_token->getTokenKind() == lexer::TokenKind::kLeftArrowToken;
+}
+
+bool AssignmentExpressionSyntax::isCompoundAssignment() const {
+  return getCompoundBinaryOperator() != lexer::TokenKind::kBadToken;
+}
+
+lexer::TokenKind AssignmentExpressionSyntax::getCompoundBinaryOperator() const {
+  switch (m_operator_token->getTokenKind()) {
+  case lexer::TokenKind::kPlusEqualsToken:
+    return lexer::TokenKind::kPlusToken;
+  case lexer::TokenKind::kMinusEqualsToken:
+    return lexer::TokenKind::kMinusToken;
+  case lexer::TokenKind::kStarEqualsToken:
+    return lexer::TokenKind::kStarToken;
+  case lexer::TokenKind::kSlashEqualsToken:
+    return lexer::TokenKind::kSlashToken;
+  default:
+    return lexer::TokenKind::kBadToken;
+  }
 }
 
 // Getters

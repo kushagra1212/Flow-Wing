@@ -1,0 +1,24 @@
+/; A compound assignment is an expression like `=`, so it yields its target.
+var x: int = 1
+var y: int = 0
+y = (x += 5)
+print(y, "\n")
+print(x, "\n")
+
+var a: int = 10
+print(a -= 4)
+print("\n")
+print(a, "\n")
+
+var c: int = 0
+if (c += 1) {
+    print("taken\n")
+}
+print(c, "\n")
+
+/; chained with a plain assignment
+var p: int = 2
+var q: int = 0
+q = p *= 5
+print(q, "\n")
+print(p, "\n")

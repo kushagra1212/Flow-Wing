@@ -10,6 +10,86 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 - **`=`** and **`<-`** (left arrow) are the **same** assignment in meaning: evaluate the right-hand side and store it in the target (variable, index, or member, where the language allows). The two tokens differ **only in syntax**—use whichever you prefer for **readability** or **style**; there is no separate “mode” in behavior between them.
 
+## Compound assignment
+
+**`+=`**, **`-=`**, **`*=`** and **`/=`** combine an operation with the store: **`x += e`** means **`x = x + e`**.
+
+<CodeBlock code={
+`var x: int = 10
+x += 5
+print(x, "\\n")
+x -= 3
+print(x, "\\n")
+x *= 4
+print(x, "\\n")
+
+var d: deci = 10.0
+d /= 4.0
+print(d, "\\n")
+`} language="fg"/>
+
+Since **`+`** concatenates strings, **`+=`** appends:
+
+<CodeBlock code={
+`var s: str = "Hello"
+s += " World"
+print(s, "\\n")
+`} language="fg"/>
+
+They work on any assignable target — a variable, an array element, an object or class member, an **`inout`** parameter:
+
+<CodeBlock code={
+`var arr: int[3] = [1, 2, 3]
+arr[1] += 10
+print(arr, "\\n")
+
+type T = { v: int }
+var o: T = { v: 5 }
+o.v *= 3
+print(o.v, "\\n")
+`} language="fg"/>
+
+**The target is evaluated once.** In **`arr[next()] += 10`** the index expression runs a single time — writing it out as **`arr[next()] = arr[next()] + 10`** would call **`next()`** twice.
+
+The usual home for these is a loop accumulator:
+
+<CodeBlock code={
+`var total: int = 0
+var i: int = 0
+while i < 5 {
+    total += i
+    i += 1
+}
+print(total, "\\n")
+
+var joined: str = ""
+for (var k: int = 0 to 3 : 1) {
+    joined += String(k)
+}
+print(joined, "\\n")
+`} language="fg"/>
+
+Like **`=`**, a compound assignment is itself a **value**, so it composes with the chaining described below:
+
+<CodeBlock code={
+`var p: int = 2
+var q: int = 0
+q = p *= 5
+print(q, "\\n")
+print(p, "\\n")
+`} language="fg"/>
+
+Both print **`10`**.
+
+### When a compound assignment is rejected
+
+**`x op= e`** is valid exactly when **`x = x op e`** is. Two consequences worth knowing:
+
+- **`/=`** on two **`int`** values is an **error**, because **`/`** produces a **`deci`** (**`1 / 2`** is **`0.5`**) and that does not fit back into an **`int`**. Use a **`deci`** target, or **`//=`**-style floor division written out as **`x = x // 2`**.
+- Narrow integer targets follow the same promotion rules as ordinary arithmetic: **`int8 + int8`** produces an **`int`**, so **`i += j`** on **`int8`** is rejected just as **`i = i + j`** is.
+
+A compound assignment also takes exactly **one** target — **`a, b += 1, 2`** is an error. Multi-target assignment is available with plain **`=`**.
+
 ## An assignment is also a value
 
 An assignment **produces a value**: the target it just stored into. So assignments **chain**, and they can appear anywhere a value is expected.

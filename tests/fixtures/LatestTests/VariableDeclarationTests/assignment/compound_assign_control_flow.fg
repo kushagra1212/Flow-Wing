@@ -1,0 +1,59 @@
+/; Compound assignment inside every control-flow construct.
+var acc: int = 0
+
+/; if / else / or if
+var n: int = 5
+if n > 3 {
+    acc += 10
+} or if n > 1 {
+    acc += 100
+} else {
+    acc += 1000
+}
+println(acc)
+
+/; while with continue and break
+var total: int = 0
+var i: int = 0
+while i < 10 {
+    i += 1
+    if i == 3 { continue }
+    if i == 6 { break }
+    total += i
+}
+println(total)
+println(i)
+
+/; for loop, and a nested pair
+var product: int = 1
+for (var j: int = 1 to 4 : 1) {
+    product *= j
+}
+println(product)
+
+var grid_sum: int = 0
+for (var r: int = 0 to 2 : 1) {
+    for (var c: int = 0 to 2 : 1) {
+        grid_sum += r * c
+    }
+}
+println(grid_sum)
+
+/; switch
+var picked: int = 0
+var k: int = 2
+switch (k) {
+    case 1: { picked += 1 }
+    case 2: { picked += 5 }
+    default: { picked += 100 }
+}
+println(picked)
+
+/; inside a nested block, with shadowing
+var shadowed: int = 1
+{
+    var shadowed: int = 10
+    shadowed += 5
+    println(shadowed)
+}
+println(shadowed)

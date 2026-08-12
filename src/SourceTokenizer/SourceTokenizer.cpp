@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,15 +59,48 @@ std::unique_ptr<syntax::SyntaxToken> SourceTokenizer::nextToken() {
 
   while (true) {
     auto token = nextRawToken();
-    if (token->getTokenKind() == lexer::TokenKind::kWhitespaceToken ||
-        token->getTokenKind() == lexer::TokenKind::kEndOfLineToken ||
-        token->getTokenKind() == lexer::TokenKind::kSingleLineCommentToken ||
-        token->getTokenKind() == lexer::TokenKind::kMultiLineCommentToken) {
+    const auto kind = token->getTokenKind();
+
+    const bool is_comment = kind == lexer::TokenKind::kSingleLineCommentToken ||
+                            kind == lexer::TokenKind::kMultiLineCommentToken;
+
+    if (kind == lexer::TokenKind::kWhitespaceToken ||
+        kind == lexer::TokenKind::kEndOfLineToken || is_comment) {
+
+      // A comment still on the same line as the previous significant token
+      // describes the code *before* it ("x = 3 /; the answer"), so it belongs
+      // to that token rather than to whatever starts the next line. Everything
+      // else — whitespace, and the newline itself — stays leading, so that
+      // `hasLeadingEndOfLine()` and the formatter's newline rules keep seeing
+      // the token a newline precedes.
+      if (is_comment && m_last_significant_token != nullptr &&
+          !m_ended_line_since_last_token) {
+        m_last_significant_token->addTrailingTrivia(std::move(token));
+        continue;
+      }
+
+      if (kind == lexer::TokenKind::kEndOfLineToken) {
+        m_ended_line_since_last_token = true;
+      }
+
+      // A multi-line comment ends the line it closes on.
+      if (is_comment && token->getText().find('\n') != std::string::npos) {
+        m_ended_line_since_last_token = true;
+      }
+
       leading_tokens.push_back(std::move(token));
     } else {
-      return std::make_unique<syntax::SyntaxToken>(
+      auto significant_token = std::make_unique<syntax::SyntaxToken>(
           token->getTokenKind(), token->getText(), token->getValue(),
           token->getSourceLocation(), std::move(leading_tokens));
+
+      // Borrowed, not owned: the caller (LexerPass) keeps every token alive in
+      // a vector of unique_ptr for the whole compilation, and moving that
+      // unique_ptr does not move the token itself.
+      m_last_significant_token = significant_token.get();
+      m_ended_line_since_last_token = false;
+
+      return significant_token;
     }
   }
 }

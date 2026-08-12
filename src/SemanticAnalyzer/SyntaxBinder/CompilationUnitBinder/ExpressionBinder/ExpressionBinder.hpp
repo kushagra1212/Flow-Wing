@@ -211,6 +211,9 @@ private:
   std::unique_ptr<BoundExpression>
   bindAssignmentExpression(syntax::AssignmentExpressionSyntax *expression);
 
+  std::unique_ptr<BoundExpression> bindCompoundAssignmentExpression(
+      syntax::AssignmentExpressionSyntax *expression);
+
   // -- Container Expression --
   std::unique_ptr<BoundExpression>
   bindContainerExpression(syntax::ContainerExpressionSyntax *expression);
@@ -229,6 +232,9 @@ private:
   std::unique_ptr<BoundErrorExpression>
   checkConstantVariableAssignment(const BoundExpression *left_expression,
                                   const diagnostic::SourceLocation &location);
+  std::unique_ptr<BoundErrorExpression>
+  validateAssignmentTarget(BoundExpression *left_expression,
+                           const diagnostic::SourceLocation &location);
 };
 
 } // namespace binding

@@ -177,6 +177,11 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "a value to it.",
       "", ""}},
 
+    {(DiagnosticCode::kCompoundAssignmentMultiTargetNotAllowed),
+     {"Compound assignment '{0}' takes exactly one target, but {1} were given. "
+      "Assign to each target on its own line.",
+      "", ""}},
+
     {(DiagnosticCode::kInvalidBracketedExpression),
      {"Invalid Bracketed Expression, Expected Fill Expression or Container "
       "Expression.",
@@ -1030,6 +1035,9 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
 
   case DiagnosticCode::kAssignmentToNonVariable:
     return "AssignmentToNonVariable";
+
+  case DiagnosticCode::kCompoundAssignmentMultiTargetNotAllowed:
+    return "CompoundAssignmentMultiTargetNotAllowed";
 
   case DiagnosticCode::kCustomTypeAlreadyDeclared:
     return "CustomTypeAlreadyDeclared";

@@ -22,6 +22,7 @@
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/common/types/Type.hpp"
 #include "src/utils/LogConfig.h"
@@ -242,7 +243,31 @@ void IRGenerator::visit(
       CODEGEN_DEBUG_LOG("Target Type", target_type->getName());
       CODEGEN_DEBUG_LOG("Source Type", source_type->getName());
 
-      emitTypedStore(target_ptr, target_type, source_val, source_type);
+      if (statement->isCompoundAssignment()) {
+        // `x += e` is `x = x + e` with the target's address computed once —
+        // target_ptr above is that single evaluation, so an index or member
+        // target does not re-run its subscript. The binder already proved this
+        // operator/type combination is a legal binary operation.
+        auto binary_operator = binding::BoundBinaryOperator::bind(
+            statement->getCompoundOperator(), left_expression->getType(),
+            right_expression->getType());
+        assert(binary_operator &&
+               "compound assignment operator not bound by the binder");
+
+        auto result_type_owner = binary_operator->getResultType();
+        types::Type *result_type = result_type_owner.get();
+
+        llvm::Value *current_value = resolveValue(target_ptr, target_type);
+        llvm::Value *operand_value = resolveValue(source_val, source_type);
+
+        llvm::Value *combined = getBinaryResult(
+            current_value, operand_value, statement->getCompoundOperator(),
+            target_type, source_type, result_type);
+
+        emitTypedStore(target_ptr, target_type, combined, result_type);
+      } else {
+        emitTypedStore(target_ptr, target_type, source_val, source_type);
+      }
       recordResult(target_ptr, target_type);
 
       var_idx++;

@@ -58,8 +58,10 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 |----------|----------------------------|
 | `=`      | Assignment                 |
 | `<-`     | Assignment (same as `=`)   |
-
-Flow-Wing has no compound assignment operators (`+=`, `-=`, `*=`, `/=`); write `x = x + 1`.
+| `+=`     | Add and assign             |
+| `-=`     | Subtract and assign        |
+| `*=`     | Multiply and assign        |
+| `/=`     | Divide and assign          |
 
 An assignment is also an **expression** — it produces the target it stored into, so assignments chain (`x = y = 3`) and can be used wherever a value is expected. See [Assignment expressions](./Assignment%20Expressions.md).
 
@@ -104,6 +106,6 @@ Operators evaluate in this order, highest to lowest:
 | 10 | `&&` |
 | 11 | `\|\|` |
 | 12 | `?:` (ternary), `,` |
-| 13 (lowest) | `=`, `<-` |
+| 13 (lowest) | `=`, `<-`, `+=`, `-=`, `*=`, `/=` |
 
-Everything else is left-associative; `=` and `<-` are **right**-associative, so `x = y = 3` groups as `x = (y = 3)`.
+Everything else is left-associative; the assignment operators are **right**-associative, so `x = y = 3` groups as `x = (y = 3)`.

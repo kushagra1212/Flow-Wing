@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <memory>
 
@@ -40,6 +41,11 @@ public:
 
   // Boolean Queries
   bool isFullReAssignment() const;
+  bool isCompoundAssignment() const;
+
+  // The binary operator a compound assignment applies — `+` for `+=`. Returns
+  // kBadToken for a plain `=` / `<-`.
+  lexer::TokenKind getCompoundBinaryOperator() const;
 
   // Getters
   const std::unique_ptr<ExpressionSyntax> &getLeft() const;

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,11 @@ static const std::unordered_map<std::string, lexer::TokenKind> kSymbols = {
     {"<=", lexer::TokenKind::kLessOrEqualsToken},
     {">", lexer::TokenKind::kGreaterToken},
     {">=", lexer::TokenKind::kGreaterOrEqualsToken},
-    {"?", lexer::TokenKind::kQuestionToken}};
+    {"?", lexer::TokenKind::kQuestionToken},
+    {"+=", lexer::TokenKind::kPlusEqualsToken},
+    {"-=", lexer::TokenKind::kMinusEqualsToken},
+    {"*=", lexer::TokenKind::kStarEqualsToken},
+    {"/=", lexer::TokenKind::kSlashEqualsToken}};
 
 std::unique_ptr<syntax::SyntaxToken>
 SymbolTokenReader::readToken(SourceTokenizer &lexer) {

@@ -1,0 +1,20 @@
+/; Compound assignment: `x += e` means `x = x + e` with the target evaluated
+/; once. Valid exactly when the underlying binary operation is.
+var x: int = 10
+x += 5
+print(x, "\n")
+x -= 3
+print(x, "\n")
+x *= 4
+print(x, "\n")
+
+var d: deci = 10.0
+d /= 4.0
+print(d, "\n")
+d += 0.5
+print(d, "\n")
+
+/; `+` concatenates strings, so `+=` appends
+var s: str = "Hello"
+s += " World"
+print(s, "\n")
