@@ -1,0 +1,7 @@
+/; A string element as the inner assignment's target. This goes down a separate
+/; IRGen path (fg_string_set) that stores no value into a target slot, so the
+/; assignment's value is the assigned character itself.
+var s:str = "abc"
+var c:char = (s[0] = 'z')
+print(s, "\n")
+print(c, "\n")

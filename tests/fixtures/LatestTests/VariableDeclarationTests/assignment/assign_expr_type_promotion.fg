@@ -1,0 +1,19 @@
+/; Chains where the two targets have different widths. The assignment's value
+/; carries the inner target's type, so the outer store converts as usual.
+var small:int8 = 0
+var big:int = 0
+big = small = 5
+print(big, "\n")
+print(small, "\n")
+
+var i:int = 0
+var d:deci = 0.0
+d = i = 3
+print(d, "\n")
+print(i, "\n")
+
+var wide:int64 = 0
+var narrow:int = 0
+wide = narrow = 12
+print(wide, "\n")
+print(narrow, "\n")

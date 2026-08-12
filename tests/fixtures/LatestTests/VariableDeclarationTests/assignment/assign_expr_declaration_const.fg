@@ -1,0 +1,6 @@
+/; A const declaration may be initialized from an assignment expression; the
+/; const-ness applies to the declared name, not to the assignment's target.
+var y: int = 0
+const c: int = (y = 4)
+print(c, "\n")
+print(y, "\n")

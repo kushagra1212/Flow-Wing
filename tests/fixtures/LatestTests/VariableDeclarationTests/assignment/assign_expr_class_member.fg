@@ -1,0 +1,29 @@
+/; A class field as the inner assignment's target, and a chain through `self`
+/; inside a method.
+class C {
+    var v: int
+    var s: str
+    init(v: int) {
+        self.v = v
+        self.s = ""
+    }
+    fun bump(n: int) -> int {
+        var local: int = 0
+        local = self.v = n
+        return local
+    }
+}
+
+var c1:C = new C(0)
+var x: int = 0
+x = (c1.v = 6)
+print(x, "\n")
+print(c1.v, "\n")
+
+print(c1.bump(11), "\n")
+print(c1.v, "\n")
+
+var sv: str = ""
+sv = c1.s = "field"
+print(sv, "\n")
+print(c1.s, "\n")

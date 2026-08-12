@@ -1,0 +1,6 @@
+/; Explicit parentheses around the inner assignment: same value, same result.
+var y: int = 0
+var x: int = 0
+x = (y = 3)
+print(x, "\n")
+print(y, "\n")

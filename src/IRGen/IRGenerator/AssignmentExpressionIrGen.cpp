@@ -40,6 +40,25 @@ void IRGenerator::visit(
   size_t expr_idx = 0;
   auto *module = m_ir_gen_context.getLLVMModule();
 
+  // An assignment is also an expression: it evaluates to its first (leftmost)
+  // target once the store has happened. That matches
+  // BoundAssignmentExpression::getType(), which already reports
+  // m_left[0]->getType(). Without this the visit left m_last_* cleared, so a
+  // nested use (`x = y = 3`, `print(x = 3)`, `if (x = 3)`) handed the enclosing
+  // node a null value/type and segfaulted in emitTypedStore.
+  //
+  // The target's *storage* is published, not a load of it — same protocol as
+  // BoundIdentifierExpression, so consumers resolveValue() it when they need
+  // the value and a discarded result costs no extra IR.
+  llvm::Value *result_value = nullptr;
+  types::Type *result_type = nullptr;
+  auto recordResult = [&](llvm::Value *value, types::Type *type) {
+    if (!result_value) {
+      result_value = value;
+      result_type = type;
+    }
+  };
+
   while (var_idx < left_expressions.size()) {
     if (expr_idx < right_expressions.size() &&
         right_expressions[expr_idx]->isMultipleType()) {
@@ -81,6 +100,7 @@ void IRGenerator::visit(
             builder->CreateLoad(field_llvm_type, gep, "assign_load");
 
         emitTypedStore(target_ptr, target_type, extracted_val, field_type);
+        recordResult(target_ptr, target_type);
         var_idx++;
       }
       expr_idx++;
@@ -191,6 +211,13 @@ void IRGenerator::visit(
             emit_dynamic_string_index_set(value_storage, type_tag, source_char);
           }
 
+          // fg_string_set writes through the string rather than into a target
+          // slot, so there is no target pointer to hand back. The value of
+          // `s[i] = c` is the character that was stored (char is i32, which is
+          // what source_char already holds).
+          recordResult(source_char,
+                       analysis::Builtins::m_char_type_instance.get());
+
           var_idx++;
           expr_idx++;
           clearLast();
@@ -216,11 +243,18 @@ void IRGenerator::visit(
       CODEGEN_DEBUG_LOG("Source Type", source_type->getName());
 
       emitTypedStore(target_ptr, target_type, source_val, source_type);
+      recordResult(target_ptr, target_type);
 
       var_idx++;
       expr_idx++;
     }
     clearLast();
   }
+
+  // Publish the assignment's own value for an enclosing expression. m_last_* is
+  // cleared by the loop above, so this is the only thing left set;
+  // m_last_llvm_type stays null because the result is never a multi-return slot.
+  m_last_value = result_value;
+  m_last_type = result_type;
 }
 }; // namespace flow_wing::ir_gen

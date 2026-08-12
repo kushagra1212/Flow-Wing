@@ -1,0 +1,7 @@
+/; Declaration inside a block: local alloca target, global assignment target.
+var g: int = 0
+{
+    var l: int = (g = 5)
+    print(l, "\n")
+}
+print(g, "\n")

@@ -1,0 +1,6 @@
+/; Assignment nested inside a binary expression.
+var y: int = 0
+var x: int = 0
+x = 1 + (y = 2)
+print(x, "\n")
+print(y, "\n")

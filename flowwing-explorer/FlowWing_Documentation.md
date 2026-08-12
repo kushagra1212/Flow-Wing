@@ -2179,6 +2179,50 @@ var d: int = 0
 a, b, c, d = p1(), p2()
 ```
 
+### Chained Assignment
+
+An assignment produces a value — the target it just stored into — so assignments
+chain. Chaining is right-associative: `x = y = 3` stores `3` into `y` first, then
+stores `y`'s new value into `x`. Both end up `3`.
+
+```flowwing
+var x: int = 0
+var y: int = 0
+x = y = 3
+println(x)
+println(y)
+```
+
+Because it is a value, an assignment can also appear anywhere a value is
+expected — a declaration's initializer, a call argument, a condition, or an
+operand of a larger expression.
+
+```flowwing
+var y: int = 0
+var total: int = 1 + (y = 2)
+println(total)  /; 3
+println(y)      /; 2
+```
+
+`<-` behaves identically to `=` here, and the two may be mixed in one chain.
+
+When an assignment has several targets, its value is the **first (leftmost)**
+one, so `x` below receives `1`:
+
+```flowwing
+var a: int = 0
+var b: int = 0
+var x: int = 0
+x = (a, b = 1, 2)
+println(x)  /; 1
+println(a)  /; 1
+println(b)  /; 2
+```
+
+> **Caveat:** since an assignment is a value and numbers are truthy,
+> `if (x = 3)` is valid — it *assigns* `3` to `x` and then tests it, rather than
+> comparing. Use `==` when you mean to compare.
+
 ## 3. Variable Scoping and Shadowing
 
 FlowWing implements block-level scoping. Variables declared within a block `{ ... }` are local to that block.

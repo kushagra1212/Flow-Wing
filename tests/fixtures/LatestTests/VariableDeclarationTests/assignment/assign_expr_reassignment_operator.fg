@@ -1,0 +1,6 @@
+/; The reassignment operator `<-` yields a value too, and chains the same way.
+var y: int = 0
+var x: int = 0
+x <- y <- 3
+print(x, "\n")
+print(y, "\n")

@@ -1,0 +1,26 @@
+/; Whole-array chained assignment. Arrays already assign by reference in
+/; FlowWing (`a1 = a2` aliases), so after `a1 = a2 = [...]` both names see one
+/; array — that is existing assignment behaviour, not something the expression
+/; form introduces.
+var a1:int[3] = [0, 0, 0]
+var a2:int[3] = [0, 0, 0]
+a1 = a2 = [1, 2, 3]
+println(a1)
+println(a2)
+a1[0] = 9
+println(a2)
+
+/; chained element stores into two independent arrays
+var b1:int[3] = [0, 0, 0]
+var b2:int[3] = [0, 0, 0]
+b1[0] = b2[2] = 7
+println(b1)
+println(b2)
+
+/; array of objects
+type T = { v:int }
+var t1:T[2] = [{v: 0}, {v: 0}]
+var t2:T[2] = [{v: 0}, {v: 0}]
+t1 = t2 = [{v: 1}, {v: 2}]
+println(t1)
+println(t2)

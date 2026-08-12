@@ -1,0 +1,16 @@
+/; The inner assignment's right-hand side must run exactly once — the outer
+/; assignment reuses the inner target, it does not re-evaluate the inner
+/; assignment.
+var calls: int = 0
+
+fun bump() -> int {
+    calls = calls + 1
+    return 7
+}
+
+var y: int = 0
+var x: int = 0
+x = (y = bump())
+print(x, "\n")
+print(y, "\n")
+print(calls, "\n")

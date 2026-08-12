@@ -1,0 +1,16 @@
+/; Assignment in both arms of a ternary. Only the taken arm's store happens.
+var y: int = 0
+var z: int = 0
+var x: int = 0
+x = 1 == 1 ? (y = 4) : (z = 9)
+print(x, "\n")
+print(y, "\n")
+print(z, "\n")
+
+var p: int = 0
+var q: int = 0
+var w: int = 0
+w = 1 == 2 ? (p = 4) : (q = 9)
+print(w, "\n")
+print(p, "\n")
+print(q, "\n")

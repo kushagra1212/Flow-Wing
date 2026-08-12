@@ -1,0 +1,6 @@
+/; An array element as the inner assignment's target.
+var arr:int[3] = [0, 0, 0]
+var x: int = 0
+x = (arr[1] = 4)
+print(x, "\n")
+print(arr[1], "\n")

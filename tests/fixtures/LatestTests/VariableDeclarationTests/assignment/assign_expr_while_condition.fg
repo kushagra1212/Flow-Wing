@@ -1,0 +1,9 @@
+/; Assignment in a while condition: re-evaluated (and re-stored) each round,
+/; and the loop ends when the newly stored value is falsy.
+var x: int = 3
+var count: int = 0
+while (x = x - 1) {
+    count = count + 1
+}
+print(count, "\n")
+print(x, "\n")

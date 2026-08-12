@@ -1,0 +1,31 @@
+/; Chains inside a function body: locals, a parameter as a target, an inout
+/; parameter as a target, and an assignment in return position.
+fun chainLocals() -> int {
+    var p: int = 0
+    var q: int = 0
+    p = q = 4
+    return p + q
+}
+print(chainLocals(), "\n")
+
+fun chainParam(n: int) -> int {
+    var t: int = 0
+    t = n = 6
+    return t + n
+}
+print(chainParam(1), "\n")
+
+fun chainInout(inout r: int) -> nthg {
+    var s: int = 0
+    s = r = 7
+    print(s, "\n")
+}
+var g: int = 0
+chainInout(g)
+print(g, "\n")
+
+fun returnsAssignment() -> int {
+    var y: int = 0
+    return (y = 3)
+}
+print(returnsAssignment(), "\n")

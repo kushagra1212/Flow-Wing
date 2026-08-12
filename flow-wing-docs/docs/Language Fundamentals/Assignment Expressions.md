@@ -10,6 +10,78 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 - **`=`** and **`<-`** (left arrow) are the **same** assignment in meaning: evaluate the right-hand side and store it in the target (variable, index, or member, where the language allows). The two tokens differ **only in syntax**—use whichever you prefer for **readability** or **style**; there is no separate “mode” in behavior between them.
 
+## An assignment is also a value
+
+An assignment **produces a value**: the target it just stored into. So assignments **chain**, and they can appear anywhere a value is expected.
+
+Chaining is **right-associative** — **`x = y = 3`** stores **`3`** into **`y`** first, then stores **`y`**’s new value into **`x`**:
+
+<CodeBlock code={
+`var x: int = 0
+var y: int = 0
+x = y = 3
+print(x, "\\n")
+print(y, "\\n")
+`} language="fg"/>
+
+Both print **`3`**. The same works with **`<-`** (**`x <- y <- 3`**), and the two can be mixed in one chain.
+
+Because it is a value, an assignment also works inside a larger expression — a declaration’s initializer, a call argument, a condition, or an operand:
+
+<CodeBlock code={
+`var y: int = 0
+var total: int = 1 + (y = 2)
+print(total, "\\n")
+print(y, "\\n")
+`} language="fg"/>
+
+**`total`** is **`3`** and **`y`** is **`2`**.
+
+Objects and arrays chain too, and follow the same replacement rules as any other assignment:
+
+<CodeBlock code={
+`type Person = {
+    name: str,
+    age: int,
+}
+
+var p1: Person = { name: "", age: 0 }
+var p2: Person = { name: "", age: 0 }
+p1 = p2 = { name: "Alice", age: 30 }
+print(p1, "\\n")
+print(p2, "\\n")
+`} language="fg"/>
+
+### Multi-target assignments
+
+When an assignment has **several** targets, its value is the **first (leftmost)** one:
+
+<CodeBlock code={
+`var a: int = 0
+var b: int = 0
+var x: int = 0
+x = (a, b = 1, 2)
+print(x, "\\n")
+print(a, "\\n")
+print(b, "\\n")
+`} language="fg"/>
+
+**`a`** becomes **`1`** and **`b`** becomes **`2`**, and **`x`** takes the **first** target’s value — **`1`**.
+
+### Watch out: assignment in a condition
+
+Since an assignment is a value and a number is truthy, **`if (x = 3)`** is **valid** — it **assigns** **`3`** to **`x`** and then tests it. That is an **assignment**, not the comparison **`x == 3`**:
+
+<CodeBlock code={
+`var x: int = 0
+if (x = 3) {
+    print("this runs\\n")
+}
+print(x, "\\n")
+`} language="fg"/>
+
+If you meant to **compare**, write **`==`**.
+
 Omitted object fields in a **literal** are filled from **type defaults** (e.g. **`0`** for **`int`**, empty **`str`**, etc.), **not** from whatever was in the variable before. To change only one field, assign to that field:
 
 <CodeBlock code={
