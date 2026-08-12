@@ -1,0 +1,8 @@
+/; Multi-variable declaration whose initializers are themselves assignments.
+var y1:int = 0
+var y2:int = 0
+var a:int, b:int = (y1 = 1), (y2 = 2)
+print(a, "\n")
+print(b, "\n")
+print(y1, "\n")
+print(y2, "\n")

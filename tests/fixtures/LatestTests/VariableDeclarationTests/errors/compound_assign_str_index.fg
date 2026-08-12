@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: InvalidBinaryOperationWithTypes
+/; A character of a str is written through fg_string_set, not stored into a
+/; slot, so there is nothing to load-operate-store.
+var s: str = "abc"
+s[0] += 1

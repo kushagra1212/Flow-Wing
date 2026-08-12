@@ -1,0 +1,23 @@
+/; The whole point of a compound operator over `x = x + e`: the target is
+/; evaluated ONCE. Spelling it out by hand runs the subscript twice.
+var calls: int = 0
+fun bump() -> int {
+    calls = calls + 1
+    return 1
+}
+
+var arr: int[3] = [0, 0, 0]
+arr[bump()] += 10
+print(arr, "\n")
+print(calls, "\n")
+
+/; the hand-written form, for contrast: two calls
+var calls2: int = 0
+fun bump2() -> int {
+    calls2 = calls2 + 1
+    return 1
+}
+var arr2: int[3] = [0, 0, 0]
+arr2[bump2()] = arr2[bump2()] + 10
+print(arr2, "\n")
+print(calls2, "\n")

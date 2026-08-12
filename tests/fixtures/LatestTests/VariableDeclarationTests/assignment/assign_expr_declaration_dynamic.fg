@@ -1,0 +1,10 @@
+/; Untyped (dynamic) declaration initialized from an assignment expression.
+var y = 0
+var d = (y = 11)
+print(d, "\n")
+print(y, "\n")
+
+var s = ""
+var t = (s = "dyn")
+print(t, "\n")
+print(s, "\n")

@@ -232,67 +232,6 @@ static char outLastNonSpaceChar(const std::string &s) {
   return '\0';
 }
 
-/// `inComment` in `t`’s leading list has no kEndOfLine before it: `) /;` in
-/// source, not a full line after a forced statement `\\n`.
-static bool
-commentTriviaIsFirstInLineInLeading(
-    const syntax::SyntaxToken *t, const syntax::SyntaxToken *inComment) {
-  if (!t || !inComment)
-    return false;
-  for (const auto &u : t->getLeadingTrivia()) {
-    if (!u)
-      continue;
-    if (u.get() == inComment) {
-      return inComment->getTokenKind() ==
-                 lexer::TokenKind::kSingleLineCommentToken ||
-             (inComment->getTokenKind() ==
-                  lexer::TokenKind::kMultiLineCommentToken &&
-              inComment->getText().find('\n') == std::string::npos);
-    }
-    if (u->getTokenKind() == lexer::TokenKind::kEndOfLineToken)
-      return false;
-  }
-  return false;
-}
-
-// True when `n` is `}` and its leading trivia has a one-line // /; (or
-// single-line /* */) comment that appears in source *before* the first newline
-// in that trivia — i.e. it belongs on the same line as the last statement, not
-// on its own line. Used to avoid inserting an extra `\\n` in visit(Block) which
-// would break end-of-line comments stored as leading trivia of `}`.
-static bool
-closeBraceHasSameLineLineCommentInLeadingTrivia(const syntax::SyntaxNode *n) {
-  if (!n || n->getKind() != syntax::NodeKind::kTokenNode)
-    return false;
-  const auto *tok = static_cast<const syntax::SyntaxToken *>(n);
-  if (tok->getTokenKind() != lexer::TokenKind::kCloseBraceToken)
-    return false;
-  constexpr size_t kNo = static_cast<size_t>(-1);
-  size_t firstEol = kNo;
-  size_t firstLineC = kNo;
-  const auto &lt = tok->getLeadingTrivia();
-  for (size_t i = 0; i < lt.size(); ++i) {
-    const auto *tr = lt[i].get();
-    if (!tr)
-      continue;
-    const auto kk = tr->getTokenKind();
-    if (kk == lexer::TokenKind::kEndOfLineToken && firstEol == kNo)
-      firstEol = i;
-    if (firstLineC == kNo) {
-      if (kk == lexer::TokenKind::kSingleLineCommentToken)
-        firstLineC = i;
-      else if (kk == lexer::TokenKind::kMultiLineCommentToken &&
-               tr->getText().find('\n') == std::string::npos)
-        firstLineC = i;
-    }
-  }
-  if (firstLineC == kNo)
-    return false;
-  if (firstEol == kNo)
-    return true;
-  return firstLineC < firstEol;
-}
-
 void SourceFormatter::appendBlockIndent() {
   m_buf.clearInterTokenSpace();
   m_buf.text.append(static_cast<size_t>(m_blockDepth) * kIndentSize, ' ');
@@ -364,7 +303,11 @@ void SourceFormatter::spaceBefore(const syntax::SyntaxToken *t) {
         lk == lexer::TokenKind::kEqualsEqualsToken ||
         lk == lexer::TokenKind::kBangEqualsToken ||
         lk == lexer::TokenKind::kLessOrEqualsToken ||
-        lk == lexer::TokenKind::kGreaterOrEqualsToken) {
+        lk == lexer::TokenKind::kGreaterOrEqualsToken ||
+        lk == lexer::TokenKind::kPlusEqualsToken ||
+        lk == lexer::TokenKind::kMinusEqualsToken ||
+        lk == lexer::TokenKind::kStarEqualsToken ||
+        lk == lexer::TokenKind::kSlashEqualsToken) {
       if (isIdChar(f) || f == '"' || f == '\'' || f == '(' || f == '{' ||
           f == '[' || f == '-' || f == '!' || (f >= '0' && f <= '9'))
         m_buf.requestInterTokenSpace();
@@ -395,14 +338,18 @@ void SourceFormatter::spaceBefore(const syntax::SyntaxToken *t) {
       m_buf.requestInterTokenSpace();
     return;
   }
-  // Space before `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`
+  // Space before `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `+=`, `-=`, `*=`, `/=`
   if (k == lexer::TokenKind::kEqualsToken ||
       k == lexer::TokenKind::kEqualsEqualsToken ||
       k == lexer::TokenKind::kBangEqualsToken ||
       k == lexer::TokenKind::kLessToken ||
       k == lexer::TokenKind::kLessOrEqualsToken ||
       k == lexer::TokenKind::kGreaterToken ||
-      k == lexer::TokenKind::kGreaterOrEqualsToken) {
+      k == lexer::TokenKind::kGreaterOrEqualsToken ||
+      k == lexer::TokenKind::kPlusEqualsToken ||
+      k == lexer::TokenKind::kMinusEqualsToken ||
+      k == lexer::TokenKind::kStarEqualsToken ||
+      k == lexer::TokenKind::kSlashEqualsToken) {
     if (isIdChar(L) || L == ')' || L == ']' || L == '.')
       m_buf.requestInterTokenSpace();
     return;
@@ -690,55 +637,16 @@ void SourceFormatter::emitLeadingTrivia(const syntax::SyntaxToken *t) {
     }
     if (k == lexer::TokenKind::kSingleLineCommentToken ||
         k == lexer::TokenKind::kMultiLineCommentToken) {
+      // Leading comments stand on their own line. An end-of-line comment is
+      // trailing trivia of the token it follows and is emitted by
+      // emitTrailingTrivia, so there is nothing to reconstruct here.
       const std::string &cText = tr->getText();
-      const bool cOnePhysicalLine = cText.find('\n') == std::string::npos;
-      // Standalone "full line" comment: m_buf.text is empty or last char is \n, then
-      // block indent + comment + \n. End-of-line ("trailing") comment: lexer
-      // attaches the comment as leading trivia to the *next* token, but it
-      // belongs on the same line as the previous statement — m_buf.text has code and
-      // does not end with \n. Emit space + comment + \n, no leading indent
-      // before the comment.
-      if (cOnePhysicalLine && !m_buf.text.empty() && m_buf.text.back() != '\n') {
-        // Trivia can contribute multiple kWhitespaceToken runs; we normalize
-        // them to a single space before the `/;` or // comment.
-        while (!m_buf.text.empty() && m_buf.text.back() == ' ')
-          m_buf.text.pop_back();
-        if (!m_buf.text.empty() && m_buf.text.back() != '\n')
-          m_buf.text += ' ';
-        m_buf.text += cText;
+      if (!m_buf.text.empty() && m_buf.text.back() != '\n')
         m_buf.text += '\n';
-        continue;
-      } else {
-        // `visit(CompilationUnit|Block)` may have just appended `\\n` between
-        // statements; for `);\\n/;` (comment in leading of next) pull `/;` back
-        // to the `)` / `]`.
-        if (cOnePhysicalLine && !m_buf.text.empty() &&
-            m_buf.text.back() == '\n' &&
-            commentTriviaIsFirstInLineInLeading(t, tr.get())) {
-          const char c = outLastNonSpaceChar(m_buf.text);
-          if (c == ')' || c == ']' || c == '{') {
-            while (!m_buf.text.empty() &&
-                   (m_buf.text.back() == '\n' || m_buf.text.back() == '\r')) {
-              m_buf.text.pop_back();
-            }
-            while (!m_buf.text.empty() && m_buf.text.back() == ' ') {
-              m_buf.text.pop_back();
-            }
-            if (!m_buf.text.empty() && m_buf.text.back() != '\n') {
-              m_buf.text += ' ';
-            }
-            m_buf.text += cText;
-            m_buf.text += '\n';
-            continue;
-          }
-        }
-        if (!m_buf.text.empty() && m_buf.text.back() != '\n')
-          m_buf.text += '\n';
-        appendBlockIndent();
-        m_buf.text += cText;
-        m_buf.text += '\n';
-        continue;
-      }
+      appendBlockIndent();
+      m_buf.text += cText;
+      m_buf.text += '\n';
+      continue;
     } else
       m_buf.text += tr->getText();
   }
@@ -767,6 +675,10 @@ void SourceFormatter::visitTokenCore(syntax::SyntaxToken *t) {
          t->getTokenKind() == lexer::TokenKind::kOrKeyword ||
          t->getTokenKind() == lexer::TokenKind::kEqualsToken ||
          t->getTokenKind() == lexer::TokenKind::kLeftArrowToken ||
+         t->getTokenKind() == lexer::TokenKind::kPlusEqualsToken ||
+         t->getTokenKind() == lexer::TokenKind::kMinusEqualsToken ||
+         t->getTokenKind() == lexer::TokenKind::kStarEqualsToken ||
+         t->getTokenKind() == lexer::TokenKind::kSlashEqualsToken ||
          t->getTokenKind() == lexer::TokenKind::kOpenBracketToken ||
          t->getTokenKind() == lexer::TokenKind::kIdentifierToken)) {
       // Leading trivia path skips spaceBefore; Allman EOL / `} \n else` EOL
@@ -782,6 +694,25 @@ void SourceFormatter::visitTokenCore(syntax::SyntaxToken *t) {
   m_buf.appendTokenLexeme(t->getText());
   m_prevEmittedToken = m_lastEmittedToken;
   m_lastEmittedToken = t;
+  emitTrailingTrivia(t);
+}
+
+// An end-of-line comment, emitted straight after the token it describes. The
+// tokenizer already decided it belongs here, so there is nothing to
+// reconstruct: one space, the comment, and the newline the comment forces.
+void SourceFormatter::emitTrailingTrivia(const syntax::SyntaxToken *t) {
+  for (const auto &tr : t->getTrailingTrivia()) {
+    if (!tr)
+      continue;
+    while (!m_buf.text.empty() && m_buf.text.back() == ' ') {
+      m_buf.text.pop_back();
+    }
+    if (!m_buf.text.empty() && m_buf.text.back() != '\n') {
+      m_buf.text += ' ';
+    }
+    m_buf.text += tr->getText();
+    m_buf.text += '\n';
+  }
 }
 
 void SourceFormatter::visit(syntax::SyntaxToken *node) { visitTokenCore(node); }
@@ -914,7 +845,9 @@ void SourceFormatter::visit(syntax::BlockStatementSyntax *node) {
     return;
   }
   visitChild(ch[0]);
-  m_buf.text += "\n";
+  // A trailing end-of-line comment has already ended the line.
+  if (m_buf.text.empty() || m_buf.text.back() != '\n')
+    m_buf.text += "\n";
   {
     DepthPush block(m_blockDepth);
     for (size_t i = 1; i + 1 < ch.size(); ++i) {
@@ -922,12 +855,8 @@ void SourceFormatter::visit(syntax::BlockStatementSyntax *node) {
       // A statement’s last token can already end the line (EOL in its trivia,
       // or a comment line); avoid a second `\\n` or we get a blank line before
       // the closing `}`.
-      if (m_buf.text.empty() || m_buf.text.back() != '\n') {
-        const bool nextIsCloseBrace = (i + 1 == ch.size() - 1);
-        if (!nextIsCloseBrace ||
-            !closeBraceHasSameLineLineCommentInLeadingTrivia(ch[i + 1]))
-          m_buf.text += "\n";
-      }
+      if (m_buf.text.empty() || m_buf.text.back() != '\n')
+        m_buf.text += "\n";
     }
   }
   appendBlockIndent();
@@ -1058,7 +987,9 @@ void SourceFormatter::visit(syntax::ContainerExpressionSyntax *node) {
     return;
   }
   visitChild(ch[0]);
-  m_buf.text += "\n";
+  // A trailing end-of-line comment has already ended the line.
+  if (m_buf.text.empty() || m_buf.text.back() != '\n')
+    m_buf.text += "\n";
   {
     DepthPush block(m_blockDepth);
     for (size_t i = 0; i < parts.size(); ++i) {
@@ -1191,7 +1122,9 @@ void SourceFormatter::visit(syntax::ObjectExpressionSyntax *node) {
   if (m_bracketArrayLiteralNesting == 1) {
     m_bracketArrayLiteralNesting = 0;
   }
-  m_buf.text += "\n";
+  // A trailing end-of-line comment has already ended the line.
+  if (m_buf.text.empty() || m_buf.text.back() != '\n')
+    m_buf.text += "\n";
   {
     DepthPush block(m_blockDepth);
     for (size_t i = 0; i < parts.size(); ++i) {
@@ -1384,7 +1317,9 @@ void SourceFormatter::visit(syntax::ClassStatementSyntax *node) {
     if (ch[i])
       visitChild(ch[i]);
   }
-  m_buf.text += "\n";
+  // A trailing end-of-line comment has already ended the line.
+  if (m_buf.text.empty() || m_buf.text.back() != '\n')
+    m_buf.text += "\n";
   {
     DepthPush block(m_blockDepth);
     for (size_t i = openI + 1; i < closeI; ++i) {
@@ -1433,7 +1368,9 @@ void SourceFormatter::visit(syntax::CustomTypeStatementSyntax *node) {
       visitChild(ch[i]);
     }
   }
-  m_buf.text += "\n";
+  // A trailing end-of-line comment has already ended the line.
+  if (m_buf.text.empty() || m_buf.text.back() != '\n')
+    m_buf.text += "\n";
   {
     DepthPush block(m_blockDepth);
     for (size_t i = openI + 1; i < closeI; ++i) {
@@ -1524,12 +1461,8 @@ void SourceFormatter::visit(syntax::SwitchStatementSyntax *node) {
     for (size_t i = 3; i + 1 < ch.size(); ++i) {
       if (ch[i])
         visitChild(ch[i]);
-      if (m_buf.text.empty() || m_buf.text.back() != '\n') {
-        const bool lastCase = (i + 1 == ch.size() - 1);
-        if (!lastCase ||
-            !closeBraceHasSameLineLineCommentInLeadingTrivia(ch[i + 1]))
-          m_buf.text += "\n";
-      }
+      if (m_buf.text.empty() || m_buf.text.back() != '\n')
+        m_buf.text += "\n";
     }
   }
   appendBlockIndent();

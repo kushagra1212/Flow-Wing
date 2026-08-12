@@ -1,0 +1,16 @@
+/; Assignment nested inside array and object literals.
+var y: int = 0
+var z: int = 0
+var arr:int[2] = [(y = 1), (z = 2)]
+println(arr)
+print(y, "\n")
+print(z, "\n")
+
+type T = { v:int, s:str }
+var w: int = 0
+var sv: str = ""
+var o:T = {v: (w = 8), s: (sv = "eight")}
+print(o.v, "\n")
+print(o.s, "\n")
+print(w, "\n")
+print(sv, "\n")

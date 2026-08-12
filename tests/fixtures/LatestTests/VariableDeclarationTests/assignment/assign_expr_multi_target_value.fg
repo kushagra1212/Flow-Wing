@@ -1,0 +1,10 @@
+/; A multi-target assignment used as a value yields its FIRST (leftmost) target,
+/; which is what BoundAssignmentExpression::getType() already reports
+/; (it returns m_left[0]->getType()).
+var a: int = 0
+var b: int = 0
+var x: int = 0
+x = (a, b = 1, 2)
+print(x, "\n")
+print(a, "\n")
+print(b, "\n")

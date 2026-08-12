@@ -70,6 +70,10 @@ int OperatorPrecedence::getInfixPrecedence(lexer::TokenKind kind) {
     return 2;
   case lexer::TokenKind::kLeftArrowToken:
   case lexer::TokenKind::kEqualsToken:
+  case lexer::TokenKind::kPlusEqualsToken:
+  case lexer::TokenKind::kMinusEqualsToken:
+  case lexer::TokenKind::kStarEqualsToken:
+  case lexer::TokenKind::kSlashEqualsToken:
     return 1;
   default:
     return 0;

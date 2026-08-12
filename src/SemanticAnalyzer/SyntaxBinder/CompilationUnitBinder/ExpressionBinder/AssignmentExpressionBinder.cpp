@@ -22,6 +22,8 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundErrorExpression/BoundErrorExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMemberAccessExpression/BoundMemberAccessExpression.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryOperator/BoundBinaryOperator.hpp"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundModuleAccessExpression/BoundModuleAccessExpression.hpp"
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/NodeKind/NodeKind.h"
@@ -97,6 +99,197 @@ ExpressionBinder::checkConstantVariableAssignment(
   return nullptr;
 }
 
+// Rejects anything that cannot be assigned to: a non-variable symbol, a const,
+// or an expression that is not an L-Value. Returns nullptr when the target is
+// fine. Reports the diagnostic itself.
+std::unique_ptr<BoundErrorExpression>
+ExpressionBinder::validateAssignmentTarget(
+    BoundExpression *left_expression,
+    const diagnostic::SourceLocation &location) {
+
+  auto reportNonVariable = [&](analysis::Symbol *symbol) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        location, diagnostic::DiagnosticCode::kAssignmentToNonVariable,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{symbol->getName()});
+    m_context->reportError(error_expression.get());
+    return error_expression;
+  };
+
+  auto reportNonLValue = [&]() {
+    auto error = std::make_unique<BoundErrorExpression>(
+        location, diagnostic::DiagnosticCode::kAssignmentToNonLValue,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{});
+    m_context->reportError(error.get());
+    return error;
+  };
+
+  auto reportIfConst = [&](BoundExpression *target)
+      -> std::unique_ptr<BoundErrorExpression> {
+    auto const_error = checkConstantVariableAssignment(target, location);
+    if (const_error != nullptr) {
+      m_context->reportError(const_error.get());
+      return const_error;
+    }
+    return nullptr;
+  };
+
+  switch (left_expression->getKind()) {
+  case NodeKind::kIdentifierExpression: {
+    auto id_expr = static_cast<BoundIdentifierExpression *>(left_expression);
+    auto symbol = id_expr->getSymbol();
+
+    // Variable Check
+    if (symbol->getKind() != analysis::SymbolKind::kVariable &&
+        symbol->getKind() != analysis::SymbolKind::kParameter) {
+      return reportNonVariable(symbol);
+    }
+
+    // Const Check
+    return reportIfConst(left_expression);
+  }
+  case NodeKind::kIndexExpression: {
+    return nullptr;
+  }
+  case NodeKind::kMemberAccessExpression: {
+    // Check if the base object is a constant variable
+    return reportIfConst(left_expression);
+  }
+  case NodeKind::kModuleAccessExpression: {
+    // e.g. local::x = ... — inner expression is the name within the module
+    auto *mod_expr =
+        static_cast<BoundModuleAccessExpression *>(left_expression);
+    BoundExpression *inner = mod_expr->getMemberAccessExpression().get();
+    switch (inner->getKind()) {
+    case NodeKind::kIdentifierExpression: {
+      auto *id_expr = static_cast<BoundIdentifierExpression *>(inner);
+      analysis::Symbol *symbol = id_expr->getSymbol();
+      if (symbol->getKind() != analysis::SymbolKind::kVariable &&
+          symbol->getKind() != analysis::SymbolKind::kParameter) {
+        return reportNonVariable(symbol);
+      }
+      return reportIfConst(inner);
+    }
+    case NodeKind::kMemberAccessExpression: {
+      return reportIfConst(inner);
+    }
+    case NodeKind::kIndexExpression: {
+      return nullptr;
+    }
+    default: {
+      return reportNonLValue();
+    }
+    }
+  }
+  default: {
+    return reportNonLValue();
+  }
+  }
+}
+
+// `x += e` means `x = x + e` with the target evaluated once. The target and the
+// operand are bound here and the underlying binary operator is type-checked;
+// the load-operate-store itself is emitted in IR generation, which already has
+// the target's address in hand.
+std::unique_ptr<BoundExpression>
+ExpressionBinder::bindCompoundAssignmentExpression(
+    syntax::AssignmentExpressionSyntax *expression) {
+
+  const lexer::TokenKind compound_operator =
+      expression->getCompoundBinaryOperator();
+  const auto &location = expression->getSourceLocation();
+
+  auto left_expressions = bindExpressionList(expression->getLeft().get());
+  for (auto &left_expression : left_expressions) {
+    if (left_expression->getKind() == NodeKind::kErrorExpression) {
+      return std::move(left_expression);
+    }
+  }
+
+  auto right_expressions = bindExpressionList(expression->getRight().get());
+  for (auto &right_expression : right_expressions) {
+    if (right_expression->getKind() == NodeKind::kErrorExpression) {
+      return std::move(right_expression);
+    }
+  }
+
+  // `a, b += 1, 2` has no single sensible reading — the target must be one
+  // L-Value so that `x = x op e` is well defined.
+  if (left_expressions.size() != 1 || right_expressions.size() != 1 ||
+      right_expressions[0]->isMultipleType()) {
+    size_t right_count = right_expressions.size();
+    if (right_count == 1 && right_expressions[0]->isMultipleType()) {
+      right_count = right_expressions[0]->getMultipleTypes().size();
+    }
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        location,
+        diagnostic::DiagnosticCode::kCompoundAssignmentMultiTargetNotAllowed,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            expression->getOperatorToken()->getText(),
+            std::to_string(std::max(left_expressions.size(), right_count))});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  if (auto target_error =
+          validateAssignmentTarget(left_expressions[0].get(), location)) {
+    return std::move(target_error);
+  }
+
+  // A character of a `str` is written through fg_string_set rather than stored
+  // into a slot, so there is nothing to load-operate-store. Reject it rather
+  // than silently dropping the operator.
+  if (left_expressions[0]->getKind() == NodeKind::kIndexExpression) {
+    auto *index_expression =
+        static_cast<BoundIndexExpression *>(left_expressions[0].get());
+    auto base_type = index_expression->getLeftExpression()->getType();
+    if (base_type == analysis::Builtins::m_str_type_instance ||
+        base_type->isDynamic()) {
+      auto error_expression = std::make_unique<BoundErrorExpression>(
+          location,
+          diagnostic::DiagnosticCode::kInvalidBinaryOperationWithTypes,
+          std::vector<flow_wing::diagnostic::DiagnosticArg>{
+              expression->getOperatorToken()->getText(),
+              base_type->getName(), right_expressions[0]->getType()->getName()});
+      m_context->reportError(error_expression.get());
+      return std::move(error_expression);
+    }
+  }
+
+  auto left_type = left_expressions[0]->getType();
+  auto right_type = right_expressions[0]->getType();
+
+  // `x += e` is only valid when `x + e` is — reuse the binary operator rules so
+  // the two can never disagree.
+  auto binary_operator =
+      BoundBinaryOperator::bind(compound_operator, left_type, right_type);
+
+  if (binary_operator == nullptr) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        location, diagnostic::DiagnosticCode::kInvalidBinaryOperationWithTypes,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            lexer::toString(compound_operator), left_type->getName(),
+            right_type->getName()});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  // ...and the result has to fit back into the target.
+  auto result_type = binary_operator->getResultType();
+  if (!left_type->isDynamic() && !result_type->isDynamic() &&
+      *result_type > *left_type) {
+    auto error_expression = std::make_unique<BoundErrorExpression>(
+        location, diagnostic::DiagnosticCode::kAssignmentExpressionTypeMismatch,
+        std::vector<flow_wing::diagnostic::DiagnosticArg>{
+            left_type->getName(), result_type->getName()});
+    m_context->reportError(error_expression.get());
+    return std::move(error_expression);
+  }
+
+  return std::make_unique<BoundAssignmentExpression>(
+      std::move(left_expressions), std::move(right_expressions),
+      expression->isFullReAssignment(), location, compound_operator);
+}
+
 std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
     syntax::AssignmentExpressionSyntax *expression) {
 
@@ -136,6 +329,10 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
             expression->getSourceLocation());
       }
     }
+  }
+
+  if (expression->isCompoundAssignment()) {
+    return bindCompoundAssignmentExpression(expression);
   }
 
   auto left_expressions = bindExpressionList(expression->getLeft().get());
@@ -211,105 +408,9 @@ std::unique_ptr<BoundExpression> ExpressionBinder::bindAssignmentExpression(
       auto &left_expression = left_expressions[var_idx];
       auto left_type = left_expression->getType();
 
-      switch (left_expression->getKind()) {
-      case NodeKind::kIdentifierExpression: {
-        auto id_expr =
-            static_cast<BoundIdentifierExpression *>(left_expression.get());
-        auto symbol = id_expr->getSymbol();
-
-        // Variable Check
-        if (symbol->getKind() != analysis::SymbolKind::kVariable &&
-            symbol->getKind() != analysis::SymbolKind::kParameter) {
-          auto error_expression = std::make_unique<BoundErrorExpression>(
-              expression->getSourceLocation(),
-              diagnostic::DiagnosticCode::kAssignmentToNonVariable,
-              std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                  symbol->getName()});
-          m_context->reportError(error_expression.get());
-          return std::move(error_expression);
-        }
-
-        // Const Check
-        auto const_error = checkConstantVariableAssignment(
-            left_expression.get(), expression->getSourceLocation());
-        if (const_error != nullptr) {
-          m_context->reportError(const_error.get());
-          return std::move(const_error);
-        }
-
-        break;
-      }
-      case NodeKind::kIndexExpression: {
-        break;
-      }
-      case NodeKind::kMemberAccessExpression: {
-        // Check if the base object is a constant variable
-        auto const_error = checkConstantVariableAssignment(
-            left_expression.get(), expression->getSourceLocation());
-        if (const_error != nullptr) {
-          m_context->reportError(const_error.get());
-          return std::move(const_error);
-        }
-        break;
-      }
-      case NodeKind::kModuleAccessExpression: {
-        // e.g. local::x = ... — inner expression is the name within the module
-        auto *mod_expr =
-            static_cast<BoundModuleAccessExpression *>(left_expression.get());
-        BoundExpression *inner = mod_expr->getMemberAccessExpression().get();
-        switch (inner->getKind()) {
-        case NodeKind::kIdentifierExpression: {
-          auto *id_expr = static_cast<BoundIdentifierExpression *>(inner);
-          analysis::Symbol *symbol = id_expr->getSymbol();
-          if (symbol->getKind() != analysis::SymbolKind::kVariable &&
-              symbol->getKind() != analysis::SymbolKind::kParameter) {
-            auto error_expression = std::make_unique<BoundErrorExpression>(
-                expression->getSourceLocation(),
-                diagnostic::DiagnosticCode::kAssignmentToNonVariable,
-                std::vector<flow_wing::diagnostic::DiagnosticArg>{
-                    symbol->getName()});
-            m_context->reportError(error_expression.get());
-            return std::move(error_expression);
-          }
-          auto const_error = checkConstantVariableAssignment(
-              inner, expression->getSourceLocation());
-          if (const_error != nullptr) {
-            m_context->reportError(const_error.get());
-            return std::move(const_error);
-          }
-          break;
-        }
-        case NodeKind::kMemberAccessExpression: {
-          auto const_error = checkConstantVariableAssignment(
-              inner, expression->getSourceLocation());
-          if (const_error != nullptr) {
-            m_context->reportError(const_error.get());
-            return std::move(const_error);
-          }
-          break;
-        }
-        case NodeKind::kIndexExpression: {
-          break;
-        }
-        default: {
-          auto error = std::make_unique<BoundErrorExpression>(
-              expression->getSourceLocation(),
-              diagnostic::DiagnosticCode::kAssignmentToNonLValue,
-              std::vector<flow_wing::diagnostic::DiagnosticArg>{});
-          m_context->reportError(error.get());
-          return std::move(error);
-        }
-        }
-        break;
-      }
-      default: {
-        auto error = std::make_unique<BoundErrorExpression>(
-            expression->getSourceLocation(),
-            diagnostic::DiagnosticCode::kAssignmentToNonLValue,
-            std::vector<flow_wing::diagnostic::DiagnosticArg>{});
-        m_context->reportError(error.get());
-        return std::move(error);
-      }
+      if (auto target_error = validateAssignmentTarget(
+              left_expression.get(), expression->getSourceLocation())) {
+        return std::move(target_error);
       }
 
       // Special handling for dynamic types

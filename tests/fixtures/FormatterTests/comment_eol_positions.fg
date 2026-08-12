@@ -1,0 +1,29 @@
+/; End-of-line comments in every position that can end a line. Each `/;` below
+/; must stay on the line it was written on. Before trailing trivia existed the
+/; tokenizer attached these to the *next* token, and only three positions
+/; (`)`, `]`, `{`) were rescued by the formatter.
+var x: int = 3   /; after a var declaration
+x = 4   /; after an assignment
+x += 1   /; after a compound assignment
+println(x)   /; after a call
+
+type T = {
+    v: int   /; after a type field
+}
+
+fun f() -> int {
+    return 1   /; after a return
+}
+
+if x > 1 {   /; after an open brace
+    println(x)   /; inside a block
+}   /; after a close brace
+
+while x > 4 {   /; after a while header
+    x = x - 1
+}
+
+var arr: int[2] = [1, 2]   /; after an array literal
+var t: T = {v: 1}   /; after an object literal
+/; a standalone comment keeps its own line
+println(f())

@@ -1,0 +1,19 @@
+/; `=` and `<-` mixed in one chain — both yield their target, so they compose.
+var y: int = 0
+var x: int = 0
+x = y <- 3
+print(x, "\n")
+print(y, "\n")
+
+var a: int = 0
+var b: int = 0
+a <- b = 4
+print(a, "\n")
+print(b, "\n")
+
+type T = { v:int }
+var o1:T = {v: 0}
+var o2:T = {v: 0}
+o1 <- o2 = {v: 5}
+println(o1)
+println(o2)

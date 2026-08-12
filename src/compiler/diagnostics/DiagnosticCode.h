@@ -54,6 +54,7 @@ enum class DiagnosticCode : int16_t {
   kInvalidAssignmentToConstantVariable,
   kAssignmentToNonVariable,
   kAssignmentToNonLValue,
+  kCompoundAssignmentMultiTargetNotAllowed,
   kVariableNotFound,
   kVariableAlreadyDeclared,
   kFunctionNotFound,

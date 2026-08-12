@@ -65,6 +65,7 @@ private:
   void emitDefault(const syntax::SyntaxNode *node);
   void spaceBefore(const syntax::SyntaxToken *t);
   void emitLeadingTrivia(const syntax::SyntaxToken *t);
+  void emitTrailingTrivia(const syntax::SyntaxToken *t);
   void appendBlockIndent();
   void finishOutput();
   void trimTrailingLineSpacesInPlace();

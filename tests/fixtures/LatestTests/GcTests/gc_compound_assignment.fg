@@ -1,0 +1,58 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Compound assignment (`s += e`) under maximal GC pressure. `s += e` loads the
+/; target, runs the binary operation, and stores the result back. For `str` the
+/; operation is a concatenation that allocates, and the store then runs fg_gmosc
+/; (materializeMutableString) to make its own mutable copy — two fw_gc_alloc
+/; safepoints with the freshly-built string live in an SSA temp between them.
+/; The loop-carried accumulator must survive every round.
+/; --------------------------------------------------------------------------
+
+/; string accumulator: allocates on every iteration, with junk in between
+var acc: str = ""
+var i: int = 0
+while i < 20 {
+  acc += "i" + String(i)
+  var junk: str = "junk" + String(i)
+  i += 1
+}
+println(acc)
+
+/; compound store into an object's heap-string field
+type Node = { name: str, count: int }
+var n: Node = { name: "", count: 0 }
+var j: int = 0
+while j < 12 {
+  n.name += "n" + String(j)
+  n.count += j
+  j += 1
+}
+println(n.name)
+println(n.count)
+
+/; compound store into an array element holding a heap string
+var parts: str[3] = ["", "", ""]
+var k: int = 0
+while k < 9 {
+  parts[k % 3] += String(k)
+  k += 1
+}
+println(parts)
+
+/; accumulating across a function boundary
+fun build(n: int) -> str {
+  var local: str = ""
+  var m: int = 0
+  while m < n {
+    local += "x" + String(m)
+    m += 1
+  }
+  return local
+}
+var collected: str = ""
+var r: int = 0
+while r < 5 {
+  collected = build(r)
+  r += 1
+}
+println(collected)

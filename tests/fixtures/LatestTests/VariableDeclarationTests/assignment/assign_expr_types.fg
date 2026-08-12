@@ -1,0 +1,25 @@
+/; Chained assignment across the primitive types. The str case matters most:
+/; the outer store re-materializes a mutable copy of the inner target's string.
+var s1:str = ""
+var s2:str = ""
+s1 = s2 = "hello"
+print(s1, "\n")
+print(s2, "\n")
+
+var b1:bool = false
+var b2:bool = false
+b1 = b2 = true
+print(b1, "\n")
+print(b2, "\n")
+
+var d1:deci = 0.0
+var d2:deci = 0.0
+d1 = d2 = 1.5
+print(d1, "\n")
+print(d2, "\n")
+
+var c1:char = 'a'
+var c2:char = 'a'
+c1 = c2 = 'q'
+print(c1, "\n")
+print(c2, "\n")

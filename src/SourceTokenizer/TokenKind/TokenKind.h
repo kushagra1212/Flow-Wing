@@ -59,6 +59,12 @@ enum class TokenKind : int {
   kRightArrowToken,
   kColonColonToken,
 
+  // --- Compound Assignment ---
+  kPlusEqualsToken,
+  kMinusEqualsToken,
+  kStarEqualsToken,
+  kSlashEqualsToken,
+
   // --- Keywords ---
   kTrueKeyword,
   kFalseKeyword,

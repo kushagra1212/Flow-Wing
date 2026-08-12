@@ -1,0 +1,34 @@
+/; Every assignable target shape works with a compound operator.
+var arr: int[3] = [1, 2, 3]
+arr[1] += 10
+print(arr, "\n")
+
+type Inner = { n:int }
+type Outer = { v:int, inner:Inner }
+var o: Outer = {v: 5, inner: {n: 1}}
+o.v *= 3
+o.inner.n += 41
+print(o.v, "\n")
+print(o.inner.n, "\n")
+
+class C {
+    var v: int
+    init(v: int) { self.v = v }
+    fun bump() -> nthg { self.v += 10 }
+}
+var c: C = new C(1)
+c.v += 5
+print(c.v, "\n")
+c.bump()
+print(c.v, "\n")
+
+fun addTo(inout n: int) -> nthg { n += 7 }
+var g: int = 1
+addTo(g)
+print(g, "\n")
+
+fun viaParam(n: int) -> int {
+    n *= 2
+    return n
+}
+print(viaParam(21), "\n")

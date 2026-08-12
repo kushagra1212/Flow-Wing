@@ -1604,6 +1604,23 @@ print(5)
 /; print(2) print(3)
 ```
 
+### Comments and the formatter
+
+`flowwing --format-print` keeps a comment where you wrote it. A comment sharing a
+line with code describes the code before it and stays on that line; a comment on
+a line by itself keeps its own line and is re-indented to the surrounding block.
+Runs of spaces before an end-of-line comment are normalised to one.
+
+```flowwing
+var total: int = 0 /; running total
+total += 5 /; add five
+/; this comment is on its own line
+println(total)
+```
+
+This holds in every position that can end a line — after a declaration, an
+assignment, a call, a `return`, a type field, an opening `{` or a closing `}`.
+
 ## Constant Declarations and Type Safety
 
 The `const` keyword is used to declare immutable variables. Constants are type-safe and can be initialized from literals or expressions.
@@ -2178,6 +2195,108 @@ var c: int = 0
 var d: int = 0
 a, b, c, d = p1(), p2()
 ```
+
+### Compound Assignment
+
+`+=`, `-=`, `*=` and `/=` combine an operation with the store: `x += e` means
+`x = x + e`. Because `+` concatenates strings, `+=` appends.
+
+```flowwing
+var x: int = 10
+x += 5      /; 15
+x -= 3      /; 12
+x *= 4      /; 48
+
+var s: str = "Hello"
+s += " World"
+println(s)
+```
+
+They apply to any assignable target — a variable, array element, object or class
+member, or an `inout` parameter — and **the target is evaluated once**. In
+`arr[next()] += 10` the subscript runs a single time, where the written-out
+`arr[next()] = arr[next()] + 10` would call `next()` twice.
+
+```flowwing
+var arr: int[3] = [1, 2, 3]
+arr[1] += 10
+println(arr)   /; [ 1, 12, 3 ]
+
+type T = { v: int }
+var o: T = { v: 5 }
+o.v *= 3
+println(o.v)   /; 15
+```
+
+The usual home for these is a loop accumulator, and like `=` a compound
+assignment is itself a value, so it chains:
+
+```flowwing
+var total: int = 0
+var i: int = 0
+while i < 5 {
+    total += i
+    i += 1
+}
+println(total)   /; 10
+
+var p: int = 2
+var q: int = 0
+q = p *= 5
+println(q)       /; 10
+println(p)       /; 10
+```
+
+`x op= e` is valid exactly when `x = x op e` is, which has two visible
+consequences: `/=` on two `int`s is rejected because `/` yields a `deci`
+(`1 / 2` is `0.5`) that will not fit back into an `int`, and narrow integer
+targets follow the usual promotion rules (`int8 + int8` is an `int`, so `i += j`
+on `int8` is rejected just as `i = i + j` is). A compound assignment also takes
+exactly one target; `a, b += 1, 2` is an error.
+
+### Chained Assignment
+
+An assignment produces a value — the target it just stored into — so assignments
+chain. Chaining is right-associative: `x = y = 3` stores `3` into `y` first, then
+stores `y`'s new value into `x`. Both end up `3`.
+
+```flowwing
+var x: int = 0
+var y: int = 0
+x = y = 3
+println(x)
+println(y)
+```
+
+Because it is a value, an assignment can also appear anywhere a value is
+expected — a declaration's initializer, a call argument, a condition, or an
+operand of a larger expression.
+
+```flowwing
+var y: int = 0
+var total: int = 1 + (y = 2)
+println(total)  /; 3
+println(y)      /; 2
+```
+
+`<-` behaves identically to `=` here, and the two may be mixed in one chain.
+
+When an assignment has several targets, its value is the **first (leftmost)**
+one, so `x` below receives `1`:
+
+```flowwing
+var a: int = 0
+var b: int = 0
+var x: int = 0
+x = (a, b = 1, 2)
+println(x)  /; 1
+println(a)  /; 1
+println(b)  /; 2
+```
+
+> **Caveat:** since an assignment is a value and numbers are truthy,
+> `if (x = 3)` is valid — it *assigns* `3` to `x` and then tests it, rather than
+> comparing. Use `==` when you mean to compare.
 
 ## 3. Variable Scoping and Shadowing
 

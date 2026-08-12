@@ -1,0 +1,32 @@
+/; Compound assignment on dynamic (untyped) variables, where the operand type
+/; is resolved at runtime rather than at the declaration.
+var num = 1
+num += 2
+num *= 10
+println(num)
+
+var text = "a"
+text += "b"
+text += "c"
+println(text)
+
+var dec = 1.5
+dec += 2.5
+println(dec)
+
+/; dynamic element inside a dynamic container
+var mixed: [4] = [1, "two", 3.0, true]
+mixed[0] += 10
+println(mixed[0])
+
+/; a dynamic operand applied to a statically typed target
+var typed: int = 5
+var dyn_operand = 3
+typed += dyn_operand
+println(typed)
+
+/; a static operand applied to a dynamic target
+var dyn_target = 5
+typed = 4
+dyn_target += typed
+println(dyn_target)

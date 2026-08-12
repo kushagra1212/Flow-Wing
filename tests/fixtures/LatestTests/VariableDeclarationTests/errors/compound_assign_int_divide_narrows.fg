@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: AssignmentExpressionTypeMismatch
+/; `/` on two ints produces a deci, which does not fit back into an int —
+/; exactly as `x = x / 2` is rejected.
+var x: int = 5
+x /= 2

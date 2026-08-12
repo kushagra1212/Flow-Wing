@@ -1,0 +1,35 @@
+/; Assignment inside a short-circuiting operand. Inside a function `&&`/`||`
+/; branch, so the right-hand assignment's store is skipped when the left decides
+/; the result.
+fun andShortCircuit() -> nthg {
+    var p: bool = false
+    var q: bool = false
+    var r: bool = false
+    r = (p = false) && (q = true)
+    print(r, "\n")
+    print(p, "\n")
+    print(q, "\n")
+}
+andShortCircuit()
+
+fun orShortCircuit() -> nthg {
+    var s: bool = false
+    var t: bool = false
+    var u: bool = false
+    u = (s = true) || (t = true)
+    print(u, "\n")
+    print(s, "\n")
+    print(t, "\n")
+}
+orShortCircuit()
+
+fun andBothEvaluated() -> nthg {
+    var a: bool = false
+    var b: bool = false
+    var c: bool = false
+    c = (a = true) && (b = true)
+    print(c, "\n")
+    print(a, "\n")
+    print(b, "\n")
+}
+andBothEvaluated()

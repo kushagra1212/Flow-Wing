@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SourceTokenizer/TokenKind/TokenKind.h"
 #include <memory>
 
 namespace flow_wing {
@@ -32,7 +33,8 @@ public:
       std::vector<std::unique_ptr<BoundExpression>> left,
       std::vector<std::unique_ptr<BoundExpression>> right,
       bool is_full_re_assignment,
-      const flow_wing::diagnostic::SourceLocation &location);
+      const flow_wing::diagnostic::SourceLocation &location,
+      lexer::TokenKind compound_operator = lexer::TokenKind::kBadToken);
   ~BoundAssignmentExpression() = default;
 
   // Overrides
@@ -43,6 +45,11 @@ public:
   std::shared_ptr<types::Type> getType() const override;
   bool isMultiTargetAssignment() const;
   bool isFullReAssignment() const;
+
+  // For `x += e` this is `+`, and the assignment means `x = x + e` with the
+  // target evaluated once. kBadToken for a plain `=` / `<-`.
+  bool isCompoundAssignment() const;
+  lexer::TokenKind getCompoundOperator() const;
   const std::vector<std::unique_ptr<BoundExpression>> &getLeft() const;
   const std::vector<std::unique_ptr<BoundExpression>> &getRight() const;
 
@@ -50,6 +57,7 @@ private:
   std::vector<std::unique_ptr<BoundExpression>> m_left;
   std::vector<std::unique_ptr<BoundExpression>> m_right;
   bool m_is_full_re_assignment;
+  lexer::TokenKind m_compound_operator;
 };
 } // namespace binding
 } // namespace flow_wing

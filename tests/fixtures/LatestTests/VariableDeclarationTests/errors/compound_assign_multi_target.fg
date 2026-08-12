@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: CompoundAssignmentMultiTargetNotAllowed
+var a: int = 1
+var b: int = 2
+a, b += 1, 2

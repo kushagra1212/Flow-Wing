@@ -27,10 +27,12 @@ BoundAssignmentExpression::BoundAssignmentExpression(
     std::vector<std::unique_ptr<BoundExpression>> left,
     std::vector<std::unique_ptr<BoundExpression>> right,
     bool is_full_re_assignment,
-    const flow_wing::diagnostic::SourceLocation &location)
+    const flow_wing::diagnostic::SourceLocation &location,
+    lexer::TokenKind compound_operator)
     : BoundExpression(location), m_left(std::move(left)),
       m_right(std::move(right)),
-      m_is_full_re_assignment(is_full_re_assignment) {}
+      m_is_full_re_assignment(is_full_re_assignment),
+      m_compound_operator(compound_operator) {}
 
 NodeKind BoundAssignmentExpression::getKind() const {
   return NodeKind::kAssignmentExpression;
@@ -46,6 +48,14 @@ bool BoundAssignmentExpression::isMultiTargetAssignment() const {
 
 bool BoundAssignmentExpression::isFullReAssignment() const {
   return m_is_full_re_assignment;
+}
+
+bool BoundAssignmentExpression::isCompoundAssignment() const {
+  return m_compound_operator != lexer::TokenKind::kBadToken;
+}
+
+lexer::TokenKind BoundAssignmentExpression::getCompoundOperator() const {
+  return m_compound_operator;
 }
 
 const std::vector<std::unique_ptr<BoundExpression>> &

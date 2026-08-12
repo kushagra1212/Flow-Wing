@@ -1,0 +1,5 @@
+/; Assignment as a call argument.
+var x: int = 0
+print(x = 3)
+print("\n")
+print(x, "\n")

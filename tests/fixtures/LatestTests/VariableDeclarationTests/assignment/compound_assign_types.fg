@@ -1,0 +1,17 @@
+/; Compound assignment across the numeric types and dynamic variables.
+var n: int64 = 1
+n += 2
+print(n, "\n")
+
+var f: deci32 = 1.5f
+f += 2.5f
+print(f, "\n")
+
+/; untyped (dynamic) targets
+var dyn_num = 1
+dyn_num += 2
+print(dyn_num, "\n")
+
+var dyn_str = "a"
+dyn_str += "b"
+print(dyn_str, "\n")

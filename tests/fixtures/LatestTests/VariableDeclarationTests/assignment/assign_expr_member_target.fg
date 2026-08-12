@@ -1,0 +1,7 @@
+/; An object member as the inner assignment's target.
+type P = { v:int }
+var p:P = {v: 0}
+var x: int = 0
+x = (p.v = 9)
+print(x, "\n")
+print(p.v, "\n")

@@ -1,0 +1,94 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Assignment used as a value (`x = y = ...`, `var a = (y = ...)`). The value
+/; an assignment yields is its first target's *storage* — a GC root — so the
+/; heap object that storage names stays reachable across the fw_gc_alloc
+/; safepoints the enclosing store performs. The str path is the sharp one: the
+/; outer store runs fg_gmosc (materializeMutableString) to make its own mutable
+/; copy, and that is a safepoint sitting between the inner store and the outer
+/; read of the same variable.
+/; --------------------------------------------------------------------------
+
+/; chained str assignment, allocating fresh garbage every iteration
+var s1: str = ""
+var s2: str = ""
+var i: int = 0
+while i < 12 {
+  s1 = s2 = "iter" + String(i)
+  var junk: str = "junk" + String(i)
+  i = i + 1
+}
+println(s1)
+println(s2)
+
+/; chained whole-object assignment where both fields are heap strings
+type Node = { name: str, tag: str }
+var n1: Node = { name: "", tag: "" }
+var n2: Node = { name: "", tag: "" }
+var j: int = 0
+while j < 12 {
+  n1 = n2 = { name: "n" + String(j), tag: "t" + String(j) }
+  j = j + 1
+}
+println(n1)
+println(n2)
+
+/; chained store into a nested object member
+type Inner = { note: str }
+type Outer = { inner: Inner }
+var o1: Outer = { inner: { note: "" } }
+var o2: Outer = { inner: { note: "" } }
+var k: int = 0
+while k < 12 {
+  o1.inner.note = o2.inner.note = "deep" + String(k)
+  k = k + 1
+}
+println(o1.inner.note)
+println(o2.inner.note)
+
+/; the assignment's value consumed by another assignment and by a declaration
+var t: str = ""
+var held: str = ""
+var m: int = 0
+while m < 8 {
+  held = (t = "held" + String(m))
+  var fresh: str = (t = "fresh" + String(m))
+  held = fresh
+  m = m + 1
+}
+println(t)
+println(held)
+
+/; chained whole-array assignment of heap strings
+var a1: str[3] = ["", "", ""]
+var a2: str[3] = ["", "", ""]
+var p: int = 0
+while p < 8 {
+  a1 = a2 = ["a" + String(p), "b" + String(p), "c" + String(p)]
+  p = p + 1
+}
+println(a1)
+println(a2)
+
+/; assignment as a call argument, allocating on every call
+var q: int = 0
+var last: str = ""
+while q < 6 {
+  println(last = "arg" + String(q))
+  q = q + 1
+}
+println(last)
+
+/; assignment value returned across a function boundary
+fun chain(n: int) -> str {
+  var local: str = ""
+  var out: str = (local = "fn" + String(n))
+  return out
+}
+var r: int = 0
+var collected: str = ""
+while r < 8 {
+  collected = chain(r)
+  r = r + 1
+}
+println(collected)

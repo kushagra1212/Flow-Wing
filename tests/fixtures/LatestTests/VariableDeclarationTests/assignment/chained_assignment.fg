@@ -1,0 +1,9 @@
+/; Assignment sits at precedence 1 in OperatorPrecedence::getInfixPrecedence,
+/; which admits it in expression position. An assignment used as a value yields
+/; its (first) target after the store, so `x = y = 3` binds right-to-left.
+/; See docs/known-issues/assignment-in-expression-position.md
+var y: int = 0
+var x: int = 0
+x = y = 3
+print(x, "\n")
+print(y, "\n")

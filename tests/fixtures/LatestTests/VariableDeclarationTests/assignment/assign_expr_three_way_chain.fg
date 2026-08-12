@@ -1,0 +1,8 @@
+/; Chains longer than two, right-associative.
+var a: int = 0
+var b: int = 0
+var c: int = 0
+a = b = c = 5
+print(a, "\n")
+print(b, "\n")
+print(c, "\n")

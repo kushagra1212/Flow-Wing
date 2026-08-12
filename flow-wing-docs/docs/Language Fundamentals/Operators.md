@@ -63,6 +63,8 @@ println("Hello"+"FlowWing") /; Output: HelloFlowWing
 | `*=`     | Multiply and assign        |
 | `/=`     | Divide and assign          |
 
+An assignment is also an **expression** — it produces the target it stored into, so assignments chain (`x = y = 3`) and can be used wherever a value is expected. See [Assignment expressions](./Assignment%20Expressions.md).
+
 ## Miscellaneous Operators
 | Operator | Description                |
 |----------|----------------------------|
@@ -103,5 +105,7 @@ Operators evaluate in this order, highest to lowest:
 | 9 | `\|` |
 | 10 | `&&` |
 | 11 | `\|\|` |
-| 12 | `?:` (ternary) |
+| 12 | `?:` (ternary), `,` |
 | 13 (lowest) | `=`, `<-`, `+=`, `-=`, `*=`, `/=` |
+
+Everything else is left-associative; the assignment operators are **right**-associative, so `x = y = 3` groups as `x = (y = 3)`.

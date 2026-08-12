@@ -1,0 +1,35 @@
+/; Compound assignment into every container shape. Each of these computes the
+/; element's address once and stores back through it.
+var one_d: int[3] = [1, 2, 3]
+one_d[1] += 10
+one_d[2] *= 4
+println(one_d)
+
+var two_d: int[2][2] = [[1, 2], [3, 4]]
+two_d[0][1] += 10
+two_d[1][0] -= 1
+println(two_d)
+
+/; array of objects: element, then a member of that element
+type T = { v:int, s:str }
+var objs: T[2] = [{v: 1, s: "a"}, {v: 2, s: "b"}]
+objs[1].v += 10
+objs[0].s += "!"
+println(objs)
+
+/; nested object holding an array
+type Holder = { items:int[3], total:int }
+var h: Holder = {items: [1, 2, 3], total: 0}
+h.items[0] += 100
+h.total += 7
+println(h.items)
+println(h.total)
+
+/; dynamic (untyped) container elements
+var dyn_arr: [3] = [1, 2, 3]
+dyn_arr[0] += 10
+println(dyn_arr)
+
+var str_arr: str[2] = ["x", "y"]
+str_arr[0] += "z"
+println(str_arr)

@@ -154,7 +154,11 @@ PrecedenceAwareExpressionParser::parse(ParserContext *ctx,
       }
 
       case lexer::TokenKind::kEqualsToken:
-      case lexer::TokenKind::kLeftArrowToken: {
+      case lexer::TokenKind::kLeftArrowToken:
+      case lexer::TokenKind::kPlusEqualsToken:
+      case lexer::TokenKind::kMinusEqualsToken:
+      case lexer::TokenKind::kStarEqualsToken:
+      case lexer::TokenKind::kSlashEqualsToken: {
         auto right = parse(ctx);
         left = std::make_unique<syntax::AssignmentExpressionSyntax>(
             std::move(left), operator_token, std::move(right));

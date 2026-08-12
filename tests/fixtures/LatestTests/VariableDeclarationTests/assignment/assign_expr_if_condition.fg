@@ -1,0 +1,15 @@
+/; Assignment in an if condition: the stored value drives the branch.
+var x: int = 0
+if (x = 3) {
+    print("taken\n")
+} else {
+    print("not taken\n")
+}
+print(x, "\n")
+
+if (x = 0) {
+    print("taken\n")
+} else {
+    print("not taken\n")
+}
+print(x, "\n")

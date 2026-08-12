@@ -38,8 +38,7 @@ expose class Enemy {
             /; Did Mario jump on it from above?
             if player.vel.y > 0.0f && player.pos.y + player.size.y < self.pos.y + 16.0f {
                 self.isDead = true
-                player.vel.y = -400.0f
-                /; Bounce!
+                player.vel.y = -400.0f /; Bounce!
                 player.score = player.score + 10
             } else {
                 /; Player dies - respawn at start

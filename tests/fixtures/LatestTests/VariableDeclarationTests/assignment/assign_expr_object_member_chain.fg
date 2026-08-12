@@ -1,0 +1,21 @@
+/; Object members as chained assignment targets, including a nested member and
+/; a str field (the str store re-materializes a mutable copy).
+type Inner = { note:str }
+type Outer = { n:int, inner:Inner }
+
+var p:Outer = {n: 0, inner: {note: "x"}}
+var q:Outer = {n: 0, inner: {note: "x"}}
+
+p.n = q.n = 3
+println(p.n)
+println(q.n)
+
+p.inner.note = q.inner.note = "deep"
+println(p.inner.note)
+println(q.inner.note)
+
+/; an object member fed from a plain variable chain
+var z:int = 0
+p.n = z = 8
+println(p.n)
+println(z)

@@ -1,0 +1,23 @@
+/; A multi-return call assigned to several targets, then used as a value. This
+/; is the multi-return branch of the assignment IRGen (the struct-unpack loop),
+/; a different path from the ordinary store. The assignment still yields its
+/; first target.
+fun getMulti() -> int, str {
+    return 5, "five"
+}
+
+var a: int = 0
+var b: str = ""
+var x: int = 0
+x = (a, b = getMulti())
+print(x, "\n")
+print(a, "\n")
+print(b, "\n")
+
+/; and the same shape as a declaration initializer
+var c: int = 0
+var d: str = ""
+var e: int = (c, d = getMulti())
+print(e, "\n")
+print(c, "\n")
+print(d, "\n")

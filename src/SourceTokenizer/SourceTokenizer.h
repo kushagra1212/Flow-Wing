@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,12 @@ private:
   size_t m_line_number;
   size_t m_position;
   flow_wing::CompilationContext &m_context;
+
+  /// The token an end-of-line comment would attach to, and whether the line it
+  /// sits on has already ended. Borrowed — the caller owns every token it is
+  /// handed and keeps it alive for the whole compilation.
+  syntax::SyntaxToken *m_last_significant_token = nullptr;
+  bool m_ended_line_since_last_token = false;
 };
 
 } // namespace lexer

@@ -43,6 +43,12 @@ const std::string &toString(TokenKind kind) {
       {TokenKind::kRightArrowToken, "RightArrowToken"},
       {TokenKind::kColonColonToken, "ColonColonToken"},
 
+      // Compound assignment
+      {TokenKind::kPlusEqualsToken, "PlusEqualsToken"},
+      {TokenKind::kMinusEqualsToken, "MinusEqualsToken"},
+      {TokenKind::kStarEqualsToken, "StarEqualsToken"},
+      {TokenKind::kSlashEqualsToken, "SlashEqualsToken"},
+
       // Literals
       {TokenKind::kIntegerLiteralToken, "IntegerLiteralToken"},
       {TokenKind::kInt64LiteralToken, "Int64LiteralToken"},
