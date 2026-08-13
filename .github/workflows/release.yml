@@ -668,6 +668,10 @@ jobs:
                   # rewrites VERSION and every package.json / package-lock.json
                   # in src/lsp so the local repo state and the released VSIX
                   # always match the tag.
+                  # chmod first: the checkout does not guarantee the executable
+                  # bit, and invoking it as ./scripts/... exits 126 without it.
+                  # Every other job in this workflow chmods its script the same way.
+                  chmod +x ./scripts/sync-version.sh
                   ./scripts/sync-version.sh "${VER}"
 
             - name: Compile extension

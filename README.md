@@ -52,6 +52,15 @@ For a deep dive into the syntax, standard library modules, memory management, an
 
 ---
 
+## ✍️ Writing
+
+Notes on building this compiler, from first principles.
+
+- **[Every tokenizer tutorial I read told me to throw away the whitespace](https://kushagrarathore002.medium.com/every-tokenizer-tutorial-i-read-told-me-to-throw-away-the-whitespace-ac5ab75e89fa)**
+  Why Flow-Wing keeps trivia, what it cost to add it two years late, and the parser bug it fixed by accident.
+
+---
+
 ## 🚀 Installation & Setup
 
 The easiest way to get started is by using a prebuilt SDK, which includes the AOT compiler, the JIT runner, and the standard libraries.
