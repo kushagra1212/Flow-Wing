@@ -111,9 +111,46 @@ gpg --batch --yes --no-tty --default-key "bot@flowwing.dev" -abs -o Release.gpg 
 # Create InRelease (inline signature)
 gpg --batch --yes --no-tty --default-key "bot@flowwing.dev" --clearsign -o InRelease Release
 
-# 8. Commit and push to the gh-pages branch
+# 8. Landing page for the branch root.
+#
+# gh-pages is served by GitHub Pages as https://kushagra1212.github.io/Flow-Wing/.
+# Without an index.html, Jekyll renders this branch's README.md instead — a copy
+# of the source tree frozen whenever the branch was created — so the URL served
+# stale content that was never the documentation. Redirect it to the docs site.
+#
+# Written *after* the Release file is generated and signed, so these files are
+# not part of the signed APT index. .nojekyll stops Pages from running Jekyll,
+# which both fixes the README fallback and keeps it away from the repo metadata.
+echo "Writing docs redirect and .nojekyll..."
+DOCS_URL="https://flow-wing-docs.vercel.app/"
+cat > index.html <<EOF
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Flow-Wing Documentation</title>
+    <meta http-equiv="refresh" content="0; url=${DOCS_URL}">
+    <link rel="canonical" href="${DOCS_URL}">
+    <meta name="robots" content="noindex">
+  </head>
+  <body>
+    <p>
+      The Flow-Wing documentation has moved to
+      <a href="${DOCS_URL}">${DOCS_URL}</a>.
+    </p>
+    <p>
+      This host also serves the signed APT repository; see the
+      <a href="https://github.com/kushagra1212/Flow-Wing">project README</a>
+      for installation instructions.
+    </p>
+  </body>
+</html>
+EOF
+touch .nojekyll
+
+# 9. Commit and push to the gh-pages branch
 echo "Committing to gh-pages..."
-git add pool/ Packages Packages.gz Release Release.gpg InRelease
+git add pool/ Packages Packages.gz Release Release.gpg InRelease index.html .nojekyll
 git commit -m "Add flowwing v$DEB_VERSION to signed APT repository"
 git push origin gh-pages
 

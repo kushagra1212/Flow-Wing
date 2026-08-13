@@ -48,7 +48,16 @@ checksum_release_asset() {
   local label="$2"
   local tmp
   tmp="$(mktemp)"
-  if ! curl -fSL --retry 3 --retry-delay 2 -o "$tmp" "$url"; then
+  # GitHub lists an asset in the releases API before its blob is reliably
+  # servable from the download host, so a request issued immediately after the
+  # upload job can get 503 for a while. `--retry 3 --retry-delay 2` gave up
+  # after ~6s and failed the v1.0.7 release that way. Retry over several
+  # minutes instead; --retry-all-errors also covers a transfer that dies
+  # mid-body rather than returning a retryable status.
+  if ! curl -fSL \
+      --connect-timeout 20 \
+      --retry 8 --retry-delay 15 --retry-max-time 300 --retry-all-errors \
+      -o "$tmp" "$url"; then
     rm -f "$tmp"
     echo "Error: failed to download ${label}: ${url}" >&2
     exit 1
