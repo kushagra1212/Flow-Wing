@@ -24,8 +24,29 @@ if [ -z "$WINDOWS_URL" ]; then
   exit 0
 fi
 
-# Get the SHA256 hash
-WINDOWS_SHA256="$(curl -s "$WINDOWS_URL" | sha256sum | cut -d' ' -f1)"
+# Get the SHA256 hash.
+#
+# Download to a file and hash the file. `curl -s | sha256sum` silently hashes an
+# empty stream when the request fails, which would publish a package whose
+# checksum never matches and break `choco install` for everyone. The releases
+# download host can also answer 503 for a while after the upload job finishes,
+# so retry over several minutes (same reasoning as package-homebrew.sh).
+WINDOWS_ZIP="$(mktemp)"
+if ! curl -fSL \
+    --connect-timeout 20 \
+    --retry 8 --retry-delay 15 --retry-max-time 300 --retry-all-errors \
+    -o "$WINDOWS_ZIP" "$WINDOWS_URL"; then
+  rm -f "$WINDOWS_ZIP"
+  echo "Error: failed to download Windows release asset: ${WINDOWS_URL}" >&2
+  exit 1
+fi
+if [ ! -s "$WINDOWS_ZIP" ]; then
+  rm -f "$WINDOWS_ZIP"
+  echo "Error: downloaded Windows release asset is 0 bytes: ${WINDOWS_URL}" >&2
+  exit 1
+fi
+WINDOWS_SHA256="$(sha256sum "$WINDOWS_ZIP" | cut -d' ' -f1)"
+rm -f "$WINDOWS_ZIP"
 
 if [ -z "$API_KEY" ]; then
   echo "Warning: CHOCOLATEY_API_KEY is not set; skipping Chocolatey pack and push."
@@ -107,6 +128,23 @@ UNINSTALL_EOF
 # Move into the clean staging directory to build and push
 cd "$BUILD_DIR"
 choco pack flowwing.nuspec
-choco push flowwing.$VERSION.nupkg --source https://push.chocolatey.org/ --api-key "$API_KEY"
+
+# `choco push` reports only "Response status code does not indicate success:
+# 403 (Forbidden)", which does not say which of several unrelated causes it hit.
+# Translate the common ones so the log is actionable.
+if ! choco push "flowwing.$VERSION.nupkg" \
+      --source https://push.chocolatey.org/ --api-key "$API_KEY"; then
+  echo "" >&2
+  echo "Error: 'choco push' was rejected for flowwing $VERSION." >&2
+  echo "The package built fine, so this is a publishing/credential problem:" >&2
+  echo "  403 Forbidden - the CHOCOLATEY_API_KEY secret is invalid, expired or" >&2
+  echo "                  regenerated, or its account does not have push rights" >&2
+  echo "                  for the 'flowwing' package id." >&2
+  echo "                  Fix: regenerate the key at" >&2
+  echo "                  https://community.chocolatey.org/account and update the" >&2
+  echo "                  CHOCOLATEY_API_KEY repository secret." >&2
+  echo "  409 Conflict  - version $VERSION is already published; bump the tag." >&2
+  exit 1
+fi
 
 echo "=== Chocolatey package published ==="
