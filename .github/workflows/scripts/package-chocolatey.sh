@@ -16,13 +16,33 @@ echo "Raw version: $RAW_VERSION"
 echo "Version (for package): $VERSION"
 echo "Release URL: $RELEASE_URL"
 
-# Get the Windows download URL
-WINDOWS_URL="$(curl -s "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/${RAW_VERSION}" | jq -r '.assets[] | select(.name | test("windows")) | .browser_download_url')"
+# Get the Windows download URL.
+#
+# SDK zip only. The release publishes BOTH `-windows-x86_64.zip` and
+# `-windows-x86_64.exe`, so a loose `test("windows")` matched both and jq
+# emitted two lines into this one variable — the v1.0.7 package shipped a `url`
+# field containing two newline-separated URLs, which 404s and failed Chocolatey
+# verification. Match the zip exactly (Install-ChocolateyZipPackage needs the
+# zip) and take a single line. Same guard as package-homebrew.sh.
+WINDOWS_URL="$(curl -fsSL "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/tags/${RAW_VERSION}" \
+  | jq -r '.assets[]? | select(.name | endswith("-windows-x86_64.zip")) | .browser_download_url' \
+  | head -n1)"
 
 if [ -z "$WINDOWS_URL" ]; then
   echo "Warning: Could not find Windows artifact for Chocolatey package."
   exit 0
 fi
+
+# A URL that still contains whitespace means the selector matched more than one
+# asset; publishing that would repeat the v1.0.7 failure silently.
+case "$WINDOWS_URL" in
+  *[[:space:]]*)
+    echo "Error: resolved more than one Windows asset URL:" >&2
+    printf '%s\n' "$WINDOWS_URL" >&2
+    exit 1
+    ;;
+esac
+echo "Windows asset: $WINDOWS_URL"
 
 # Get the SHA256 hash.
 #
