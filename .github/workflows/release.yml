@@ -84,6 +84,35 @@ jobs:
               run: |
                   echo "FLOWWING_VERSION=${FLOWWING_VERSION}" >> "$GITHUB_ENV"
 
+            # VERSION.txt is the single source of truth CMake reads (CMakeLists.txt
+            # `file(STRINGS ...)` -> PROJECT_VERSION -> cmake/version.cmake ->
+            # src/common/version.h -> VERSION_INFO -> `flowwing --version`).
+            # Nothing else in this job touched it, so a tag pushed without a matching
+            # VERSION.txt bump shipped an artifact named for the tag containing a
+            # binary that reported the previous version (FlowWing-v1.0.9-*.dmg with a
+            # compiler printing 1.0.6). Pin it to the tag so the two cannot drift.
+            #
+            # A plain write, not scripts/sync-version.sh: this job only needs the C++
+            # side, and sync-version.sh requires jq on all three runners. The VS Code
+            # job still calls sync-version.sh for the package.json/lockfile side.
+            - name: Pin VERSION.txt to release tag
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  VER="${FLOWWING_VERSION#v}"
+                  # project(... VERSION) only accepts numeric X.Y.Z; a prerelease tag
+                  # such as v1.1.0-rc1 (or the v0.0.3-alpha dispatch default) would
+                  # abort the configure, so keep the numeric core only.
+                  CORE="${VER%%-*}"
+                  CORE="${CORE%%+*}"
+                  if ! [[ "${CORE}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "ERROR: tag '${FLOWWING_VERSION}' has no X.Y.Z core; refusing to build." >&2
+                    exit 1
+                  fi
+                  printf '%s\n' "${CORE}" > VERSION.txt
+                  echo "FLOWWING_VERSION_CORE=${CORE}" >> "$GITHUB_ENV"
+                  echo "VERSION.txt pinned to ${CORE} (tag ${FLOWWING_VERSION})"
+
             # --- macOS (same sequence as multi_platform_ci macos_arm64_test + create-dmg for installers) ---
             - name: Select Xcode Version
               if: runner.os == 'macOS'
@@ -397,6 +426,13 @@ jobs:
 
                   echo "--- FlowWing --version ---"
                   "$FW" --version
+                  # Fail here rather than shipping a mislabelled artifact: catches a
+                  # stale build dir, a cached version.h, or the pin step silently
+                  # not taking effect.
+                  if ! "$FW" --version | grep -Fq "Version: ${FLOWWING_VERSION_CORE}"; then
+                    echo "ERROR: binary reports a version other than ${FLOWWING_VERSION_CORE} (tag ${FLOWWING_VERSION})." >&2
+                    exit 1
+                  fi
 
                   # Windows release ships AOT only; FlowWing-jit.exe is not part of the
                   # SDK we install on end-user machines, so skip every JIT probe on the
@@ -863,8 +899,19 @@ jobs:
               shell: bash
               run: |
                   set -e
+                  # GITHUB_ENV does not cross jobs, so re-derive the numeric core the
+                  # build job pinned into VERSION.txt from the workflow-level tag.
+                  CORE="${FLOWWING_VERSION#v}"
+                  CORE="${CORE%%-*}"
+                  CORE="${CORE%%+*}"
                   echo "--- FlowWing (AOT) --version ---"
                   "${{ steps.verify_bin.outputs.FW_PATH }}" --version
+                  # End-to-end check: the installer a user actually downloads must report
+                  # the version the release is tagged with.
+                  if ! "${{ steps.verify_bin.outputs.FW_PATH }}" --version | grep -Fq "Version: ${CORE}"; then
+                      echo "::error::Installed FlowWing reports a version other than ${CORE} (tag ${FLOWWING_VERSION})."
+                      exit 1
+                  fi
                   if [ "${{ steps.verify_bin.outputs.FW_JIT_FOUND }}" = "true" ]; then
                       echo "--- FlowWing-jit (JIT) --version ---"
                       "${{ steps.verify_bin.outputs.FW_JIT_PATH }}" --version
