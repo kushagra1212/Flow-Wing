@@ -36,9 +36,48 @@ endif()
 find_library(MONGOC_LIB NAMES ${_MONGOC_LIB_NAMES} PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 find_library(BSON_LIB   NAMES ${_BSON_LIB_NAMES}   PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 
+# mongo-c-driver stamps its FULL version into the header directory:
+#
+#     include/mongoc-<version>/mongoc/mongoc.h
+#     include/bson-<version>/bson/bson.h
+#
+# upstream does this via MONGOC_INSTALL_INCLUDEDIR / BSON_INSTALL_INCLUDEDIR,
+# both of which default to "${CMAKE_INSTALL_INCLUDEDIR}/<name>-${PROJECT_VERSION}".
+#
+# These paths used to be written out with the version in them, which meant a
+# dependency bump broke the build somewhere completely unrelated to the bump:
+# moving 2.3.0 -> 2.3.3 left the old path pointing at nothing and produced
+#
+#     fatal error: 'mongoc/mongoc.h' file not found
+#
+# Globbing instead keeps the version in exactly one place — the GIT_TAG in
+# cmake/deps_builder/CMakeLists.txt. The library names carry only the ABI
+# major (libmongoc2.a / libbson2.a) and so do not need this treatment.
+file(GLOB _MONGOC_INCLUDE_DIRS "${DEPS_INSTALL_DIR}/include/mongoc-*")
+file(GLOB _BSON_INCLUDE_DIRS   "${DEPS_INSTALL_DIR}/include/bson-*")
+
+if(NOT _MONGOC_INCLUDE_DIRS OR NOT _BSON_INCLUDE_DIRS)
+    message(FATAL_ERROR
+        "mongo-c-driver headers not found under ${DEPS_INSTALL_DIR}/include — "
+        "expected include/mongoc-<version> and include/bson-<version>. "
+        "Rebuild the dependencies (make deps) before building the modules.")
+endif()
+
+# A developer who has built more than one version keeps every old directory,
+# so take the newest rather than whichever the glob happened to list first —
+# a stale header directory next to current libraries is the confusing case.
+# NATURAL orders 2.3.10 after 2.3.9, which a plain lexical sort gets wrong.
+list(SORT _MONGOC_INCLUDE_DIRS COMPARE NATURAL)
+list(SORT _BSON_INCLUDE_DIRS   COMPARE NATURAL)
+list(GET _MONGOC_INCLUDE_DIRS -1 _MONGOC_INCLUDE_DIR)
+list(GET _BSON_INCLUDE_DIRS   -1 _BSON_INCLUDE_DIR)
+
+message(STATUS "mongoc headers: ${_MONGOC_INCLUDE_DIR}")
+message(STATUS "bson headers:   ${_BSON_INCLUDE_DIR}")
+
 target_include_directories(flowwing_mongo PUBLIC
-    "${DEPS_INSTALL_DIR}/include/mongoc-2.3.0"
-    "${DEPS_INSTALL_DIR}/include/bson-2.3.0"
+    "${_MONGOC_INCLUDE_DIR}"
+    "${_BSON_INCLUDE_DIR}"
 )
 
 # libbson 2.x public typedef loses an alignment attribute on bson_t*; runtime
