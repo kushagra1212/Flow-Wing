@@ -161,13 +161,17 @@ Set the size with an environment variable:
 FW_TASK_STACK_KB=4096 ./myprogram
 ```
 
-Overflow is reported, not silent:
+Overflow is reported, not silent, on Linux, macOS and Windows alike:
 
 ```
 Runtime Error: Task Stack Overflow.
   ▶ A spawned task used more stack than it owns.
   ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096), or reduce the recursion depth.
 ```
+
+A value that is not a number, or one outside 16 KB to 65536 KB, is ignored
+rather than obeyed: the size falls back to the 256 KB default. Obeying a
+request for 0 KB would fault on the first call of every task.
 
 Stacks are taken when a task first runs and released when it finishes, so
 queuing a million tasks costs a million small records — not a million stacks.

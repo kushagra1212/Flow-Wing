@@ -68,8 +68,12 @@ file(GLOB THIRD_PARTY_LIBS
     # HTTP. Both are merged into flowwing_uv / flowwing_vortex on macOS + Linux
     # by a POST_BUILD libtool/ar step, which has no Windows equivalent, so the
     # link line needs the archives themselves.
-    "${DEPS_LIB_DIR}/uv_a.lib"
-    "${DEPS_LIB_DIR}/uv.lib"
+    #
+    # libuv.lib is the STATIC archive and is the only libuv file to ship.
+    # libuv also installs uv.lib, the IMPORT library for uv.dll. That one is
+    # deliberately NOT staged: shipping it lets the linker pick it over the
+    # static archive, and the resulting executable then needs a uv.dll that
+    # the SDK does not carry. It fails at start-up with 0xC0000135.
     "${DEPS_LIB_DIR}/libuv.lib"
     "${DEPS_LIB_DIR}/llhttp.lib"
 

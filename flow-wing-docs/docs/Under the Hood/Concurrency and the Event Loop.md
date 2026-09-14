@@ -81,14 +81,32 @@ million stacks.
 FW_TASK_STACK_KB=4096 ./myprogram
 ```
 
-The bottom page of every task stack is mapped `PROT_NONE`, so running off the
-end raises a named error instead of a silent crash:
+Running off the end of a task stack raises a named error instead of a silent
+crash:
 
 ```
 Runtime Error: Task Stack Overflow.
   ▶ A spawned task used more stack than it owns.
   ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096), or reduce the recursion depth.
 ```
+
+Each platform detects it with its own native mechanism, and the message is the
+same either way:
+
+| | How the end of the stack is found | What reports it |
+|---|---|---|
+| Linux, macOS | the bottom page is mapped `PROT_NONE` | a `SIGSEGV` / `SIGBUS` handler on its own alternate stack |
+| Windows | the kernel's guard page below the fiber's reserve | a vectored handler catching `EXCEPTION_STACK_OVERFLOW` |
+
+Both check that the fault really belongs to a task stack before claiming it. An
+ordinary bad pointer, or recursion that is simply too deep on `main`, still
+produces the normal crash rather than being mislabelled as a task overflow.
+
+The main stack is far larger than a task stack — about 8 MB on Linux and macOS.
+Windows would give only 1 MB by default, so Flow-Wing asks its linker for 16 MB
+instead. A Windows x64 frame is bigger (the ABI adds 32 bytes of shadow space
+per call), so equal byte counts would still mean a shallower limit; the larger
+reserve keeps the reachable **depth** comparable across all three.
 
 ## Why no locks are needed
 
