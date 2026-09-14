@@ -1,0 +1,49 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A class instance created in ONE task and used by ANOTHER.
+/;
+/; The producer builds the instance on its own stack and stores it in a global.
+/; When the producer finishes, its stack is released and reused by the next
+/; task — so the only thing keeping the instance alive from then on is the
+/; global root.
+/;
+/; If the instance were rooted solely by the producer's frame it would be swept
+/; the moment that task ended, and the consumer would read freed memory. Under
+/; FW_GC_STRESS the consumer allocates before reading, which forces a
+/; collection in exactly that window.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+class Message {
+  var body: str
+  var seq: int
+  fun init(body: str, seq: int) -> nthg {
+    self.body = body
+    self.seq = seq
+  }
+}
+
+var slot: Message = new Message("e" + "mpty", 0)
+
+fun producer() -> nthg {
+  /; built on the producer's own stack, then published
+  var m: Message = new Message("from" + "-producer", 42)
+  slot = m
+  println("producer published seq=" + String(m.seq))
+}
+
+fun consumer() -> nthg {
+  /; allocate first: under stress this collects while the producer's stack
+  /; has already been released and reused
+  var noise: str = ""
+  for var i: int = 0 to 20 {
+    noise = noise + String(i)
+  }
+  println("consumer reads " + slot.body + " seq=" + String(slot.seq))
+}
+
+spawn producer()
+spawn consumer()
+
+println("queued 2")

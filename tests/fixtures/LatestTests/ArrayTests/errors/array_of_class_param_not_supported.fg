@@ -1,0 +1,14 @@
+/; EXPECT_ERROR: ArrayOfClassNotSupported
+/; The same rule for a PARAMETER, not just a variable. Every array type goes
+/; through one resolver, so a class element is refused wherever it appears —
+/; variables, parameters, fields and return types alike.
+class Counter {
+  var hits: int
+  fun init() -> nthg {
+    self.hits = 0
+  }
+}
+
+fun takeAll(items: Counter[2]) -> nthg {
+  println("never reached")
+}

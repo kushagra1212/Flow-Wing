@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow-Wing — concurrency, tasks and libuv</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --green:#3fb950; --blue:#58a6ff; --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,sans-serif}
+  header{padding:28px 32px 18px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:24px}
+  header p{margin:0;color:var(--dim)}
+  nav{display:flex;gap:4px;padding:0 32px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel)}
+  nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);
+    padding:12px 14px;cursor:pointer;font-size:13px;font-weight:600}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--blue);border-bottom-color:var(--blue)}
+  main{padding:26px 32px 80px;max-width:1180px}
+  section{display:none} section.on{display:block}
+  h2{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 20px;font-size:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1;min-width:270px}
+  .ctl{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  button.act{background:var(--blue);color:#04101f;border:0;border-radius:6px;padding:8px 16px;
+    font-weight:700;cursor:pointer;font-size:13px}
+  button.act:hover{filter:brightness(1.15)}
+  button.act:disabled{opacity:.35;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .step{color:var(--dim);font:12px var(--mono);margin-left:auto}
+  .narrate{background:#0b1f36;border-left:3px solid var(--blue);padding:10px 14px;
+    border-radius:0 6px 6px 0;font-size:14px;min-height:44px}
+  code,.mono{font-family:var(--mono);font-size:13px}
+  pre{background:#010409;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;
+    font:12.5px/1.6 var(--mono);margin:8px 0}
+  .lbl{font:11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+
+  /* scheduler */
+  .queue{display:flex;gap:8px;min-height:56px;align-items:center;flex-wrap:wrap}
+  .task{border:1px solid var(--line);border-radius:6px;padding:8px 12px;font:12px var(--mono);
+    background:#0d1117;transition:.25s}
+  .task.run{border-color:var(--green);background:#0d2818;color:var(--green);transform:scale(1.06)}
+  .task.park{border-color:var(--amber);background:#2b2008;color:var(--amber)}
+  .task.done{opacity:.3;text-decoration:line-through}
+  .empty{color:var(--dim);font:12px var(--mono)}
+
+  /* stacks */
+  .stacks{display:flex;gap:14px;align-items:flex-end;min-height:190px}
+  .stk{flex:1;border:1px solid var(--line);border-radius:6px;background:#010409;padding:8px;
+    display:flex;flex-direction:column-reverse;gap:3px;min-height:170px;transition:.25s}
+  .stk.active{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .frame{background:#1f2937;border-left:2px solid var(--blue);padding:4px 7px;font:11px var(--mono);border-radius:2px}
+  .frame.guard{border-left-color:var(--red);background:#2d1114;color:var(--red)}
+  .stkname{font:11px var(--mono);color:var(--dim);text-align:center;margin-top:6px}
+
+  /* memory box */
+  .bytes{display:flex;gap:2px;flex-wrap:wrap;margin:6px 0}
+  .byte{width:34px;height:34px;border:1px solid var(--line);border-radius:3px;display:grid;
+    place-items:center;font:10px var(--mono);background:#010409;transition:.2s}
+  .byte.tag{border-color:var(--blue);background:#0b2545;color:var(--blue)}
+  .byte.pay{border-color:var(--purple);background:#21103a;color:var(--purple)}
+  .byte.bad{border-color:var(--red);background:#2d1114;color:var(--red);animation:pulse 1s infinite}
+  .byte.zero{border-color:var(--green);background:#0d2818;color:var(--green)}
+  @keyframes pulse{50%{opacity:.45}}
+
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#0d1117;color:var(--dim);font:11px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+  td.mono{font-family:var(--mono);font-size:12.5px}
+  .ok{color:var(--green)} .no{color:var(--red)} .warn{color:var(--amber)} .b{color:var(--blue)}
+  .outbox{border-color:#1c3a26;background:#04120a;color:#9fe8b5}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:2px 10px;
+    font:11px var(--mono);color:var(--dim)}
+  .pill.new{border-color:var(--green);color:var(--green)}
+  .pill.fix{border-color:var(--amber);color:var(--amber)}
+  ul{margin:8px 0;padding-left:20px} li{margin:4px 0}
+  .big{font:28px var(--mono);font-weight:700}
+  .bar{height:22px;border-radius:3px;background:var(--blue);transition:width .5s;min-width:2px}
+  .bar.slow{background:var(--red)}
+  .barrow{display:flex;align-items:center;gap:10px;margin:5px 0;font:12px var(--mono)}
+  .barrow span:first-child{width:92px;color:var(--dim)}
+  .barwrap{flex:1;background:#010409;border-radius:3px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inside Flow-Wing concurrency — <code>spawn</code>, tasks and libuv</h1>
+  <p>Click through each mechanism. Every number on this page was measured, not sketched.
+     Companion page: <a href="/internals/gc.html" style="color:#58a6ff">the garbage collector</a>.</p>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+
+<!-- ================= PROGRAMS ================= -->
+<section id="s-progs">
+  <h2>0 · Every API, as a program you can run</h2>
+  <p class="sub">Thirteen programs covering the concurrency API. Each output below was captured
+  by compiling and running the program on the left.</p>
+
+  <div class="panel">
+    <div class="lbl">Run any of them</div>
+<pre>FW=build/sdk/bin/FlowWing
+$FW myprogram.fg --emit=exe -o /tmp/x &amp;&amp; /tmp/x</pre>
+    <p style="margin:0">Jump to: <a href="#prog-spawn" style="color:var(--blue)">spawn</a> · <a href="#prog-args" style="color:var(--blue)">spawn with arguments</a> · <a href="#prog-yield" style="color:var(--blue)">sys::yield()</a> · <a href="#prog-sleep" style="color:var(--blue)">sys::sleep()</a> · <a href="#prog-clock" style="color:var(--blue)">the monotonic clock</a> · <a href="#prog-stack" style="color:var(--blue)">task stacks, default size</a> · <a href="#prog-stackerr" style="color:var(--blue)">task stack overflow</a> · <a href="#prog-null" style="color:var(--blue)">the null literal and map.get()</a> · <a href="#prog-server" style="color:var(--blue)">HTTP server</a> · <a href="#prog-resapi" style="color:var(--blue)">Response</a> · <a href="#prog-client" style="color:var(--blue)">HTTP client</a> · <a href="#prog-concsrv" style="color:var(--blue)">Concurrent server</a> · <a href="#prog-errors" style="color:var(--blue)">What spawn refuses</a></p>
+  </div>
+
+  <div class="panel" id="prog-spawn">
+    <h3 style="margin:0 0 2px;font-size:16px">spawn — queue a task</h3>
+    <div class="lbl" style="margin-bottom:12px">spawn f()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 1 — the `spawn` keyword
+/;
+/; `spawn f()` does NOT call f. It puts f on a queue. The queue is drained
+/; after the top-level body finishes.
+/; ===========================================================================
+
+fun greet() -&gt; nthg {
+  println("  [task] hello from a task")
+}
+
+fun farewell() -&gt; nthg {
+  println("  [task] goodbye from a task")
+}
+
+println("1. before spawn")
+spawn greet()
+spawn farewell()
+println("2. after spawn  &lt;-- neither task has run yet")
+println("3. top level ends here; the drain starts")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">1. before spawn
+2. after spawn  &lt;-- neither task has run yet
+3. top level ends here; the drain starts
+  [task] hello from a task
+  [task] goodbye from a task</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-args">
+    <h3 style="margin:0 0 2px;font-size:16px">spawn with arguments</h3>
+    <div class="lbl" style="margin-bottom:12px">spawn f(a, b)</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 2 — spawn WITH ARGUMENTS
+/;
+/; Arguments are evaluated at the spawn site and copied into a GC-traced block.
+/; What the task sees depends on the type:
+/;   int / str / dyn / array  -&gt; COPIED  (caller changes are invisible)
+/;   object / class           -&gt; POINTER (shared; changes visible both ways)
+/;   global                   -&gt; read when the task RUNS, not when it spawned
+/; ===========================================================================
+
+type Box = { n: int, label: str }
+
+var g_counter: int = 1
+
+fun show(n: int, s: str, arr: int[3], b: Box) -&gt; nthg {
+  println("  int   = " + String(n)          + "   (copied)")
+  println("  str   = " + s                  + "   (copied)")
+  println("  arr[0]= " + String(arr[0])     + "   (copied)")
+  println("  box.n = " + String(b.n)        + " (SHARED - caller changed it)")
+  println("  global= " + String(g_counter)  + " (read at run time)")
+}
+
+var n: int = 10
+var s: str = "orig" + "inal"
+var arr: int[3] = [7, 8, 9]
+var box: Box = { n: 100, label: "b" }
+
+spawn show(n, s, arr, box)
+
+/; every one of these happens BEFORE the task runs
+n = 999
+s = "CHANGED"
+arr[0] = 999
+box.n = 999
+g_counter = 999
+
+println("caller changed everything; now the task runs:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">caller changed everything; now the task runs:
+  int   = 10   (copied)
+  str   = original   (copied)
+  arr[0]= 7   (copied)
+  box.n = 999 (SHARED - caller changed it)
+  global= 999 (read at run time)</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-yield">
+    <h3 style="margin:0 0 2px;font-size:16px">sys::yield() — hand over the CPU</h3>
+    <div class="lbl" style="margin-bottom:12px">sys::yield()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 3 — sys::yield()  (cooperative switching)
+/;
+/; yield parks the task and puts it at the BACK of the queue. The task keeps
+/; its own stack, so it resumes exactly where it stopped.
+/; ===========================================================================
+
+bring sys
+
+fun worker(name: str) -&gt; nthg {
+  println("  " + name + " step 1")
+  sys::yield()
+  println("  " + name + " step 2")
+  sys::yield()
+  println("  " + name + " step 3")
+}
+
+spawn worker("A")
+spawn worker("B")
+
+println("watch A and B take turns:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">watch A and B take turns:
+  A step 1
+  B step 1
+  A step 2
+  B step 2
+  A step 3
+  B step 3</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-sleep">
+    <h3 style="margin:0 0 2px;font-size:16px">sys::sleep() — suspend, do not block</h3>
+    <div class="lbl" style="margin-bottom:12px">sys::sleep(ms)</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 4 — sys::sleep() inside a task SUSPENDS, it does not block
+/;
+/; 5 tasks each wait 200 ms. If sleep blocked the thread this would take
+/; 1000 ms. Because each task parks, the total is about 200 ms.
+/; ===========================================================================
+
+bring sys
+
+var done: int = 0
+
+fun waiter(id: int, start: int64) -&gt; nthg {
+  sys::sleep(200)
+  done = done + 1
+  println("  task " + String(id) + " woke at "
+          + String(Int64(sys::elapsedNanos(start) / 1000000l)) + " ms")
+}
+
+fun reporter(start: int64) -&gt; nthg {
+  sys::sleep(400)
+  println("  all " + String(done) + " finished. Serial would need 1000 ms.")
+}
+
+var t0: int64 = sys::nanos()
+for var i: int = 0 to 4 {
+  spawn waiter(i, t0)
+}
+spawn reporter(t0)
+
+println("5 tasks, each sleeping 200ms:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">5 tasks, each sleeping 200ms:
+  task 0 woke at 205 ms
+  task 1 woke at 205 ms
+  task 2 woke at 205 ms
+  task 3 woke at 205 ms
+  task 4 woke at 205 ms
+  all 5 finished. Serial would need 1000 ms.</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-clock">
+    <h3 style="margin:0 0 2px;font-size:16px">the monotonic clock</h3>
+    <div class="lbl" style="margin-bottom:12px">sys::nanos() micros() millis() elapsedNanos()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 5 — the monotonic clock
+/;
+/; sys::timestamp() is SECONDS. It cannot measure anything fast, and it jumps
+/; when the system clock changes. These four are nanosecond-precision and
+/; never go backwards.
+/; ===========================================================================
+
+bring sys
+
+var t0: int64 = sys::nanos()
+
+var sum: int64 = 0
+for var i: int = 0 to 500000 {
+  sum = sum + 1
+}
+
+println("  nanos()        = " + String(sys::nanos()))
+println("  micros()       = " + String(sys::micros()))
+println("  millis()       = " + String(sys::millis()))
+println("  elapsedNanos() = " + String(sys::elapsedNanos(t0)) + " ns for 500k adds")
+println("  same in ms     = " + String(Int64(sys::elapsedNanos(t0) / 1000000l)) + " ms")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">nanos()        = 1408735135411166
+  micros()       = 1408735135473
+  millis()       = 1408735135
+  elapsedNanos() = 2967042 ns for 500k adds
+  same in ms     = 2 ms</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-stack">
+    <h3 style="margin:0 0 2px;font-size:16px">task stacks, default size</h3>
+    <div class="lbl" style="margin-bottom:12px">FW_TASK_STACK_KB</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 8 — task stacks: size control + overflow protection
+/;
+/; Every task gets its OWN machine stack (default 256 KB). That is what lets
+/; it suspend mid-call and resume later.
+/;
+/; Two things worth knowing:
+/;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
+/;   a guard page          turns silent corruption into a NAMED error
+/;
+/; Try:
+/;   FW_TASK_STACK_KB=64  FlowWing 08_stack.fg --emit=exe -o /tmp/s &amp;&amp; /tmp/s
+/;   FW_TASK_STACK_KB=16  ...   &lt;- deep task now overflows, cleanly
+/; ===========================================================================
+
+var depth: int = 0
+
+fun recurse(n: int) -&gt; nthg {
+  depth = n
+  if n &gt; 2000 {
+    return:
+  }
+  recurse(n + 1)
+}
+
+fun deepTask() -&gt; nthg {
+  recurse(0)
+  println("  recursion reached depth " + String(depth))
+}
+
+/; 300 tasks parked at once = 300 live stacks at the same time
+var awake: int = 0
+fun parked() -&gt; nthg {
+  awake = awake + 1
+}
+
+spawn deepTask()
+for var i: int = 0 to 299 {
+  spawn parked()
+}
+
+println("one deep task + 300 shallow tasks:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">one deep task + 300 shallow tasks:
+  recursion reached depth 2001</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-stackerr">
+    <h3 style="margin:0 0 2px;font-size:16px">task stack overflow</h3>
+    <div class="lbl" style="margin-bottom:12px">FW_TASK_STACK_KB=16</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 8 — task stacks: size control + overflow protection
+/;
+/; Every task gets its OWN machine stack (default 256 KB). That is what lets
+/; it suspend mid-call and resume later.
+/;
+/; Two things worth knowing:
+/;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
+/;   a guard page          turns silent corruption into a NAMED error
+/;
+/; Try:
+/;   FW_TASK_STACK_KB=64  FlowWing 08_stack.fg --emit=exe -o /tmp/s &amp;&amp; /tmp/s
+/;   FW_TASK_STACK_KB=16  ...   &lt;- deep task now overflows, cleanly
+/; ===========================================================================
+
+var depth: int = 0
+
+fun recurse(n: int) -&gt; nthg {
+  depth = n
+  if n &gt; 2000 {
+    return:
+  }
+  recurse(n + 1)
+}
+
+fun deepTask() -&gt; nthg {
+  recurse(0)
+  println("  recursion reached depth " + String(depth))
+}
+
+/; 300 tasks parked at once = 300 live stacks at the same time
+var awake: int = 0
+fun parked() -&gt; nthg {
+  awake = awake + 1
+}
+
+spawn deepTask()
+for var i: int = 0 to 299 {
+  spawn parked()
+}
+
+println("one deep task + 300 shallow tasks:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">[91mRuntime Error: Task Stack Overflow.
+  ▶ A spawned task used more stack than it owns.
+  ▶ A task stack is much smaller than main's.
+  ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096), or reduce the recursion depth.[0m</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-null">
+    <h3 style="margin:0 0 2px;font-size:16px">the null literal and map.get()</h3>
+    <div class="lbl" style="margin-bottom:12px">null, map::Map.get()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; `null` and map::Map.get()
+/;
+/; `null` is a dyn value carrying the NIRAST tag. It behaves the same whether
+/; you hold it in a variable or pass it straight to a function.
+/;
+/; map.get(key) is getOr(key, null), so a key that is not present comes back
+/; as null. Use getOr(key, default) when you would rather have a value.
+/; ===========================================================================
+
+bring map
+
+fun takesDyn(v: dyn) -&gt; nthg {
+  println("  passed as argument = " + String(v))
+}
+
+var held = null
+println("  held in a variable = " + String(held))
+takesDyn(null)
+takesDyn(held)
+
+var m: map::Map = new map::Map()
+m.set("present", "here")
+
+println("  map present        = " + String(m.get("present")))
+println("  map MISSING        = " + String(m.get("absent")))
+println("  map getOr default  = " + String(m.getOr("absent", 42)))</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">held in a variable = null
+  passed as argument = null
+  passed as argument = null
+  map present        = here
+  map MISSING        = null
+  map getOr default  = 42</pre></div>
+    </div>
+  </div>
+  <div class="panel" id="prog-server">
+    <h3 style="margin:0 0 2px;font-size:16px">HTTP server — listen, accept, respond</h3>
+    <div class="lbl" style="margin-bottom:12px">vortex::Server listen() accept() · Request getMethod() getPath() getBody() · Response status() header() send()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 6 — the Vortex HTTP SERVER, now libuv-native
+/;
+/; One uv_tcp_t per connection on the shared event loop — no thread per
+/; connection.
+/;
+/; accept() parks the task when no request is ready, so other tasks keep
+/; running while the server waits.
+/;
+/; Run it, then in another terminal:
+/;   curl localhost:8080/hello
+/; ===========================================================================
+
+bring vortex
+bring Err
+bring sys
+
+fun ticker() -&gt; nthg {
+  /; proves the process is NOT blocked while the server waits for a request
+  for var i: int = 0 to 4 {
+    sys::sleep(300)
+    println("  [ticker] still alive " + String(i))
+  }
+}
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8080)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+
+  spawn ticker()
+
+  for var i: int = 0 to 2 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("  [server] " + req.getMethod() + " " + req.getPath())
+
+    res.status(200)
+       .header("X-Powered-By", "FlowWing")
+       .send("hello from vortex\n")
+  }
+
+  println("  [server] served 3 requests")
+}
+
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">Vortex server listening on port 8080
+  [server] GET /hello1
+  [server] GET /hello2
+  [server] GET /hello3
+  [server] served 3 requests
+  [ticker] still alive 0
+  [ticker] still alive 1
+  [ticker] still alive 2
+  [ticker] still alive 3
+  [ticker] still alive 4</pre></div>
+    </div><p style="margin:8px 0 0;color:var(--dim)">The ticker keeps printing while accept() waits. A blocking server could not do that.</p>
+  </div>
+  <div class="panel" id="prog-resapi">
+    <h3 style="margin:0 0 2px;font-size:16px">Response — json, header, streaming</h3>
+    <div class="lbl" style="margin-bottom:12px">Response json() header() streamBegin() streamWrite() streamEnd()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; Every Response method: status, header, json, streamBegin/Write/End
+bring vortex
+bring Err
+bring json
+bring sys
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8190)
+  if Err::isErr(err) { println(err.getMessage()) return: }
+
+  for var i: int = 0 to 2 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    var path: str = req.getPath()
+    println("  " + req.getMethod() + " " + path + "  body=[" + req.getBody() + "]")
+
+    if path == "/json" {
+      var node: json::JsonNode = json::newObject()
+      node.put("lang", json::newString("Flow-Wing"))
+      node.put("version", json::newNumber(1.0))
+      node.put("fast", json::newBool(true))
+      res.status(200).json(node)
+    } or if path == "/stream" {
+      res.streamBegin("text/plain")
+      for var k: int = 0 to 2 {
+        res.streamWrite("chunk " + String(k) + "\n")
+      }
+      res.streamEnd()
+    } else {
+      res.status(200).header("X-Demo", "yes").send("plain body\n")
+    }
+  }
+  println("  served 3")
+}
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">Vortex server listening on port 8190
+  POST /plain  body=[hi]
+  POST /json  body=[hi]
+  POST /stream  body=[hi]
+  served 3
+
+--- what the client received ---
+curl /plain   -&gt;  plain body
+curl /json    -&gt;  {"lang": "Flow-Wing", "version": 1, "fast": true}
+curl /stream  -&gt;  chunk 0
+                  chunk 1
+                  chunk 2</pre></div>
+    </div><p style="margin:8px 0 0;color:var(--dim)">json() sets Content-Type for you. streamBegin/Write/End sends chunked transfer encoding.</p>
+  </div>
+  <div class="panel" id="prog-client">
+    <h3 style="margin:0 0 2px;font-size:16px">HTTP client — 5 requests, one thread</h3>
+    <div class="lbl" style="margin-bottom:12px">vortex::Client new() isOk() readChunk() isDone() close()</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 7 — the Vortex HTTP CLIENT, now libuv-native
+/;
+/; The response is parsed on the Flow-Wing thread inside the shared event
+/; loop, so a request costs a socket and not a thread.
+/;
+/; So several requests overlap on ONE thread. This file fires 5 at once and
+/; times them.
+/;
+/; Needs a server. Start 06_server.fg first, or point the URL anywhere.
+/; ===========================================================================
+
+bring vortex
+bring sys
+
+var replies: int = 0
+
+fun fetch(id: int, t0: int64) -&gt; nthg {
+  var c: vortex::Client = new vortex::Client("http://127.0.0.1:8189/x", `{"id":1}`)
+
+  var body: str = ""
+  while !c.isDone() {
+    var chunk: str = c.readChunk()
+    if chunk != "" {
+      body = body + chunk
+    }
+  }
+  /; read the status BEFORE close(): close() frees the request
+  var ok: bool = c.isOk()
+  c.close()
+
+  replies = replies + 1
+  println("  request " + String(id) + " finished at "
+          + String(Int64(sys::elapsedNanos(t0) / 1000000l)) + " ms  ok=" + String(ok)
+          + "  body=" + String(body != ""))
+}
+
+var t0: int64 = sys::nanos()
+for var i: int = 0 to 4 {
+  spawn fetch(i, t0)
+}
+
+println("5 requests, all at once, one thread:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">5 requests, all at once, one thread:
+  request 0 finished at 302 ms  ok=true  body=true
+  request 2 finished at 302 ms  ok=true  body=true
+  request 3 finished at 302 ms  ok=true  body=true
+  request 1 finished at 302 ms  ok=true  body=true
+  request 4 finished at 302 ms  ok=true  body=true</pre></div>
+    </div><p style="margin:8px 0 0;color:var(--dim)">Against a server that needs 300 ms per request. All five land at 302 ms, not 302/607/911/1212/1516. Read isOk() BEFORE close() — close() frees the request.</p>
+  </div>
+  <div class="panel" id="prog-concsrv">
+    <h3 style="margin:0 0 2px;font-size:16px">Concurrent server — spawn the handler</h3>
+    <div class="lbl" style="margin-bottom:12px">spawn handle(req, res)</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 6b — a CONCURRENT server: spawn the handler
+/;
+/; accept() returns one request at a time and your loop handles it. If the
+/; handler is slow, the next accept() waits — requests queue up behind it.
+/;
+/; `spawn handle(req, res)` fixes that. The loop goes straight back to
+/; accept(), and the handler runs as its own task. req and res are objects, so
+/; the task receives POINTERS to the same instances.
+/;
+/; Same 300 ms of work per request, but now they overlap.
+/; ===========================================================================
+
+bring vortex
+bring Err
+bring sys
+
+fun handle(req: vortex::Request, res: vortex::Response) -&gt; nthg {
+  sys::sleep(300)                 /; slow work: a DB call, an LLM, anything
+  res.status(200).send("reply\n")
+}
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8189)
+  if Err::isErr(err) { println(err.getMessage()) return: }
+
+  for var i: int = 0 to 4 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    spawn handle(req, res)        /; &lt;-- the whole difference
+  }
+}
+
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">without spawn (sequential accept loop):
+  request 0 finished at  302 ms
+  request 1 finished at  607 ms
+  request 2 finished at  911 ms
+  request 3 finished at 1212 ms
+  request 4 finished at 1516 ms
+
+with spawn handle(req, res):
+  request 0 finished at 302 ms
+  request 2 finished at 302 ms
+  request 3 finished at 302 ms
+  request 1 finished at 302 ms
+  request 4 finished at 302 ms</pre></div>
+    </div><p style="margin:8px 0 0;color:var(--dim)">One keyword. 1516 ms -> 302 ms, same single thread. req and res are objects, so the task gets pointers to the same instances.</p>
+  </div>
+  <div class="panel" id="prog-errors">
+    <h3 style="margin:0 0 2px;font-size:16px">What spawn refuses</h3>
+    <div class="lbl" style="margin-bottom:12px">compile-time diagnostics</div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>spawn 42
+
+fun computes() -&gt; int { return 7 }
+spawn computes()
+
+class Worker { fun run() -&gt; nthg { println("x") } }
+var w: Worker = new Worker()
+spawn w.run()
+
+spawn println("hello")
+
+fun bump(inout n: int) -&gt; nthg { n = n + 1 }
+var c: int = 0
+spawn bump(c)</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">[Error:SpawnRequiresFunctionCall]  'spawn' expects a function call.
+[Error:SpawnRequiresNthgReturn]  'spawn' needs a function that returns 'nthg'.
+[Error:SpawnRequiresPlainFunction]  'spawn' cannot queue a method call.
+[Error:SpawnRequiresUserFunction]  'spawn' cannot queue a built-in call.
+[Error:SpawnByReferenceArgument]  'spawn' cannot pass an argument by reference.</pre></div>
+    </div><p style="margin:8px 0 0;color:var(--dim)">Each is a compile error with its own name, so the message tells you what to change.</p>
+  </div>
+</section>
+
+<!-- ================= 1. SPAWN ================= -->
+<section id="s-spawn">
+  <h2>1 · <code>spawn</code> — the queue <span class="pill new">new keyword</span></h2>
+  <p class="sub">A spawn does not call anything. It appends a record to a queue. The queue drains after the top-level body ends.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="SP.step()">Step ▸</button>
+      <button class="act ghost" onclick="SP.reset()">Reset</button>
+      <span class="step" id="sp-step"></span>
+    </div>
+    <div class="narrate" id="sp-say">Press Step.</div>
+
+    <div class="row" style="margin-top:16px">
+      <div class="col">
+        <div class="lbl">Your program</div>
+        <pre id="sp-code"></pre>
+      </div>
+      <div class="col">
+        <div class="lbl">Ready queue (FIFO)</div>
+        <div class="queue" id="sp-q"><span class="empty">empty</span></div>
+        <div class="lbl" style="margin-top:16px">Output</div>
+        <pre id="sp-out" style="min-height:96px"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Why it is a queue and not a call</div>
+    <p style="margin:0">A task needs its own machine stack so it can stop half-way and continue later.
+    Allocating that stack at the <em>spawn</em> would cost 256 KB per queued task — a million spawns
+    would be 256 GB. The stack is taken on first resume and released on completion, so a queued task
+    costs one small record.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">spawn f()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 1 — the `spawn` keyword
+/;
+/; `spawn f()` does NOT call f. It puts f on a queue. The queue is drained
+/; after the top-level body finishes.
+/; ===========================================================================
+
+fun greet() -&gt; nthg {
+  println("  [task] hello from a task")
+}
+
+fun farewell() -&gt; nthg {
+  println("  [task] goodbye from a task")
+}
+
+println("1. before spawn")
+spawn greet()
+spawn farewell()
+println("2. after spawn  &lt;-- neither task has run yet")
+println("3. top level ends here; the drain starts")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">1. before spawn
+2. after spawn  &lt;-- neither task has run yet
+3. top level ends here; the drain starts
+  [task] hello from a task
+  [task] goodbye from a task</pre></div>
+    </div>
+  </div></section>
+
+<!-- ================= 2. STACK SWAP ================= -->
+<section id="s-swap">
+  <h2>2 · The stack swap — how a task suspends</h2>
+  <p class="sub">This is the heart of it. <code>swapcontext</code> on POSIX, Fibers on Windows.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="SW.step()">Step ▸</button>
+      <button class="act ghost" onclick="SW.reset()">Reset</button>
+      <span class="step" id="sw-step"></span>
+    </div>
+    <div class="narrate" id="sw-say">Press Step.</div>
+
+    <div class="stacks" style="margin-top:18px">
+      <div><div class="stk" id="sw-main"></div><div class="stkname">main stack (8 MB)</div></div>
+      <div><div class="stk" id="sw-t1"></div><div class="stkname">task A stack (256 KB)</div></div>
+      <div><div class="stk" id="sw-t2"></div><div class="stkname">task B stack (256 KB)</div></div>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <div class="col">
+        <div class="lbl">CPU registers</div>
+        <pre id="sw-reg"></pre>
+      </div>
+      <div class="col">
+        <div class="lbl">What the C code does</div>
+        <pre id="sw-c"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The guard page <span class="pill fix">added</span></div>
+    <p style="margin:0 0 8px">The bottom page of every task stack is mapped <code>PROT_NONE</code>. Running off the
+    end touches it and raises SIGSEGV, which a handler on a <code>sigaltstack</code> turns into a named error
+    instead of a silent exit 139.</p>
+    <pre>Runtime Error: Task Stack Overflow.
+  ▶ A spawned task used more stack than it owns.
+  ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096)</pre>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">sys::yield()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 3 — sys::yield()  (cooperative switching)
+/;
+/; yield parks the task and puts it at the BACK of the queue. The task keeps
+/; its own stack, so it resumes exactly where it stopped.
+/; ===========================================================================
+
+bring sys
+
+fun worker(name: str) -&gt; nthg {
+  println("  " + name + " step 1")
+  sys::yield()
+  println("  " + name + " step 2")
+  sys::yield()
+  println("  " + name + " step 3")
+}
+
+spawn worker("A")
+spawn worker("B")
+
+println("watch A and B take turns:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">watch A and B take turns:
+  A step 1
+  B step 1
+  A step 2
+  B step 2
+  A step 3
+  B step 3</pre></div>
+    </div>
+  </div></section>
+
+<!-- ================= 3. ARGUMENTS ================= -->
+<section id="s-args">
+  <h2>3 · <code>spawn f(a, b)</code> — the argument block <span class="pill new">new</span></h2>
+  <p class="sub">Arguments are evaluated now but used later. They need a home the collector can see.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="AR.step()">Step ▸</button>
+      <button class="act ghost" onclick="AR.reset()">Reset</button>
+      <span class="step" id="ar-step"></span>
+    </div>
+    <div class="narrate" id="ar-say">Press Step.</div>
+
+    <div class="row" style="margin-top:16px">
+      <div class="col">
+        <div class="lbl">Caller's variables</div>
+        <div id="ar-vars"></div>
+      </div>
+      <div class="col">
+        <div class="lbl">GC argument block (one per spawn site)</div>
+        <div id="ar-block"></div>
+      </div>
+    </div>
+    <div class="lbl" style="margin-top:16px">What the task sees when it finally runs</div>
+    <pre id="ar-out" style="min-height:78px"></pre>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The rule, measured</div>
+    <table>
+      <tr><th>Argument</th><th>Stored as</th><th>Caller changes it after the spawn</th></tr>
+      <tr><td class="mono">int, deci, bool, char</td><td>value copy</td><td class="no">not visible</td></tr>
+      <tr><td class="mono">str</td><td>pointer copy</td><td class="no">not visible (rebinding the caller's variable)</td></tr>
+      <tr><td class="mono">array</td><td>element-by-element copy</td><td class="no">not visible — a snapshot</td></tr>
+      <tr><td class="mono">dyn</td><td>box copy, tag included</td><td class="no">not visible, even a re-type</td></tr>
+      <tr><td class="mono">object / class</td><td><b class="b">pointer</b> copy</td><td class="ok">VISIBLE — one shared instance</td></tr>
+      <tr><td class="mono">global</td><td>not an argument at all</td><td class="ok">VISIBLE — read when the task runs</td></tr>
+      <tr><td class="mono">inout</td><td>—</td><td class="warn">rejected at compile time</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">spawn f(a, b)</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 2 — spawn WITH ARGUMENTS
+/;
+/; Arguments are evaluated at the spawn site and copied into a GC-traced block.
+/; What the task sees depends on the type:
+/;   int / str / dyn / array  -&gt; COPIED  (caller changes are invisible)
+/;   object / class           -&gt; POINTER (shared; changes visible both ways)
+/;   global                   -&gt; read when the task RUNS, not when it spawned
+/; ===========================================================================
+
+type Box = { n: int, label: str }
+
+var g_counter: int = 1
+
+fun show(n: int, s: str, arr: int[3], b: Box) -&gt; nthg {
+  println("  int   = " + String(n)          + "   (copied)")
+  println("  str   = " + s                  + "   (copied)")
+  println("  arr[0]= " + String(arr[0])     + "   (copied)")
+  println("  box.n = " + String(b.n)        + " (SHARED - caller changed it)")
+  println("  global= " + String(g_counter)  + " (read at run time)")
+}
+
+var n: int = 10
+var s: str = "orig" + "inal"
+var arr: int[3] = [7, 8, 9]
+var box: Box = { n: 100, label: "b" }
+
+spawn show(n, s, arr, box)
+
+/; every one of these happens BEFORE the task runs
+n = 999
+s = "CHANGED"
+arr[0] = 999
+box.n = 999
+g_counter = 999
+
+println("caller changed everything; now the task runs:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">caller changed everything; now the task runs:
+  int   = 10   (copied)
+  str   = original   (copied)
+  arr[0]= 7   (copied)
+  box.n = 999 (SHARED - caller changed it)
+  global= 999 (read at run time)</pre></div>
+    </div>
+  </div></section>
+
+<!-- ================= 4. GC ================= -->
+<section id="s-gc">
+  <h2>4 · The collector and a sleeping task</h2>
+  <p class="sub">A suspended task's roots live on a stack nobody is standing on. Without help they would be swept.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="GC.step()">Step ▸</button>
+      <button class="act ghost" onclick="GC.reset()">Reset</button>
+      <span class="step" id="gc-step"></span>
+    </div>
+    <div class="narrate" id="gc-say">Press Step.</div>
+    <div class="row" style="margin-top:16px">
+      <div class="col">
+        <div class="lbl">Root sources the collector walks</div>
+        <div id="gc-roots"></div>
+      </div>
+      <div class="col">
+        <div class="lbl">Heap</div>
+        <div id="gc-heap"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The three pieces that make it work</div>
+    <table>
+      <tr><th>Function</th><th>Job</th></tr>
+      <tr><td class="mono">fw_gc_set_aux_root_scanner</td><td>scheduler registers itself as an extra root source</td></tr>
+      <tr><td class="mono">fw_gc_mark_shadow_chain</td><td>marks the frames on one parked task's stack</td></tr>
+      <tr><td class="mono">fw_gc_push_root_object</td><td>roots an argument block that no stack points at yet</td></tr>
+    </table>
+    <p style="margin:10px 0 0"><code>FW_GC_STRESS=1</code> collects on <em>every</em> allocation. Every
+    <code>GcTests</code> fixture runs under it automatically.</p>
+  </div>
+</section>
+
+<!-- ================= 5. LIBUV ================= -->
+<section id="s-uv">
+  <h2>5 · libuv — waiting on a socket instead of a clock</h2>
+  <p class="sub">On its own the scheduler can only wait on a deadline. That is enough for sleep and nothing else.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="UV.step()">Step ▸</button>
+      <button class="act ghost" onclick="UV.reset()">Reset</button>
+      <span class="step" id="uv-step"></span>
+    </div>
+    <div class="narrate" id="uv-say">Press Step.</div>
+    <div class="row" style="margin-top:16px">
+      <div class="col">
+        <div class="lbl">Scheduler</div>
+        <div class="queue" id="uv-q"><span class="empty">empty</span></div>
+        <div class="lbl" style="margin-top:14px">Parked on I/O</div>
+        <div class="queue" id="uv-park"><span class="empty">none</span></div>
+      </div>
+      <div class="col">
+        <div class="lbl">libuv loop</div>
+        <div id="uv-loop"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The handshake</div>
+    <pre>no task ready
+   ↓
+fw_sched_drain  →  g_waiter(max_wait_ns)        installed by fw_uv_loop()
+                        ↓
+                   uv_run(loop, UV_RUN_ONCE)    sleeps in the kernel
+                        ↓  socket readable
+                   on_read → parse → fw_sched_wake_io()
+                        ↓
+                   task moves back to the ready queue</pre>
+    <p style="margin:8px 0 0"><code>fw_uv_wake()</code> is the one call another thread may make. It wraps
+    <code>uv_async_send</code>, the only thread-safe function in libuv.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">sys::sleep(ms)</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 4 — sys::sleep() inside a task SUSPENDS, it does not block
+/;
+/; 5 tasks each wait 200 ms. If sleep blocked the thread this would take
+/; 1000 ms. Because each task parks, the total is about 200 ms.
+/; ===========================================================================
+
+bring sys
+
+var done: int = 0
+
+fun waiter(id: int, start: int64) -&gt; nthg {
+  sys::sleep(200)
+  done = done + 1
+  println("  task " + String(id) + " woke at "
+          + String(Int64(sys::elapsedNanos(start) / 1000000l)) + " ms")
+}
+
+fun reporter(start: int64) -&gt; nthg {
+  sys::sleep(400)
+  println("  all " + String(done) + " finished. Serial would need 1000 ms.")
+}
+
+var t0: int64 = sys::nanos()
+for var i: int = 0 to 4 {
+  spawn waiter(i, t0)
+}
+spawn reporter(t0)
+
+println("5 tasks, each sleeping 200ms:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">5 tasks, each sleeping 200ms:
+  task 0 woke at 205 ms
+  task 1 woke at 205 ms
+  task 2 woke at 205 ms
+  task 3 woke at 205 ms
+  task 4 woke at 205 ms
+  all 5 finished. Serial would need 1000 ms.</pre></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">sys::nanos() micros() millis() elapsedNanos()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 5 — the monotonic clock
+/;
+/; sys::timestamp() is SECONDS. It cannot measure anything fast, and it jumps
+/; when the system clock changes. These four are nanosecond-precision and
+/; never go backwards.
+/; ===========================================================================
+
+bring sys
+
+var t0: int64 = sys::nanos()
+
+var sum: int64 = 0
+for var i: int = 0 to 500000 {
+  sum = sum + 1
+}
+
+println("  nanos()        = " + String(sys::nanos()))
+println("  micros()       = " + String(sys::micros()))
+println("  millis()       = " + String(sys::millis()))
+println("  elapsedNanos() = " + String(sys::elapsedNanos(t0)) + " ns for 500k adds")
+println("  same in ms     = " + String(Int64(sys::elapsedNanos(t0) / 1000000l)) + " ms")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">nanos()        = 1408735135411166
+  micros()       = 1408735135473
+  millis()       = 1408735135
+  elapsedNanos() = 2967042 ns for 500k adds
+  same in ms     = 2 ms</pre></div>
+    </div>
+  </div></section>
+
+<!-- ================= 6. SERVER/CLIENT ================= -->
+<section id="s-http">
+  <h2>6 · HTTP server and client — before and after</h2>
+  <p class="sub">Both moved off cpp-httplib onto the shared loop. Numbers below are from this machine.</p>
+
+  <div class="row">
+    <div class="col panel">
+      <div class="lbl">Server</div>
+      <table>
+        <tr><th></th><th>before</th><th>after</th></tr>
+        <tr><td>engine</td><td class="mono">cpp-httplib</td><td class="mono">uv_tcp_t + llhttp</td></tr>
+        <tr><td>100 connections</td><td class="no mono">100 threads</td><td class="ok mono">1 thread</td></tr>
+        <tr><td>memory</td><td class="no mono">~51 MB of stacks</td><td class="ok mono">~0</td></tr>
+      </table>
+    </div>
+    <div class="col panel">
+      <div class="lbl">Client</div>
+      <table>
+        <tr><th></th><th>before</th><th>after</th></tr>
+        <tr><td>per request</td><td class="no mono">1 std::thread</td><td class="ok mono">0</td></tr>
+        <tr><td>handoff</td><td class="no mono">mutex + condvar</td><td class="ok mono">none needed</td></tr>
+        <tr><td>5 requests</td><td class="no mono">5 threads</td><td class="ok mono">1 thread</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Measured — 5 clients against a server that takes 300 ms per request</div>
+    <div class="ctl"><button class="act" onclick="HT.run()">Run the comparison ▸</button></div>
+    <div id="ht-bars"></div>
+    <p class="sub" style="margin-top:12px" id="ht-note"></p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The one line that makes the server concurrent</div>
+    <pre>for var i: int = 0 to 4 {
+  var req: vortex::Request, res: vortex::Response = app.accept()
+  spawn handle(req, res)      <span style="color:var(--green)">← without spawn each request waits for the last</span>
+}</pre>
+    <p style="margin:0"><code>req</code> and <code>res</code> are objects, so the task gets pointers to the
+    same instances. Measured: <b class="no">1516 ms</b> → <b class="ok">302 ms</b>.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">vortex::Server listen() accept() · Request getMethod() getPath() getBody() · Response status() header() send()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 6 — the Vortex HTTP SERVER, now libuv-native
+/;
+/; One uv_tcp_t per connection on the shared event loop — no thread per
+/; connection.
+/;
+/; accept() parks the task when no request is ready, so other tasks keep
+/; running while the server waits.
+/;
+/; Run it, then in another terminal:
+/;   curl localhost:8080/hello
+/; ===========================================================================
+
+bring vortex
+bring Err
+bring sys
+
+fun ticker() -&gt; nthg {
+  /; proves the process is NOT blocked while the server waits for a request
+  for var i: int = 0 to 4 {
+    sys::sleep(300)
+    println("  [ticker] still alive " + String(i))
+  }
+}
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8080)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+
+  spawn ticker()
+
+  for var i: int = 0 to 2 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("  [server] " + req.getMethod() + " " + req.getPath())
+
+    res.status(200)
+       .header("X-Powered-By", "FlowWing")
+       .send("hello from vortex\n")
+  }
+
+  println("  [server] served 3 requests")
+}
+
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">Vortex server listening on port 8080
+  [server] GET /hello1
+  [server] GET /hello2
+  [server] GET /hello3
+  [server] served 3 requests
+  [ticker] still alive 0
+  [ticker] still alive 1
+  [ticker] still alive 2
+  [ticker] still alive 3
+  [ticker] still alive 4</pre></div>
+    </div><p style="margin:8px 0 0">The ticker keeps printing while accept() waits. A blocking server could not do that.</p>
+  </div>
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">Response json() header() streamBegin() streamWrite() streamEnd()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; Every Response method: status, header, json, streamBegin/Write/End
+bring vortex
+bring Err
+bring json
+bring sys
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8190)
+  if Err::isErr(err) { println(err.getMessage()) return: }
+
+  for var i: int = 0 to 2 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    var path: str = req.getPath()
+    println("  " + req.getMethod() + " " + path + "  body=[" + req.getBody() + "]")
+
+    if path == "/json" {
+      var node: json::JsonNode = json::newObject()
+      node.put("lang", json::newString("Flow-Wing"))
+      node.put("version", json::newNumber(1.0))
+      node.put("fast", json::newBool(true))
+      res.status(200).json(node)
+    } or if path == "/stream" {
+      res.streamBegin("text/plain")
+      for var k: int = 0 to 2 {
+        res.streamWrite("chunk " + String(k) + "\n")
+      }
+      res.streamEnd()
+    } else {
+      res.status(200).header("X-Demo", "yes").send("plain body\n")
+    }
+  }
+  println("  served 3")
+}
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">Vortex server listening on port 8190
+  POST /plain  body=[hi]
+  POST /json  body=[hi]
+  POST /stream  body=[hi]
+  served 3
+
+--- what the client received ---
+curl /plain   -&gt;  plain body
+curl /json    -&gt;  {"lang": "Flow-Wing", "version": 1, "fast": true}
+curl /stream  -&gt;  chunk 0
+                  chunk 1
+                  chunk 2</pre></div>
+    </div><p style="margin:8px 0 0">json() sets Content-Type for you. streamBegin/Write/End sends chunked transfer encoding.</p>
+  </div>
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">vortex::Client new() isOk() readChunk() isDone() close()</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 7 — the Vortex HTTP CLIENT, now libuv-native
+/;
+/; The response is parsed on the Flow-Wing thread inside the shared event
+/; loop, so a request costs a socket and not a thread.
+/;
+/; So several requests overlap on ONE thread. This file fires 5 at once and
+/; times them.
+/;
+/; Needs a server. Start 06_server.fg first, or point the URL anywhere.
+/; ===========================================================================
+
+bring vortex
+bring sys
+
+var replies: int = 0
+
+fun fetch(id: int, t0: int64) -&gt; nthg {
+  var c: vortex::Client = new vortex::Client("http://127.0.0.1:8189/x", `{"id":1}`)
+
+  var body: str = ""
+  while !c.isDone() {
+    var chunk: str = c.readChunk()
+    if chunk != "" {
+      body = body + chunk
+    }
+  }
+  /; read the status BEFORE close(): close() frees the request
+  var ok: bool = c.isOk()
+  c.close()
+
+  replies = replies + 1
+  println("  request " + String(id) + " finished at "
+          + String(Int64(sys::elapsedNanos(t0) / 1000000l)) + " ms  ok=" + String(ok)
+          + "  body=" + String(body != ""))
+}
+
+var t0: int64 = sys::nanos()
+for var i: int = 0 to 4 {
+  spawn fetch(i, t0)
+}
+
+println("5 requests, all at once, one thread:")</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">5 requests, all at once, one thread:
+  request 0 finished at 302 ms  ok=true  body=true
+  request 2 finished at 302 ms  ok=true  body=true
+  request 3 finished at 302 ms  ok=true  body=true
+  request 1 finished at 302 ms  ok=true  body=true
+  request 4 finished at 302 ms  ok=true  body=true</pre></div>
+    </div><p style="margin:8px 0 0">Against a server that needs 300 ms per request. All five land at 302 ms, not 302/607/911/1212/1516. Read isOk() BEFORE close() — close() frees the request.</p>
+  </div>
+  <div class="panel">
+    <div class="lbl">Runnable program — <span style="color:var(--green)">spawn handle(req, res)</span></div>
+    <div class="row">
+      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
+/; FEATURE 6b — a CONCURRENT server: spawn the handler
+/;
+/; accept() returns one request at a time and your loop handles it. If the
+/; handler is slow, the next accept() waits — requests queue up behind it.
+/;
+/; `spawn handle(req, res)` fixes that. The loop goes straight back to
+/; accept(), and the handler runs as its own task. req and res are objects, so
+/; the task receives POINTERS to the same instances.
+/;
+/; Same 300 ms of work per request, but now they overlap.
+/; ===========================================================================
+
+bring vortex
+bring Err
+bring sys
+
+fun handle(req: vortex::Request, res: vortex::Response) -&gt; nthg {
+  sys::sleep(300)                 /; slow work: a DB call, an LLM, anything
+  res.status(200).send("reply\n")
+}
+
+fun fg_main() -&gt; nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(8189)
+  if Err::isErr(err) { println(err.getMessage()) return: }
+
+  for var i: int = 0 to 4 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    spawn handle(req, res)        /; &lt;-- the whole difference
+  }
+}
+
+fg_main()</pre></div>
+      <div class="col"><div class="lbl">real output</div><pre class="outbox">without spawn (sequential accept loop):
+  request 0 finished at  302 ms
+  request 1 finished at  607 ms
+  request 2 finished at  911 ms
+  request 3 finished at 1212 ms
+  request 4 finished at 1516 ms
+
+with spawn handle(req, res):
+  request 0 finished at 302 ms
+  request 2 finished at 302 ms
+  request 3 finished at 302 ms
+  request 1 finished at 302 ms
+  request 4 finished at 302 ms</pre></div>
+    </div><p style="margin:8px 0 0">One keyword. 1516 ms -> 302 ms, same single thread. req and res are objects, so the task gets pointers to the same instances.</p>
+  </div></section>
+
+<!-- ================= 7. NULL BUG ================= -->
+
+</main>
+
+<script>
+/* ---------- tabs ---------- */
+const TABS=[["s-progs","0 · PROGRAMS"],["s-spawn","1 · spawn"],["s-swap","2 · stack swap"],["s-args","3 · arguments"],
+["s-gc","4 · GC"],["s-uv","5 · libuv"],["s-http","6 · HTTP"]];
+const nav=document.getElementById('nav');
+TABS.forEach(([id,label],i)=>{
+  const b=document.createElement('button');b.textContent=label;b.onclick=()=>show(id,b);
+  if(i===0)b.className='on';nav.appendChild(b);
+});
+function show(id,btn){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+document.getElementById('s-progs').classList.add('on');
+const $=id=>document.getElementById(id);
+
+/* ---------- 1. spawn ---------- */
+const SP={i:0,
+ code:['fun greet() -> nthg {','  println("hi")','}','','spawn greet()','spawn greet()','println("top level done")'],
+ steps:[
+  {hi:4,q:['greet #1'],out:'',say:'<b>spawn greet()</b> — a record goes on the queue. greet has NOT run.'},
+  {hi:5,q:['greet #1','greet #2'],out:'',say:'Second spawn. Still nothing has run. Two records, no stacks yet.'},
+  {hi:6,q:['greet #1','greet #2'],out:'top level done',say:'The top-level body finishes and prints first.'},
+  {hi:-1,q:['greet #1','greet #2'],out:'top level done',say:'Now <code>fw_sched_drain()</code> starts, emitted by the compiler at the end of main.'},
+  {hi:-1,q:['RUN:greet #1','greet #2'],out:'top level done\nhi',say:'Task 1 takes a stack, runs, prints, finishes. Its stack is released.'},
+  {hi:-1,q:['DONE:greet #1','RUN:greet #2'],out:'top level done\nhi\nhi',say:'Task 2 reuses the freed stack. FIFO order — first spawned, first run.'},
+  {hi:-1,q:[],out:'top level done\nhi\nhi',say:'Queue empty, drain returns, process exits. <b>Output order is deterministic.</b>'}],
+ reset(){this.i=0;this.render({hi:-1,q:[],out:'',say:'Press Step.'});$('sp-step').textContent='';},
+ step(){if(this.i>=this.steps.length){this.reset();return;}
+   const s=this.steps[this.i++];this.render(s);$('sp-step').textContent=`step ${this.i}/${this.steps.length}`;},
+ render(s){
+   $('sp-code').innerHTML=this.code.map((l,i)=>i===s.hi
+     ?`<span style="background:#1f6feb44;color:#58a6ff">${l||' '}</span>`:(l||' ')).join('\n');
+   $('sp-q').innerHTML=s.q.length?s.q.map(t=>{
+     const run=t.startsWith('RUN:'),done=t.startsWith('DONE:');
+     const n=t.replace(/^(RUN|DONE):/,'');
+     return `<div class="task ${run?'run':''} ${done?'done':''}">${n}</div>`;}).join('')
+     :'<span class="empty">empty</span>';
+   $('sp-out').textContent=s.out;$('sp-say').innerHTML=s.say;}};
+SP.reset();
+
+/* ---------- 2. stack swap ---------- */
+const SW={i:0,
+ steps:[
+  {act:'main',main:['fg_main()','drain()'],t1:[],t2:[],
+   reg:'SP → main stack\nPC → fw_sched_drain',
+   c:'fw_sched_drain()\n  t = pop_ready()',
+   say:'The scheduler runs on the main stack and takes the first task.'},
+  {act:'t1',main:['fg_main()','drain()'],t1:['worker("A")'],t2:[],
+   reg:'SP → task A stack   ← changed\nPC → worker',
+   c:'swapcontext(&g_sched_ctx, &t->ctx)\n// save HERE, jump THERE',
+   say:'<b>swapcontext</b> saves the scheduler\'s registers and loads task A\'s. The stack pointer now points into A\'s own 256 KB.'},
+  {act:'t1',main:['fg_main()','drain()'],t1:['worker("A")','step 1'],t2:[],
+   reg:'SP → task A stack\nPC → worker+0x40',
+   c:'println("A step 1")',
+   say:'A runs and builds frames on its own stack. Main\'s frames are untouched.'},
+  {act:'main',main:['fg_main()','drain()'],t1:['worker("A")','step 1 ⏸'],t2:[],
+   reg:'SP → main stack   ← back\nPC → fw_sched_drain',
+   c:'fw_sched_yield()\n  swapcontext(&t->ctx, &g_sched_ctx)',
+   say:'A yields. Its registers are saved into <code>t->ctx</code> and the scheduler\'s are restored. <b>A\'s stack is left exactly as it was.</b>'},
+  {act:'t2',main:['fg_main()','drain()'],t1:['worker("A")','step 1 ⏸'],t2:['worker("B")'],
+   reg:'SP → task B stack\nPC → worker',
+   c:'t = pop_ready()   // B\nswapcontext(...)',
+   say:'B gets a different stack. A is frozen mid-call, holding its locals.'},
+  {act:'t1',main:['fg_main()','drain()'],t1:['worker("A")','step 2'],t2:['worker("B")','step 1 ⏸'],
+   reg:'SP → task A stack\nPC → worker+0x58   ← resumed',
+   c:'swapcontext(&g_sched_ctx, &A->ctx)',
+   say:'A resumes <b>on the line after its yield</b>, not from the top. That is what a stack per task buys you.'},
+  {act:'main',main:['fg_main()','drain()'],t1:[],t2:[],
+   reg:'SP → main stack\nPC → after drain',
+   c:'stack_release(t->stack)\nfree(t)',
+   say:'Both finish. Stacks return to a free list for the next task to reuse.'}],
+ reset(){this.i=0;this.render(this.steps[0]);$('sw-step').textContent='';$('sw-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.steps.length){this.i=0;}
+   const s=this.steps[this.i++];this.render(s);$('sw-say').innerHTML=s.say;
+   $('sw-step').textContent=`step ${this.i}/${this.steps.length}`;},
+ render(s){
+   const fill=(el,frames,active)=>{
+     el.className='stk'+(active?' active':'');
+     el.innerHTML=frames.map(f=>`<div class="frame">${f}</div>`).join('')
+       +(el.id!=='sw-main'?'<div class="frame guard">guard page (PROT_NONE)</div>':'');};
+   fill($('sw-main'),s.main,s.act==='main');
+   fill($('sw-t1'),s.t1,s.act==='t1');
+   fill($('sw-t2'),s.t2,s.act==='t2');
+   $('sw-reg').textContent=s.reg;$('sw-c').textContent=s.c;}};
+SW.reset();
+
+/* ---------- 3. arguments ---------- */
+const AR={i:0,
+ steps:[
+  {vars:[['n','int','10'],['s','str','"orig"'],['arr','int[3]','[7,8,9]'],['box','Box','→ #A1']],
+   blk:[],out:'',say:'The caller has four variables. <code>spawn show(n, s, arr, box)</code> is next.'},
+  {vars:[['n','int','10'],['s','str','"orig"'],['arr','int[3]','[7,8,9]'],['box','Box','→ #A1']],
+   blk:[['n','int','10','copy'],['s','ptr','→ "orig"','copy'],['arr','int[3]','[7,8,9]','copy'],['box','ptr','→ #A1','ALIAS']],
+   out:'',say:'<code>fw_gc_alloc</code> makes a block. Values are copied in <b>now</b>. Note box stores a <b>pointer</b>, not the fields.'},
+  {vars:[['n','int','999'],['s','str','"CHANGED"'],['arr','int[3]','[999,8,9]'],['box','Box','→ #A1 (n=999)']],
+   blk:[['n','int','10','copy'],['s','ptr','→ "orig"','copy'],['arr','int[3]','[7,8,9]','copy'],['box','ptr','→ #A1','ALIAS']],
+   out:'',say:'The caller now changes everything. The block does not move — <b>except</b> box, which points at the instance the caller just edited.'},
+  {vars:[['n','int','999'],['s','str','"CHANGED"'],['arr','int[3]','[999,8,9]'],['box','Box','→ #A1 (n=999)']],
+   blk:[['n','int','10','copy'],['s','ptr','→ "orig"','copy'],['arr','int[3]','[7,8,9]','copy'],['box','ptr','→ #A1','ALIAS']],
+   out:'  int   = 10        (copied)\n  str   = original  (copied)\n  arr[0]= 7         (copied)\n  box.n = 999       (SHARED)\n  global= 999       (read now)',
+   say:'The task runs. Copies are frozen at spawn time; the object is shared; the global is read right now. <b>Measured output.</b>'}],
+ reset(){this.i=0;this.render(this.steps[0]);$('ar-step').textContent='';$('ar-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.steps.length){this.i=0;}
+   const s=this.steps[this.i++];this.render(s);$('ar-say').innerHTML=s.say;
+   $('ar-step').textContent=`step ${this.i}/${this.steps.length}`;},
+ render(s){
+   $('ar-vars').innerHTML=s.vars.map(([n,t,v])=>
+     `<div class="task" style="margin:4px 0">${n} : ${t} = <b>${v}</b></div>`).join('');
+   $('ar-block').innerHTML=s.blk.length?s.blk.map(([n,t,v,k])=>
+     `<div class="task" style="margin:4px 0;border-color:${k==='ALIAS'?'var(--blue)':'var(--line)'}">
+        ${n} : ${t} = <b>${v}</b> <span class="pill ${k==='ALIAS'?'':'new'}">${k}</span></div>`).join('')
+     :'<span class="empty">not allocated yet</span>';
+   $('ar-out').textContent=s.out;}};
+AR.reset();
+
+/* ---------- 4. GC ---------- */
+const GC={i:0,
+ steps:[
+  {roots:[['globals','ok'],['fw_gc_shadow_top (running code)','ok']],
+   heap:[['"hello" (task A local)','?'],['Box #A1 (arg block)','?'],['"live" (global)','?']],
+   say:'A collection starts. By default it walks globals and the chain of the code currently running.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top (running code)','ok']],
+   heap:[['"hello" (task A local)','dead'],['Box #A1 (arg block)','dead'],['"live" (global)','live']],
+   say:'<b>Problem.</b> Task A is parked — its frames are on <em>its</em> stack, which nothing points at. A queued task\'s argument block is referenced by nobody. Both look like garbage.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top (running code)','ok'],['aux scanner → scheduler','new']],
+   heap:[['"hello" (task A local)','?'],['Box #A1 (arg block)','?'],['"live" (global)','live']],
+   say:'The scheduler registered itself with <code>fw_gc_set_aux_root_scanner</code>. The collector now calls it mid-mark.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top (running code)','ok'],
+          ['fw_gc_mark_shadow_chain(A)','new'],['fw_gc_push_root_object(args)','new']],
+   heap:[['"hello" (task A local)','live'],['Box #A1 (arg block)','live'],['"live" (global)','live']],
+   say:'The scheduler hands over every parked task\'s chain and every queued task\'s argument block. Everything survives. <b>This runs on every allocation under FW_GC_STRESS.</b>'}],
+ reset(){this.i=0;this.render(this.steps[0]);$('gc-step').textContent='';$('gc-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.steps.length){this.i=0;}
+   const s=this.steps[this.i++];this.render(s);$('gc-say').innerHTML=s.say;
+   $('gc-step').textContent=`step ${this.i}/${this.steps.length}`;},
+ render(s){
+   $('gc-roots').innerHTML=s.roots.map(([n,k])=>
+     `<div class="task" style="margin:4px 0;${k==='new'?'border-color:var(--green);color:var(--green)':''}">${n}</div>`).join('');
+   $('gc-heap').innerHTML=s.heap.map(([n,k])=>{
+     const c=k==='live'?'border-color:var(--green);color:var(--green)'
+            :k==='dead'?'border-color:var(--red);color:var(--red)':'';
+     const tag=k==='dead'?' ← would be SWEPT':k==='live'?' ✓':'';
+     return `<div class="task" style="margin:4px 0;${c}">${n}${tag}</div>`;}).join('');}};
+GC.reset();
+
+/* ---------- 5. libuv ---------- */
+const UV={i:0,
+ steps:[
+  {q:['server task'],park:[],loop:[['listening socket',''],['async wake handle','']],
+   say:'A task calls <code>app.accept()</code>. No request has arrived yet.'},
+  {q:[],park:['server task'],loop:[['listening socket',''],['async wake handle','']],
+   say:'<code>fw_sched_park_io()</code> — the task steps aside. Nothing is ready to run now.'},
+  {q:[],park:['server task'],loop:[['listening socket','sleeping in kernel'],['async wake handle','']],
+   say:'drain has no ready task, so it calls the installed waiter: <code>uv_run(loop, UV_RUN_ONCE)</code>. The thread sleeps in the kernel — <b>0% CPU</b>.'},
+  {q:[],park:['server task'],loop:[['listening socket','CONNECTION'],['async wake handle',''],['client socket','readable']],
+   say:'A client connects. libuv wakes, accepts, and starts reading. llhttp parses the bytes.'},
+  {q:['server task'],park:[],loop:[['listening socket',''],['async wake handle',''],['client socket','parsed']],
+   say:'The request is complete, so <code>fw_sched_wake_io()</code> moves the task back to the ready queue.'},
+  {q:['RUN:server task'],park:[],loop:[['listening socket',''],['async wake handle',''],['client socket','open']],
+   say:'drain resumes the task. <code>accept()</code> returns the Request and Response. <b>One thread, no locks, throughout.</b>'}],
+ reset(){this.i=0;this.render(this.steps[0]);$('uv-step').textContent='';$('uv-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.steps.length){this.i=0;}
+   const s=this.steps[this.i++];this.render(s);$('uv-say').innerHTML=s.say;
+   $('uv-step').textContent=`step ${this.i}/${this.steps.length}`;},
+ render(s){
+   $('uv-q').innerHTML=s.q.length?s.q.map(t=>{
+     const run=t.startsWith('RUN:');return `<div class="task ${run?'run':''}">${t.replace('RUN:','')}</div>`;}).join('')
+     :'<span class="empty">nothing ready</span>';
+   $('uv-park').innerHTML=s.park.length?s.park.map(t=>`<div class="task park">${t}</div>`).join('')
+     :'<span class="empty">none</span>';
+   $('uv-loop').innerHTML=s.loop.map(([n,st])=>
+     `<div class="task" style="margin:4px 0;${st?'border-color:var(--amber);color:var(--amber)':''}">${n}${st?' — '+st:''}</div>`).join('');}};
+UV.reset();
+
+/* ---------- 6. HTTP bars ---------- */
+const HT={run(){
+  const serial=[302,607,911,1212,1516], conc=[302,302,302,302,302];
+  let html='<div class="lbl">Without spawn — handler blocks the accept loop</div>';
+  serial.forEach((ms,i)=>{html+=`<div class="barrow"><span>request ${i}</span>
+    <div class="barwrap"><div class="bar slow" style="width:${ms/1516*100}%"></div></div><span>${ms} ms</span></div>`;});
+  html+='<div class="lbl" style="margin-top:18px">With <code>spawn handle(req,res)</code></div>';
+  conc.forEach((ms,i)=>{html+=`<div class="barrow"><span>request ${i}</span>
+    <div class="barwrap"><div class="bar" style="width:${ms/1516*100}%"></div></div><span>${ms} ms</span></div>`;});
+  $('ht-bars').innerHTML=html;
+  $('ht-note').innerHTML='Same server, same 300 ms of work per request, same single thread. '+
+    'The difference is one keyword — <b>1516 ms → 302 ms</b>. Both runs measured on this machine.';}};
+
+</script>
+</body>
+</html>

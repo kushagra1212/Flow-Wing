@@ -1,0 +1,23 @@
+/; --------------------------------------------------------------------------
+/; The contrast to ArrayTests/errors/array_of_class_not_supported.fg.
+/;
+/; A `type` object is stored INLINE and has a default value for every field, so
+/; an array of them can be laid out. A class is a pointer to a heap instance
+/; with no constant default, so an array of classes is refused.
+/;
+/; This fixture exists so the boundary is pinned from both sides: if arrays of
+/; class instances are ever implemented, this one keeps working and the error
+/; fixtures are the ones that need updating.
+/; --------------------------------------------------------------------------
+
+type Counter = { hits: int, label: str }
+
+var a: Counter = { hits: 1, label: "a" }
+var b: Counter = { hits: 2, label: "b" }
+var items: Counter[2] = [a, b]
+
+println(String(items[0].hits) + items[0].label)
+println(String(items[1].hits) + items[1].label)
+
+items[0].hits = 99
+println("after mutation: " + String(items[0].hits))

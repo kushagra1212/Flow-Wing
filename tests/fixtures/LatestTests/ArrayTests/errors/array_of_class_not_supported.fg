@@ -1,0 +1,28 @@
+/; EXPECT_ERROR: ArrayOfClassNotSupported
+/; --------------------------------------------------------------------------
+/; REGRESSION: declaring an array of class instances used to CRASH the
+/; compiler with a bare SIGSEGV and no message.
+/;
+/; An array needs a default value for its elements before any are assigned. A
+/; class variable is a POINTER to a heap instance, and no constant stands for
+/; an instance, so IRGenContext::getDefaultValue had no answer for a class
+/; element. It fell through to an assert — compiled out in Release — returned
+/; null, and the caller dereferenced it inside llvm::ArrayType::get.
+/;
+/; A `type` object is stored inline and does have a default, which is why
+/; `MyType[3]` works where `MyClass[3]` does not. See
+/; array_of_type_object_is_allowed.fg for the contrast.
+/;
+/; Across the whole suite no fixture had ever declared one, which is how this
+/; survived unnoticed.
+/; --------------------------------------------------------------------------
+
+class Counter {
+  var hits: int
+  fun init() -> nthg {
+    self.hits = 0
+  }
+}
+
+var a: Counter = new Counter()
+var items: Counter[2] = [a, a]

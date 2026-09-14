@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow-Wing — inside the garbage collector</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --green:#3fb950; --blue:#58a6ff; --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,sans-serif}
+  header{padding:28px 32px 18px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:24px}
+  header p{margin:0;color:var(--dim)}
+  nav{display:flex;gap:4px;padding:0 32px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel);
+      position:sticky;top:0;z-index:5}
+  nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);
+    padding:12px 14px;cursor:pointer;font-size:13px;font-weight:600}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--green);border-bottom-color:var(--green)}
+  main{padding:26px 32px 80px;max-width:1180px}
+  section{display:none} section.on{display:block}
+  h2{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 20px;font-size:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1;min-width:270px}
+  .ctl{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  button.act{background:var(--green);color:#04160b;border:0;border-radius:6px;padding:8px 16px;
+    font-weight:700;cursor:pointer;font-size:13px}
+  button.act:hover{filter:brightness(1.15)}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .step{color:var(--dim);font:12px var(--mono);margin-left:auto}
+  .narrate{background:#0b2417;border-left:3px solid var(--green);padding:10px 14px;
+    border-radius:0 6px 6px 0;font-size:14px;min-height:44px}
+  code,.mono{font-family:var(--mono);font-size:13px}
+  pre{background:#010409;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;
+    font:12.5px/1.6 var(--mono);margin:8px 0}
+  .lbl{font:11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#0d1117;color:var(--dim);font:11px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+  td.mono{font-family:var(--mono);font-size:12.5px}
+  .ok{color:var(--green)} .no{color:var(--red)} .warn{color:var(--amber)} .b{color:var(--blue)}
+  ul{margin:8px 0;padding-left:20px} li{margin:4px 0}
+
+  /* heap graph */
+  .heap{position:relative;height:330px;background:#010409;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .node{position:absolute;border:2px solid var(--line);border-radius:8px;background:#161b22;
+    padding:6px 10px;font:11px var(--mono);transition:.35s;min-width:74px;text-align:center}
+  .node.root{border-color:var(--blue);background:#0b2545;color:var(--blue)}
+  .node.grey{border-color:var(--amber);background:#2b2008;color:var(--amber)}
+  .node.black{border-color:var(--green);background:#0d2818;color:var(--green)}
+  .node.swept{border-color:var(--red);background:#2d1114;color:var(--red);opacity:.35;
+    text-decoration:line-through}
+  .node .sz{display:block;font-size:9px;color:var(--dim)}
+  svg.edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .worklist{display:flex;gap:6px;flex-wrap:wrap;min-height:38px;align-items:center}
+  .chip{border:1px solid var(--amber);background:#2b2008;color:var(--amber);border-radius:5px;
+    padding:4px 9px;font:11px var(--mono)}
+  .empty{color:var(--dim);font:12px var(--mono)}
+
+  /* bytes */
+  .bytes{display:flex;gap:2px;flex-wrap:wrap;margin:6px 0}
+  .byte{width:32px;height:32px;border:1px solid var(--line);border-radius:3px;display:grid;
+    place-items:center;font:9.5px var(--mono);background:#010409}
+  .byte.n{border-color:var(--blue);background:#0b2545;color:var(--blue)}
+  .byte.d{border-color:var(--purple);background:#21103a;color:var(--purple)}
+  .byte.s{border-color:var(--amber);background:#2b2008;color:var(--amber)}
+  .byte.p{border-color:var(--green);background:#0d2818;color:var(--green)}
+  .bits{display:flex;gap:3px;margin:8px 0}
+  .bit{width:30px;height:30px;border:1px solid var(--line);border-radius:3px;display:grid;place-items:center;
+    font:11px var(--mono);background:#010409}
+  .bit.set{border-color:var(--green);background:#0d2818;color:var(--green)}
+
+  .barrow{display:flex;align-items:center;gap:10px;margin:5px 0;font:12px var(--mono)}
+  .barrow span:first-child{width:110px;color:var(--dim)}
+  .barwrap{flex:1;background:#010409;border-radius:3px;border:1px solid var(--line)}
+  .bar{height:20px;border-radius:3px;background:var(--green);transition:width .5s;min-width:2px}
+  .bar.red{background:var(--red)}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:2px 10px;
+    font:11px var(--mono);color:var(--dim)}
+  .kindbtn{border:1px solid var(--line);background:#0d1117;color:var(--dim);border-radius:6px;
+    padding:7px 13px;cursor:pointer;font:12px var(--mono)}
+  .kindbtn.on{border-color:var(--green);color:var(--green);background:#0d2818}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inside the Flow-Wing garbage collector</h1>
+  <p>Precise, non-moving, mark-and-sweep, single-threaded. Every detail here is read from
+     <code>fw-modules/gc/</code>.
+     Companion page: <a href="/internals/concurrency.html" style="color:#58a6ff">concurrency and libuv</a>.</p>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+
+<!-- 1 -->
+<section id="g-why">
+  <h2>1 · What kind of collector this is</h2>
+  <p class="sub">Four words that decide everything else.</p>
+
+  <div class="panel">
+    <table>
+      <tr><th>Property</th><th>What it means here</th></tr>
+      <tr><td><b class="ok">Precise</b></td>
+        <td>The collector knows <em>exactly</em> which words are pointers, from a per-type
+            <b>descriptor</b>. It never guesses by looking at bit patterns.</td></tr>
+      <tr><td><b class="ok">Non-moving</b></td>
+        <td>A live object never changes address. So a raw pointer held by C code stays valid,
+            and no read/write barriers are needed.</td></tr>
+      <tr><td><b class="ok">Mark &amp; sweep</b></td>
+        <td>Find everything reachable, free the rest. Two phases, stop-the-world.</td></tr>
+      <tr><td><b class="ok">Single-threaded</b></td>
+        <td>No locks anywhere. This is why <code>spawn</code> uses coroutines rather than threads —
+            adding a second mutator thread would mean rewriting all of this.</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The whole public surface</div>
+<pre>void  fw_gc_init(void);
+void *fw_gc_alloc(size_t size, const FWTypeDescriptor *desc);
+void *fw_gc_alloc_array(const FWTypeDescriptor *array_desc, size_t n);
+void  fw_gc_collect(void);
+void  fw_gc_add_root(void **slot);      /* globals */
+void  fw_gc_remove_root(void **slot);
+void  fw_gc_register_finalizer(void *obj, void (*fn)(void *));
+void  fw_gc_set_stress(int on);         /* FW_GC_STRESS=1 */
+FWGCStats fw_gc_stats(void);</pre>
+    <p style="margin:0">You never call these from Flow-Wing. The compiler emits them for you —
+    every string concatenation, object literal and array is an <code>fw_gc_alloc</code>.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="g-header">
+  <h2>2 · Every object has a 24-byte header</h2>
+  <p class="sub">It sits <em>before</em> the pointer your program holds.</p>
+
+  <div class="panel">
+    <div class="lbl">Memory returned by <code>malloc</code></div>
+    <div class="bytes" id="hdr-bytes"></div>
+    <div class="mono" style="color:var(--dim);font-size:11px">
+      <span class="b">0-7 next</span> &nbsp;·&nbsp;
+      <span style="color:var(--purple)">8-15 desc_and_flags</span> &nbsp;·&nbsp;
+      <span class="warn">16-23 size</span> &nbsp;·&nbsp;
+      <span class="ok">24+ your payload</span>
+    </div>
+<pre>typedef struct FWObjHeader {
+  struct FWObjHeader *next;            /* threads ALL live objects, for sweep */
+  uintptr_t           desc_and_flags;  /* descriptor pointer | pin | mark */
+  size_t              size;            /* payload bytes, header excluded */
+} FWObjHeader;
+
+fw_payload(h) = (char*)h + 24      /* what your program receives */
+fw_header(p)  = (char*)p - 24      /* how the GC gets back */</pre>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Why the descriptor pointer also stores flags</div>
+    <p style="margin:0 0 10px">A <code>FWTypeDescriptor</code> is 8-byte aligned, so the low three bits
+    of any pointer to one are <b>always zero</b>. Free real estate — the mark bit lives there instead of
+    in its own word.</p>
+    <div class="ctl">
+      <button class="act" onclick="HD.toggle(1)">Toggle MARK bit</button>
+      <button class="act ghost" onclick="HD.toggle(2)">Toggle PIN bit</button>
+    </div>
+    <div class="bits" id="hdr-bits"></div>
+    <pre id="hdr-word"></pre>
+    <p style="margin:0">Masking with <code>~0x7</code> recovers the descriptor; the bits never corrupt it.
+    That is the whole trick — <b>no extra byte per object</b>.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="g-desc">
+  <h2>3 · Descriptors — how it knows where the pointers are</h2>
+  <p class="sub">One static descriptor per type. This is what makes the collector <em>precise</em>.</p>
+
+  <div class="panel">
+    <div class="ctl" id="kind-btns"></div>
+    <div class="row">
+      <div class="col">
+        <div class="lbl">What the object looks like</div>
+        <div id="desc-shape"></div>
+      </div>
+      <div class="col">
+        <div class="lbl">How the collector scans it</div>
+        <pre id="desc-code"></pre>
+      </div>
+    </div>
+    <div class="narrate" id="desc-say" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The escape hatch: a custom trace hook</div>
+    <p style="margin:0 0 8px">Some objects keep their GC pointers where no static layout can describe
+    them — a <code>vec</code> or <code>map</code> holds elements in a C++ container on the
+    <b>malloc</b> heap. Those types provide a callback:</p>
+<pre>typedef void (*fw_trace_fn)(void *obj, void (*mark)(void *ptr));</pre>
+    <p style="margin:0">The collector calls <code>trace(obj, mark)</code> while marking and the hook calls
+    <code>mark(p)</code> once per contained pointer. <code>mark</code> skips non-heap and already-marked
+    pointers for you, so a native container can hold <b>any</b> Flow-Wing value with zero copies.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="g-shadow">
+  <h2>4 · The shadow stack — finding live locals</h2>
+  <p class="sub">The collector cannot read the machine stack. The compiler tells it instead.</p>
+
+  <div class="panel">
+    <div class="lbl">A frame lists the <b>addresses of slots</b>, not the values</div>
+<pre>typedef struct FWFrame {
+  struct FWFrame *prev;   /* caller's frame  */
+  uint32_t        n;      /* how many roots  */
+  void          **roots;  /* n slot ADDRESSES, each a void**  */
+} FWFrame;
+
+extern FWFrame *fw_gc_shadow_top;   /* the code running right now */</pre>
+    <p style="margin:0 0 10px">Note the double indirection. <code>roots[i]</code> is a
+    <code>void**</code> — the <em>address</em> of a local variable. The collector reads
+    <code>*roots[i]</code> at collection time, so it always sees the variable's
+    <b>current</b> value, even if the function reassigned it after pushing the frame.</p>
+    <div class="row">
+      <div class="col"><div class="lbl">If roots held values (wrong)</div>
+        <pre>push(frame with s = "a")
+s = "b"          <span class="no">← GC still sees "a";
+                    "b" is collected</span></pre></div>
+      <div class="col"><div class="lbl">Roots hold slot addresses (actual)</div>
+        <pre>push(frame with &amp;s)
+s = "b"          <span class="ok">← GC reads *&amp;s = "b"
+                    always current</span></pre></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Where the roots come from, in order</div>
+<pre>fw_gc_mark_from_roots()
+   │
+   ├─ 1. globals            g_global_roots[]        (fw_gc_add_root)
+   ├─ 2. running code       fw_gc_shadow_top chain
+   ├─ 3. <span class="ok">aux scanner</span>         s_aux_scanner()        ← the scheduler
+   │        ├─ every PARKED task's own shadow chain
+   │        └─ every QUEUED task's argument block
+   └─ 4. drain the work-list until empty</pre>
+    <p style="margin:0">Step 3 is the bridge to <code>spawn</code>. A suspended task's locals live on
+    <em>its</em> stack, which nothing else points at; a queued task's arguments are referenced by nobody
+    at all. Without that hook both get swept. See the concurrency page.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="g-mark">
+  <h2>5 · Mark — walk everything reachable</h2>
+  <p class="sub">An explicit work-list, not recursion.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="MK.step()">Step ▸</button>
+      <button class="act ghost" onclick="MK.auto()">Play ▸▸</button>
+      <button class="act ghost" onclick="MK.reset()">Reset</button>
+      <span class="step" id="mk-step"></span>
+    </div>
+    <div class="narrate" id="mk-say">Press Step.</div>
+    <div class="heap" id="mk-heap" style="margin-top:14px">
+      <svg class="edges" id="mk-edges"></svg>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="col">
+        <div class="lbl">Work-list</div>
+        <div class="worklist" id="mk-work"><span class="empty">empty</span></div>
+      </div>
+      <div class="col">
+        <div class="lbl">Legend</div>
+        <div class="mono" style="font-size:12px">
+          <span class="b">■ root</span> &nbsp;
+          <span class="warn">■ on the work-list</span> &nbsp;
+          <span class="ok">■ marked</span> &nbsp;
+          <span class="no">■ unreachable</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Two details that matter</div>
+    <ul>
+      <li><b>Candidate pointers are resolved, not trusted.</b> A <code>str</code> field may point at a
+      static literal that the GC never allocated. <code>fw_gc_resolve_object(p)</code> returns the heap
+      object containing <code>p</code>, or <code>NULL</code> — so junk and non-heap pointers are skipped
+      instead of having a garbage header read.</li>
+      <li><b>An index makes that cheap.</b> A linear search of the object list would make marking
+      O(objects²). Since nothing is allocated during a collection, the collector snapshots every live
+      payload range into a sorted array, binary-searches it, and frees it before the sweep —
+      <b>O(log N)</b> per lookup.</li>
+    </ul>
+<pre>fw_gc_build_object_index();   /* live set is stable -> snapshot + sort */
+fw_gc_mark_from_roots();      /* binary search per candidate pointer   */
+fw_gc_free_object_index();    /* drop it before anything is freed      */
+fw_gc_sweep();</pre>
+    <p style="margin:0">Recursion in <code>scan_fields</code> is bounded by descriptor
+    <b>nesting</b> depth (an array of tagged values), never by the object graph — so a million-node
+    linked list cannot overflow the C stack.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="g-sweep">
+  <h2>6 · Sweep — free what was not reached</h2>
+  <p class="sub">One walk down the all-objects list.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="SW.step()">Step ▸</button>
+      <button class="act ghost" onclick="SW.reset()">Reset</button>
+      <span class="step" id="sw-step"></span>
+    </div>
+    <div class="narrate" id="sw-say">Press Step.</div>
+    <div class="lbl" style="margin-top:14px">g_all_objects (singly linked, newest first)</div>
+    <div class="worklist" id="sw-list" style="min-height:56px"></div>
+    <pre id="sw-stats" style="margin-top:12px"></pre>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">What happens to a dead object</div>
+<pre>fw_gc_run_finalizer_if_any(payload);   /* e.g. close a file handle    */
+g_stats.live_objects--;
+g_stats.live_bytes -= h-&gt;size;
+g_stats.total_frees++;
+memset(h, <span class="no">0xDD</span>, 24 + h-&gt;size);         /* poison */
+free(h);</pre>
+    <p style="margin:0"><b>0xDD poisoning</b> is deliberate. A use-after-free then reads an obvious
+    pattern rather than plausible-looking stale data, so the bug surfaces immediately instead of three
+    functions later. A survivor simply has its mark bit cleared, ready for the next cycle.</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="g-when">
+  <h2>7 · When a collection happens</h2>
+  <p class="sub">Allocation is the only trigger. There is no background thread.</p>
+
+  <div class="panel">
+<pre>void *fw_gc_alloc(size_t size, const FWTypeDescriptor *desc) {
+  if (g_stress || g_stats.live_bytes + size &gt; g_threshold) {
+    fw_gc_collect();
+  }
+  ...
+}</pre>
+    <p style="margin:0">Two conditions: stress mode, or the heap crossing a threshold.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The threshold doubles after every collection</div>
+<pre>size_t grown = g_stats.live_bytes * 2;
+size_t floor = 1 MiB;
+g_threshold  = grown &gt; floor ? grown : floor;</pre>
+    <div class="ctl"><button class="act" onclick="TH.run()">Show why ▸</button></div>
+    <div id="th-out"></div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Stress mode — the testing weapon</div>
+<pre>FW_GC_STRESS=1 ./your_program</pre>
+    <p style="margin:0 0 8px">Collects on <b>every single allocation</b>. Any object you failed to root
+    dies immediately rather than one run in a hundred. It turns a heisenbug into a deterministic
+    failure.</p>
+    <p style="margin:0">Every fixture under <code>tests/fixtures/LatestTests/GcTests/</code> runs under
+    it automatically — no flag needed. Elsewhere, a fixture opts in with a
+    <code>/; FW_GC_STRESS</code> header line.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="g-tasks">
+  <h2>8 · The GC and <code>spawn</code></h2>
+  <p class="sub">The one place the two subsystems must cooperate.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" onclick="TK.step()">Step ▸</button>
+      <button class="act ghost" onclick="TK.reset()">Reset</button>
+      <span class="step" id="tk-step"></span>
+    </div>
+    <div class="narrate" id="tk-say">Press Step.</div>
+    <div class="row" style="margin-top:14px">
+      <div class="col">
+        <div class="lbl">Root sources</div>
+        <div id="tk-roots"></div>
+      </div>
+      <div class="col">
+        <div class="lbl">Heap</div>
+        <div id="tk-heap"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The three functions that make it work</div>
+    <table>
+      <tr><th>Function</th><th>Job</th></tr>
+      <tr><td class="mono">fw_gc_set_aux_root_scanner</td>
+          <td>the scheduler registers itself as an extra root source</td></tr>
+      <tr><td class="mono">fw_gc_mark_shadow_chain(top)</td>
+          <td>marks every frame on one parked task's own stack</td></tr>
+      <tr><td class="mono">fw_gc_push_root_object(obj)</td>
+          <td>roots an argument block that no stack points at yet</td></tr>
+    </table>
+    <p style="margin:10px 0 0">Switching tasks saves and restores <code>fw_gc_shadow_top</code> around
+    the stack swap, so the "currently running" chain always belongs to whoever is actually on the CPU.</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="g-write">
+  <h2>9 · Writing code the collector is happy with</h2>
+  <p class="sub">You almost never have to think about this. Here is the "almost".</p>
+
+  <div class="panel">
+    <div class="lbl">You do not manage memory</div>
+<pre>var items: int[3] = [1, 2, 3]
+var name: str = "Flow" + "-Wing"     /; allocates
+var p: Point = { x: 1, y: 2 }        /; allocates</pre>
+    <p style="margin:0">No <code>free</code>, no ownership, no lifetimes. When nothing can reach a
+    value, it goes.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Check your program under maximum pressure</div>
+<pre>FW_GC_STRESS=1 ./myprogram</pre>
+    <p style="margin:0">If the output is identical, every value your program holds is properly rooted.
+    If it changes, something was reachable only by luck. This is the single most useful thing on this
+    page.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Reading the stats</div>
+<pre>typedef struct {
+  size_t live_objects;   /* on the heap right now        */
+  size_t live_bytes;     /* payload bytes right now      */
+  size_t total_allocs;   /* cumulative since init        */
+  size_t total_frees;    /* cumulative since init        */
+} FWGCStats;</pre>
+    <p style="margin:0"><code>total_allocs - total_frees == live_objects</code> always holds. If it
+    ever does not, something freed an object without going through the sweep.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Where the code is</div>
+    <table>
+      <tr><th>File</th><th>Contains</th></tr>
+      <tr><td class="mono">fw_gc_core.c</td><td>alloc, roots, finalizers, the object index</td></tr>
+      <tr><td class="mono">fw_gc_mark.c</td><td>work-list, <code>scan_fields</code>, root seeding</td></tr>
+      <tr><td class="mono">fw_gc_sweep.c</td><td>sweep, poisoning, threshold growth</td></tr>
+      <tr><td class="mono">fw_gc_header.c</td><td>packing the descriptor word and its flag bits</td></tr>
+      <tr><td class="mono">fw_gc_descriptors.c</td><td>the shared BLOB and TAGGED descriptors</td></tr>
+      <tr><td class="mono">tests/test_gc.c</td><td>982 checks — <code>make test-gc</code></td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script>
+const TABS=[["g-why","1 · what it is"],["g-header","2 · object header"],["g-desc","3 · descriptors"],
+["g-shadow","4 · shadow stack"],["g-mark","5 · mark"],["g-sweep","6 · sweep"],
+["g-when","7 · when"],["g-tasks","8 · GC + spawn"],["g-write","9 · writing code"]];
+const nav=document.getElementById('nav');
+TABS.forEach(([id,label],i)=>{const b=document.createElement('button');b.textContent=label;
+  b.onclick=()=>show(id,b);if(i===0)b.className='on';nav.appendChild(b);});
+function show(id,btn){document.querySelectorAll('section').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+document.getElementById('g-why').classList.add('on');
+const $=id=>document.getElementById(id);
+
+/* ---- 2. header bytes + flag bits ---- */
+(function(){
+  let h='';
+  for(let i=0;i<32;i++){
+    const c=i<8?'n':i<16?'d':i<24?'s':'p';
+    const t=i<8?'nx':i<16?'de':i<24?'sz':'••';
+    h+=`<div class="byte ${c}">${t}</div>`;
+  }
+  $('hdr-bytes').innerHTML=h;
+})();
+const HD={flags:0,
+  toggle(b){this.flags^=b;this.render();},
+  render(){
+    let bits='';
+    for(let i=7;i>=0;i--){
+      const on=(this.flags>>i)&1;
+      const lab=i===0?'MARK':i===1?'PIN':i===2?'—':'';
+      bits+=`<div class="bit ${on?'set':''}" title="${lab}">${on?1:0}</div>`;
+    }
+    $('hdr-bits').innerHTML=bits;
+    const base='0x00007f9c4a20b1';
+    const hex=(0xc0|this.flags).toString(16);
+    $('hdr-word').textContent=
+`desc_and_flags = ${base}${hex}
+                 ${' '.repeat(base.length)}^^
+descriptor  = word & ~0x7  ->  ${base}c0
+marked?     = word &  0x1  ->  ${this.flags&1?'yes':'no'}
+pinned?     = word &  0x2  ->  ${this.flags&2?'yes':'no'}`;
+  }};
+HD.render();
+
+/* ---- 3. descriptor kinds ---- */
+const KINDS={
+ BLOB:{shape:[['raw bytes','no pointers inside','p']],
+  code:`case FW_KIND_BLOB:
+  break;      /* nothing to scan */`,
+  say:'<b>BLOB</b> — a flat run of bytes. String buffers use this. The collector keeps it alive but never looks inside, because there is nothing inside to look at.'},
+ PLAIN:{shape:[['x: int','not a pointer','s'],['name: str','pointer @ offset 8','d'],['next: Node','pointer @ offset 16','d']],
+  code:`case FW_KIND_PLAIN:
+  for (i = 0; i &lt; desc-&gt;num_ptrs; i++) {
+    void *p = *(void**)(base + desc-&gt;ptr_offsets[i]);
+    work_push(p);
+  }
+  break;`,
+  say:'<b>PLAIN</b> — a fixed layout. The descriptor carries an array of byte offsets where pointers live. Objects, classes and <code>spawn</code> argument blocks are all PLAIN.'},
+ TAGGED:{shape:[['tag: i32','decides the next field','s'],['value: i64','pointer ONLY for some tags','d']],
+  code:`case FW_KIND_TAGGED:
+  tag = *(int32_t*)(base + desc-&gt;tag_offset);
+  for (i = 0; i &lt; desc-&gt;num_ptr_tags; i++)
+    if (tag == desc-&gt;ptr_tags[i]) {
+      work_push(*(void**)(base + desc-&gt;value_offset));
+      break;
+    }
+  break;`,
+  say:'<b>TAGGED</b> — a <code>dyn</code> value. Whether the payload word is a pointer depends on the tag beside it. Tag 7 (NIRAST) or 2 (int) means "not a pointer"; tag 9 (OBJECT) means "follow it". Storing a value without updating the tag is exactly how the null bug produced garbage.'},
+ ARRAY:{shape:[['elem 0','scanned with elem_desc','d'],['elem 1','scanned with elem_desc','d'],['elem 2','…','d']],
+  code:`case FW_KIND_ARRAY:
+  n = size / desc-&gt;elem_size;
+  for (i = 0; i &lt; n; i++)
+    scan_fields(base + i*desc-&gt;elem_size,
+                desc-&gt;elem_desc, desc-&gt;elem_size);
+  break;`,
+  say:'<b>ARRAY</b> — repeat one element descriptor N times. N comes from <code>size / elem_size</code>, so the same descriptor serves arrays of any length. This is the only recursive case, and it nests by descriptor depth, never by graph depth.'}};
+(function(){
+  $('kind-btns').innerHTML=Object.keys(KINDS).map((k,i)=>
+    `<button class="kindbtn ${i===0?'on':''}" onclick="pickKind('${k}',this)">FW_KIND_${k}</button>`).join('');
+  pickKind('BLOB',null);
+})();
+function pickKind(k,btn){
+  const d=KINDS[k];
+  $('desc-shape').innerHTML=d.shape.map(([a,b,c])=>
+    `<div class="node ${c==='d'?'root':''}" style="position:static;margin:5px 0;text-align:left;min-width:0">
+       ${a}<span class="sz">${b}</span></div>`).join('');
+  $('desc-code').innerHTML=d.code;
+  $('desc-say').innerHTML=d.say;
+  if(btn){document.querySelectorAll('.kindbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+}
+
+/* ---- 5. mark animation ---- */
+const NODES=[
+ {id:'G',  label:'global g',  x:30,  y:30,  root:true},
+ {id:'S',  label:'local s',   x:30,  y:150, root:true},
+ {id:'A',  label:'"hello"',   x:210, y:30},
+ {id:'B',  label:'Point',     x:210, y:150},
+ {id:'C',  label:'"world"',   x:390, y:150},
+ {id:'D',  label:'Node',      x:390, y:30},
+ {id:'X',  label:'orphan',    x:600, y:40},
+ {id:'Y',  label:'cycle A',   x:600, y:150},
+ {id:'Z',  label:'cycle B',   x:600, y:245}];
+const EDGES=[['G','A'],['G','D'],['S','B'],['B','C'],['X','Y'],['Y','Z'],['Z','Y']];
+const MK={i:0,timer:null,
+ plan:[
+  {state:{},work:[],say:'A collection begins. Nothing is marked. Blue nodes are roots — a global and a live local.'},
+  {state:{G:'grey',S:'grey'},work:['G','S'],say:'Step 1-2: seed from <code>g_global_roots</code> and the active shadow chain. Both land on the work-list.'},
+  {state:{G:'black',S:'grey',A:'grey',D:'grey'},work:['S','A','D'],
+   say:'Pop <b>G</b>, mark it black, scan its descriptor and push what it points at. This is <code>scan_fields</code> using <code>ptr_offsets</code>.'},
+  {state:{G:'black',S:'black',A:'grey',D:'grey',B:'grey'},work:['A','D','B'],
+   say:'Pop <b>S</b>. Its one pointer field is the Point, so that goes on the list too.'},
+  {state:{G:'black',S:'black',A:'black',D:'grey',B:'grey'},work:['D','B'],
+   say:'Pop <b>"hello"</b>. It is a BLOB — kept alive, but nothing inside to follow.'},
+  {state:{G:'black',S:'black',A:'black',D:'black',B:'grey'},work:['B'],
+   say:'Pop <b>Node</b>. Marked, no further outgoing pointers here.'},
+  {state:{G:'black',S:'black',A:'black',D:'black',B:'black',C:'grey'},work:['C'],
+   say:'Pop <b>Point</b>, push the string it holds.'},
+  {state:{G:'black',S:'black',A:'black',D:'black',B:'black',C:'black'},work:[],
+   say:'Work-list empty. Marking is done. <b>The cycle on the right was never reached</b> — mark-and-sweep handles cycles for free, unlike reference counting.'},
+  {state:{G:'black',S:'black',A:'black',D:'black',B:'black',C:'black',X:'swept',Y:'swept',Z:'swept'},work:[],
+   say:'Sweep walks the all-objects list: three unmarked objects are finalised, poisoned with 0xDD, and freed. Survivors have their mark bit cleared for next time.'}],
+ reset(){clearInterval(this.timer);this.timer=null;this.i=0;this.render(this.plan[0]);
+   $('mk-step').textContent='';$('mk-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.plan.length){this.i=0;}
+   const s=this.plan[this.i++];this.render(s);$('mk-say').innerHTML=s.say;
+   $('mk-step').textContent=`step ${this.i}/${this.plan.length}`;},
+ auto(){clearInterval(this.timer);this.i=0;
+   this.timer=setInterval(()=>{if(this.i>=this.plan.length){clearInterval(this.timer);return;}this.step();},1400);},
+ render(s){
+   const heap=$('mk-heap');
+   [...heap.querySelectorAll('.node')].forEach(n=>n.remove());
+   NODES.forEach(n=>{
+     const d=document.createElement('div');
+     const st=s.state[n.id];
+     d.className='node'+(n.root&&!st?' root':'')+(st?' '+st:'');
+     d.style.left=n.x+'px';d.style.top=n.y+'px';
+     d.innerHTML=n.label+`<span class="sz">${n.id}</span>`;
+     heap.appendChild(d);});
+   const svg=$('mk-edges');
+   svg.innerHTML=EDGES.map(([a,b])=>{
+     const A=NODES.find(n=>n.id===a),B=NODES.find(n=>n.id===b);
+     const col=(s.state[a]==='black'||s.state[a]==='grey')?'#3fb950':'#30363d';
+     return `<line x1="${A.x+40}" y1="${A.y+18}" x2="${B.x+8}" y2="${B.y+18}"
+              stroke="${col}" stroke-width="1.5" marker-end="url(#ar)"/>`;}).join('')
+     +`<defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0, 7 3.5, 0 7" fill="#30363d"/></marker></defs>`;
+   $('mk-work').innerHTML=s.work.length?s.work.map(w=>`<span class="chip">${w}</span>`).join('')
+     :'<span class="empty">empty</span>';}};
+MK.reset();
+
+/* ---- 6. sweep ---- */
+const SW={i:0,
+ objs:[{id:'C',m:true},{id:'Z',m:false},{id:'Y',m:false},{id:'B',m:true},
+       {id:'X',m:false},{id:'D',m:true},{id:'A',m:true}],
+ plan:[
+  {at:-1,say:'The all-objects list threads every live object, newest first. Sweep walks it once.'},
+  {at:0,say:'<b>C</b> is marked. Clear the mark bit and move on — it survives to the next cycle.'},
+  {at:1,say:'<b>Z</b> is unmarked. Run its finalizer if it has one, update the stats, poison 24+size bytes with 0xDD, free.'},
+  {at:2,say:'<b>Y</b> — same. Note Y and Z pointed at each other; a reference counter would never free them.'},
+  {at:3,say:'<b>B</b> survives.'},
+  {at:4,say:'<b>X</b> is freed.'},
+  {at:5,say:'<b>D</b> survives.'},
+  {at:6,say:'<b>A</b> survives. The walk is over.'},
+  {at:99,say:'Four objects live, three freed. The threshold is now <code>live_bytes × 2</code>, so the next collection happens only after the heap doubles.'}],
+ reset(){this.i=0;this.render(this.plan[0]);$('sw-step').textContent='';$('sw-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.plan.length){this.i=0;}
+   const s=this.plan[this.i++];this.render(s);$('sw-say').innerHTML=s.say;
+   $('sw-step').textContent=`step ${this.i}/${this.plan.length}`;},
+ render(s){
+   $('sw-list').innerHTML=this.objs.map((o,idx)=>{
+     let cls='node';let extra='';
+     if(s.at>=99||idx<s.at){cls+=o.m?' black':' swept';}
+     else if(idx===s.at){cls+=o.m?' black':' swept';extra='box-shadow:0 0 0 2px #d29922';}
+     return `<div class="${cls}" style="position:static;${extra}">${o.id}
+       <span class="sz">${o.m?'marked':'unmarked'}</span></div>`;}).join('')
+     +'<span class="empty" style="margin-left:6px">→ NULL</span>';
+   const freed=s.at>=99?3:Math.max(0,this.objs.slice(0,Math.max(0,s.at)).filter(o=>!o.m).length);
+   const live=7-freed;
+   $('sw-stats').textContent=
+`live_objects = ${live}
+total_frees  = ${freed}
+threshold    = ${s.at>=99?'live_bytes * 2  (min 1 MiB)':'unchanged until the sweep finishes'}`;}};
+SW.reset();
+
+/* ---- 7. threshold ---- */
+const TH={run(){
+  let html='<div class="lbl">Fixed 1 MiB threshold, heap that keeps growing</div>';
+  const fixed=[1,1,1,1,1,1,1,1];
+  fixed.forEach((_,i)=>{html+=`<div class="barrow"><span>alloc ${(i+1)*2} MB</span>
+    <div class="barwrap"><div class="bar red" style="width:100%"></div></div><span>COLLECT</span></div>`;});
+  html+='<p class="sub" style="margin:8px 0 18px">Every allocation is over the line, so every allocation collects — and each collection walks the whole live heap. <b class="no">O(N²)</b>.</p>';
+  html+='<div class="lbl">Doubling threshold (actual)</div>';
+  const grow=[2,4,8,16,32,64,128,256];
+  grow.forEach((mb,i)=>{html+=`<div class="barrow"><span>heap ${mb} MB</span>
+    <div class="barwrap"><div class="bar" style="width:${100/(i+1)}%"></div></div>
+    <span>${i<3?'COLLECT':'collect'} @ ${mb*2} MB</span></div>`;});
+  html+='<p class="sub" style="margin:8px 0 0">Each collection lets the heap double before the next one. <b class="ok">O(log N)</b> collections, amortised-linear total work — with a 1 MiB floor so tiny heaps do not collect eagerly.</p>';
+  $('th-out').innerHTML=html;}};
+
+/* ---- 8. GC + tasks ---- */
+const TK={i:0,
+ plan:[
+  {roots:[['globals','ok'],['fw_gc_shadow_top — running code','ok']],
+   heap:[['"hello" — parked task local','?'],['args block — queued task','?'],['"live" — global','?']],
+   say:'A collection runs while one task is parked on a sleep and another is still queued.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top — running code','ok']],
+   heap:[['"hello" — parked task local','dead'],['args block — queued task','dead'],['"live" — global','live']],
+   say:'<b>The problem.</b> The parked task\'s frames are on <em>its</em> stack, which <code>fw_gc_shadow_top</code> does not point at. The queued task owns no stack at all yet. Both look like garbage.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top — running code','ok'],['aux scanner → scheduler','new']],
+   heap:[['"hello" — parked task local','?'],['args block — queued task','?'],['"live" — global','live']],
+   say:'The scheduler registered itself through <code>fw_gc_set_aux_root_scanner</code>. The collector calls it after the normal roots and before draining the work-list.'},
+  {roots:[['globals','ok'],['fw_gc_shadow_top — running code','ok'],
+          ['fw_gc_mark_shadow_chain(parked)','new'],['fw_gc_push_root_object(args)','new']],
+   heap:[['"hello" — parked task local','live'],['args block — queued task','live'],['"live" — global','live']],
+   say:'Every parked task hands over its chain; every queued task hands over its argument block. All survive. Under <code>FW_GC_STRESS=1</code> this runs on <b>every allocation</b>.'}],
+ reset(){this.i=0;this.render(this.plan[0]);$('tk-step').textContent='';$('tk-say').innerHTML='Press Step.';},
+ step(){if(this.i>=this.plan.length){this.i=0;}
+   const s=this.plan[this.i++];this.render(s);$('tk-say').innerHTML=s.say;
+   $('tk-step').textContent=`step ${this.i}/${this.plan.length}`;},
+ render(s){
+   $('tk-roots').innerHTML=s.roots.map(([n,k])=>
+     `<div class="node" style="position:static;margin:5px 0;text-align:left;min-width:0;${k==='new'?'border-color:var(--green);color:var(--green)':''}">${n}</div>`).join('');
+   $('tk-heap').innerHTML=s.heap.map(([n,k])=>{
+     const c=k==='live'?'border-color:var(--green);color:var(--green)'
+            :k==='dead'?'border-color:var(--red);color:var(--red)':'';
+     const t=k==='dead'?' ← would be SWEPT':k==='live'?' ✓':'';
+     return `<div class="node" style="position:static;margin:5px 0;text-align:left;min-width:0;${c}">${n}${t}</div>`;}).join('');}};
+TK.reset();
+</script>
+</body>
+</html>

@@ -104,6 +104,18 @@ add_executable(${EXECUTABLE_NAME} ${EXECUTABLE_SOURCES})
 
 add_dependencies(${EXECUTABLE_NAME} version)
 
+# JIT-run code executes on this process's main thread, so the depth a program
+# can recurse under --jit is bounded by THIS executable's stack. Windows gives
+# 1 MB by default where Linux and macOS give about 8 MB, which would make the
+# same source file fail on Windows alone. AOT-produced binaries get the same
+# figure from LinkerCommandBuilder::addSystemLibraries — keep the two in step.
+#
+# See that function for why the number is 16 MB rather than 8 MB. Reserve is
+# address space, not committed memory.
+if(MSVC)
+    target_link_options(${EXECUTABLE_NAME} PRIVATE "/STACK:16777216")
+endif()
+
 # =============================================================================
 # Target-Specific Properties
 # =============================================================================

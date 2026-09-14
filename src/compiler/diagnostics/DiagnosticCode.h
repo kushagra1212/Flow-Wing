@@ -91,6 +91,7 @@ enum class DiagnosticCode : int16_t {
   kInvalidParameterType,
   kNthgCannotBeUsedAsParameterType,
   kExpectedNonNegativeIntegerForArrayDimension,
+  kArrayOfClassNotSupported,
 
   // Expose Statement Errors
   kUnsupportedStatementInExposeStatement,

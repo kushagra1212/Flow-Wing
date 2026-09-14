@@ -416,7 +416,7 @@ x = [2 fill {x:0, y:0}]
 
       `,
     },
-  },,
+  },
   {
     label: "spawn",
     kind: CompletionItemKind.Keyword,

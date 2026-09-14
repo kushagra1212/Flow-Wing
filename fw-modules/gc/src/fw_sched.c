@@ -51,8 +51,14 @@
    cost, not a per-spawn cost.
 
    Override at start-up with FW_TASK_STACK_KB. A task that recurses deeply
-   needs a bigger number; `main` gets 8 MB from the operating system, so code
-   that works at top level can still overflow inside a task. */
+   needs a bigger number; `main` gets 8 MB, so code that works at top level can
+   still overflow inside a task.
+
+   That 8 MB is what Linux and macOS hand out by default. Windows hands out
+   1 MB, so FlowWing asks the linker for 16 MB there instead — see
+   LinkerCommandBuilder::addSystemLibraries and cmake/targets.cmake for why the
+   two numbers differ. The reachable DEPTH is then comparable on all three, and
+   a recursion that works on one platform works on the others. */
 /* A deadline no clock can reach: the task waits for an event, not a time. */
 #define FW_WAKE_NEVER (-1LL)
 
@@ -287,7 +293,7 @@ static void segv_handler(int sig, siginfo_t *info, void *uctx) {
 
 /* The handler runs on its own small stack. Without this it would try to run on
    the stack that just overflowed, and fault again immediately. */
-static void install_segv_handler_once(void) {
+static void install_stack_overflow_handler_once(void) {
   static int installed = 0;
   if (installed) return;
   installed = 1;
@@ -309,6 +315,65 @@ static void install_segv_handler_once(void) {
   sigaction(SIGSEGV, &sa, NULL);
   sigaction(SIGBUS, &sa, NULL); /* Darwin reports guard hits as SIGBUS */
 }
+
+#else /* _WIN32 */
+
+/* Windows needs no guard page of ours to record. CreateFiberEx reserves the
+   stack and the kernel places its own guard page at the low end, so the
+   overflow arrives as a structured exception rather than a signal:
+   EXCEPTION_STACK_OVERFLOW (0xC00000FD).
+
+   Without a handler the process dies on that exception before anything is
+   flushed, which is exactly the "exit code and no message" case the POSIX
+   guard page was added to remove. */
+static LONG CALLBACK stack_overflow_handler(EXCEPTION_POINTERS *info) {
+  if (info == NULL || info->ExceptionRecord == NULL ||
+      info->ExceptionRecord->ExceptionCode != EXCEPTION_STACK_OVERFLOW) {
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
+
+  /* Only a task fiber earns the named message. An overflow with no task on the
+     CPU is ordinary too-deep recursion on main's stack, and it must keep its
+     usual crash — the same rule the POSIX handler applies when the faulting
+     address is not one of our guard pages. */
+  if (g_current == NULL) return EXCEPTION_CONTINUE_SEARCH;
+
+  /* Barely any stack is left at this point, so this does what the POSIX
+     handler does: one pre-built message, one write, no formatting and no
+     allocation. WriteFile is a thin syscall wrapper; printf is not.
+
+     The U+25B6 markers are written as explicit UTF-8 bytes because MSVC
+     re-encodes non-ASCII characters in narrow literals to the local code page
+     unless /utf-8 is passed, which would corrupt them. */
+  static const char msg[] =
+      "\033[91mRuntime Error: Task Stack Overflow.\n"
+      "  \xe2\x96\xb6 A spawned task used more stack than it owns.\n"
+      "  \xe2\x96\xb6 A task stack is much smaller than main's.\n"
+      "  \xe2\x96\xb6 Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096),"
+      " or reduce the recursion depth.\033[0m\n";
+
+  HANDLE err = GetStdHandle(STD_ERROR_HANDLE);
+  if (err != NULL && err != INVALID_HANDLE_VALUE) {
+    DWORD written = 0;
+    WriteFile(err, msg, (DWORD)(sizeof(msg) - 1), &written, NULL);
+  }
+
+  /* TerminateProcess rather than exit(): the CRT's exit path runs atexit
+     handlers and stream flushes on the stack that just ran out. */
+  TerminateProcess(GetCurrentProcess(), 1);
+  return EXCEPTION_CONTINUE_SEARCH; /* not reached */
+}
+
+/* First = 1 puts this ahead of any handler registered later, and a vectored
+   handler runs before every frame-based (SEH) handler, so nothing downstream
+   can swallow the overflow first. */
+static void install_stack_overflow_handler_once(void) {
+  static int installed = 0;
+  if (installed) return;
+  installed = 1;
+  AddVectoredExceptionHandler(1, stack_overflow_handler);
+}
+
 #endif /* !_WIN32 */
 
 /* ---- stack pool --------------------------------------------------------- */
@@ -331,8 +396,6 @@ static char *stack_acquire(void) {
      the signature without allocating memory nothing would use. */
   return NULL;
 #else
-  install_segv_handler_once();
-
   size_t page = page_size();
   size_t usable = stack_size();
 
@@ -614,7 +677,34 @@ void fw_sched_drain(void) {
   }
 #endif
 
+  /* Last time the event loop was polled while tasks were still runnable. */
+  long long last_poll_ns = 0;
+
   while (g_head < g_tail) {
+    /* Turn the event loop even when the ready queue is NOT empty.
+     *
+     * I/O completions only arrive while the loop is running, and the loop only
+     * runs in the "nothing is ready" branch below. A task that spins on
+     * fw_sched_yield() — a game loop calling yield once per frame is the
+     * obvious case — keeps the ready queue non-empty for ever, so that branch
+     * is never reached and a parked read never finishes. Measured before this
+     * fix: a loop yielding two million times left five file reads at zero
+     * completed, for the life of the program.
+     *
+     * Timers do not have this problem because pop_ready() promotes tasks whose
+     * deadline has passed, which is why sleeping worked where yielding hung.
+     *
+     * Polling is throttled to once per millisecond so a busy ready queue does
+     * not pay for a uv_run on every single task switch.
+     */
+    if (g_waiter != NULL && fw_sched_io_waiting() > 0) {
+      long long now = now_ns();
+      if (now - last_poll_ns >= 1000000LL) { /* 1 ms */
+        last_poll_ns = now;
+        g_waiter(0); /* zero deadline: poll, never block */
+      }
+    }
+
     FWTask *t = pop_ready();
 
     if (t == NULL) {
@@ -647,9 +737,15 @@ void fw_sched_drain(void) {
     g_current = t;
 
     if (t->state == FW_TASK_NEW) {
+      /* A task is about to get a stack of its own, so this is the point where
+         overflowing one becomes possible. Both platforms install here, which
+         keeps the "who reports the overflow" question in one place. */
+      install_stack_overflow_handler_once();
+
 #ifndef _WIN32
-      /* POSIX only. CreateFiber allocates and guards its own stack, so asking
-         for one here would waste stack_size() bytes per task on Windows. */
+      /* POSIX only. CreateFiberEx allocates and guards its own stack, so
+         asking for one here would waste stack_size() bytes per task on
+         Windows. */
       t->stack = stack_acquire();
       if (t->stack == NULL) { /* OOM: skip the task rather than crash */
         g_current = saved_current;
@@ -662,7 +758,14 @@ void fw_sched_drain(void) {
       fw_gc_shadow_top = NULL;
 
 #ifdef _WIN32
-      t->fiber = CreateFiber(stack_size(), task_entry, t);
+      /* CreateFiber's one size argument is the COMMIT size; the RESERVE stays
+         at the executable's default, which is 1 MB. A 256 KB task would then
+         quietly receive a megabyte and FW_TASK_STACK_KB would bound nothing —
+         and the overflow would land at 1 MB regardless of the setting.
+         CreateFiberEx sets the reserve, and the reserve is what the kernel's
+         guard page sits below. Commit 0 keeps the default initial commit, so
+         a small task still pays for only the pages it touches. */
+      t->fiber = CreateFiberEx(0, stack_size(), 0, task_entry, t);
       if (t->fiber == NULL) { /* OOM: skip the task rather than crash */
         g_current = saved_current;
         unregister_task(t);

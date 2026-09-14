@@ -12,9 +12,24 @@ target_link_libraries(flowwing_uv PUBLIC flowwing_gc)
 # Force the STATIC archive. libuv installs both libuv.a and libuv.dylib, and
 # find_library prefers the shared one on macOS — which cannot be merged into
 # this archive and would leave AOT executables needing a .dylib at run time.
+#
+# The NAME ORDER matters, and "libuv" MUST come before "uv".
+#
+# libuv builds a shared library as well as a static one: LIBUV_BUILD_SHARED
+# defaults to ON and BUILD_SHARED_LIBS=OFF does not control it. On Windows
+# that leaves two files in the same directory:
+#
+#     libuv.lib   the STATIC archive   (target uv_a, OUTPUT_NAME "uv" + PREFIX "lib")
+#     uv.lib      the IMPORT library for uv.dll
+#
+# MSVC uses an empty library prefix, so the name "uv" matches uv.lib — the
+# import library. Every executable then needs uv.dll at start-up and dies with
+# STATUS_DLL_NOT_FOUND (0xC0000135) before main() runs. Putting "libuv" first
+# selects the static archive. On macOS and Linux both names find the same
+# libuv.a, so the order is safe there.
 set(_FW_SAVED_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
-find_library(LIBUV_LIB NAMES uv_a uv libuv PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
+find_library(LIBUV_LIB NAMES uv_a libuv uv PATHS "${DEPS_INSTALL_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${_FW_SAVED_SUFFIXES})
 message(STATUS "libuv (static) owned by flowwing_uv: ${LIBUV_LIB}")
 

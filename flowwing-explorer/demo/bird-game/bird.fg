@@ -1,6 +1,51 @@
 
 bring raylib
 bring file
+bring sys
+bring Err
+/; ═════════════════════════════════════════════════════════
+/;  CONCURRENCY — run with --spawn to compare
+/;
+/;    ./bird            autosave runs inline   -> the frame stalls
+/;    ./bird --spawn    autosave is a task     -> no stall
+/;
+/;  WHAT `spawn` DOES **NOT** HELP WITH HERE
+/;  win.loadTexture(...) is raylib's LoadTexture — a blocking C call with no
+/;  suspend point — so the eight textures below load at the same speed either
+/;  way. `spawn` overlaps WAITING, not CPU work and not blocking FFI calls.
+/;
+/;  WHAT IT DOES HELP WITH
+/;  file::writeText hands the write to libuv's thread pool and parks the task,
+/;  so an autosave during play costs the frame nothing when it is spawned.
+/;
+/;  TWO RULES
+/;    1. `spawn gameLoop(win)` — a top-level loop never ends, so a queued task
+/;       would never run at all.
+/;    2. `sys::yield()` once per frame — a game loop never suspends by itself.
+/; ═════════════════════════════════════════════════════════
+var useSpawn: bool = false
+var saveBlob: str = ""
+var saves: int = 0
+var worstFrameMs: int64 = 0l
+fun hasFlag(name: str) -> bool {
+    var count: int = sys::getArgCount()
+    for var i: int = 0 to count - 1 {
+        if sys::getArg(i) == name {
+            return true
+        }
+    }
+    return false
+}
+
+/; REAL disk I/O. Built once at start-up so a save costs I/O, not string work.
+fun autosave(score: int) -> nthg {
+    var ok: bool, err: Err::Result = file::writeText("bird_save.txt", "score=" + String(score) + "\n" + saveBlob)
+    if Err::isErr(err) {
+        println("autosave failed: " + err.getMessage())
+        return:
+    }
+    saves = saves + 1
+}
 const SCREEN_WIDTH: int = 1024
 const SCREEN_HEIGHT: int = 500
 const GAME_SPEED: deci32 = 100.0f
@@ -143,18 +188,120 @@ class Bird {
 /; ─────────────────────────────────────────────────────────
 /;  GAME LOOP & MAIN
 /; ─────────────────────────────────────────────────────────
-fun main2() -> nthg {
-    var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Snake/Bird Port in FlowWing")
-    const SCRIPT_DIR: str = file::__DIR__
-    /; Load Textures
-    var tSky: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/skyBackground.png")
-    var tGround: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/ground.png")
-    var tWood: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/wood1.png")
-    var tM1: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/mountain/1mountL1.png")
-    var tM2: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/mountain/1mountL2.png")
-    var tM3: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/mountain/2mountL2.png")
-    var tM4: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/mountain/1mountL3.png")
-    var tBird: raylib::Texture = win.loadTexture(SCRIPT_DIR + "/assets/bird.png")
+/; ─────────────────────────────────────────────────────────
+/;  LOADING SCREEN
+/;
+/;  loadTexture BLOCKS — it cannot overlap with anything. But it can be
+/;  SPREAD ACROSS FRAMES: load one texture, yield, let the renderer draw a
+/;  frame, load the next. The window appears instantly and the bar moves,
+/;  even though each individual load still stops the world for its duration.
+/;
+/;  That is what `spawn` buys a game here: interleaving, not parallelism.
+/; ─────────────────────────────────────────────────────────
+
+var texturesReady: int = 0
+const TEXTURE_COUNT: int = 8
+
+var tSky: raylib::Texture = new raylib::Texture(-1)
+var tGround: raylib::Texture = new raylib::Texture(-1)
+var tWood: raylib::Texture = new raylib::Texture(-1)
+var tM1: raylib::Texture = new raylib::Texture(-1)
+var tM2: raylib::Texture = new raylib::Texture(-1)
+var tM3: raylib::Texture = new raylib::Texture(-1)
+var tM4: raylib::Texture = new raylib::Texture(-1)
+var tBird: raylib::Texture = new raylib::Texture(-1)
+
+/; One texture, then step aside so a frame can be drawn.
+fun loaderTask(win: raylib::Window) -> nthg {
+    const DIR: str = file::__DIR__
+
+    tSky = win.loadTexture(DIR + "/assets/skyBackground.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tGround = win.loadTexture(DIR + "/assets/ground.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tWood = win.loadTexture(DIR + "/assets/wood1.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tM1 = win.loadTexture(DIR + "/assets/mountain/1mountL1.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tM2 = win.loadTexture(DIR + "/assets/mountain/1mountL2.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tM3 = win.loadTexture(DIR + "/assets/mountain/2mountL2.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tM4 = win.loadTexture(DIR + "/assets/mountain/1mountL3.png")
+    texturesReady = texturesReady + 1
+    sys::yield()
+
+    tBird = win.loadTexture(DIR + "/assets/bird.png")
+    texturesReady = texturesReady + 1
+}
+
+fun drawLoadingScreen(win: raylib::Window, spin: int) -> nthg {
+    var cBg: raylib::Color = new raylib::Color(18, 22, 28, 255)
+    var cBar: raylib::Color = new raylib::Color(48, 54, 61, 255)
+    var cFill: raylib::Color = new raylib::Color(63, 185, 80, 255)
+    var cText: raylib::Color = new raylib::Color(230, 237, 243, 255)
+
+    var barW: deci32 = 600.0f
+    var barX: deci32 = (Decimal32(SCREEN_WIDTH) - barW) / 2.0f
+    var barY: deci32 = Decimal32(SCREEN_HEIGHT) / 2.0f
+    var pct: deci32 = Decimal32(texturesReady) / Decimal32(TEXTURE_COUNT)
+
+    win.begin()
+    win.clear(cBg)
+
+    var title: str = "Loading assets"
+    var tw: int = win.measureText(title, 30)
+    win.drawText(title, Int32((SCREEN_WIDTH / 2) - (tw / 2)), Int32(barY - 60.0f), 30, cText)
+
+    win.drawRectangle(new raylib::Vec2(barX, barY), new raylib::Vec2(barW, 22.0f), cBar)
+    win.drawRectangle(new raylib::Vec2(barX, barY), new raylib::Vec2(barW * pct, 22.0f), cFill)
+
+    var sub: str = String(texturesReady) + " / " + String(TEXTURE_COUNT)
+    var sw: int = win.measureText(sub, 20)
+    win.drawText(sub, Int32((SCREEN_WIDTH / 2) - (sw / 2)), Int32(barY + 40.0f), 20, cText)
+
+    /; a dot that moves every frame — a frozen window is then obvious
+    var dotX: deci32 = barX + (barW * (Decimal32(spin % 60) / 60.0f))
+    win.drawCircle(new raylib::Vec2(dotX, barY - 20.0f), 6.0f, cFill)
+
+    win.end()
+}
+
+fun gameLoop(win: raylib::Window) -> nthg {
+    /; ── Loading phase ─────────────────────────────────────
+    var loadStart: int64 = sys::nanos()
+    var loadFrames: int = 0
+    var worstLoadMs: int64 = 0l
+
+    while texturesReady < TEXTURE_COUNT {
+        if win.shouldClose() { return: }
+        var fs: int64 = sys::nanos()
+
+        drawLoadingScreen(win, loadFrames)
+        loadFrames = loadFrames + 1
+
+        var fms: int64 = Int64(sys::elapsedNanos(fs) / 1000000l)
+        if fms > worstLoadMs { worstLoadMs = fms }
+
+        sys::yield()   /; hand back to loaderTask for the next texture
+    }
+
+    println("loading: " + String(Int64(sys::elapsedNanos(loadStart) / 1000000l))
+          + " ms, " + String(loadFrames) + " frames drawn, worst frame "
+          + String(worstLoadMs) + " ms")
+
     /; Init Entities
     var wideM: WideMountain = new WideMountain(tM1)
     var heightM: StaticMountain = new StaticMountain(tM2, 0.0f, 0.0f, 5975.0f, 1607.0f, 10.0f)
@@ -169,6 +316,7 @@ fun main2() -> nthg {
     var cDarkBlue: raylib::Color = new raylib::Color(0, 82, 172, 255)
     var cGray: raylib::Color = new raylib::Color(100, 100, 100, 255)
     while !win.shouldClose() {
+        var frameStart: int64 = sys::nanos()
         var dt: deci32 = win.getFrameTime()
         /; ── Update ────────────────────────────────────────
         if state == 0 {
@@ -192,6 +340,16 @@ fun main2() -> nthg {
             ground.update(dt)
             bird.update(dt, win)
             score = score + 1
+            /; Autosave every 60 frames of play. THIS is the line that `spawn`
+            /; changes: inline it blocks the frame on real disk I/O, spawned it
+            /; parks a task and the frame carries on.
+            if score % 60 == 0 {
+                if useSpawn {
+                    spawn autosave(score)
+                } else {
+                    autosave(score)
+                }
+            }
         }
         if state == 2 {
             if win.isKeyPressed(32) {
@@ -226,7 +384,41 @@ fun main2() -> nthg {
             var w3: int = win.measureText("Game Paused", 40)
             win.drawText("Game Paused", Int32((SCREEN_WIDTH / 2) - (w3 / 2)), 200, 40, cDarkBlue)
         }
+        var modeLabel: str = "inline autosave  (run with --spawn)"
+        if useSpawn {
+            modeLabel = "--spawn autosave"
+        }
+        win.drawText(modeLabel, 10, SCREEN_HEIGHT - 50, 15, cGray)
+        win.drawText("worst frame " + String(worstFrameMs) + " ms   saves " + String(saves), 10, SCREEN_HEIGHT - 30, 15, cGray)
         win.end()
+        var ms: int64 = Int64(sys::elapsedNanos(frameStart) / 1000000l)
+        if ms > worstFrameMs {
+            worstFrameMs = ms
+        }
+        sys::yield() /; RULE 2 — let the autosave task run between frames
     }
+    println("mode         = " + modeName())
+    println("  worst frame  = " + String(worstFrameMs) + " ms")
+    println("  autosaves    = " + String(saves))
+}
+
+fun modeName() -> str {
+    if useSpawn {
+        return "--spawn"
+    }
+    return "inline"
+}
+
+fun main2() -> nthg {
+    useSpawn = hasFlag("--spawn")
+    println("useSpawn = " + String(useSpawn))
+    /; Build the save payload ONCE so an autosave is pure I/O, not string work.
+    var chunk: str = "flowwing bird save padding padding padding padding\n"
+    for var i: int = 0 to 11 {
+        saveBlob = saveBlob + saveBlob + chunk
+    }
+    var win: raylib::Window = new raylib::Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Bird — " + modeName())
+    spawn loaderTask(win) /; loads one texture per turn
+    spawn gameLoop(win) /; RULE 1 — the loop must be a task
 }
 main2()

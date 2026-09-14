@@ -1,0 +1,43 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A class instance held in a GLOBAL, mutated by several tasks.
+/;
+/; The existing class tests either build an instance inside one task or pass it
+/; as an argument. This covers the third route: the instance is reached through
+/; a global root, not through the argument block at all.
+/;
+/; That matters because the two roots are seeded from different places — a
+/; global comes from `g_global_roots`, an argument from the scheduler's
+/; auxiliary scanner. A task mutating a global instance across a suspend
+/; exercises the global path while the task's own chain is parked.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+class Ledger {
+  var owner: str
+  var total: int
+  fun init(owner: str) -> nthg {
+    self.owner = owner
+    self.total = 0
+  }
+  fun add(amount: int) -> nthg {
+    self.total = self.total + amount
+  }
+}
+
+var book: Ledger = new Ledger("sh" + "ared")
+
+fun deposit(amount: int, who: str) -> nthg {
+  book.add(amount)
+  sys::yield()
+  /; re-read the global AFTER the suspend: other tasks ran in between
+  book.owner = book.owner + "+" + who
+  println(who + " sees total=" + String(book.total))
+}
+
+spawn deposit(1, "a")
+spawn deposit(2, "b")
+spawn deposit(3, "c")
+
+println("queued 3")

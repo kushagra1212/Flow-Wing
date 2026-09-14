@@ -48,9 +48,14 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     // LinkerCommandBuilder, bypassing getLibLinkFlag. That is why each
     // platform spells its own flags here: MSVC wants "name.lib", not "-lname".
 #if defined(_WIN32)
-    // uv_a.lib is libuv itself. Windows has no archive-merge step, so it must
+    // libuv.lib is libuv itself. Windows has no archive-merge step, so it must
     // be named on the link line rather than folded into flowwing_uv.lib.
-    return "flowwing_file.lib flowwing_uv.lib uv_a.lib "
+    //
+    // The name is libuv.lib, NOT uv_a.lib: libuv's CMake gives the static
+    // target uv_a an OUTPUT_NAME of "uv" and a Windows-only PREFIX of "lib".
+    // uv.lib also exists but is the IMPORT library for uv.dll — linking it
+    // makes the executable need a DLL that the SDK does not ship.
+    return "flowwing_file.lib flowwing_uv.lib libuv.lib "
            "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib";
 #elif defined(__linux__)
     return "-lflowwing_file -lflowwing_uv -lpthread -ldl -lrt";
@@ -72,9 +77,10 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     // with a space skips getLibLinkFlag and reaches the linker unchanged.
     // libuv needs the Winsock and related system libraries on Windows.
 #if defined(_WIN32)
-    // uv_a.lib and llhttp.lib are the real libraries: on Windows they are not
+    // libuv.lib and llhttp.lib are the real libraries: on Windows they are not
     // merged into the flowwing_* archives, so they are named explicitly.
-    return "flowwing_vortex.lib flowwing_uv.lib uv_a.lib llhttp.lib "
+    // See file-module above for why the name is libuv.lib and not uv_a.lib.
+    return "flowwing_vortex.lib flowwing_uv.lib libuv.lib llhttp.lib "
            "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib "
            "ole32.lib shell32.lib advapi32.lib";
 #elif defined(__linux__)
