@@ -81,6 +81,18 @@ static void push_root_slot(void **slot) {
   if (slot && *slot) fw_gc_push_root_object(*slot);
 }
 
+/* Extra root producer (coroutine scheduler). NULL when nothing is registered. */
+static FWAuxRootScanFn s_aux_scanner = NULL;
+
+void fw_gc_set_aux_root_scanner(FWAuxRootScanFn fn) { s_aux_scanner = fn; }
+
+/* Walk one shadow chain and seed every slot it lists. */
+void fw_gc_mark_shadow_chain(FWFrame *top) {
+  for (FWFrame *f = top; f != NULL; f = f->prev)
+    for (uint32_t i = 0; i < f->n; i++)
+      push_root_slot((void **)f->roots[i]);
+}
+
 /* Mark everything reachable from all roots. Called by fw_gc_collect. */
 void fw_gc_mark_from_roots(void) {
   s_work_len = 0;
@@ -90,10 +102,14 @@ void fw_gc_mark_from_roots(void) {
   for (size_t i = 0; i < g_global_roots_len; i++)
     push_root_slot((void **)g_global_roots[i]);
 
-  /* Shadow-stack roots: walk frames, then each frame's slots. */
-  for (FWFrame *f = fw_gc_shadow_top; f != NULL; f = f->prev)
-    for (uint32_t i = 0; i < f->n; i++)
-      push_root_slot((void **)f->roots[i]);
+  /* The chain of whatever is running right now (main, or the active task). */
+  fw_gc_mark_shadow_chain(fw_gc_shadow_top);
+
+  /* Chains belonging to tasks that are alive but parked on their own stacks.
+     Without this a suspended coroutine's locals are invisible to the mark
+     phase and get swept while the task is waiting to resume. */
+  if (s_aux_scanner != NULL)
+    s_aux_scanner();
 
   /* Precise-only (M2): every live GC pointer is reachable through a global root,
      a shadow-stack slot (locals/params/args), a traced descriptor field, or a

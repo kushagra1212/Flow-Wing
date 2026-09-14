@@ -70,6 +70,7 @@ FW_JIT_RUNTIME_SYMBOL(fg_get_arg_count)
 FW_JIT_RUNTIME_SYMBOL(fg_get_arg)
 FW_JIT_RUNTIME_SYMBOL(fg_exit)
 FW_JIT_RUNTIME_SYMBOL(fg_timestamp)
+FW_JIT_RUNTIME_SYMBOL(fg_monotonic_nanos)
 
 // ---- fw-modules/dynamic/dynamic.c ----------------------------------------
 FW_JIT_RUNTIME_SYMBOL(fg_perform_dynamic_op)
@@ -191,3 +192,11 @@ FW_JIT_RUNTIME_SYMBOL(fw_gc_stats)
 // Data global (not a function): the shadow-stack top pointer. `&fw_gc_shadow_top`
 // resolves to the variable's address, which is what JIT'd IR references.
 FW_JIT_RUNTIME_SYMBOL(fw_gc_shadow_top)
+
+// ---- fw-modules/gc: cooperative scheduler (`spawn`) -----------------------
+FW_JIT_RUNTIME_SYMBOL(fw_sched_spawn)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_drain)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_pending)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_yield)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_sleep_ms)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_in_task)

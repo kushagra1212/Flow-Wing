@@ -5,6 +5,7 @@ add_library(flowwing_gc STATIC
     src/fw_gc_mark.c
     src/fw_gc_sweep.c
     src/fw_gc_descriptors.c
+    src/fw_sched.c
 )
 
 target_include_directories(flowwing_gc PUBLIC

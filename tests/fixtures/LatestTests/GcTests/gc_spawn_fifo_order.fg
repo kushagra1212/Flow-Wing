@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Queued tasks run in the order they were spawned, and all of them run after
+/; the top-level body finishes. Spawning from inside a function is the same:
+/; the function body runs now, the task it queues runs later.
+/; --------------------------------------------------------------------------
+
+fun alpha() -> nthg {
+  println("alpha")
+}
+
+fun beta() -> nthg {
+  println("beta")
+}
+
+fun gamma() -> nthg {
+  println("gamma")
+}
+
+fun scheduleDelta() -> nthg {
+  println("scheduleDelta body")
+  spawn gamma()
+}
+
+spawn alpha()
+spawn beta()
+scheduleDelta()
+println("main done")

@@ -263,6 +263,21 @@ void IRGenerator::visit(
     return;
   }
 
+  // Run anything `spawn` queued. This sits before handleReturn() so the tasks
+  // execute while `main` is still on the stack — its shadow frame is live, and
+  // a task's own frames chain onto it. A no-op when nothing was spawned.
+  {
+    llvm::Module *mod = m_ir_gen_context.getLLVMModule();
+    llvm::LLVMContext &ctx = *m_ir_gen_context.getLLVMContext();
+    auto &builder = m_ir_gen_context.getLLVMBuilder();
+
+    auto drain_fn = mod->getOrInsertFunction(
+        std::string(constants::functions::kSched_drain_fn),
+        llvm::FunctionType::get(llvm::Type::getVoidTy(ctx), false));
+
+    builder->CreateCall(drain_fn, {});
+  }
+
   handleReturn();
 
   // Emit the shadow frame for `main`'s top-level pointer roots (push in the

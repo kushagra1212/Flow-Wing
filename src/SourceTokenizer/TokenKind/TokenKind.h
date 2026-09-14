@@ -79,6 +79,7 @@ enum class TokenKind : int {
   kContinueKeyword,
   kBreakKeyword,
   kReturnKeyword,
+  kSpawnKeyword,
   kOrKeyword,
   kExposeKeyword,
   kFromKeyword,

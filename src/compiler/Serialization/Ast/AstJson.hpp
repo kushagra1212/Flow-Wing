@@ -96,6 +96,7 @@ private:
   void visit(syntax::ModuleStatementSyntax *node) override;
   void visit(syntax::OrIfStatementSyntax *node) override;
   void visit(syntax::ReturnStatementSyntax *node) override;
+  void visit(syntax::SpawnStatementSyntax *node) override;
   void visit(syntax::SwitchStatementSyntax *node) override;
   void visit(syntax::VariableDeclarationSyntax *node) override;
   void visit(syntax::WhileStatementSyntax *node) override;

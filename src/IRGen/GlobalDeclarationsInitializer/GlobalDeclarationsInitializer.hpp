@@ -30,6 +30,7 @@ public:
   void visit(binding::BoundBreakStatement *break_statement) override;
   void visit(binding::BoundContinueStatement *continue_statement) override;
   void visit(binding::BoundReturnStatement *return_statement) override;
+  void visit(binding::BoundSpawnStatement *spawn_statement) override;
   void visit(binding::BoundSwitchStatement *switch_statement) override;
   void visit(binding::BoundClassStatement *class_statement) override;
   void visit(binding::BoundModuleStatement *module_statement) override;

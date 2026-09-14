@@ -1,21 +1,30 @@
-bring io
 bring sys
-bring Err
-fun fg_main() -> nthg {
-    /; Static type
-    var greeting: str = "Hello"
-    /; Dynamic type natively supported
-    var target = "Developer"
-    println(greeting + ", " + target + "! Enter a number:")
-    var inputStr: str, err: Err::Result = io::readLine()
-    if Err::isErr(err) {
-        return :
+bring vec
+var t_first: int64 = 0
+var ran: int = 0
+var v: vec::Vec = new vec::Vec()
+fun slowTask() -> nthg {
+    ran = ran + 1
+    if ran == 1 {
+        t_first = sys::nanos()
     }
-    /; Interoperability: dynamic * static
-    var num = Int32(inputStr) /; Dynamic holding int
-    var multiplier: int = 10
-    /; Static int
-    var result = num * multiplier
-    println("Your number multiplied by 10 is: ", String(result))
+    sys::sleep(100)
+    if ran >= 0 {
+        var total_ms: deci = sys::elapsedNanos(t_first) / 1e6
+        println("two 100ms tasks took: " + String(total_ms) + " ms")
+        println("overlapped (want true): " + String(total_ms < 150.0))
+        v.push(total_ms)
+    }
 }
-fg_main()
+
+fun runItAfterDelay() -> nthg {
+    sys::sleep(10000)
+    println("1st Task timing: " + String(v.get(0)) + " ms")
+    println("2nd Task timing: " + String(v.get(1)) + " ms")
+    println("last Task timing: " + String(v.get(v.size() - 1)) + " ms")
+}
+for var i: int = 0 to 100 {
+    spawn slowTask()
+}
+println("queued 2 tasks, each waits 100ms")
+spawn runItAfterDelay()

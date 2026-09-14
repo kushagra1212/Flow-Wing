@@ -67,6 +67,7 @@ class IfStatementSyntax;
 class ModuleStatementSyntax;
 class OrIfStatementSyntax;
 class ReturnStatementSyntax;
+class SpawnStatementSyntax;
 class SwitchStatementSyntax;
 class WhileStatementSyntax;
 class ExpressionStatementSyntax;
@@ -151,6 +152,7 @@ public:
   virtual void visit(syntax::ModuleStatementSyntax *node) = 0;
   virtual void visit(syntax::OrIfStatementSyntax *node) = 0;
   virtual void visit(syntax::ReturnStatementSyntax *node) = 0;
+  virtual void visit(syntax::SpawnStatementSyntax *node) = 0;
   virtual void visit(syntax::SwitchStatementSyntax *node) = 0;
   virtual void visit(syntax::VariableDeclarationSyntax *node) = 0;
   virtual void visit(syntax::WhileStatementSyntax *node) = 0;

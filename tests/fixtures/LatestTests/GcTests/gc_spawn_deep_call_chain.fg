@@ -1,0 +1,60 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The task suspends while it is DEEP inside its own call stack.
+/;
+/; Every nested call pushes another shadow frame. When the task parks at depth
+/; six, the scheduler saves the head of a six-frame chain. The mark phase must
+/; walk the whole chain, not only the top frame, or the strings held by the
+/; outer frames are lost.
+/;
+/; Recursion then repeats the same shape with a chain built at run time.
+/; --------------------------------------------------------------------------
+bring sys
+
+fun level6(acc: str) -> str {
+  var mine: str = acc + "-6"
+  sys::sleep(20)
+  return mine
+}
+
+fun level5(acc: str) -> str {
+  var mine: str = acc + "-5"
+  return level6(mine)
+}
+
+fun level4(acc: str) -> str {
+  var mine: str = acc + "-4"
+  return level5(mine)
+}
+
+fun level3(acc: str) -> str {
+  var mine: str = acc + "-3"
+  return level4(mine)
+}
+
+fun level2(acc: str) -> str {
+  var mine: str = acc + "-2"
+  return level3(mine)
+}
+
+fun level1(acc: str) -> str {
+  var mine: str = acc + "-1"
+  return level2(mine)
+}
+
+fun countDown(n: int, acc: str) -> str {
+  if n <= 0 {
+    sys::yield()
+    return acc
+  }
+  var mine: str = acc + String(n)
+  return countDown(n - 1, mine)
+}
+
+fun task() -> nthg {
+  println(level1("deep"))
+  println(countDown(5, "r"))
+}
+
+spawn task()
+println("queued 1")

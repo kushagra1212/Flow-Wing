@@ -1,0 +1,23 @@
+/; --------------------------------------------------------------------------
+/; sys::sleep(ms) — BLOCKING wall-clock delay.
+/;
+/; This parks the whole thread. It is not a suspension point: a sleep inside a
+/; spawned task stalls the scheduler's drain, so two sleeping tasks take the
+/; sum of their delays, never the max. It exists to make delays measurable, not
+/; to provide concurrency.
+/;
+/; Assertions are one-sided. A lower bound is safe (sleep does not return
+/; early); an upper bound is not, because a loaded machine can overshoot by an
+/; arbitrary amount.
+/; --------------------------------------------------------------------------
+bring sys
+
+var t0: int64 = sys::nanos()
+sys::sleep(50)
+var elapsed: int64 = sys::elapsedNanos(t0)
+
+/; slept at least ~50ms, minus slop for timer granularity
+println(elapsed >= 45000000)
+
+/; the clock moved at all
+println(elapsed > 0)

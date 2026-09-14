@@ -1,0 +1,43 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Exercises the COMPACTION branch of fw_sched_reserve_one, which only runs
+/; when the queue is full (g_tail == g_cap) AND the drain has already consumed
+/; some entries (g_head > 0). Neither condition holds during a plain top-level
+/; spawn burst, so this path was dead in every other test.
+/;
+/; Exactly 8 parents fill the initial capacity of 8. The first parent then runs
+/; (head -> 1) and spawns a child, so tail == cap == 8 with head > 0: the live
+/; entries get memmoved to the front instead of the buffer doubling.
+/;
+/; The trace proves compaction preserved order — all 8 parents drain before any
+/; child, because each child joins the back of the FIFO.
+/; --------------------------------------------------------------------------
+
+var trace: str = ""
+var ran: int = 0
+
+fun report() -> nthg {
+  ran = ran + 1
+  if ran >= 16 {
+    println(trace)
+    println("ran " + String(ran))
+  }
+}
+
+fun child() -> nthg {
+  trace = trace + "c"
+  report()
+}
+
+fun parent() -> nthg {
+  trace = trace + "p"
+  spawn child()
+  report()
+}
+
+/; exactly the initial capacity
+for var i: int = 0 to 7 {
+  spawn parent()
+}
+
+println("queued 8 parents")

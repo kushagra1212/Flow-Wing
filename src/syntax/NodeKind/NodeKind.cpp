@@ -89,6 +89,7 @@ const std::string &toString(NodeKind kind) {
       {NodeKind::kDefaultCaseStatement, "DefaultCaseStatement"},
       {NodeKind::kExposeStatement, "ExposeStatement"},
       {NodeKind::kFunctionStatement, "FunctionStatement"},
+      {NodeKind::kSpawnStatement, "SpawnStatement"},
 
   };
 

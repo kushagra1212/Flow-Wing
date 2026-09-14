@@ -1,0 +1,44 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The ready-queue starts at capacity 8 and doubles (8 -> 16 -> 32 -> 64). 51
+/; tasks force three reallocs. Every earlier spawn test queued at most 8, so
+/; the growth path in fw_sched_reserve_one was never executed.
+/;
+/; Three distinct functions are cycled so the trace can prove FIFO ORDER
+/; survived each realloc, not merely that 51 tasks ran. A realloc that dropped
+/; or reordered entries would corrupt the "abc" repetition.
+/; --------------------------------------------------------------------------
+
+var trace: str = ""
+var ran: int = 0
+
+fun report() -> nthg {
+  ran = ran + 1
+  if ran >= 51 {
+    println(trace)
+    println("ran " + String(ran))
+  }
+}
+
+fun a() -> nthg {
+  trace = trace + "a"
+  report()
+}
+
+fun b() -> nthg {
+  trace = trace + "b"
+  report()
+}
+
+fun c() -> nthg {
+  trace = trace + "c"
+  report()
+}
+
+for var i: int = 0 to 16 {
+  spawn a()
+  spawn b()
+  spawn c()
+}
+
+println("queued 51")

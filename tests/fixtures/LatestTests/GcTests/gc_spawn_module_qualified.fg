@@ -1,0 +1,10 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `spawn mod::fn()` — the callee comes through a ModuleAccessExpression, not a
+/; bare identifier. Every other spawn test targets a plain top-level function,
+/; so the binder's module-resolution path was untested.
+/; --------------------------------------------------------------------------
+bring "spawn_support/spawn_tasks_module.fg"
+
+spawn tasks::work()
+println("main done")

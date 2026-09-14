@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: SpawnRequiresFunctionCall
+/; --------------------------------------------------------------------------
+/; `spawn` queues a call, so its operand has to be one. The parser accepts any
+/; expression after `spawn` on purpose — that way a bad operand reaches the
+/; binder and reports with a real source location instead of dying as a parse
+/; error pointing at the wrong token.
+/; --------------------------------------------------------------------------
+
+var value: int = 42
+spawn value

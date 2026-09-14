@@ -11,6 +11,12 @@ fun fg_exit(code: as int) -> as nthg decl
 
 fun fg_timestamp() -> as int decl
 
+fun fg_monotonic_nanos() -> as int64 decl
+
+fun fw_sched_sleep_ms(ms: as int64) -> as nthg decl
+
+fun fw_sched_yield() -> as nthg decl
+
 fun fg_runtime_error(msg: as str) -> as nthg decl
 
 fun fg_exec(cmd: as str) -> as str decl
@@ -42,6 +48,45 @@ fun exit(code: int) -> nthg {
 /; Current Unix timestamp (seconds since epoch)
 fun timestamp() -> int {
     return fg_timestamp()
+}
+
+/; Monotonic clock in nanoseconds. Use this for benchmarking, not timestamp():
+/; timestamp() is seconds-resolution and jumps when the system clock changes.
+/; The zero point is arbitrary, so only DIFFERENCES between readings mean
+/; anything.
+fun nanos() -> int64 {
+    return fg_monotonic_nanos()
+}
+
+/; Same clock in microseconds. `/` is floating-point division in Flow-Wing, so
+/; the result is truncated back to int64 rather than returned as a deci.
+fun micros() -> int64 {
+    return Int64(fg_monotonic_nanos() / 1000)
+}
+
+/; Same clock in milliseconds.
+fun millis() -> int64 {
+    return Int64(fg_monotonic_nanos() / 1000000)
+}
+
+/; Nanoseconds elapsed since an earlier nanos() reading.
+fun elapsedNanos(start: int64) -> int64 {
+    return fg_monotonic_nanos() - start
+}
+
+/; Wait `ms` milliseconds.
+/;
+/; Inside a spawned task this SUSPENDS the task: other queued work runs while
+/; it waits, so N tasks each waiting 100ms finish in about 100ms total, not
+/; N*100ms. Outside a task there is nothing to switch to, so it blocks.
+fun sleep(ms: int64) -> nthg {
+    fw_sched_sleep_ms(ms)
+}
+
+/; Give up the CPU so other queued tasks can run, then continue where we left
+/; off. A no-op outside a task.
+fun yield() -> nthg {
+    fw_sched_yield()
 }
 
 /; Executes a shell command and returns the standard output/error

@@ -88,6 +88,7 @@ const std::string &toString(TokenKind kind) {
       {TokenKind::kContinueKeyword, "ContinueKeyword"},
       {TokenKind::kBreakKeyword, "BreakKeyword"},
       {TokenKind::kReturnKeyword, "ReturnKeyword"},
+      {TokenKind::kSpawnKeyword, "SpawnKeyword"},
       {TokenKind::kOrKeyword, "OrKeyword"},
       {TokenKind::kExposeKeyword, "ExposeKeyword"},
       {TokenKind::kFromKeyword, "FromKeyword"},

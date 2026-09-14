@@ -1,0 +1,54 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A task suspends inside every kind of control flow: a while loop, a for loop
+/; with `continue` and `break`, and a switch.
+/;
+/; Each construct owns basic blocks in the generated code. A suspend inside one
+/; of them parks the stack in the middle of that block, so the resume has to
+/; land back in the correct block with the loop counters intact.
+/; --------------------------------------------------------------------------
+bring sys
+
+fun task() -> nthg {
+  var acc: str = ""
+  var i: int = 0
+
+  /; while + yield in the body
+  while i < 3 {
+    acc = acc + "w" + String(i)
+    sys::yield()
+    i = i + 1
+  }
+
+  /; for + continue + break, with a sleep inside
+  for var k: int = 0 to 9 {
+    if k == 1 {
+      continue
+    }
+    if k == 4 {
+      break
+    }
+    acc = acc + "f" + String(k)
+    sys::sleep(5)
+  }
+
+  /; switch with a yield in one branch
+  var pick: int = 2
+  switch pick {
+    case 1:{
+      acc = acc + "one"
+    }
+    case 2:{
+      sys::yield()
+      acc = acc + "two"
+    }
+    default:{
+      acc = acc + "other"
+    }
+  }
+
+  println(acc)
+}
+
+spawn task()
+println("queued 1")

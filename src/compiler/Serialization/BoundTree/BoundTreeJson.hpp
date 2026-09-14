@@ -48,6 +48,7 @@ private:
   void visit(binding::BoundBreakStatement *node) override;
   void visit(binding::BoundContinueStatement *node) override;
   void visit(binding::BoundReturnStatement *node) override;
+  void visit(binding::BoundSpawnStatement *node) override;
   void visit(binding::BoundSwitchStatement *node) override;
   void visit(binding::BoundClassStatement *node) override;
   void visit(binding::BoundModuleStatement *node) override;

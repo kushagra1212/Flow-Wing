@@ -1,0 +1,67 @@
+/; ===========================================================================
+/; spawn dispatch benchmark
+/;
+/;   make run-aot-debug FILE=tests/local/bench_spawn.fg ARGS="--emit=exe "
+/;
+/; Measures the only two things that are real today: the cost of QUEUEING a
+/; task, and the cost of DRAINING the queue. There is no suspension yet, so
+/; there is no concurrency to measure — a task runs start to finish once it is
+/; popped.
+/;
+/; Note the drain is timed from inside the tasks themselves. The scheduler runs
+/; after the top-level body returns, so main cannot time it and cannot print
+/; afterwards — the LAST task has to report.
+/; ===========================================================================
+bring sys
+
+/; Big enough that each phase takes tens of milliseconds. At 100k the whole run
+/; finished in under a millisecond and run-to-run noise swamped the signal.
+/;
+/; Not larger than this: every queued task now holds a task record until it is
+/; drained, so N is a live-memory cost at spawn time. (Stacks are NOT — those
+/; are taken on first resume and recycled, so peak stack use tracks how many
+/; tasks are suspended at once, not how many were queued.)
+var N: int = 500000
+
+var done: int = 0
+var drain_start: int64 = 0
+var direct_calls: int = 0
+
+fun work() -> nthg {
+  direct_calls = direct_calls + 1
+}
+
+fun task() -> nthg {
+  done = done + 1
+  if done == 1 {
+    drain_start = sys::nanos()
+  }
+  if done >= N {
+    var drain_ns: int64 = sys::elapsedNanos(drain_start)
+    println("drain    total : " + String(drain_ns) + " ns")
+    println("drain    per-op: " + String(drain_ns / N) + " ns")
+  }
+}
+
+/; --- baseline: N direct calls, no scheduler involved ---------------------
+var t0: int64 = sys::nanos()
+for var i: int = 0 to N - 1 {
+  work()
+}
+var direct_ns: int64 = sys::elapsedNanos(t0)
+
+println("direct   total : " + String(direct_ns) + " ns")
+println("direct   per-op: " + String(direct_ns / N) + " ns")
+println("direct   calls : " + String(direct_calls))
+
+/; --- enqueue: N spawns, measured in main ---------------------------------
+var t1: int64 = sys::nanos()
+for var i: int = 0 to N - 1 {
+  spawn task()
+}
+var enqueue_ns: int64 = sys::elapsedNanos(t1)
+
+println("enqueue  total : " + String(enqueue_ns) + " ns")
+println("enqueue  per-op: " + String(enqueue_ns / N) + " ns")
+
+println("-- main done, scheduler drains now --")

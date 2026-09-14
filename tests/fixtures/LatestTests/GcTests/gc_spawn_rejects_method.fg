@@ -1,0 +1,23 @@
+/; EXPECT_ERROR: SpawnRequiresPlainFunction
+/; --------------------------------------------------------------------------
+/; A method call carries `self` as an implicit receiver. The receiver is an
+/; argument like any other, so it would have to stay GC-traced from the spawn
+/; site until the scheduler runs the call — the same storage problem that
+/; blocks explicit arguments.
+/;
+/; This needs its own diagnostic: reporting "cannot pass arguments" for a call
+/; the user wrote with empty parentheses is just confusing.
+/; --------------------------------------------------------------------------
+
+class Greeter {
+  var n: int
+  init() {
+    self.n = 1
+  }
+  hello() -> nthg {
+    println("method task ran")
+  }
+}
+
+var g: Greeter = new Greeter()
+spawn g.hello()

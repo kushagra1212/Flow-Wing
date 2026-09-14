@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: SpawnArgumentsNotSupported
+/; --------------------------------------------------------------------------
+/; A spawned call runs after the spawning code finishes, so its arguments would
+/; have to live somewhere the GC traces until then. A queued task has no stack
+/; of its own to hold them yet, so passing arguments is rejected outright
+/; rather than silently dropped.
+/; --------------------------------------------------------------------------
+
+fun greet(name: str) -> nthg {
+  println("hello " + name)
+}
+
+spawn greet("world")

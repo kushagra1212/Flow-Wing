@@ -290,6 +290,32 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "blocks.",
       "Placing a 'break' statement outside of valid control structures "
       "like loops or switch statements will result in a syntax error."}},
+    {(DiagnosticCode::kSpawnRequiresFunctionCall),
+     {"'spawn' expects a function call.",
+      "Write 'spawn myFunction()' — the operand must be a call, not a value.",
+      "'spawn' queues a call to run later, so it needs something callable. An "
+      "expression like 'spawn 42' or 'spawn myVariable' has nothing to run."}},
+    {(DiagnosticCode::kSpawnArgumentsNotSupported),
+     {"'spawn' cannot pass arguments yet.",
+      "Call a function that takes no parameters, or capture the values in "
+      "globals the spawned function reads.",
+      "A spawned call runs after the current code finishes, so its arguments "
+      "would have to be stored somewhere the garbage collector traces until "
+      "then. That storage does not exist until a task owns its own stack."}},
+    {(DiagnosticCode::kSpawnRequiresNthgReturn),
+     {"'spawn' needs a function that returns 'nthg'.",
+      "Change the function's return type to 'nthg', or store its result in a "
+      "global that the spawned function writes to.",
+      "A value-returning function receives a hidden out-parameter for its "
+      "result. The scheduler calls queued tasks with no arguments, so that "
+      "out-parameter would hold garbage and the task would crash."}},
+    {(DiagnosticCode::kSpawnRequiresPlainFunction),
+     {"'spawn' cannot queue a method call.",
+      "Spawn a plain top-level function; have it reach the object through a "
+      "global if it needs one.",
+      "A method call passes the receiver ('self') as a hidden argument, which "
+      "would have to stay traced by the garbage collector from the spawn until "
+      "the scheduler runs the call."}},
     {(DiagnosticCode::kFileNotFound),
      {"File '<{0}>' was not found.",
       "Ensure that the file '<{0}>' exists at the specified path.",
@@ -818,6 +844,14 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "ContinueStatementOutsideOfLoop";
   case DiagnosticCode::kInvalidBreakStatementUsage:
     return "InvalidBreakStatementUsage";
+  case DiagnosticCode::kSpawnRequiresFunctionCall:
+    return "SpawnRequiresFunctionCall";
+  case DiagnosticCode::kSpawnArgumentsNotSupported:
+    return "SpawnArgumentsNotSupported";
+  case DiagnosticCode::kSpawnRequiresNthgReturn:
+    return "SpawnRequiresNthgReturn";
+  case DiagnosticCode::kSpawnRequiresPlainFunction:
+    return "SpawnRequiresPlainFunction";
 
   // --- Semantic Errors ---
   case DiagnosticCode::kUnexpectedTypeExpression:

@@ -1,0 +1,43 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The point of the whole exercise: waiting tasks OVERLAP.
+/;
+/; Three tasks each wait 100ms. Sequentially that is ~300ms; overlapped it is
+/; ~100ms, because sys::sleep inside a task parks it with a deadline and hands
+/; the scheduler back control instead of blocking the thread.
+/;
+/; Three tasks rather than two so the margin is wide (100ms vs 300ms). The
+/; suite runs with --parallel, so a two-task version's 100-vs-200 gap could be
+/; closed by CPU contention alone and flake.
+/;
+/; Under FW_GC_STRESS this also exercises the reason the GC had to change: all
+/; three tasks are parked on their own stacks at once, so their shadow chains
+/; are invisible to fw_gc_shadow_top and only reachable through the scheduler's
+/; aux root scanner.
+/; --------------------------------------------------------------------------
+bring sys
+
+var t_first: int64 = 0
+var started: int = 0
+var reported: bool = false
+
+fun slowTask() -> nthg {
+  started = started + 1
+  if started == 1 {
+    t_first = sys::nanos()
+  }
+
+  sys::sleep(100)
+
+  /; whichever task wakes first reports; the rest stay quiet
+  if !reported {
+    reported = true
+    var total_ms: deci = sys::elapsedNanos(t_first) / 1e6
+    println("overlapped: " + String(total_ms < 200.0))
+  }
+}
+
+spawn slowTask()
+spawn slowTask()
+spawn slowTask()
+println("queued 3")

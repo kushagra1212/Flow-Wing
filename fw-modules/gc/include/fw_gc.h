@@ -109,6 +109,20 @@ typedef struct FWFrame {
 
 extern FWFrame *fw_gc_shadow_top;    /* current top frame (NULL when empty) */
 
+/* Seed every root slot in one shadow chain.
+   `fw_gc_shadow_top` only describes the code currently RUNNING. A coroutine
+   scheduler parks each suspended task's chain head on the side — those frames
+   live on that task's own stack and are reachable from nowhere else, so the
+   scheduler hands them here during marking. */
+void fw_gc_mark_shadow_chain(FWFrame *top);
+
+/* Hook invoked during marking, after globals and the active shadow chain and
+   before the work-list is drained. A scheduler registers here to contribute
+   the chains of tasks that are alive but not currently on the CPU. NULL (the
+   default) means there is nothing extra to scan. */
+typedef void (*FWAuxRootScanFn)(void);
+void fw_gc_set_aux_root_scanner(FWAuxRootScanFn fn);
+
 void fw_gc_add_root(void **slot);
 void fw_gc_remove_root(void **slot);
 

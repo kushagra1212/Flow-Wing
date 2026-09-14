@@ -45,6 +45,10 @@ enum class DiagnosticCode : int16_t {
   kNoCaseStatementInSwitchStatement,
   kContinueStatementOutsideOfLoop,
   kInvalidBreakStatementUsage,
+  kSpawnRequiresFunctionCall,
+  kSpawnArgumentsNotSupported,
+  kSpawnRequiresNthgReturn,
+  kSpawnRequiresPlainFunction,
 
   // --- Semantic Errors ---
   kUnexpectedTypeExpression,

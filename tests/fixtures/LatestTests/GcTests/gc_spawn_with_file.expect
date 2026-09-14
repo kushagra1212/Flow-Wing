@@ -1,0 +1,4 @@
+queued 1
+wrote ok true err false
+read back hello-disk err false
+deleted true

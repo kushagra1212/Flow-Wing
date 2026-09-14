@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "src/ASTBuilder/parsers/StatementParser/IfStatementParser/IfStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/ModuleStatementParser/ModuleStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/ReturnStatementParser/ReturnStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/SpawnStatementParser/SpawnStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/SwitchStatementParser/SwitchStatementParser.h"
 #include "src/ASTBuilder/parsers/StatementParser/WhileStatementParser/WhileStatementParser.h"
@@ -67,6 +68,8 @@ StatementParserFactory::create(ParserContext &context) {
     return std::make_unique<ContinueStatementParser>(&context);
   case lexer::TokenKind::kReturnKeyword:
     return std::make_unique<ReturnStatementParser>(&context);
+  case lexer::TokenKind::kSpawnKeyword:
+    return std::make_unique<SpawnStatementParser>(&context);
   case lexer::TokenKind::kBringKeyword:
     return std::make_unique<BringStatementParser>(&context);
   case lexer::TokenKind::kTypeKeyword:

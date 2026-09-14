@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A `dyn` value holds its payload in a boxed slot with a type tag. When the
+/; payload is a string, the GC must trace it through the TAGGED descriptor, not
+/; through a plain pointer field.
+/;
+/; The task reassigns the same `dyn` local to three different types across two
+/; suspend points. Each new payload must be traced under the new tag.
+/; --------------------------------------------------------------------------
+bring sys
+
+fun task() -> nthg {
+  var value: dyn = "start" + "-str"
+  println("1 " + String(value))
+
+  sys::yield()
+
+  value = 42
+  println("2 " + String(value))
+
+  sys::sleep(20)
+
+  value = "end" + "-str"
+  println("3 " + String(value))
+}
+
+spawn task()
+println("queued 1")

@@ -1,0 +1,22 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A parsed JSON tree survives a suspend point.
+/;
+/; json::parse builds a tree of nodes on the GC heap. The task holds only the
+/; root in a local, so the whole tree hangs off that one slot in the task's
+/; shadow chain while it sleeps.
+/; --------------------------------------------------------------------------
+bring sys
+bring json
+
+fun task() -> nthg {
+  var node: json::JsonNode = json::parse(`{"lang":"FlowWing","n":2}`)
+
+  sys::sleep(30)
+
+  println(json::stringify(node))
+}
+
+spawn task()
+spawn task()
+println("queued 2")

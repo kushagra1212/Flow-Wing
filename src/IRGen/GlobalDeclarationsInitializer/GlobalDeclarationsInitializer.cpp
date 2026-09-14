@@ -371,6 +371,8 @@ void GlobalDeclarationsInitializer::visit(
 void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundReturnStatement *return_statement) {}
 void GlobalDeclarationsInitializer::visit(
+    [[maybe_unused]] binding::BoundSpawnStatement *spawn_statement) {}
+void GlobalDeclarationsInitializer::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {}
 void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
     types::ClassType *class_type) {

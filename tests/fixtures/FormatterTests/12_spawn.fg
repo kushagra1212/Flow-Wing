@@ -1,0 +1,15 @@
+/; Formatting of `spawn`: keyword spacing, indentation inside blocks, and the
+/; call expression being reflowed like any other call.
+   fun  worker( )->nthg{
+println("work")
+}
+     spawn    worker()
+fun  outer()->nthg{
+      spawn worker( )
+   if true{
+spawn   worker()
+}
+}
+for var i:int=0 to 2{
+   spawn worker()
+}

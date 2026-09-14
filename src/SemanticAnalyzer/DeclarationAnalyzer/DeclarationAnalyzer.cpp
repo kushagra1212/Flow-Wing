@@ -223,6 +223,9 @@ void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::ReturnStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(
+    [[maybe_unused]] syntax::SpawnStatementSyntax *node) {}
+
+void analysis::DeclarationAnalyzer::visit(
     [[maybe_unused]] syntax::SwitchStatementSyntax *node) {}
 
 void analysis::DeclarationAnalyzer::visit(

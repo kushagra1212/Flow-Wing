@@ -46,6 +46,7 @@ const std::string &toString(NodeKind kind) {
       // ---- Bound Declaration Statements ----
       {NodeKind::kCustomTypeStatement, "CustomTypeStatement"},
       {NodeKind::kFunctionStatement, "FunctionStatement"},
+      {NodeKind::kSpawnStatement, "SpawnStatement"},
       {NodeKind::kVariableDeclaration, "VariableDeclaration"},
 
       // -- Bound Expressions --

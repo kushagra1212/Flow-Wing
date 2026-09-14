@@ -1,0 +1,42 @@
+/; ===========================================================================
+/; THE CONCURRENCY SPEC TEST
+/;
+/; This is the test that defines "spawn actually gives concurrency". It FAILS
+/; today, on purpose. It is not in tests/fixtures because a red test cannot
+/; live in a green suite — it belongs here until suspension lands.
+/;
+/; Two tasks each wait 100ms.
+/;   - No suspension point  -> ~200ms (the drain sits inside sleep)
+/;   - Real suspension      -> ~100ms (both waits overlap on one thread)
+/;
+/; Nothing about the task bodies changes when this starts passing. The only
+/; thing that changes is that the wait becomes a yield instead of a block:
+/;
+/;     sys::sleep(100)            <- blocks the drain      (today)
+/;     timer::after(100).await()  <- yields to the loop    (goal)
+/;
+/;   make run-aot-debug FILE=tests/local/spec_overlap.fg ARGS="--emit=exe "
+/; ===========================================================================
+bring sys
+
+var t_first: int64 = 0
+var ran: int = 0
+
+fun slowTask() -> nthg {
+  ran = ran + 1
+  if ran == 1 {
+    t_first = sys::nanos()
+  }
+
+  sys::sleep(100)
+
+  if ran >= 2 {
+    var total_ms: deci = sys::elapsedNanos(t_first) / 1e6
+    println("two 100ms tasks took: " + String(total_ms) + " ms")
+    println("overlapped (want true): " + String(total_ms < 150.0))
+  }
+}
+
+spawn slowTask()
+spawn slowTask()
+println("queued 2 tasks, each waits 100ms")

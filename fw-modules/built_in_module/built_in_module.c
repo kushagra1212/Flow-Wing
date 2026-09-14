@@ -14,6 +14,10 @@
  #include <stdint.h>
  #include <math.h>
 #include <time.h>
+ #include <errno.h>
+ #ifdef _WIN32
+ #  include <windows.h>
+ #endif
  #include "fw_gc.h"
  #ifdef _MSC_VER
  #  define FG_THREAD_LOCAL __declspec(thread)
@@ -546,6 +550,49 @@ void fg_exit(int code) {
 
 long long fg_timestamp(void) {
     return (long long)time(NULL);
+}
+
+/* Monotonic clock in nanoseconds.
+ *
+ * fg_timestamp() is seconds-resolution wall time, so it cannot measure
+ * anything that finishes inside one second, and it jumps whenever the system
+ * clock is adjusted (NTP, DST, manual set). This one never goes backwards and
+ * is what benchmarks should use.
+ *
+ * The zero point is arbitrary and differs per platform and per boot — only
+ * DIFFERENCES between two readings are meaningful. */
+long long fg_monotonic_nanos(void) {
+#ifdef _WIN32
+    static LARGE_INTEGER freq;
+    static int freq_ready = 0;
+    LARGE_INTEGER now;
+
+    if (!freq_ready) {
+        QueryPerformanceFrequency(&freq);
+        freq_ready = 1;
+    }
+    QueryPerformanceCounter(&now);
+
+    /* Split into whole seconds plus remainder before scaling: computing
+       now * 1e9 directly overflows int64 after roughly 9 seconds of uptime
+       on a 10 MHz counter. */
+    return (long long)((now.QuadPart / freq.QuadPart) * 1000000000LL +
+                       ((now.QuadPart % freq.QuadPart) * 1000000000LL) /
+                           freq.QuadPart);
+#elif defined(__APPLE__)
+    /* Darwin's CLOCK_MONOTONIC is only microsecond-granular, which is useless
+       for anything finishing in under a millisecond. CLOCK_UPTIME_RAW is backed
+       by mach_absolute_time and exposes the full hardware tick (~41ns on Apple
+       Silicon). It excludes time the machine spent asleep, which is what you
+       want when timing code anyway. */
+    struct timespec ts;
+    clock_gettime(CLOCK_UPTIME_RAW, &ts);
+    return (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec;
+#endif
 }
 
 void fg_runtime_error(const char* msg) {

@@ -1,0 +1,30 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A custom `type` value, and an array of them, live across a suspend point.
+/;
+/; A struct with a `str` field is a PLAIN descriptor with one pointer offset.
+/; An array of those structs is an ARRAY descriptor that scans each element.
+/; Both paths run inside the mark phase while the task sleeps.
+/; --------------------------------------------------------------------------
+bring sys
+
+type Point = { label: str, x: int }
+
+fun task() -> nthg {
+  var single: Point = { label: "p" + "0", x: 7 }
+  var many: Point[3] = [
+    { label: "a" + "1", x: 1 },
+    { label: "b" + "2", x: 2 },
+    { label: "c" + "3", x: 3 }
+  ]
+
+  sys::sleep(30)
+
+  println(single.label + " " + String(single.x))
+  for var i: int = 0 to 2 {
+    println(many[i].label + " " + String(many[i].x))
+  }
+}
+
+spawn task()
+println("queued 1")
