@@ -1,0 +1,41 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A user class instance lives across a suspend point.
+/;
+/; The object and its `str` field are ordinary GC memory reached only through
+/; the task's own local. Both must survive the sleep, and the field written
+/; before the sleep must still read back after it.
+/; --------------------------------------------------------------------------
+bring sys
+
+class Counter {
+  var name: str
+  var hits: int
+
+  init(name: str) {
+    self.name = name
+    self.hits = 0
+  }
+
+  bump() -> nthg {
+    self.hits = self.hits + 1
+  }
+
+  describe() -> str {
+    return self.name + "=" + String(self.hits)
+  }
+}
+
+fun task() -> nthg {
+  var c: Counter = new Counter("c" + "1")
+  c.bump()
+
+  sys::sleep(30)
+
+  c.bump()
+  println(c.describe())
+}
+
+spawn task()
+spawn task()
+println("queued 2")

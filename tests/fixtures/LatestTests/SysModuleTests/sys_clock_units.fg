@@ -1,0 +1,48 @@
+/; --------------------------------------------------------------------------
+/; sys::micros(), sys::millis() and sys::elapsedNanos().
+/;
+/; sys_nanos.fg covers nanos() itself. These three are built on it: micros and
+/; millis divide it down, elapsedNanos subtracts an earlier reading. Division
+/; in Flow-Wing is floating point, so the unit helpers truncate back to int64 —
+/; a helper that returned a deci, or divided by the wrong power of ten, would
+/; put the units out by a factor of a thousand.
+/;
+/; Assertions are shape-only, never absolute times: wall time is not
+/; reproducible, but the ORDER of the units and the direction of the clock are.
+/; --------------------------------------------------------------------------
+bring sys
+
+var n0: int64 = sys::nanos()
+var u0: int64 = sys::micros()
+var m0: int64 = sys::millis()
+
+/; Same clock, three scales. A reading in nanoseconds is the largest number,
+/; microseconds a thousand times smaller, milliseconds smaller again. They are
+/; not sampled at the same instant, so compare with a generous margin rather
+/; than for exact equality.
+println(n0 >= u0)
+println(u0 >= m0)
+
+/; Burn some real time so every unit has something to measure.
+var sum: int64 = 0
+for var i: int = 0 to 300000 {
+  sum = sum + 1
+}
+
+/; elapsedNanos is nanos() minus an earlier reading, so it is never negative
+/; and it grew across the loop above.
+var spent: int64 = sys::elapsedNanos(n0)
+println(spent > 0)
+
+/; and it keeps growing: a later call from the same start point is at least as
+/; large as an earlier one
+var spentLater: int64 = sys::elapsedNanos(n0)
+println(spentLater >= spent)
+
+/; monotonic in every unit
+println(sys::micros() >= u0)
+println(sys::millis() >= m0)
+
+/; elapsedNanos from the reading we just took is small but never negative
+var fresh: int64 = sys::nanos()
+println(sys::elapsedNanos(fresh) >= 0l)

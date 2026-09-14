@@ -1,0 +1,25 @@
+/; --------------------------------------------------------------------------
+/; REGRESSION: map::Map.get() on a key that is not present returned garbage.
+/;
+/; get() is written as `getOr(key, null)` — the module comment says it "uses a
+/; nirast (null/nil) value as a default fallback". That fallback is a null
+/; literal passed as an argument, which is exactly the case that was broken:
+/; the value came back as an arbitrary number (-16, -40 and -116 were seen on
+/; successive runs) instead of null.
+/;
+/; getOr with a REAL fallback always worked, which is why this went unnoticed.
+/; Both are checked here so the two cannot drift apart again.
+/; --------------------------------------------------------------------------
+
+bring map
+
+var m: map::Map = new map::Map()
+m.set("present", "here")
+
+println("present        = " + String(m.get("present")))
+println("missing        = " + String(m.get("absent")))
+println("missing getOr  = " + String(m.getOr("absent", "DEFAULT")))
+println("missing getOr# = " + String(m.getOr("absent", 42)))
+println("missing null   = " + String(m.getOr("absent", null)))
+println("has present    = " + String(m.has("present")))
+println("has absent     = " + String(m.has("absent")))

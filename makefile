@@ -159,6 +159,8 @@ help:
 	@echo "    test-jit                 Build and run all tests in JIT mode."
 	@echo "    test-format              Build AOT and run formatter golden tests (tests/formatter_golden_test.py)."
 	@echo "    test-gc                  Build AOT and run the GC runtime unit tests (fw-modules/gc/tests)."
+	@echo "    test-sched               Build AOT and run the scheduler unit tests (spawn/yield/park_io)."
+	@echo "    test-uv                  Build AOT and run the event-loop unit tests (shared libuv loop)."
 	@echo "    (Example: make test-aot FILTER=MyTestSuite.*)"
 	@echo ""
 	@echo "  Dependency Management:"
@@ -460,6 +462,25 @@ test-format: build-aot-release
 test-gc: build-aot-release
 	$(ECHO_MSG) "--> Running GC runtime unit tests..."
 	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_gc$(EXE_EXT)
+
+
+#? Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c)
+#? Covers the shared libuv loop and fw_uv_wake(), the one call a worker thread
+#? is allowed to make — the handoff the HTTP client and async file I/O rely on.
+.PHONY: test-uv
+test-uv: build-aot-release
+	$(ECHO_MSG) "--> Running event loop unit tests..."
+	@$(AOT_RELEASE_DIR)/fw-modules/uv_module/test_uv$(EXE_EXT)
+
+
+#? Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c)
+#? Covers queueing, yielding, sleeping, task arguments and the event-parking
+#? API (park_io / wake_io / io_waiting / set_waiter) that the socket layer
+#? calls and that no `spawn` statement can reach.
+.PHONY: test-sched
+test-sched: build-aot-release
+	$(ECHO_MSG) "--> Running scheduler runtime unit tests..."
+	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_sched$(EXE_EXT)
 
 
 #! ----- LSP -----

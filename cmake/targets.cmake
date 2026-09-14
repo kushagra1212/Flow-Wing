@@ -206,6 +206,12 @@ if(NOT BUILD_AOT)
         # plain target in target_link_libraries, so CMake infers the order.)
         add_dependencies(${EXECUTABLE_NAME} flowwing_gc)
         add_dependencies(${EXECUTABLE_NAME} flowwing_mongo_merge)
+        # Same reason: these are force_load'd through raw -Wl strings, which
+        # create no build-order edge. Without this the executable can be linked
+        # before the archive exists — "ld: library ... not found", and it only
+        # shows up on a clean or parallel build.
+        add_dependencies(${EXECUTABLE_NAME} flowwing_uv)
+        add_dependencies(${EXECUTABLE_NAME} flowwing_vortex)
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,-all_load"
             "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
@@ -216,6 +222,9 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,$<TARGET_FILE:flowwing_file>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_io>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_vortex>"
+            # flowwing_uv is the ONLY archive carrying libuv; force-loading it
+            # twice (here and via another module) would duplicate every uv_*.
+            "-Wl,-force_load,$<TARGET_FILE:flowwing_uv>"
             "-Wl,-force_load,$<TARGET_FILE:flowwing_raylib>"
             # flowwing_mongo already has libmongoc + libbson merged into it
             # by the libtool POST_BUILD step in mongo_module/CMakeLists.txt,

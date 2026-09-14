@@ -10,7 +10,7 @@ import CodeBlock from "../../src/components/common/CodeBlock";
 
 ## Start here
 
-**`bring sys`** gives your program access to **command-line arguments**, the **current script directory**, a **timestamp** helper, and **`exit`**. No extra native libraries or link flags are needed.
+**`bring sys`** gives your program access to **command-line arguments**, the **current script directory**, a **monotonic clock**, **task scheduling** helpers, and **`exit`**. No extra native libraries or link flags are needed.
 
 ### A tiny program
 
@@ -56,6 +56,72 @@ for (var i: int = 0 to count - 1 : 1) {
 | `sys::scriptDir()` | `str` | Directory of the running script |
 | `sys::timestamp()` | `int` | Current Unix timestamp (seconds since epoch) |
 | `sys::exit(code)` | — | Terminates the program with exit code `code` |
+
+## Measuring time
+
+`sys::timestamp()` is **seconds**-resolution and it jumps when the system clock
+is adjusted, so it cannot measure anything that finishes inside a second. For
+timing, use the monotonic clock. It never goes backwards, and its zero point is
+arbitrary — only **differences** between readings mean anything.
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `sys::nanos()` | `int64` | Monotonic clock, nanoseconds |
+| `sys::micros()` | `int64` | Same clock, microseconds |
+| `sys::millis()` | `int64` | Same clock, milliseconds |
+| `sys::elapsedNanos(start)` | `int64` | Nanoseconds since an earlier `nanos()` reading |
+
+<CodeBlock code={
+`bring sys
+
+var start: int64 = sys::nanos()
+
+var sum: int64 = 0
+for var i: int = 0 to 500000 {
+    sum = sum + 1
+}
+
+println("took ", sys::elapsedNanos(start), " ns")
+println("that is ", Int64(sys::elapsedNanos(start) / 1000000l), " ms")
+`} language="fg"/>
+
+:::tip
+Division in Flow-Wing is floating point, so wrap the result in `Int64(...)` when
+you want whole milliseconds.
+:::
+
+## Pausing and switching
+
+These two are what make `spawn` useful. See *Advanced → Concurrency with spawn*.
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `sys::sleep(ms)` | `nthg` | Wait `ms` milliseconds |
+| `sys::yield()` | `nthg` | Give up the CPU, resume on the next line |
+
+**Inside a spawned task `sys::sleep` suspends only that task** — other queued
+work runs while it waits. Outside a task there is nothing to switch to, so it
+blocks the thread.
+
+<CodeBlock code={
+`bring sys
+
+fun waiter(id: int) -> nthg {
+    sys::sleep(200)
+    println("task ", id, " woke")
+}
+
+for var i: int = 0 to 4 {
+    spawn waiter(i)
+}
+println("5 tasks queued")
+`} language="fg"/>
+
+Five tasks each waiting 200 ms finish in about **200 ms** in total, not 1000 ms.
+
+`sys::yield()` has no deadline. The task moves to the back of the queue and
+continues from the following line when its turn comes round. It is a no-op
+outside a task.
 
 ### Early exit
 

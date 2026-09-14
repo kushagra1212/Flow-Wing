@@ -7,6 +7,7 @@
 # =============================================================================
 
 add_subdirectory(gc)
+add_subdirectory(uv_module)
 add_subdirectory(built_in_module)
 add_subdirectory(dynamic)
 add_subdirectory(map_module)

@@ -1,0 +1,5 @@
+queued 2
+n=41 d=2.5 flag=true text=99
+back to int 2 and to str 41
+n=7 d=3 flag=true text=true
+back to int 3 and to str 7

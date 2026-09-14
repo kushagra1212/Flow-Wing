@@ -1,0 +1,38 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The FAILURE path of the threadpool read, which the happy-path test never
+/; touches.
+/;
+/; Inside a task, file::readText hands the read to libuv's threadpool and parks
+/; the task. When the file does not exist the work callback sets an error on a
+/; POOL thread, and the after-callback wakes the task on the FlowWing thread.
+/; Those are two different threads, so an error that was recorded in the wrong
+/; place would surface here as a wrong result or a hang.
+/;
+/; Also checks that a task can keep running after a failed read, and that a
+/; good read still works afterwards on the same task.
+/; --------------------------------------------------------------------------
+bring sys
+bring file
+bring Err
+
+fun task() -> nthg {
+  /; 1. missing file: must report an error, not hang and not crash
+  var missing: str, e1: Err::Result = file::readText("definitely_not_here_9x7.txt")
+  println("missing -> empty=" + String(missing == "") + " err=" + String(Err::isErr(e1)))
+
+  /; 2. the task is still alive and can still suspend
+  sys::sleep(20)
+
+  /; 3. a good read still works after the failure
+  var path: str = "gc_spawn_file_errors_tmp.txt"
+  var wrote: bool, e2: Err::Result = file::writeText(path, "after" + "-error")
+  var back: str, e3: Err::Result = file::readText(path)
+  println("recovered -> " + back)
+
+  var gone: bool, e4: Err::Result = file::delete(path)
+  println("cleaned up " + String(gone))
+}
+
+spawn task()
+println("queued")

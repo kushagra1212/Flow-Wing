@@ -32,6 +32,29 @@ class Dog extends Animal {
 }
 `} language="fg"/>
 
+## Concurrency without threads
+
+`spawn` queues a function as a task. Each task gets its own stack, so it can
+suspend on a sleep or a socket and resume later from the same line. Tasks are
+cooperative and single-threaded — **no locks, no data races**.
+
+<CodeBlock code={
+`bring sys
+
+fun waiter(id: int) -> nthg {
+    sys::sleep(200)
+    println("task ", id, " woke")
+}
+
+for var i: int = 0 to 4 {
+    spawn waiter(i)
+}
+`} language="fg"/>
+
+Five tasks each waiting 200 ms finish in about 200 ms, not 1000 ms. HTTP servers
+and clients run on the same event loop, so a hundred connections cost one
+thread. See *Advanced → Concurrency with spawn*.
+
 ## AOT and JIT
 
 The AOT compiler produces a native executable you run directly. The JIT tool runs a `.fg` file in one step. Your build or package determines which binaries you get. See *Flow-Wing CLI* and *Getting Started*.

@@ -1,0 +1,31 @@
+/; --------------------------------------------------------------------------
+/; sys::nanos() — monotonic clock in nanoseconds.
+/;
+/; sys::timestamp() is seconds-resolution, so it cannot measure anything that
+/; finishes inside one second. nanos() is the clock you benchmark with.
+/;
+/; Assertions are deliberately shape-only, never absolute values: wall time is
+/; not reproducible, but "never goes backwards" and "advances across real work"
+/; both are.
+/; --------------------------------------------------------------------------
+bring sys
+
+var t0: int64 = sys::nanos()
+
+var sum: int64 = 0
+for var i: int = 0 to 200000 {
+  sum = sum + 1
+}
+
+var t1: int64 = sys::nanos()
+
+/; monotonic: a later reading is never smaller than an earlier one
+println(t1 >= t0)
+
+/; the clock actually advanced across 200k iterations of real work
+println((t1 - t0) > 0)
+
+/; two back-to-back readings stay ordered
+var a: int64 = sys::nanos()
+var b: int64 = sys::nanos()
+println(b >= a)

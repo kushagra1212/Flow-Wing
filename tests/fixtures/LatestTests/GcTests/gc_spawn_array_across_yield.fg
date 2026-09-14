@@ -1,0 +1,29 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; An array of strings and a growing string both stay alive across REPEATED
+/; suspend points inside a loop.
+/;
+/; The task parks four times. Each park moves its shadow chain off
+/; `fw_gc_shadow_top`, and every append allocates a new string under stress.
+/; The array, its four elements, and the partly built accumulator must all
+/; survive each one.
+/; --------------------------------------------------------------------------
+bring sys
+
+fun task() -> nthg {
+  var parts: str[4] = ["p" + "0", "p" + "1", "p" + "2", "p" + "3"]
+  var acc: str = ""
+
+  for var i: int = 0 to 3 {
+    acc = acc + parts[i]
+    sys::yield()
+  }
+
+  sys::sleep(20)
+
+  println(acc + "|" + parts[3])
+}
+
+spawn task()
+spawn task()
+println("queued 2")

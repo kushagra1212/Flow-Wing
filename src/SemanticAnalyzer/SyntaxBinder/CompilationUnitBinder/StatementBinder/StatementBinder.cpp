@@ -38,6 +38,7 @@
 #include "src/syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/SpawnStatementSyntax/SpawnStatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
@@ -85,6 +86,9 @@ StatementBinder::bind(syntax::StatementSyntax *statement) {
   case syntax::NodeKind::kReturnStatement:
     return bindReturnStatement(
         static_cast<syntax::ReturnStatementSyntax *>(statement));
+  case syntax::NodeKind::kSpawnStatement:
+    return bindSpawnStatement(
+        static_cast<syntax::SpawnStatementSyntax *>(statement));
   case syntax::NodeKind::kSwitchStatement:
     return bindSwitchStatement(
         static_cast<syntax::SwitchStatementSyntax *>(statement));

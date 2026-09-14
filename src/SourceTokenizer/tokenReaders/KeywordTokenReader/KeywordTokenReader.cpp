@@ -38,6 +38,7 @@ static const std::unordered_map<std::string, lexer::TokenKind> kKeywords = {
     {"continue", lexer::TokenKind::kContinueKeyword},
     {"break", lexer::TokenKind::kBreakKeyword},
     {"return", lexer::TokenKind::kReturnKeyword},
+    {"spawn", lexer::TokenKind::kSpawnKeyword},
     {"const", lexer::TokenKind::kConstKeyword},
     {"nthg", lexer::TokenKind::kNthgKeyword},
     {"int", lexer::TokenKind::kInt32Keyword},

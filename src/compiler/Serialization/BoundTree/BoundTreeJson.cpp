@@ -193,6 +193,18 @@ void BoundTreeJson::visit(
 }
 
 void BoundTreeJson::visit(
+    [[maybe_unused]] binding::BoundSpawnStatement *spawn_statement) {
+  PARSER_DEBUG_LOG("Visiting Bound Spawn Statement", "BOUND TREE");
+  nlohmann::json spawn_statement_json;
+  spawn_statement_json["kind"] = toString(spawn_statement->getKind());
+  serializeChild(spawn_statement->getCallExpression(), spawn_statement_json,
+                 "call_expression");
+  spawn_statement_json["range"] =
+      toJsonRange(spawn_statement->getSourceLocation());
+  m_last_node_json = std::move(spawn_statement_json);
+}
+
+void BoundTreeJson::visit(
     [[maybe_unused]] binding::BoundSwitchStatement *switch_statement) {
   PARSER_DEBUG_LOG("Visiting Bound Switch Statement", "BOUND TREE");
   nlohmann::json switch_statement_json;

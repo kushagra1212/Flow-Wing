@@ -1,0 +1,56 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Arrays sit on both sides of the copy/alias line, and the deciding factor is
+/; how the array REACHES the task.
+/;
+/;   passed directly        copied into the argument block. The task's writes
+/;                          stay in the task; the caller's writes stay in the
+/;                          caller.
+/;   passed inside an       the object pointer is copied, and the array lives
+/;   object                 inside that one object. Writes go both ways.
+/;
+/; So `spawn f(arr)` and `spawn f(box)` where box holds the same data behave
+/; differently. Both directions are checked below: the task writes, and the
+/; caller writes, and the test prints what each side ends up seeing.
+/; --------------------------------------------------------------------------
+
+type Holder = { data: int[3], name: str }
+
+fun writeBare(a: int[3]) -> nthg {
+  a[0] = 1000
+  a[1] = 2000
+  println("bare task sees [" + String(a[0]) + "," + String(a[1]) + "," +
+          String(a[2]) + "]")
+}
+
+fun writeHeld(h: Holder) -> nthg {
+  h.data[0] = 1000
+  h.data[1] = 2000
+  println("held task sees [" + String(h.data[0]) + "," + String(h.data[1]) +
+          "," + String(h.data[2]) + "] name=" + h.name)
+}
+
+fun reportBare(a: int[3]) -> nthg {
+  println("bare later    [" + String(a[0]) + "," + String(a[1]) + "," +
+          String(a[2]) + "]")
+}
+
+fun reportHeld(h: Holder) -> nthg {
+  println("held later    [" + String(h.data[0]) + "," + String(h.data[1]) +
+          "," + String(h.data[2]) + "]")
+}
+
+var bare: int[3] = [1, 2, 3]
+var held: Holder = { data: [1, 2, 3], name: "h" + "1" }
+
+spawn writeBare(bare)
+spawn reportBare(bare)
+spawn writeHeld(held)
+spawn reportHeld(held)
+
+/; caller writes after the spawns: invisible to the copies, visible through
+/; the object
+bare[2] = 300
+held.data[2] = 300
+
+println("caller wrote index 2")

@@ -1,0 +1,24 @@
+/; ENV: FW_TASK_STACK_KB=32768
+/; --------------------------------------------------------------------------
+/; FW_TASK_STACK_KB raises the task stack, so the recursion that overflows in
+/; task_stack_overflow.fg completes here. Same source shape, same depth; only
+/; the runtime setting differs.
+/;
+/; 32768 KB is far above what 100000 frames need, so the test does not sit on
+/; the edge of the limit and flake if a frame grows by a few bytes.
+/; --------------------------------------------------------------------------
+
+fun deep(n: int) -> int {
+  var pad: str = "x" + String(n)
+  if n <= 0 {
+    return 0
+  }
+  return deep(n - 1) + 1
+}
+
+fun task() -> nthg {
+  println("depth " + String(deep(100000)))
+}
+
+spawn task()
+println("queued")

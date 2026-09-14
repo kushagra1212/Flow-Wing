@@ -1,0 +1,30 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Shadowed names at the spawn site.
+/;
+/; The argument is evaluated where the `spawn` is written, so an inner
+/; declaration that shadows an outer one must be the value the task receives.
+/; Once the block is built the name no longer matters: the task holds a copy
+/; and is unaffected by the shadow going out of scope.
+/; --------------------------------------------------------------------------
+
+fun report(v: int, where: str) -> nthg {
+  println(where + " saw " + String(v))
+}
+
+var value: int = 1
+spawn report(value, "outer")
+
+{
+  var value: int = 2
+  spawn report(value, "block")
+  {
+    var value: int = 3
+    spawn report(value, "inner")
+  }
+}
+
+spawn report(value, "after")
+
+value = 99
+println("queued 4")

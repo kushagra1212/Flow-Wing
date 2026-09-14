@@ -1,0 +1,17 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A brought file's top-level `spawn` must still be drained.
+/;
+/; Brought top-level code is emitted into __fw_brought_init_<i>, which main
+/; calls before running its own statements. The drain call is emitted ONLY in
+/; main (IRGenerator.cpp, just before handleReturn), never in the brought-init
+/; function — so a task queued by the library depends entirely on main's drain
+/; to run at all.
+/;
+/; Ordering below pins that down: library top-level, then main's body, then the
+/; library's task — because the task waits for main's drain, not the library's
+/; own initialisation.
+/; --------------------------------------------------------------------------
+bring "spawn_support/spawn_toplevel_lib.fg"
+
+println("main")

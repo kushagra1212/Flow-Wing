@@ -1,0 +1,31 @@
+/; EXPECT_ERROR: Runtime Error: Array Index Out of Bounds.
+/; --------------------------------------------------------------------------
+/; The same fault, but raised AFTER the task has suspended and resumed.
+/;
+/; This is the harder case. When the task yields, its stack is parked and the
+/; scheduler switches away; the trap then fires after a context switch back
+/; onto that parked stack. Reporting it correctly means the error path does not
+/; depend on being on the stack the program started with.
+/;
+/; The other task runs to completion in the gap, which proves the scheduler was
+/; genuinely elsewhere and not merely running this task straight through.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+fun bad() -> nthg {
+  println("bad start")
+  sys::yield()
+  var a: int[2] = [1, 2]
+  var i: int = 9
+  println(String(a[i]))
+}
+
+fun good() -> nthg {
+  println("good ran")
+}
+
+spawn bad()
+spawn good()
+
+println("queued 2")

@@ -34,6 +34,7 @@ enum class NodeKind : int {
   kCustomTypeStatement,
   kVariableDeclaration,
   kFunctionStatement,
+  kSpawnStatement,
 
   // ---- Bound If Statements ----
   kIfStatement,

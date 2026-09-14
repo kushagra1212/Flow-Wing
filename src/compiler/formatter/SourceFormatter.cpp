@@ -71,6 +71,7 @@
 #include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/SpawnStatementSyntax/SpawnStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
@@ -1436,6 +1437,21 @@ void SourceFormatter::visit(syntax::ReturnStatementSyntax *node) {
       continue;
     if (c == expr) {
       DepthPush retExpr(m_collapseEolExpressionDepth);
+      visitChild(c);
+    } else {
+      visitChild(c);
+    }
+  }
+}
+void SourceFormatter::visit(syntax::SpawnStatementSyntax *node) {
+  const auto &ch = node->getChildren();
+  const auto *expr = static_cast<const syntax::SyntaxNode *>(
+      node->getCallExpression().get());
+  for (const auto *c : ch) {
+    if (!c)
+      continue;
+    if (c == expr) {
+      DepthPush spawnExpr(m_collapseEolExpressionDepth);
       visitChild(c);
     } else {
       visitChild(c);

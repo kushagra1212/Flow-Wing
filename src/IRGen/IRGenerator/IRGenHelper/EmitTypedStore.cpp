@@ -105,6 +105,27 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
       source_type == analysis::Builtins::m_nirast_type_instance.get();
 
   if (is_source_null) {
+    // A dynamic destination is a BOX — { i32 tag, i64 payload } — not a
+    // pointer. Storing a bare null pointer into it writes 8 bytes over the tag
+    // and the padding and leaves the payload at offset 8 untouched, so the box
+    // ends up tagged 0 (not NIRAST) with whatever the stack slot happened to
+    // hold. `takesDyn(null)` printed a different number on every build, and
+    // map::Map.get() on a missing key returned that garbage instead of null,
+    // because its fallback is exactly this literal.
+    //
+    // storePrimitiveToDynamic already recognises a null pointer and produces
+    // { NIRAST, 0 }, which is what `var x = null` goes through — that path was
+    // always correct, which is why only the ARGUMENT case was visibly broken.
+    if (target_type->isDynamic()) {
+      llvm::Value *boxed_null = DynamicValueHandler::storePrimitiveToDynamic(
+          llvm::ConstantPointerNull::get(builder->getPtrTy()),
+          builder->getPtrTy(),
+          m_ir_gen_context.getTypeBuilder()->getLLVMType(target_type),
+          builder.get(), source_type);
+
+      builder->CreateStore(boxed_null, target_addr);
+      return;
+    }
 
     builder->CreateStore(
         llvm::ConstantPointerNull::get(m_ir_gen_context.getTypeBuilder()

@@ -1,0 +1,24 @@
+/; ENV: FW_TASK_STACK_KB=abc
+/; EXPECT_ERROR: Runtime Error: Task Stack Overflow.
+/; --------------------------------------------------------------------------
+/; A value that is not a number is IGNORED, not obeyed. The stack falls back to
+/; the 256 KB default, so this still overflows.
+/;
+/; The same fallback applies to a value outside 16 KB to 65536 KB. Obeying a
+/; 0 KB request would fault on the first call of every task, which is worse
+/; than refusing it.
+/; --------------------------------------------------------------------------
+
+fun deep(n: int) -> int {
+  var pad: str = "x" + String(n)
+  if n <= 0 {
+    return 0
+  }
+  return deep(n - 1) + 1
+}
+
+fun task() -> nthg {
+  println(String(deep(100000)))
+}
+
+spawn task()

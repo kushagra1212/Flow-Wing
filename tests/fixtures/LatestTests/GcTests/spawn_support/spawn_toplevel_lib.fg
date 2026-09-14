@@ -1,0 +1,16 @@
+/; Support library for gc_spawn_brought_toplevel.fg.
+/;
+/; Spawns at its own TOP LEVEL. When brought into another file this code runs
+/; inside __fw_brought_init_<i>, which main calls before its own statements —
+/; but the scheduler drain is emitted only in main. So the task queued here has
+/; to survive until main's drain.
+/;
+/; Standalone it is its own main, so the drain is local and the ordering is the
+/; same.
+
+fun libTask() -> nthg {
+  println("  lib task")
+}
+
+spawn libTask()
+println("lib top-level")

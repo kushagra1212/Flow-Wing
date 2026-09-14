@@ -62,6 +62,56 @@ else()
         GIT_PROGRESS TRUE
     )
 
+    # libuv — the event loop the task scheduler idles in.
+    #
+    # Without it the scheduler can only wait on a clock (nanosleep), so a task
+    # that waits on a SOCKET blocks the whole thread and no other task runs.
+    # uv_run waits on timers and sockets together, which is what lets a server
+    # task park without stopping everything else.
+    ExternalProject_Add(
+        libuv_external
+        GIT_REPOSITORY  "https://github.com/libuv/libuv.git"
+        GIT_TAG         "v1.51.0"
+        GIT_SHALLOW     TRUE
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DBUILD_SHARED_LIBS=OFF
+            -DLIBUV_BUILD_TESTS=OFF
+            -DLIBUV_BUILD_BENCH=OFF
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_CONFIGURE true
+        USES_TERMINAL_BUILD true
+        USES_TERMINAL_INSTALL true
+        GIT_PROGRESS TRUE
+    )
+
+    # llhttp — the HTTP/1.1 parser Node.js uses.
+    #
+    # Parsing only: it turns bytes into request-line/header/body callbacks and
+    # nothing else. Sockets, response writing, chunked encoding and keep-alive
+    # stay in Flow-Wing's own code, which is the point — a parser is the one
+    # part of HTTP that is genuinely hard to get right, and this one is
+    # battle-tested.
+    #
+    # The release/ tags ship pre-generated C, so no TypeScript toolchain is
+    # needed to build it.
+    ExternalProject_Add(
+        llhttp_external
+        URL "https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz"
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DBUILD_SHARED_LIBS=OFF
+            -DBUILD_STATIC_LIBS=ON
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_CONFIGURE true
+        USES_TERMINAL_BUILD true
+        USES_TERMINAL_INSTALL true
+    )
+
     ExternalProject_Add(
         mongo_c_driver_external
         GIT_REPOSITORY  "https://github.com/mongodb/mongo-c-driver.git"

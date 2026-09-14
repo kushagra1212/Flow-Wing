@@ -1,0 +1,38 @@
+/; --------------------------------------------------------------------------
+/; REGRESSION: a `null` literal passed as an ARGUMENT used to produce garbage.
+/;
+/; A dynamic value is a box — { i32 tag, i64 payload }. The null literal was
+/; written into the argument slot as a bare 8-byte null POINTER, which covered
+/; the tag and the padding but left the payload at offset 8 holding whatever
+/; was on the stack. The box therefore read as tag 0 (a number, not NIRAST)
+/; with an arbitrary payload, and printed a different value on every build:
+/; 80, 88, -16, -34 and -116 were all observed.
+/;
+/; A local variable holding null hid the bug, because a fresh stack slot is
+/; zeroed — the tag still read as a number, but the payload was 0, so it
+/; printed a plausible-looking 0.
+/;
+/; Both forms must now agree and both must say "null".
+/; --------------------------------------------------------------------------
+
+fun takesDyn(v: dyn) -> nthg {
+  println("typed    " + String(v))
+}
+
+fun takesUntyped(v) -> nthg {
+  println("untyped  " + String(v))
+}
+
+var held = null
+println("local    " + String(held))
+
+/; passed straight through as a literal — this is the case that was broken
+takesDyn(null)
+takesUntyped(null)
+
+/; passed via a variable — this always worked, and must still agree
+takesDyn(held)
+takesUntyped(held)
+
+/; a null is still equal to a null after the round trip
+println(held == null)

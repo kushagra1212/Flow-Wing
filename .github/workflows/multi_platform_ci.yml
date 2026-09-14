@@ -92,6 +92,20 @@ jobs:
         if: success() || failure()
         run: make test-gc
 
+      # Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c). Covers
+      # park_io / wake_io / io_waiting / set_waiter, which the .fg fixtures
+      # cannot reach because no `spawn` statement spells them.
+      - name: Scheduler runtime unit tests
+        if: success() || failure()
+        run: make test-sched
+
+      # Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c). Drives
+      # fw_uv_wake() from a real worker thread — the handoff the HTTP client
+      # and async file I/O depend on, which no .fg fixture can assert about.
+      - name: Event loop unit tests
+        if: success() || failure()
+        run: make test-uv
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -197,6 +211,20 @@ jobs:
         if: success() || failure()
         run: make test-gc
 
+      # Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c). Covers
+      # park_io / wake_io / io_waiting / set_waiter, which the .fg fixtures
+      # cannot reach because no `spawn` statement spells them.
+      - name: Scheduler runtime unit tests
+        if: success() || failure()
+        run: make test-sched
+
+      # Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c). Drives
+      # fw_uv_wake() from a real worker thread — the handoff the HTTP client
+      # and async file I/O depend on, which no .fg fixture can assert about.
+      - name: Event loop unit tests
+        if: success() || failure()
+        run: make test-uv
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -299,6 +327,26 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-gc
+
+      # Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c). Covers
+      # park_io / wake_io / io_waiting / set_waiter, which the .fg fixtures
+      # cannot reach because no `spawn` statement spells them.
+      - name: Scheduler runtime unit tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-sched
+
+      # Event-loop unit tests — see the note on the other platforms.
+      - name: Event loop unit tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-uv
 
       - name: Formatter golden tests
         if: success()

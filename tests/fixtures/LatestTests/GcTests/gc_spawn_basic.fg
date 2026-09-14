@@ -1,0 +1,22 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `spawn f()` queues a coroutine instead of calling it inline. The queued
+/; coroutine runs once the main program body is done and the scheduler drains
+/; its ready-queue, so "main done" must print BEFORE the coroutine's output.
+/;
+/; Under FW_GC_STRESS every allocation collects, so the string built inside
+/; the spawned function must be rooted by that function's own shadow frame
+/; while the scheduler is driving it — not just while `main` is on the stack.
+/;
+/; Arguments are deliberately absent here: passing them requires storing the
+/; evaluated values somewhere GC-traced until the call actually happens. That
+/; is a separate test once coroutines own a real stack.
+/; --------------------------------------------------------------------------
+
+fun greet() -> nthg {
+  var msg: str = "hello " + "from-coroutine"
+  println(msg)
+}
+
+spawn greet()
+println("main done")

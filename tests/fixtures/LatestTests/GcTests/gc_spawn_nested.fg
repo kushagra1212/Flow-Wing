@@ -1,0 +1,29 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A task may spawn more work. The drain keeps running until the queue is
+/; truly empty, and newly queued tasks go to the BACK — so `grandchild` runs
+/; after `after`, not immediately when `child` spawns it.
+/;
+/; Under FW_GC_STRESS the string each task builds must be rooted by that
+/; task's own shadow frame while the scheduler is driving it.
+/; --------------------------------------------------------------------------
+
+fun grandchild() -> nthg {
+  var msg: str = "grand" + "child"
+  println(msg)
+}
+
+fun child() -> nthg {
+  var msg: str = "chi" + "ld"
+  println(msg)
+  spawn grandchild()
+}
+
+fun after() -> nthg {
+  var msg: str = "af" + "ter"
+  println(msg)
+}
+
+spawn child()
+spawn after()
+println("main done")

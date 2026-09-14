@@ -38,8 +38,9 @@ Flow-Wing includes `Vortex`, an HTTP server framework for building APIs and serv
 * **Dual Execution Modes:** Compile to native executables (AOT) or run scripts directly (JIT).
 * **Memory Management:** Heap memory is managed automatically by Flow-Wing's built-in garbage collector. No manual `free()` required.
 * **Object-Oriented:** Full support for classes, methods, inheritance (`extends`), and custom types.
+* **Concurrency without threads:** `spawn` queues a function as a task with its own stack. Tasks suspend on sleeps and sockets and resume where they stopped — cooperative, single-threaded, no locks.
 * **Native C Interop:** Easily link external C/C++ libraries using standard linker flags (`-l`, `-L`).
-* **Built-in Modules:** Ships with modules for file handling (`file`), JSON parsing (`json`), HTTP servers (`vortex`), graphics (`raylib`), and dynamic data structures (`vec`, `map`).
+* **Built-in Modules:** Ships with modules for file handling (`file`), JSON parsing (`json`), HTTP servers (`vortex`), graphics (`raylib`), and dynamic data structures (`vec`, `map`), and system utilities (`sys`).
 
 ---
 
@@ -133,6 +134,25 @@ var myCar: Car = new Car("Honda", 2022, 4)
 println(myCar.getDetails())
 ```
 
+### Concurrency with `spawn`
+`spawn f()` queues `f` as a task. Each task owns a stack, so it can wait without blocking the others:
+
+```fg
+bring sys
+
+fun waiter(id: int) -> nthg {
+  sys::sleep(200)
+  println("task " + String(id) + " woke")
+}
+
+for var i: int = 0 to 4 {
+  spawn waiter(i)
+}
+println("5 tasks queued")
+```
+
+All five wake at about 200 ms — not 1000 ms — on a single thread.
+
 ### Creating an HTTP Server
 Using the built-in `vortex` module to handle requests:
 
@@ -165,6 +185,18 @@ fun server() -> nthg {
 
 server()
 ```
+
+Vortex runs on **libuv**: a connection costs a socket on a shared event loop, not a
+thread. To handle requests concurrently, `spawn` the handler so the loop returns to
+`accept()` immediately:
+
+```fg
+var req: vortex::Request, res: vortex::Response = app.accept()
+spawn handle(req, res)
+```
+
+Measured with five clients against a handler doing 300 ms of work: **1516 ms → 302 ms**,
+same single thread.
 
 ---
 

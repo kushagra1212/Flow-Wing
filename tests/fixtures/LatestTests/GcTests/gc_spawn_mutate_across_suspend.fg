@@ -1,0 +1,51 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Mutation that happens WHILE a task is suspended.
+/;
+/; The other mutation tests write from the top level, which always finishes
+/; before any task starts. Here the writer is a second TASK, so it runs in the
+/; middle of the reader's life — between the reader's yield and its resume.
+/;
+/; The reader reads the same three things twice, before and after the yield:
+/;
+/;   its int parameter    a copy, so it cannot change. Same both times.
+/;   its object parameter an alias, so the writer's field store IS seen.
+/;   a global             read fresh each time, so the new value IS seen.
+/;
+/; This also exercises the GC: the reader's frames live on its own suspended
+/; stack, and FW_GC_STRESS collects on every allocation the writer makes. If
+/; the scheduler did not hand the parked task's shadow chain to the collector,
+/; the object and the strings below would be swept while the reader sleeps.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+type Cell = { v: int, note: str }
+
+var g_epoch: int = 1
+
+fun reader(n: int, c: Cell) -> nthg {
+  println("reader before: n=" + String(n) + " cell.v=" + String(c.v) +
+          " note=" + c.note + " epoch=" + String(g_epoch))
+  sys::yield()
+  println("reader after : n=" + String(n) + " cell.v=" + String(c.v) +
+          " note=" + c.note + " epoch=" + String(g_epoch))
+}
+
+fun writer(c: Cell) -> nthg {
+  c.v = 99
+  c.note = "touched" + "-by-writer"
+  g_epoch = 2
+  println("writer done")
+}
+
+var cell: Cell = { v: 1, note: "ini" + "tial" }
+var n: int = 5
+
+spawn reader(n, cell)
+spawn writer(cell)
+
+n = 777
+cell.v = 1
+g_epoch = 1
+println("queued")

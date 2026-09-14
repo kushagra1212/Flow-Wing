@@ -14,7 +14,7 @@ import hashlib
 import signal
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 
 # Subprocess output encoding: use UTF-8 so compiler/binary output decodes correctly on Windows (avoid cp1252 UnicodeDecodeError).
@@ -61,6 +61,27 @@ def test_forces_gc_stress(file_path):
     except Exception:
         pass
     return False
+
+def get_test_env(file_path):
+    """Environment variables a test needs, declared in its header.
+
+        /; ENV: FW_TASK_STACK_KB=4096
+
+    Returns a dict. One directive per line; later lines win. Only the first 12
+    lines are scanned, so the marker has to sit in the header comment."""
+    env = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for _ in range(12):
+                line = f.readline()
+                if not line:
+                    break
+                match = re.search(r'/;\s*ENV:\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$', line)
+                if match:
+                    env[match.group(1)] = match.group(2).strip()
+    except Exception:
+        pass
+    return env
 
 def get_mock_server_port(file_path):
     """Checks if the FlowWing client test requires a Python mock server to connect to."""
@@ -304,6 +325,14 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
         if test_forces_gc_stress(file_path):
             run_env["FW_GC_STRESS"] = "1"
 
+        # Per-test environment, declared in the header as:
+        #     /; ENV: FW_TASK_STACK_KB=4096
+        # One variable per line, repeatable. Needed by tests whose behaviour is
+        # selected by the runtime rather than by the source (task stack size,
+        # for example), so the same .fg can be checked under several settings.
+        for key, value in get_test_env(file_path).items():
+            run_env[key] = value
+
         try:
             start_time = time.time()
             expected_error_code = get_expected_error_code(file_path)
@@ -516,6 +545,129 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                             try: urllib.request.urlopen(url)
                             except EXPECTED_REQUEST_ERRORS: pass
 
+                    elif "vortex_edge_keepalive" in filename:
+                        # Two requests on ONE connection, then two more sent as
+                        # a single write (pipelined). urllib opens a fresh
+                        # connection per call and cannot express either, so
+                        # this drives a raw socket.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /ka1 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.2)
+                            c.recv(4096)
+                            c.sendall(b"GET /ka2 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.2)
+                            c.recv(4096)
+                            c.close()
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /p1 HTTP/1.1\r\nHost: x\r\n\r\n"
+                                      b"GET /p2 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.4)
+                            c.recv(8192)
+                            c.close()
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_badreq" in filename:
+                        # A malformed request and an oversized one must be
+                        # rejected by the parser and never reach the handler.
+                        # The valid request after them must still be served.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"NOT-HTTP GARBAGE\r\n\r\n")
+                            time.sleep(0.2); c.close()
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /" + b"a" * 60000 + b" HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.3); c.close()
+
+                            urllib.request.urlopen(f"{base_url}/valid")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_abandon" in filename:
+                        # Client vanishes before the handler replies: once with
+                        # a clean close, once with an RST. The server must
+                        # survive both and still serve the request after them.
+                        try:
+                            import socket as _s, struct as _st
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /abandon HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.1); c.close()
+                            time.sleep(0.6)
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.setsockopt(_s.SOL_SOCKET, _s.SO_LINGER,
+                                         _st.pack('ii', 1, 0))
+                            c.sendall(b"GET /reset HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.1); c.close()
+                            time.sleep(0.6)
+
+                            urllib.request.urlopen(f"{base_url}/after")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_bodylimit" in filename:
+                        # A body larger than FW_HTTP_MAX_BODY_KB (set to 1 KB
+                        # by the fixture) must be answered 413 by the parser
+                        # and never handed to the handler. The valid request
+                        # after it must still be served.
+                        try:
+                            import socket as _s
+                            body = b"x" * 4096
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"POST /toobig HTTP/1.1\r\nHost: x\r\n"
+                                      b"Content-Length: " + str(len(body)).encode() +
+                                      b"\r\n\r\n" + body)
+                            time.sleep(0.3)
+                            c.close()
+
+                            urllib.request.urlopen(f"{base_url}/valid")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_idletimeout" in filename:
+                        # Open a connection and say nothing. The fixture sets
+                        # FW_HTTP_IDLE_TIMEOUT_MS=600, so the server must close
+                        # it. Sending "GET /late" afterwards is the assertion:
+                        # if the socket were still open the handler would print
+                        # a line for it and the expected output would not match.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            time.sleep(1.2)          # well past the 600 ms cap
+                            try:
+                                c.sendall(b"GET /late HTTP/1.1\r\nHost: x\r\n\r\n")
+                            except OSError:
+                                pass                  # already closed, as intended
+                            time.sleep(0.3)
+                            c.close()
+
+                            urllib.request.urlopen(f"{base_url}/after")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_overlap" in filename:
+                        # The DELAY is the test. Request 1 was the readiness
+                        # probe above; this is request 2. The gap between them
+                        # is the window in which the server task sits parked on
+                        # accept(), and the test checks that FlowWing's timers
+                        # kept firing throughout it.
+                        time.sleep(0.5)
+                        try: urllib.request.urlopen(f"{base_url}/go")
+                        except EXPECTED_REQUEST_ERRORS: pass
+
                     elif "mission_control" in filename:
                         # ---------------------------------------------
                         # Requests for the test_mission_control.fg test
@@ -567,6 +719,47 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                                 
                             self.wfile.write(b"0\r\n\r\n") # Send EOF chunk
                             self.wfile.flush()
+                        elif self.path == '/concurrent':
+                            # Concurrency probe for the libuv HTTP client.
+                            #
+                            # Each request waits at a barrier until EXPECTED of
+                            # them have arrived, then every one reports how many
+                            # were in flight together. A client that runs
+                            # requests one after another can never raise that
+                            # count above 1, so the assertion is on the number
+                            # rather than on elapsed time -- which would flake on
+                            # a loaded CI runner.
+                            #
+                            # The wait is bounded, so a serialising client fails
+                            # the test instead of hanging it.
+                            n = int(self.headers.get('Content-Length', 0))
+                            if n:
+                                self.rfile.read(n)
+
+                            with MockStreamHandler.lock:
+                                MockStreamHandler.in_flight += 1
+                                MockStreamHandler.peak = max(
+                                    MockStreamHandler.peak,
+                                    MockStreamHandler.in_flight)
+
+                            deadline = time.time() + 3.0
+                            while time.time() < deadline:
+                                with MockStreamHandler.lock:
+                                    if MockStreamHandler.peak >= MockStreamHandler.EXPECTED:
+                                        break
+                                time.sleep(0.01)
+
+                            with MockStreamHandler.lock:
+                                peak = MockStreamHandler.peak
+                                MockStreamHandler.in_flight -= 1
+
+                            payload = ("peak=%d\n" % peak).encode('utf-8')
+                            self.send_response(200)
+                            self.send_header('Content-Type', 'text/plain')
+                            self.send_header('Content-Length', str(len(payload)))
+                            self.end_headers()
+                            self.wfile.write(payload)
+                            self.wfile.flush()
                         else:
                             self.send_response(404)
                             self.end_headers()
@@ -574,7 +767,15 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     def log_message(self, format, *args):
                         pass # Suppress logging to keep FlowWing CLI output clean
 
-                mock_server = HTTPServer(('127.0.0.1', mock_server_port), MockStreamHandler)
+                MockStreamHandler.lock = threading.Lock()
+                MockStreamHandler.in_flight = 0
+                MockStreamHandler.peak = 0
+                MockStreamHandler.EXPECTED = 5
+
+                # Threaded: the concurrency probe above needs several requests
+                # served at once, which a single-threaded HTTPServer cannot do.
+                # The streaming test is unaffected by the change.
+                mock_server = ThreadingHTTPServer(('127.0.0.1', mock_server_port), MockStreamHandler)
                 mock_server_thread = threading.Thread(target=mock_server.serve_forever)
                 mock_server_thread.daemon = True
                 mock_server_thread.start()

@@ -1,0 +1,4 @@
+before drain total=0
+a saw total=1
+b saw total=3
+c saw total=6

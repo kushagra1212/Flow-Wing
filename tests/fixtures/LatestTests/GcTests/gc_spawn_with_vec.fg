@@ -1,0 +1,33 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Many tasks write into one shared Vec while they overlap, and a later task
+/; reads the result.
+/;
+/; The reader waits longer than every writer, so it always wakes last. That
+/; makes the count deterministic without depending on any timing value.
+/;
+/; A Vec keeps its elements in native memory behind an int64 handle, so this
+/; also checks that the container trace hook still reaches those elements while
+/; ten tasks sit parked on their own stacks.
+/; --------------------------------------------------------------------------
+bring sys
+bring vec
+
+var shared: vec::Vec = new vec::Vec()
+
+fun worker() -> nthg {
+  sys::sleep(20)
+  shared.push("item" + "!")
+}
+
+fun reader() -> nthg {
+  sys::sleep(200)
+  println("collected " + String(shared.size()))
+  println("first " + String(shared.get(0)))
+}
+
+for var i: int = 0 to 9 {
+  spawn worker()
+}
+spawn reader()
+println("queued 10 writers and 1 reader")

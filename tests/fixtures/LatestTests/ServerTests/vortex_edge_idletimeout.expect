@@ -1,0 +1,5 @@
+Vortex server listening on port 9985
+ready
+handler saw /
+handler saw /after
+idle connection was dropped before it could send

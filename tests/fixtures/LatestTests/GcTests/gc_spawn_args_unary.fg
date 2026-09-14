@@ -1,0 +1,20 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Unary operators applied to spawn arguments.
+/;
+/; Negation, logical not and bitwise not all produce a temporary at the spawn
+/; site. A sign or bit pattern that survives the copy into the argument block
+/; proves the store used the right width rather than a default int.
+/; --------------------------------------------------------------------------
+
+fun show(a: int, b: bool, c: int) -> nthg {
+  println("a=" + String(a) + " b=" + String(b) + " c=" + String(c))
+}
+
+var n: int = 5
+var flag: bool = false
+
+spawn show(-n, !flag, ~n)
+spawn show(-(-n), !(!flag), ~(~n))
+
+println("queued 2")

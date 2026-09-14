@@ -1,0 +1,44 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Globals are shared, and tasks run LATER.
+/;
+/; A global is not copied into the argument block, so a task reads whatever
+/; value the global holds at the moment the task runs — not at the moment of
+/; the spawn. Two consequences, both tested here:
+/;
+/;   1. a caller mutation between the spawn and the drain IS visible
+/;   2. one task's write to a global IS visible to the next task, and to the
+/;      top level after the drain
+/;
+/; Order is deterministic: tasks run first-in first-out, so writer runs before
+/; reader. Nothing here depends on timing.
+/; --------------------------------------------------------------------------
+
+var counter: int = 0
+var tag: str = "start"
+var ratio: deci = 1.5
+var flag: bool = false
+
+fun bumpCounter() -> nthg {
+  counter = counter + 10
+  tag = tag + "-w"
+  ratio = ratio + 0.5
+  flag = true
+  println("writer: counter=" + String(counter))
+}
+
+fun readGlobals() -> nthg {
+  println("reader: counter=" + String(counter) + " tag=" + tag +
+          " ratio=" + String(ratio) + " flag=" + String(flag))
+}
+
+spawn bumpCounter()
+spawn readGlobals()
+spawn bumpCounter()
+spawn readGlobals()
+
+/; top-level mutation after the spawns: the tasks have not run yet
+counter = 100
+tag = "main"
+
+println("main set counter=" + String(counter))

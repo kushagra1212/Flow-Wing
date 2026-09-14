@@ -1,0 +1,7 @@
+present        = here
+missing        = null
+missing getOr  = DEFAULT
+missing getOr# = 42
+missing null   = null
+has present    = true
+has absent     = false

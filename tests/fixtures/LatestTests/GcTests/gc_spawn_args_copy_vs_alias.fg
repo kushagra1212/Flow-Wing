@@ -1,0 +1,73 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; What a spawned task sees when the CALLER mutates things after the spawn.
+/;
+/; This is the semantics of spawn arguments, and it is not uniform — it follows
+/; the language's existing value/reference split:
+/;
+/;   int, deci, bool, char, str, dyn   COPIED into the argument block.
+/;                                     Later caller mutation is invisible.
+/;   arrays                            COPIED element by element. Snapshot.
+/;   objects / classes                 the POINTER is copied, so the task and
+/;                                     the caller share one instance. Field
+/;                                     mutations ARE visible both ways.
+/;   globals                           not arguments at all. The task reads
+/;                                     them when it runs, so it sees the
+/;                                     LATEST value, not the spawn-time one.
+/;
+/; Every mutation below happens after the spawns and before the drain, because
+/; queued tasks only run once the top-level body finishes.
+/;
+/; An earlier version of the argument code used one code path for every type.
+/; The array line then printed uninitialised memory, because the aggregate was
+/; run through a scalar conversion. That is what this test pins down.
+/; --------------------------------------------------------------------------
+
+type Box = { n: int, label: str }
+
+var g_int: int = 1
+var g_str: str = "g" + "1"
+
+fun showInt(v: int) -> nthg {
+  println("int   arg=" + String(v) + " global=" + String(g_int))
+}
+
+fun showStr(s: str) -> nthg {
+  println("str   arg=" + s + " global=" + g_str)
+}
+
+fun showBox(b: Box) -> nthg {
+  println("box   n=" + String(b.n) + " label=" + b.label)
+}
+
+fun showArr(a: int[3]) -> nthg {
+  println("arr   [" + String(a[0]) + "," + String(a[1]) + "," + String(a[2]) + "]")
+}
+
+fun showDyn(d: dyn) -> nthg {
+  println("dyn   arg=" + String(d))
+}
+
+var localInt: int = 10
+var localStr: str = "s" + "1"
+var box: Box = { n: 100, label: "orig" + "inal" }
+var arr: int[3] = [7, 8, 9]
+var dv: dyn = "d" + "1"
+
+spawn showInt(localInt)
+spawn showStr(localStr)
+spawn showBox(box)
+spawn showArr(arr)
+spawn showDyn(dv)
+
+/; after the spawns, before the drain
+localInt = 999
+localStr = "MUTATED"
+box.n = 999
+box.label = "MUTATED"
+arr[0] = 999
+dv = "MUTATED"
+g_int = 999
+g_str = "G-MUTATED"
+
+println("mutated all")

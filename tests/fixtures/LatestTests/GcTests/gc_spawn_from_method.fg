@@ -1,0 +1,32 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A `spawn` written INSIDE a class method.
+/;
+/; Spawning a method is rejected, because the receiver is a hidden argument.
+/; Spawning a plain function FROM a method is fine, and it is how a method
+/; schedules background work: it passes what the task needs as ordinary
+/; arguments, including the object itself.
+/; --------------------------------------------------------------------------
+
+class Job {
+  var name: str
+  var runs: int
+  fun init(name: str) -> nthg {
+    self.name = name
+    self.runs = 0
+  }
+  fun schedule() -> nthg {
+    spawn runJob(self, "from-method")
+  }
+}
+
+fun runJob(j: Job, how: str) -> nthg {
+  j.runs = j.runs + 1
+  println(j.name + " ran via " + how + " runs=" + String(j.runs))
+}
+
+var job: Job = new Job("j" + "1")
+job.schedule()
+job.schedule()
+
+println("queued from methods")

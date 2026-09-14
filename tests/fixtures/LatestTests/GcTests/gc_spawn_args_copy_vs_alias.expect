@@ -1,0 +1,6 @@
+mutated all
+int   arg=10 global=999
+str   arg=s1 global=G-MUTATED
+box   n=999 label=MUTATED
+arr   [7,8,9]
+dyn   arg=d1

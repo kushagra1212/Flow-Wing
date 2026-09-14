@@ -1,0 +1,59 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Every primitive width as a spawn argument.
+/;
+/; The argument block is a struct whose field types come from the callee's
+/; declared parameters, and each value is written with emitTypedStore. A width
+/; that is stored with the wrong type reads back as a different number, so this
+/; covers the widths that BinaryOperationLiteralTests exercises for ordinary
+/; calls: int8, int, int64, deci32, deci, bool and char.
+/;
+/; Boundary values are used on purpose — the extremes are what a truncating or
+/; sign-extending store gets wrong.
+/; --------------------------------------------------------------------------
+
+fun takesInt8(v: int8) -> nthg {
+  println("int8   " + String(v))
+}
+
+fun takesInt(v: int) -> nthg {
+  println("int    " + String(v))
+}
+
+fun takesInt64(v: int64) -> nthg {
+  println("int64  " + String(v))
+}
+
+fun takesDeci32(v: deci32) -> nthg {
+  println("deci32 " + String(v))
+}
+
+fun takesDeci(v: deci) -> nthg {
+  println("deci   " + String(v))
+}
+
+fun takesBool(v: bool) -> nthg {
+  println("bool   " + String(v))
+}
+
+fun takesChar(v: char) -> nthg {
+  println("char   " + String(v))
+}
+
+var i8: int8 = 127
+var i32: int = 2147483647
+var i64: int64 = 9223372036854775807l
+var d32: deci32 = 1.5f
+var d: deci = 2.25
+var b: bool = true
+var c: char = 'Z'
+
+spawn takesInt8(i8)
+spawn takesInt(i32)
+spawn takesInt64(i64)
+spawn takesDeci32(d32)
+spawn takesDeci(d)
+spawn takesBool(b)
+spawn takesChar(c)
+
+println("queued 7")

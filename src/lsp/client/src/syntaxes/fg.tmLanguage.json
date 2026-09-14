@@ -102,7 +102,7 @@
         {
           "comment": "control flow",
           "name": "keyword.control.fg",
-          "match": "\\b(if|else|for|while|break|continue|return|switch|case|default)\\b"
+          "match": "\\b(if|else|for|while|break|continue|return|switch|case|default|spawn)\\b"
         },
         {
           "comment": "or if (two-word)",

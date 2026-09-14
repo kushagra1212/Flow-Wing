@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int32.
+/; A null dynamic value carries the NIRAST tag, which is not a number, so the
+/; same refusal applies as for a string or a bool. This used to return 0: the
+/; null literal was written into the box as a raw pointer, which left the tag
+/; reading as INT32 with a zero payload, so the cast "succeeded" on a value
+/; that was never an int. Passing the same literal as an ARGUMENT put garbage
+/; in the payload instead, and the cast returned that.
+var _null = null
+println(Int32(_null))

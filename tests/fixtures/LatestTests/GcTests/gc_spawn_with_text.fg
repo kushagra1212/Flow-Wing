@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The text module builds a new string for each operation. Every one of those
+/; results is a fresh allocation, and each stays live across a suspend point.
+/;
+/; The chain below holds four intermediate strings at the same time. All four
+/; must survive the sleep in the middle of the chain.
+/; --------------------------------------------------------------------------
+bring sys
+bring text
+
+fun task() -> nthg {
+  var raw: str = "  Flow" + "Wing  "
+  var trimmed: str = text::trim(raw)
+  var upper: str = text::toUpper(trimmed)
+
+  sys::sleep(30)
+
+  var lower: str = text::toLower(upper)
+  var back: str = text::reverse(lower)
+
+  println(trimmed + "|" + upper + "|" + lower + "|" + back)
+  println("len " + String(text::getLength(trimmed)))
+}
+
+spawn task()
+spawn task()
+println("queued 2")

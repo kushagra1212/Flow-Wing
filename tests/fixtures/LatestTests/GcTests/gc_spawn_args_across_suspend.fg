@@ -1,0 +1,22 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Spawn arguments must stay alive across a suspend point.
+/;
+/; The argument block is rooted by the scheduler from the moment of the spawn.
+/; Once the task starts, the values are read through pointers INTO that block,
+/; so it has to survive not just until the task begins but until it finishes —
+/; including across sleeps, where other tasks run and allocate freely.
+/; --------------------------------------------------------------------------
+bring sys
+
+var done: int = 0
+
+fun worker(label: str, delay: int) -> nthg {
+  sys::sleep(delay)
+  println(label + " woke after " + String(delay))
+  done = done + 1
+}
+
+spawn worker("slow" + "-task", 120)
+spawn worker("fast" + "-task", 20)
+println("queued 2")

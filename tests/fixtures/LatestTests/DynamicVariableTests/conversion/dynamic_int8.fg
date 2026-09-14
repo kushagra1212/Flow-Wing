@@ -5,8 +5,6 @@ var _deci = 10.5344345333333
 println(Int8(_deci))
 var _deci32 = 10.5344345333333f
 println(Int8(_deci32))
-var _null = null
-println(Int8(_null))
 var _char = 'x'
 println(Int8(_char))
 var _int64 = 10000

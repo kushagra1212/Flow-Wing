@@ -1,0 +1,34 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The first real coroutine test: a task suspends MID-BODY, the scheduler runs
+/; a different task, then comes back and finishes the first one.
+/;
+/; "a1b1a2b2" is only producible if each task owns a separate stack. With the
+/; deferred-call scheduler a task ran start-to-finish once popped, so the only
+/; reachable trace was "a1a2b1b2".
+/;
+/; Under FW_GC_STRESS this also pins the GC change: `trace` is rebuilt on every
+/; append, and a suspended task's shadow frames are NOT on the main shadow
+/; chain. Marking has to reach every live coroutine's saved shadow top or the
+/; half-built string is swept while its task is parked.
+/; --------------------------------------------------------------------------
+bring sys
+
+var trace: str = ""
+
+fun a() -> nthg {
+  trace = trace + "a1"
+  sys::yield()
+  trace = trace + "a2"
+}
+
+fun b() -> nthg {
+  trace = trace + "b1"
+  sys::yield()
+  trace = trace + "b2"
+  println(trace)
+}
+
+spawn a()
+spawn b()
+println("queued")

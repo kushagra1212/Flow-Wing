@@ -1,0 +1,31 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A task that mutates its OWN parameters and locals.
+/;
+/; Each spawn builds its own argument block, so two tasks of the same function
+/; never share one. A task can write to its parameter freely: the write lands
+/; in that task's private block and no other task, and not the caller, can see
+/; it.
+/;
+/; This is the counterpart of gc_spawn_args_copy_vs_alias: that test mutates
+/; from the caller side, this one from the task side.
+/; --------------------------------------------------------------------------
+
+fun accumulate(start: int, name: str) -> nthg {
+  var local: int = 0
+  /; write to the parameter itself
+  start = start + 1
+  for var i: int = 1 to 3 {
+    local = local + i
+    start = start + i
+  }
+  println(name + ": param=" + String(start) + " local=" + String(local))
+}
+
+var seed: int = 100
+
+spawn accumulate(seed, "t1")
+spawn accumulate(seed, "t2")
+spawn accumulate(seed, "t3")
+
+println("caller seed still " + String(seed))

@@ -1,0 +1,18 @@
+/; EXPECT_ERROR: SpawnRequiresNthgReturn
+/; --------------------------------------------------------------------------
+/; A value-returning function does not have the signature the scheduler calls.
+/; Flow-Wing returns values through an out-parameter, so `fun f() -> int` is
+/; really `void f(int *out)` in IR. The scheduler invokes queued tasks through
+/; a `void (*)(void)` pointer, so that out-parameter would be read as garbage
+/; and the task segfaults.
+/;
+/; Reject at bind time instead. `nthg` returns take no out-parameter and are
+/; the only shape that is actually callable as a task today.
+/; --------------------------------------------------------------------------
+
+fun giveNumber() -> int {
+  println("task ran")
+  return 7
+}
+
+spawn giveNumber()

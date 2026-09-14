@@ -1,0 +1,26 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The io module inside spawned tasks.
+/;
+/; io::printLog writes without a newline, so interleaving between tasks would
+/; show up as scrambled output. Tasks are cooperative and single-threaded: a
+/; task only gives up the CPU where it yields, so the two halves of each line
+/; below stay together even though a yield sits between them.
+/; --------------------------------------------------------------------------
+
+bring io
+bring sys
+
+fun logPair(label: str, value: int) -> nthg {
+  io::printLog(label)
+  io::printLog("=")
+  io::printLogln(String(value))
+  sys::yield()
+  io::printLogln(label + " done")
+}
+
+spawn logPair("first", 1)
+spawn logPair("second", 2)
+
+io::printLogln("queued 2")
+io::flush()

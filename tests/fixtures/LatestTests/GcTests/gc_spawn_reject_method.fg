@@ -1,0 +1,16 @@
+/; EXPECT_ERROR: SpawnRequiresPlainFunction
+/; --------------------------------------------------------------------------
+/; A method call passes the receiver as a hidden argument. Keeping that
+/; receiver traced from the spawn until the task runs is the same problem the
+/; argument block solves, but the receiver is not in the declared parameter
+/; list, so it is rejected instead of silently dropped.
+/; --------------------------------------------------------------------------
+
+class Worker {
+  fun run() -> nthg {
+    println("running")
+  }
+}
+
+var w: Worker = new Worker()
+spawn w.run()

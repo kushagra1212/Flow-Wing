@@ -1,0 +1,43 @@
+/; ENV: FW_TASK_STACK_KB=64
+/; --------------------------------------------------------------------------
+/; Many tasks suspended AT THE SAME TIME.
+/;
+/; The other tests queue plenty of tasks but let them finish one after another,
+/; so at most one stack is live at a time. Here every task parks on a sleep
+/; before any of them wakes, so all 300 stacks exist simultaneously. That is
+/; the real memory cost of concurrency and the case where a scheduler that
+/; reused one stack would corrupt everything.
+/;
+/; The stack size is cut to 64 KB through the environment so the peak stays
+/; near 19 MB rather than the 77 MB the 256 KB default would need — which also
+/; exercises FW_TASK_STACK_KB under load rather than in isolation.
+/;
+/; The reporter sleeps longer than the workers, so it is the last task to wake
+/; and sees the final count. The count, not the order, is what is asserted:
+/; every worker sleeps for the same duration, so their relative wake order is
+/; not something to depend on.
+/;
+/; Overlap is the point: 300 tasks each waiting 120 ms finish in well under a
+/; second in total, not 36 seconds.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+var done: int = 0
+
+fun worker() -> nthg {
+  sys::sleep(120)
+  done = done + 1
+}
+
+fun reporter() -> nthg {
+  sys::sleep(400)
+  println("all finished = " + String(done))
+}
+
+for var i: int = 0 to 299 {
+  spawn worker()
+}
+spawn reporter()
+
+println("spawned 300 workers and 1 reporter")

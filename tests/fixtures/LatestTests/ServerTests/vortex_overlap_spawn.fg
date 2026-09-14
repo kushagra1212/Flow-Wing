@@ -1,0 +1,58 @@
+/; TEST_SERVER_PORT: 9977
+/; --------------------------------------------------------------------------
+/; A task parked on accept() must NOT stop the scheduler.
+/;
+/; Before libuv, accept() waited on a condition variable, which parks the whole
+/; thread. Every other task froze — including timers that were already due. The
+/; scheduler now idles inside uv_run instead, and the httplib worker thread
+/; wakes it with uv_async_send.
+/;
+/; How the window is created:
+/;   request 1  the runner's readiness probe, which arrives as soon as the
+/;              port opens (runner.py sends GET / to detect the server)
+/;   request 2  fired by the runner 500 ms later, on purpose
+/;
+/; Between them the server task is parked on accept() for about 500 ms. The
+/; ticker sleeps in 80 ms steps, so it should advance roughly 6 times. The test
+/; asserts only >= 3, which is a wide margin: the suite runs with --parallel
+/; and a loaded machine must not flake it.
+/;
+/; If accept() blocked the thread again, the difference would be 0 and this
+/; prints false.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+bring sys
+
+var ticks: int = 0
+
+fun ticker() -> nthg {
+  for var i: int = 0 to 19 {
+    sys::sleep(80)
+    ticks = ticks + 1
+  }
+}
+
+fun server() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9977)
+  if Err::isErr(err) {
+    println("listen failed")
+    return:
+  }
+  println("ready")
+
+  var r1: vortex::Request, s1: vortex::Response = app.accept()
+  s1.status(200).send("probe")
+  var at_probe: int = ticks
+
+  /; parked here for the whole 500 ms gap
+  var r2: vortex::Request, s2: vortex::Response = app.accept()
+  s2.status(200).send("go")
+
+  println("timers ran while parked on accept: " + String(ticks - at_probe >= 3))
+}
+
+spawn ticker()
+spawn server()
+println("queued")

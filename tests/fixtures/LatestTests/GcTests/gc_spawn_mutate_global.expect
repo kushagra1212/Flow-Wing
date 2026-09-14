@@ -1,0 +1,5 @@
+main set counter=100
+writer: counter=110
+reader: counter=110 tag=main-w ratio=2 flag=true
+writer: counter=120
+reader: counter=120 tag=main-w-w ratio=2.5 flag=true

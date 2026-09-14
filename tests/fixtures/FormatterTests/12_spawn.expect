@@ -1,0 +1,26 @@
+/; Formatting of `spawn`: keyword spacing, indentation inside blocks, and the
+/; call expression being reflowed like any other call.
+fun worker() -> nthg {
+    println("work")
+}
+spawn worker()
+fun outer() -> nthg {
+    spawn worker()
+    if true {
+        spawn worker()
+    }
+}
+for var i: int = 0 to 2 {
+    spawn worker()
+}
+/; with arguments: the call is reflowed like any other, so spacing around the
+/; commas and inside the parentheses is normalised.
+fun greet(name: str, times: int) -> nthg {
+    print(name, times)
+}
+spawn greet("a", 1)
+spawn greet("b", 2 + 3)
+fun sink(xs: int[2]) -> nthg {
+    print(xs)
+}
+spawn sink([1, 2])

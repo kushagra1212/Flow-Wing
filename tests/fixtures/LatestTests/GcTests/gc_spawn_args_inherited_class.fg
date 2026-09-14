@@ -1,0 +1,43 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A derived class instance as a spawn argument.
+/;
+/; A class argument is a pointer, so the task shares the instance with the
+/; caller and reads the fields the subclass added on top of the base ones. The
+/; task suspends first, so the instance has to stay traced through a collection
+/; while nothing but the argument block refers to it.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+class Animal {
+  var name: str
+  var age: int
+  fun init(name: str, age: int) -> nthg {
+    self.name = name
+    self.age = age
+  }
+}
+
+class Dog extends Animal {
+  var breed: str
+  fun init(name: str, age: int, breed: str) -> nthg {
+    self.name = name
+    self.age = age
+    self.breed = breed
+  }
+}
+
+fun describe(d: Dog, label: str) -> nthg {
+  sys::yield()
+  println(label + ": " + d.name + " age=" + String(d.age) + " breed=" + d.breed)
+}
+
+var rex: Dog = new Dog("R" + "ex", 5, "Lab" + "rador")
+spawn describe(rex, "first")
+spawn describe(rex, "second")
+
+/; shared instance: both tasks see this
+rex.age = 6
+
+println("queued 2")

@@ -1,0 +1,9 @@
+/; Support library for gc_spawn_module_qualified.fg — not a test on its own.
+/; Declares a module so the spawn target has to be resolved through a
+/; ModuleAccessExpression rather than a plain identifier.
+
+module [tasks]
+
+fun work() -> nthg {
+  println("  tasks::work")
+}

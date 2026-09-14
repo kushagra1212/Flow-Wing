@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: SpawnRequiresFunctionCall
+/; --------------------------------------------------------------------------
+/; `spawn` needs something callable. A literal has nothing to run.
+/;
+/; The parser accepts any expression after `spawn` on purpose, so this arrives
+/; at the binder with a real source location instead of dying as a parse error.
+/; --------------------------------------------------------------------------
+
+spawn 42

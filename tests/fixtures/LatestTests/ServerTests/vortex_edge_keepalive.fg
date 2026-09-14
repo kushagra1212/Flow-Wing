@@ -1,0 +1,41 @@
+/; TEST_SERVER_PORT: 9981
+/; --------------------------------------------------------------------------
+/; Two HTTP features the hand-written libuv server has to get right, and which
+/; nothing else exercises.
+/;
+/; KEEP-ALIVE  Two requests over ONE TCP connection. The parser must reset
+/;             between messages, and the response must not close the socket.
+/;             If keep-alive were broken the second request would never arrive
+/;             and this test would hang until the runner's timeout.
+/;
+/; PIPELINING  Two requests delivered in a SINGLE write. llhttp sees both in
+/;             one buffer, so on_message_complete fires twice before any
+/;             response is sent. A parser reset that lost the second message
+/;             would drop it.
+/;
+/; Request 1 is the runner's readiness probe (runner.py sends GET / to detect
+/; the server), so five requests arrive in total.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9981)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+  println("ready")
+
+  for var i: int = 0 to 4 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("got " + req.getPath())
+    res.status(200).send("ok")
+  }
+
+  println("served 5")
+}
+
+fg_main()

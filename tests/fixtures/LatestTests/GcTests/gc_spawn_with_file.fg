@@ -1,0 +1,37 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A file path, its contents, and two Err::Result values live across a suspend
+/; point.
+/;
+/; file::readText and file::writeText both return TWO values. Multi-return
+/; assignment writes into two locals at once, and both of those slots must be
+/; rooted while the task sleeps.
+/;
+/; The file itself is written before the sleep and read after it. The file name
+/; carries the task number so two tasks never fight over one path.
+/; --------------------------------------------------------------------------
+bring sys
+bring file
+bring Err
+
+var seq: int = 0
+
+fun task() -> nthg {
+  seq = seq + 1
+  var path: str = "gc_spawn_file_tmp_" + String(seq) + ".txt"
+  var payload: str = "hello" + "-disk"
+
+  var wrote: bool, werr: Err::Result = file::writeText(path, payload)
+  println("wrote ok " + String(wrote) + " err " + String(Err::isErr(werr)))
+
+  sys::sleep(30)
+
+  var content: str, rerr: Err::Result = file::readText(path)
+  println("read back " + content + " err " + String(Err::isErr(rerr)))
+
+  var gone: bool, derr: Err::Result = file::delete(path)
+  println("deleted " + String(gone))
+}
+
+spawn task()
+println("queued 1")

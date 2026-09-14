@@ -1,0 +1,12 @@
+/; EXPECT_ERROR: FunctionArgumentCountMismatch
+/; --------------------------------------------------------------------------
+/; REGRESSION: the same mistake reported "wrong number of arguments" for a
+/; direct call but only "'spawn' expects a function call" under `spawn`. The
+/; message that tells the user what to change must survive.
+/; --------------------------------------------------------------------------
+
+fun needsTwo(a: int, b: int) -> nthg {
+  println(String(a + b))
+}
+
+spawn needsTwo(1)

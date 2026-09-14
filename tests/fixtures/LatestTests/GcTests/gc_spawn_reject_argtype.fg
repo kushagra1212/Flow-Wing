@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+/; --------------------------------------------------------------------------
+/; REGRESSION: as above, for a wrong argument TYPE. The direct-call diagnostic
+/; names both types and the parameter; the spawn path now reports the same.
+/; --------------------------------------------------------------------------
+
+fun needsInt(a: int) -> nthg {
+  println(String(a))
+}
+
+spawn needsInt("not an int")

@@ -1,0 +1,15 @@
+/; EXPECT_ERROR: SpawnRequiresUserFunction
+/; --------------------------------------------------------------------------
+/; REGRESSION: `spawn println(...)` used to CRASH the compiler (SIGSEGV).
+/;
+/; A built-in is emitted inline rather than called through a symbol, so no
+/; function for it exists in the module. IRGen looked one up, got null, and
+/; dereferenced it. The assert that was supposed to catch this is compiled out
+/; in Release builds, so the user saw a bare segfault with no message.
+/;
+/; `println` is also variadic, which breaks the second assumption: its declared
+/; parameter list is shorter than the call's argument list, so copying the
+/; arguments by parameter index walked off the end of the vector.
+/; --------------------------------------------------------------------------
+
+spawn println("hello")

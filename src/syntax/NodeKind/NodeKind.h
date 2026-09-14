@@ -104,6 +104,7 @@ enum class NodeKind : int {
   kDefaultCaseStatement,
   kExposeStatement,
   kFunctionStatement,
+  kSpawnStatement,
 
 };
 

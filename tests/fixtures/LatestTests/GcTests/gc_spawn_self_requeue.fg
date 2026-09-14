@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A task may re-queue ITSELF from inside the drain. Each iteration appends to
+/; the back of the FIFO and the drain loop picks it up in the same pass, so the
+/; chain runs to completion without main being involved.
+/;
+/; The recursion is bounded by a counter on purpose. An UNBOUNDED self-spawn
+/; (`fun f() { spawn f() }`) never terminates — the drain always finds one more
+/; task. That is deliberate and unguarded, the same way `while true {}` is: the
+/; scheduler cannot tell a runaway task from a legitimate long-lived one.
+/; --------------------------------------------------------------------------
+
+var depth: int = 0
+var trace: str = ""
+
+fun tick() -> nthg {
+  depth = depth + 1
+  trace = trace + "x"
+  if depth < 5 {
+    spawn tick()
+  } else {
+    println(trace)
+    println("depth " + String(depth))
+  }
+}
+
+spawn tick()
+println("queued 1")

@@ -1,0 +1,55 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The three ways a task can give up the CPU, interleaved in one program:
+/;
+/;   sys::yield()      back of the ready queue, runnable at once
+/;   sys::sleep(ms)    parked with a deadline, woken by the clock
+/;   file::readText    parked with NO deadline, woken by an event
+/;
+/; They use different fields of the same task record (wake_at_ns = 0, a real
+/; instant, and FW_WAKE_NEVER). The scheduler has to keep them apart: treating
+/; an event-parked task as timed would wake it early, and treating a timed task
+/; as event-parked would hang it.
+/;
+/; The trace pins the ORDER, which is what proves the three paths coexist.
+/; --------------------------------------------------------------------------
+bring sys
+bring file
+bring Err
+
+var trace: str = ""
+var done: int = 0
+
+fun report() -> nthg {
+  done = done + 1
+  if done >= 3 {
+    println(trace)
+  }
+}
+
+fun yielder() -> nthg {
+  trace = trace + "Y1"
+  sys::yield()
+  trace = trace + "Y2"
+  report()
+}
+
+fun sleeper() -> nthg {
+  sys::sleep(120)
+  trace = trace + "S"
+  report()
+}
+
+fun reader() -> nthg {
+  var path: str = "gc_mixed_tmp.txt"
+  var wrote: bool, e1: Err::Result = file::writeText(path, "data")
+  var back: str, e2: Err::Result = file::readText(path)
+  var gone: bool, e3: Err::Result = file::delete(path)
+  trace = trace + "F"
+  report()
+}
+
+spawn yielder()
+spawn sleeper()
+spawn reader()
+println("queued")

@@ -38,6 +38,7 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.hpp"
+#include "src/SemanticAnalyzer/BoundStatements/BoundSpawnStatement/BoundSpawnStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.hpp"
@@ -69,6 +70,7 @@ public:
   virtual void visit(binding::BoundBreakStatement *break_statement) = 0;
   virtual void visit(binding::BoundContinueStatement *continue_statement) = 0;
   virtual void visit(binding::BoundReturnStatement *return_statement) = 0;
+  virtual void visit(binding::BoundSpawnStatement *spawn_statement) = 0;
   virtual void visit(binding::BoundSwitchStatement *switch_statement) = 0;
   virtual void visit(binding::BoundClassStatement *class_statement) = 0;
   virtual void visit(binding::BoundModuleStatement *module_statement) = 0;

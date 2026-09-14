@@ -1,0 +1,35 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The dangerous case for the GC change: a Vec and a Map that belong to ONE
+/; task, not to a global.
+/;
+/; A global handle is safe because global roots are always scanned. A handle in
+/; a task local is only reachable through that task's shadow chain, and while
+/; the task sleeps that chain is not `fw_gc_shadow_top`. If the scheduler did
+/; not hand its parked chains to the mark phase, these containers would be
+/; collected during the sleep and the reads after it would fail.
+/; --------------------------------------------------------------------------
+bring sys
+bring vec
+bring map
+
+fun taskLocalHandles() -> nthg {
+  var myVec: vec::Vec = new vec::Vec()
+  var myMap: map::Map = new map::Map()
+  var label: str = "built" + "-inside"
+
+  myVec.push("a" + "1")
+  myMap.set("k" + "1", "v" + "1")
+
+  sys::sleep(30)
+
+  myVec.push("a" + "2")
+  println("vec " + String(myVec.size()) +
+          " map " + String(myMap.size()) +
+          " " + label +
+          " " + String(myVec.get(0)))
+}
+
+spawn taskLocalHandles()
+spawn taskLocalHandles()
+println("queued 2")

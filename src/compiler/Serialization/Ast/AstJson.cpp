@@ -89,6 +89,7 @@
 #include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "src/syntax/statements/ParameterExpressionSyntax/ParameterExpressionSyntax.h"
 #include "src/syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
+#include "src/syntax/statements/SpawnStatementSyntax/SpawnStatementSyntax.h"
 #include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "src/syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
@@ -915,6 +916,15 @@ void AstJson::visit( syntax::ReturnStatementSyntax *node) {
                  "returnExpression");
   return_statement_json["range"] = toJsonRange(node->getSourceLocation());
   m_last_node_json = std::move(return_statement_json);
+}
+void AstJson::visit( syntax::SpawnStatementSyntax *node) {
+  PARSER_DEBUG_LOG("Visiting SpawnStatementSyntax", "AST");
+  nlohmann::json spawn_statement_json;
+  spawn_statement_json["kind"] = syntax::toString(node->getKind());
+  serializeChild(node->getCallExpression(), spawn_statement_json,
+                 "callExpression");
+  spawn_statement_json["range"] = toJsonRange(node->getSourceLocation());
+  m_last_node_json = std::move(spawn_statement_json);
 }
 void AstJson::visit( syntax::SwitchStatementSyntax *node) {
   PARSER_DEBUG_LOG("Visiting SwitchStatementSyntax", "AST");

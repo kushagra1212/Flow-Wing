@@ -1,0 +1,45 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Tasks wake in DEADLINE order, not in the order they were queued.
+/;
+/; The spawn order is slow, then mid, then fast. The wake order is the reverse,
+/; because each task asks for a different delay. A scheduler that ignored the
+/; deadlines and just ran the queue in order would print "SMF".
+/;
+/; The gaps are 20ms, 60ms and 120ms. They are far apart so a busy machine
+/; cannot reorder them.
+/; --------------------------------------------------------------------------
+bring sys
+
+var trace: str = ""
+var done: int = 0
+
+fun report() -> nthg {
+  done = done + 1
+  if done >= 3 {
+    println(trace)
+  }
+}
+
+fun fast() -> nthg {
+  sys::sleep(20)
+  trace = trace + "F"
+  report()
+}
+
+fun mid() -> nthg {
+  sys::sleep(60)
+  trace = trace + "M"
+  report()
+}
+
+fun slow() -> nthg {
+  sys::sleep(120)
+  trace = trace + "S"
+  report()
+}
+
+spawn slow()
+spawn mid()
+spawn fast()
+println("queued slow, mid, fast")

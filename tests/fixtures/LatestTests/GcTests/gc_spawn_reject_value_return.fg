@@ -1,0 +1,13 @@
+/; EXPECT_ERROR: SpawnRequiresNthgReturn
+/; --------------------------------------------------------------------------
+/; A value-returning function compiles to `void f(T *out)` — it takes a hidden
+/; out-parameter for the result. The scheduler calls a no-argument task through
+/; `void (*)(void)`, so that parameter would hold garbage and the task would
+/; write the return value through a wild pointer.
+/; --------------------------------------------------------------------------
+
+fun computes() -> int {
+  return 7
+}
+
+spawn computes()

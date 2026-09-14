@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: SpawnRequiresUserFunction
+/; --------------------------------------------------------------------------
+/; The same rule for a built-in that returns a value. `String` is rejected as a
+/; built-in before the return-type check runs, so the message points at the
+/; real obstacle (nothing to call) rather than at the return type.
+/; --------------------------------------------------------------------------
+
+spawn String(5)

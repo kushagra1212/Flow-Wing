@@ -40,6 +40,12 @@ Flow-Wing programming language supports the following keywords, grouped by categ
 | `case`    | Case in a switch statement                            | [Switch Statement](Conditionals/Switch%20Statement.md) |
 | `default` | Default case in a switch statement                    | [Switch Statement](Conditionals/Switch%20Statement.md) |
 
+## Concurrency
+
+| Keyword   | Description                                          | Docs |
+|-----------|------------------------------------------------------|------|
+| `spawn`   | Queue a function call as a concurrent task            | [Concurrency with spawn](../Advanced/Concurrency%20with%20spawn.md) |
+
 ## Loops
 
 | Keyword    | Description                               | Docs |
