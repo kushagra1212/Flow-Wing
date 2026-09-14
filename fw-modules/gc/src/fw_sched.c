@@ -614,7 +614,34 @@ void fw_sched_drain(void) {
   }
 #endif
 
+  /* Last time the event loop was polled while tasks were still runnable. */
+  long long last_poll_ns = 0;
+
   while (g_head < g_tail) {
+    /* Turn the event loop even when the ready queue is NOT empty.
+     *
+     * I/O completions only arrive while the loop is running, and the loop only
+     * runs in the "nothing is ready" branch below. A task that spins on
+     * fw_sched_yield() — a game loop calling yield once per frame is the
+     * obvious case — keeps the ready queue non-empty for ever, so that branch
+     * is never reached and a parked read never finishes. Measured before this
+     * fix: a loop yielding two million times left five file reads at zero
+     * completed, for the life of the program.
+     *
+     * Timers do not have this problem because pop_ready() promotes tasks whose
+     * deadline has passed, which is why sleeping worked where yielding hung.
+     *
+     * Polling is throttled to once per millisecond so a busy ready queue does
+     * not pay for a uv_run on every single task switch.
+     */
+    if (g_waiter != NULL && fw_sched_io_waiting() > 0) {
+      long long now = now_ns();
+      if (now - last_poll_ns >= 1000000LL) { /* 1 ms */
+        last_poll_ns = now;
+        g_waiter(0); /* zero deadline: poll, never block */
+      }
+    }
+
     FWTask *t = pop_ready();
 
     if (t == NULL) {

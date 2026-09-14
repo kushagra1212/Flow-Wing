@@ -1,0 +1,125 @@
+/; ===========================================================================
+/; SERVER — three shapes. Exactly ONE fg_main() may be uncommented.
+/;
+/; Pair with dyn2.fg (the client). Measured with 5 requests and a handler that
+/; takes 1000 ms:
+/;
+/;   shape   server                                  client        result
+/;   -----   -------------------------------------   -----------   ----------------
+/;   A       handler(res)            (blocking)      spawn fetch   1006,2009,3016,4022,5025 ms
+/;   B/C     spawn handler(res)      (top level)     either        NEVER REPLIES -> ok=false
+/;   D       accept loop in a TASK + spawn handler   spawn fetch   all at 1002 ms
+/;
+/; The point of shape B/C: `spawn` QUEUES work, and the queue only drains once
+/; the top-level body finishes. A `while true` accept loop at the top level
+/; never finishes, so the handlers never run and every client times out.
+/; Putting the accept loop inside a task (shape D) is what lets `accept()`
+/; park and give the queued handlers their turn.
+/;
+/; Run:   make run-aot-release FILE=tests/local/server_lab.fg
+/; ===========================================================================
+bring vortex
+bring Err
+bring json
+bring sys
+fun handler(res: vortex::Response) -> nthg {
+    sys::sleep(1000) /; simulate slow work: a database call, an LLM, anything
+    var node: json::JsonNode = json::newObject()
+    node.put("lang", json::newString("Flow-Wing"))
+    node.put("version", json::newNumber(1.0))
+    node.put("fast", json::newBool(true))
+    res.status(200).json(node)
+}
+
+/; One request: shared by every shape below.
+fun route(req: vortex::Request, res: vortex::Response, useSpawn: bool) -> nthg {
+    var path: str = req.getPath()
+    if path == "/json" {
+        if useSpawn {
+            spawn handler(res)
+        } else {
+            handler(res)
+        }
+    } or if path == "/stream" {
+        res.streamBegin("text/plain")
+        for var k: int = 0 to 2 {
+            res.streamWrite("chunk " + String(k) + "\n")
+        }
+        res.streamEnd()
+    } else {
+        res.status(200).header("X-Demo", "yes").send("plain body\n")
+    }
+}
+
+fun startListening(app: vortex::Server) -> bool {
+    var err: Err::Result = app.listen(8190)
+    if Err::isErr(err) {
+        println(err.getMessage())
+        return false
+    }
+    println("Server listening on port 8190")
+    return true
+}
+
+/; ---------------------------------------------------------------------------
+/; SHAPE A — blocking handler, accept loop at the top level.
+/;
+/; Correct but SERIAL: the loop cannot accept request 2 until request 1 has
+/; been answered, so five 1-second requests take five seconds.
+/; Expect: 1006, 2009, 3016, 4022, 5025 ms
+/; ---------------------------------------------------------------------------
+/; fun fg_main() -> nthg {
+/;     var app: vortex::Server = new vortex::Server()
+/;     if !startListening(app) {
+/;         return:
+/;     }
+/;     while true {
+/;         println("Waiting for request...")
+/;         var req: vortex::Request, res: vortex::Response = app.accept()
+/;         route(req, res, false)
+/;     }
+/; }
+/; ---------------------------------------------------------------------------
+/; SHAPE B/C — spawn the handler, but the accept loop is still at the TOP
+/; LEVEL. This looks like the fix and is actually BROKEN.
+/;
+/; `spawn` only queues. The queue drains after the top-level body ends, and
+/; `while true` never ends — so no handler ever runs. The client waits until
+/; the server's 30-second idle timeout drops the connection.
+/; Expect: 30 s, 60 s, 90 s ... and ok=false
+/; ---------------------------------------------------------------------------
+/; fun fg_main() -> nthg {
+/;     var app: vortex::Server = new vortex::Server()
+/;     if !startListening(app) {
+/;         return:
+/;     }
+/;     while true {
+/;         println("Waiting for request...")
+/;         var req: vortex::Request, res: vortex::Response = app.accept()
+/;         route(req, res, true)
+/;     }
+/; }
+/; ---------------------------------------------------------------------------
+/; SHAPE D — the accept loop is itself a TASK, and each handler is spawned.
+/;
+/; Now `accept()` can park, and while it waits the scheduler runs the queued
+/; handlers. Five 1-second requests overlap and all finish in about a second,
+/; still on ONE thread.
+/; Expect: all five at ~1002 ms
+/; ---------------------------------------------------------------------------
+fun serverLoop(app: vortex::Server) -> nthg {
+    while true {
+        println("Waiting for request...")
+        var req: vortex::Request, res: vortex::Response = app.accept()
+        route(req, res, true)
+    }
+}
+
+fun fg_main() -> nthg {
+    var app: vortex::Server = new vortex::Server()
+    if !startListening(app) {
+        return:
+    }
+    spawn serverLoop(app) /; <- the whole difference between C and D
+}
+fg_main()
