@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow-Wing — inside the event loop (libuv)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --green:#3fb950; --blue:#58a6ff; --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,sans-serif}
+  header{padding:28px 32px 18px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:24px}
+  header p{margin:0;color:var(--dim);max-width:900px}
+  nav{display:flex;gap:4px;padding:0 32px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel);
+      position:sticky;top:0;z-index:5}
+  nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);
+    padding:12px 14px;cursor:pointer;font-size:13px;font-weight:600}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--blue);border-bottom-color:var(--blue)}
+  main{padding:26px 32px 90px;max-width:1180px}
+  section{display:none} section.on{display:block}
+  h2{font-size:19px;margin:0 0 4px}
+  h3{font-size:15px;margin:22px 0 6px;color:var(--ink)}
+  .sub{color:var(--dim);margin:0 0 20px;font-size:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1;min-width:280px}
+  .ctl{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  button.act{background:var(--blue);color:#04121f;border:0;border-radius:6px;padding:8px 16px;
+    font-weight:700;cursor:pointer;font-size:13px}
+  button.act:hover{filter:brightness(1.15)}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  button.ghost:hover{color:var(--ink)}
+  .step{color:var(--dim);font:12px var(--mono);margin-left:auto}
+  .narrate{background:#0b1d33;border-left:3px solid var(--blue);padding:10px 14px;
+    border-radius:0 6px 6px 0;font-size:14px;min-height:46px}
+  code,.mono{font-family:var(--mono);font-size:13px}
+  pre{background:#010409;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;
+    font:12.5px/1.6 var(--mono);margin:8px 0;white-space:pre}
+  .lbl{font:11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:6px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#0d1117;color:var(--dim);font:11px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+  td.mono{font-family:var(--mono);font-size:12.5px}
+  .ok{color:var(--green)} .no{color:var(--red)} .warn{color:var(--amber)} .b{color:var(--blue)} .p{color:var(--purple)}
+  ul{margin:8px 0;padding-left:20px} li{margin:5px 0}
+  .file{font:11px var(--mono);color:var(--dim);margin-top:8px}
+  .file b{color:var(--blue);font-weight:600}
+
+  /* lanes */
+  .lanes{display:grid;grid-template-columns:132px 1fr;gap:6px;align-items:center}
+  .lane-name{font:11px var(--mono);color:var(--dim);text-align:right;padding-right:4px}
+  .lane{background:#010409;border:1px solid var(--line);border-radius:5px;height:42px;position:relative;overflow:hidden}
+  .blk{position:absolute;top:5px;height:30px;border-radius:4px;font:10.5px var(--mono);
+    display:grid;place-items:center;transition:.25s;padding:0 4px;text-align:center;overflow:hidden}
+  .blk.run{background:#0d2818;border:1px solid var(--green);color:var(--green)}
+  .blk.park{background:#2b2008;border:1px solid var(--amber);color:var(--amber)}
+  .blk.loop{background:#0b2545;border:1px solid var(--blue);color:var(--blue)}
+  .blk.pool{background:#21103a;border:1px solid var(--purple);color:var(--purple)}
+  .blk.idle{background:#12161c;border:1px dashed var(--line);color:var(--dim)}
+
+  /* queue chips */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;min-height:40px;align-items:center}
+  .chip{border:1px solid var(--line);border-radius:5px;padding:5px 10px;font:11px var(--mono);
+    background:#010409;color:var(--dim);transition:.2s}
+  .chip.ready{border-color:var(--green);background:#0d2818;color:var(--green)}
+  .chip.parked{border-color:var(--amber);background:#2b2008;color:var(--amber)}
+  .chip.sleep{border-color:var(--blue);background:#0b2545;color:var(--blue)}
+  .chip.gone{opacity:.25;text-decoration:line-through}
+  .empty{color:var(--dim);font:12px var(--mono)}
+
+  /* pipeline */
+  .pipe{display:flex;flex-direction:column;gap:0}
+  .pstep{display:flex;gap:12px;align-items:flex-start;padding:9px 12px;border:1px solid var(--line);
+    border-radius:6px;background:#010409;transition:.25s;margin-bottom:6px}
+  .pstep.on{border-color:var(--blue);background:#0b1d33}
+  .pstep.done{border-color:var(--green);opacity:.65}
+  .pnum{font:11px var(--mono);color:var(--dim);min-width:22px;padding-top:2px}
+  .pstep.on .pnum{color:var(--blue)}
+  .pbody{flex:1}
+  .ptitle{font:12.5px var(--mono);color:var(--ink)}
+  .pwhere{font:11px var(--mono);color:var(--dim);margin-top:3px}
+  .pthread{font:10px var(--mono);border:1px solid var(--line);border-radius:10px;padding:1px 8px;
+    color:var(--dim);white-space:nowrap;margin-top:1px}
+  .pthread.fw{border-color:var(--green);color:var(--green)}
+  .pthread.pool{border-color:var(--purple);color:var(--purple)}
+  .pthread.kern{border-color:var(--blue);color:var(--blue)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+  .card{background:#010409;border:1px solid var(--line);border-radius:8px;padding:14px}
+  .card h4{margin:0 0 4px;font-size:13.5px}
+  .card p{margin:0 0 8px;color:var(--dim);font-size:12.5px}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:2px 10px;
+    font:11px var(--mono);color:var(--dim);margin-right:6px}
+  .pill.g{border-color:var(--green);color:var(--green)}
+  .pill.r{border-color:var(--red);color:var(--red)}
+  .pill.a{border-color:var(--amber);color:var(--amber)}
+  .note{border-left:3px solid var(--amber);background:#201a09;padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0}
+  .danger{border-left:3px solid var(--red);background:#241214;padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0}
+  .good{border-left:3px solid var(--green);background:#0b2417;padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inside the Flow-Wing event loop</h1>
+  <p>One libuv loop, one thread, no locks in your code. This page follows a timer, a socket and a
+     disk read from the system call all the way back to the line of Flow-Wing that was waiting for
+     it. Every claim is read from <code>fw-modules/uv_module/</code>,
+     <code>fw-modules/vortex_module/</code> and <code>fw-modules/gc/src/fw_sched.c</code>.
+     Companion pages: <a href="/internals/concurrency.html" style="color:#58a6ff">tasks and spawn</a> ·
+     <a href="/internals/gc.html" style="color:#58a6ff">garbage collector</a>.</p>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+
+<!-- ============================================ 1 -->
+<section id="e-why">
+  <h2>1 · The problem the loop exists to solve</h2>
+  <p class="sub">A scheduler that can only watch a clock is nearly useless.</p>
+
+  <div class="panel">
+    <p style="margin-top:0">Flow-Wing's scheduler is cooperative. It can suspend a task and run
+    another one. On its own, though, it knows exactly one reason to wake a task up again:
+    <b>a deadline has passed</b>. That is enough for <code>sys::sleep</code> and nothing else.</p>
+
+    <p>Now ask it to wait for a socket. There is no deadline. The only honest answer the bare
+    scheduler can give is "call <code>read()</code> and block" — and a blocked thread is a
+    <b>stopped program</b>, because every task shares that one thread.</p>
+
+    <div class="row">
+      <div class="col">
+        <div class="lbl">Without an event layer</div>
+<pre>task A: read(socket)   <span class="no">← thread blocked here</span>
+task B: cannot run
+task C: cannot run
+timer:  cannot fire</pre>
+      </div>
+      <div class="col">
+        <div class="lbl">With the event layer</div>
+<pre>task A: parked, waiting for <span class="b">bytes</span>
+task B: <span class="ok">running</span>
+task C: <span class="ok">running</span>
+timer:  <span class="ok">fires on time</span></pre>
+      </div>
+    </div>
+
+    <p style="margin-bottom:0">libuv is what turns "wait for a socket" into something the scheduler
+    can idle on, alongside its timers, in a single kernel call.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The seam between the two halves</div>
+    <p style="margin-top:0">The scheduler does <b>not</b> know libuv exists. It holds one function
+    pointer, and libuv fills it in:</p>
+<pre>/* fw_sched.h */
+typedef void (*FWWaitFn)(long long max_wait_ns);
+void fw_sched_set_waiter(FWWaitFn fn);   /* NULL = fall back to nanosleep */</pre>
+    <p style="margin-bottom:0">That single line is the whole dependency. Link a program that never
+    opens a socket or a file, and no loop is ever created: the scheduler idles in
+    <code>nanosleep</code> and libuv's code is never reached.</p>
+    <div class="file"><b>fw-modules/gc/include/fw_sched.h</b> · lines 90–121</div>
+  </div>
+</section>
+
+<!-- ============================================ 2 -->
+<section id="e-loop">
+  <h2>2 · One loop, three handles, four functions</h2>
+  <p class="sub">The entire libuv layer is 81 lines. Here is all of it.</p>
+
+  <div class="panel">
+    <div class="lbl">The only state</div>
+<pre>static uv_loop_t  g_loop;      <span style="color:#8b949e">/* the loop itself                       */</span>
+static uv_async_t g_wake;      <span style="color:#8b949e">/* the one handle another THREAD may touch */</span>
+static uv_timer_t g_deadline;  <span style="color:#8b949e">/* caps how long uv_run is allowed to wait */</span>
+static int        g_ready = 0; <span style="color:#8b949e">/* has the loop been created yet?        */</span></pre>
+    <div class="file"><b>fw-modules/uv_module/fw_uv.c</b> · lines 23–26</div>
+
+    <p>There is exactly one loop per process, created the first time anything asks for it. A server,
+    a client and a file read all share it — so a program doing all three still has one thread and
+    one loop.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Creation — and the moment the two halves are joined</div>
+<pre>uv_loop_t *fw_uv_loop(void) {
+  if (g_ready) return &amp;g_loop;                <span style="color:#8b949e">/* idempotent */</span>
+
+  if (uv_loop_init(&amp;g_loop) != 0) return NULL;
+  uv_async_init(&amp;g_loop, &amp;g_wake, on_wake);
+  uv_timer_init(&amp;g_loop, &amp;g_deadline);
+
+  uv_unref((uv_handle_t *)&amp;g_deadline);       <span style="color:#d29922">/* see below */</span>
+
+  g_ready = 1;
+  fw_sched_set_waiter(fw_uv_wait);            <span style="color:#3fb950">/* ← the handshake */</span>
+  return &amp;g_loop;
+}</pre>
+    <div class="note">
+      <b>Why <code>uv_unref</code> on the deadline timer, but not on the async handle.</b>
+      libuv keeps running while any <em>referenced</em> handle is alive.
+      The deadline timer must not by itself keep the loop alive, or the loop would spin for ever
+      on a timer that exists only to bound a wait. The async handle is deliberately left
+      referenced — that is what makes <code>uv_run</code> genuinely <em>sleep</em> waiting for a
+      wake, instead of returning immediately because it has nothing to watch.
+    </div>
+    <div class="file"><b>fw-modules/uv_module/fw_uv.c</b> · lines 57–72</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The waiter — the function the scheduler calls when nothing can run</div>
+<pre>static void fw_uv_wait(long long max_wait_ns) {
+  if (!g_ready) return;
+
+  if (max_wait_ns &gt;= 0) {
+    uint64_t ms = (uint64_t)(max_wait_ns / 1000000LL);
+    if (max_wait_ns &gt; 0 &amp;&amp; ms == 0) ms = 1;   <span style="color:#8b949e">/* never round a real wait to zero */</span>
+    uv_timer_start(&amp;g_deadline, on_deadline, ms, 0);
+  }
+
+  uv_run(&amp;g_loop, UV_RUN_ONCE);               <span style="color:#58a6ff">/* ← sleeps in the kernel */</span>
+
+  if (max_wait_ns &gt;= 0) uv_timer_stop(&amp;g_deadline);
+}</pre>
+    <p style="margin-bottom:0">Three different requests share one function:</p>
+    <table>
+      <tr><th><code>max_wait_ns</code></th><th>Meaning</th><th>What happens</th></tr>
+      <tr><td class="mono b">&lt; 0</td><td>No timer is pending. Only an event can make progress.</td>
+          <td>No deadline timer. <code>uv_run</code> blocks until a socket, a threadpool
+              completion or an async wake arrives.</td></tr>
+      <tr><td class="mono">&gt; 0</td><td>A task is sleeping and is due in <i>n</i> ns.</td>
+          <td>Deadline timer armed, so <code>uv_run</code> returns by then at the latest —
+              even if no I/O ever arrives.</td></tr>
+      <tr><td class="mono warn">== 0</td><td>Poll. Tasks are runnable, but check for I/O anyway.</td>
+          <td>Timer set to 0 ms, so <code>uv_run</code> drains whatever is ready and returns at
+              once. Never blocks.</td></tr>
+    </table>
+    <div class="file"><b>fw-modules/uv_module/fw_uv.c</b> · lines 43–55</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The complete public surface</div>
+<pre>uv_loop_t  *fw_uv_loop(void);     <span style="color:#8b949e">/* get (creating on first call) the shared loop */</span>
+int         fw_uv_ready(void);    <span style="color:#8b949e">/* does the loop exist yet?                    */</span>
+void        fw_uv_wake(void);     <span style="color:#8b949e">/* THE cross-thread call — see section 7       */</span>
+const char *fw_uv_version(void);  <span style="color:#8b949e">/* uv_version_string()                         */</span></pre>
+  </div>
+</section>
+
+<!-- ============================================ 3 -->
+<section id="e-hand">
+  <h2>3 · The park-and-wake handshake</h2>
+  <p class="sub">Two functions carry every socket, file and timer wait in the language. Step through one.</p>
+
+  <div class="panel">
+    <div class="row">
+      <div class="col">
+        <div class="lbl">Going to sleep</div>
+<pre>void fw_sched_park_io(void) {
+  FWTask *t = g_current;
+  if (t == NULL) return;      <span style="color:#8b949e">/* not in a task: no-op */</span>
+
+  t-&gt;wake_at_ns = FW_WAKE_NEVER;   <span style="color:#d29922">/* = -1 */</span>
+  t-&gt;shadow_top = fw_gc_shadow_top;
+  t-&gt;state      = FW_TASK_SUSPENDED;
+  queue_push(t);
+
+  swapcontext(&amp;t-&gt;ctx, &amp;g_sched_ctx);
+}</pre>
+      </div>
+      <div class="col">
+        <div class="lbl">Waking up</div>
+<pre>void fw_sched_wake_io(void) {
+  for (size_t i = g_head; i &lt; g_tail; i++) {
+    FWTask *t = g_ready[i];
+    if (t != NULL &amp;&amp; t-&gt;wake_at_ns == FW_WAKE_NEVER)
+      t-&gt;wake_at_ns = 0;      <span style="color:#3fb950">/* runnable now */</span>
+  }
+}</pre>
+      </div>
+    </div>
+    <p>A parked task stays <b>in the ready queue</b>. It is not moved to a side list. The single
+    field <code>wake_at_ns</code> encodes all three states:</p>
+    <table>
+      <tr><th><code>wake_at_ns</code></th><th>State</th><th>Set by</th></tr>
+      <tr><td class="mono ok">0</td><td>runnable right now</td><td>fresh spawn, or <code>fw_sched_wake_io</code></td></tr>
+      <tr><td class="mono b">a timestamp</td><td>sleeping until then</td><td><code>sys::sleep</code></td></tr>
+      <tr><td class="mono warn">−1 <span class="dim">(FW_WAKE_NEVER)</span></td><td>parked on an event</td><td><code>fw_sched_park_io</code></td></tr>
+    </table>
+  </div>
+
+  <div class="danger">
+    <b><code>fw_sched_wake_io</code> wakes EVERY parked task, not the one the event belongs to.</b>
+    That looks wrong and is deliberate. The event layer has no idea which task was waiting for
+    which socket. So every caller of <code>park_io</code> is written as a loop that re-checks its
+    own condition and parks again if it is still not satisfied:
+<pre>while (!job.done) {          <span style="color:#8b949e">/* file read   */</span>
+  fw_sched_park_io();
+}
+
+for (;;) {                   <span style="color:#8b949e">/* http accept */</span>
+  if (!s-&gt;ready.empty()) { ... return r; }
+  fw_sched_park_io();
+}</pre>
+    A wake that turns out to be for somebody else costs one loop iteration, and the task parks
+    again. Getting this wrong in the other direction — sleeping through a wake — would hang.
+  </div>
+
+  <h3>Watch one wait, end to end</h3>
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" id="hs-next">Step ▶</button>
+      <button class="ghost act" id="hs-auto">Auto-play</button>
+      <button class="ghost act" id="hs-reset">Reset</button>
+      <span class="step" id="hs-step">0 / 0</span>
+    </div>
+    <div class="pipe" id="hs-pipe"></div>
+    <div class="narrate" id="hs-say">Press <b>Step</b>. A task calls <code>file::readText</code> and the program keeps working.</div>
+  </div>
+</section>
+
+<!-- ============================================ 4 -->
+<section id="e-drain">
+  <h2>4 · Who calls the waiter, and when</h2>
+  <p class="sub">The scheduler's drain loop decides between "run a task" and "sleep in the kernel".</p>
+
+  <div class="panel">
+<pre>while (g_head &lt; g_tail) {
+
+  <span style="color:#d29922">/* (A) THROTTLED POLL — tasks ARE runnable, but check for I/O anyway */</span>
+  if (g_waiter != NULL &amp;&amp; fw_sched_io_waiting() &gt; 0) {
+    long long now = now_ns();
+    if (now - last_poll_ns &gt;= 1000000LL) {      <span style="color:#8b949e">/* at most once per ms */</span>
+      last_poll_ns = now;
+      g_waiter(0);                              <span style="color:#8b949e">/* poll, never block */</span>
+    }
+  }
+
+  FWTask *t = pop_ready();
+
+  if (t == NULL) {
+    <span style="color:#58a6ff">/* (B) NOTHING CAN RUN — work out what could change that */</span>
+    long long     due = earliest_deadline();
+    unsigned long io  = fw_sched_io_waiting();
+
+    if (due == 0 &amp;&amp; io == 0) break;             <span style="color:#3fb950">/* no timers, no events: done */</span>
+
+    if (g_waiter != NULL) {
+      g_waiter(due != 0 ? (due - now_ns()) : FW_WAKE_NEVER);
+    } else if (due != 0) {
+      block_ns(due - now_ns());                 <span style="color:#8b949e">/* no event layer: nanosleep */</span>
+    } else {
+      break;                                    <span style="color:#f85149">/* (C) see below */</span>
+    }
+    continue;
+  }
+
+  <span style="color:#8b949e">/* ... swap to the task's stack ... */</span>
+}</pre>
+    <div class="file"><b>fw-modules/gc/src/fw_sched.c</b> · inside <code>fw_sched_drain</code></div>
+  </div>
+
+  <div class="row">
+    <div class="col panel">
+      <div class="lbl">(A) why the throttled poll exists</div>
+      <p style="margin-top:0">Branch <b>(B)</b> only runs when <em>nothing</em> is ready. A task that
+      spins on <code>sys::yield()</code> — a game loop calling yield once per frame is the obvious
+      case — keeps the ready queue permanently non-empty, so (B) is never reached and a parked
+      socket read never completes.</p>
+      <p style="margin-bottom:0">Measured before this branch existed: a loop yielding
+      <b>2,000,000</b> times left five file reads at <b class="no">zero</b> completed, for the life
+      of the program. After: <b class="ok">done=5 after 155 ms</b>. Timers never had the problem,
+      because <code>pop_ready</code> promotes tasks whose deadline has passed — which is why
+      sleeping worked where yielding hung.</p>
+    </div>
+    <div class="col panel">
+      <div class="lbl">(C) the deliberate give-up</div>
+      <p style="margin-top:0">Tasks are parked on events, there is no timer, and <b>no event layer
+      is installed</b>. Nothing in the process can ever deliver the event they are waiting for.</p>
+      <p style="margin-bottom:0">Releasing them would be wrong — they would wake, see no data and
+      park again, for ever. Hanging in silence is worse. So the loop breaks and the program ends.
+      A deadlock that ends is easier to debug than one that does not.</p>
+    </div>
+  </div>
+
+  <h3>One tick, animated</h3>
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" id="tk-next">Step ▶</button>
+      <button class="ghost act" id="tk-auto">Auto-play</button>
+      <button class="ghost act" id="tk-reset">Reset</button>
+      <span class="step" id="tk-step">0 / 0</span>
+    </div>
+    <div class="lbl">Ready queue</div>
+    <div class="chips" id="tk-q"></div>
+    <div class="lbl" style="margin-top:14px">Thread timeline</div>
+    <div class="lanes" id="tk-lanes"></div>
+    <div class="narrate" id="tk-say" style="margin-top:14px">Three tasks: one sleeps on a clock, one waits on a socket, one just computes.</div>
+  </div>
+</section>
+
+<!-- ============================================ 5 -->
+<section id="e-timer">
+  <h2>5 · Timers</h2>
+  <p class="sub">Two completely different timers, easy to confuse.</p>
+
+  <div class="row">
+    <div class="col panel">
+      <div class="lbl">Scheduler timer — <code>sys::sleep</code></div>
+      <p style="margin-top:0">Not a libuv timer at all. <code>sys::sleep(200)</code> writes a
+      timestamp into the task and pushes it back on the queue:</p>
+<pre>t-&gt;wake_at_ns = now_ns() + ms * 1000000LL;
+t-&gt;state      = FW_TASK_SUSPENDED;
+queue_push(t);
+swapcontext(...);</pre>
+      <p><code>pop_ready()</code> later finds it due and runs it. Sleeping is a <b>number
+      comparison</b>, not a kernel object. A million sleeping tasks cost a million integers.</p>
+      <p style="margin-bottom:0">This is also why sleeping worked before libuv existed, and why it
+      still works in a program that never touches a socket.</p>
+    </div>
+    <div class="col panel">
+      <div class="lbl">libuv timer — <code>g_deadline</code></div>
+      <p style="margin-top:0">Exactly one exists, and its callback does nothing:</p>
+<pre>static void on_deadline(uv_timer_t *handle) {
+  (void)handle;  <span style="color:#8b949e">/* exists only to cap how long uv_run waits */</span>
+}</pre>
+      <p>Its only job is to make <code>uv_run</code> <b>return</b>. The scheduler needs to regain
+      control when the earliest sleeping task comes due, even if no socket ever speaks.</p>
+      <p style="margin-bottom:0">It is <code>uv_unref</code>'d, so it never keeps the loop alive on
+      its own, and it is stopped again the moment <code>uv_run</code> returns.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">How the two combine</div>
+<pre>task A sleeps 200 ms   →  wake_at_ns = now + 200ms
+task B parks on socket →  wake_at_ns = -1
+nothing ready
+
+drain:  due = (A's deadline)          io = 1
+        g_waiter(due - now)  ==  fw_uv_wait(200_000_000)
+              ↓
+        uv_timer_start(&amp;g_deadline, on_deadline, <b>200</b>, 0)
+        uv_run(UV_RUN_ONCE)   ←  ONE kernel sleep watching
+                                 the socket AND the 200 ms cap
+              ↓
+   whichever happens first wins:
+     socket speaks  → on_read → ... → fw_sched_wake_io() → B runnable
+     200 ms elapse  → on_deadline (does nothing) → uv_run returns
+                      → pop_ready() finds A due → A runs</pre>
+    <p style="margin-bottom:0">There is no polling and no spare thread. One
+    <code>epoll_wait</code> / <code>kqueue</code> / IOCP call covers every timer and every socket
+    in the program at once.</p>
+  </div>
+
+  <div class="note" style="margin-bottom:0">
+    <b>The 1 ms floor.</b> <code>uv_timer_start</code> takes milliseconds; the scheduler thinks in
+    nanoseconds. A 200 µs wait would truncate to <code>0</code> ms, which libuv reads as "fire
+    immediately" — turning a short sleep into a busy spin. Hence
+    <code>if (max_wait_ns &gt; 0 &amp;&amp; ms == 0) ms = 1;</code>. A sub-millisecond sleep is
+    rounded <em>up</em> to 1 ms rather than down to a spin.
+  </div>
+</section>
+
+<!-- ============================================ 6 -->
+<section id="e-socket">
+  <h2>6 · A network request, arrival to handler</h2>
+  <p class="sub">Follow one HTTP request through the server. Nothing here runs on a second thread.</p>
+
+  <div class="panel">
+    <div class="ctl">
+      <button class="act" id="sk-next">Step ▶</button>
+      <button class="ghost act" id="sk-auto">Auto-play</button>
+      <button class="ghost act" id="sk-reset">Reset</button>
+      <span class="step" id="sk-step">0 / 0</span>
+    </div>
+    <div class="pipe" id="sk-pipe"></div>
+    <div class="narrate" id="sk-say">A client connects to a Flow-Wing server that is parked in <code>app.accept()</code>.</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Setting up the listener</div>
+<pre>int fw_http_server_listen(int64_t handle, int port) {
+  uv_tcp_init(fw_uv_loop(), &amp;s-&gt;listener);    <span style="color:#8b949e">/* shared loop */</span>
+  s-&gt;listener.data = s;
+
+  uv_ip4_addr("0.0.0.0", port, &amp;addr);
+  uv_tcp_bind(&amp;s-&gt;listener, ..., 0);
+  uv_listen((uv_stream_t *)&amp;s-&gt;listener, <b>128</b>, on_connection);
+  ...
+}</pre>
+    <p style="margin-bottom:0"><code>128</code> is the kernel's backlog: connections the OS accepts
+    and holds for you while your code is busy. A brief burst does not get refused — it queues.</p>
+    <div class="file"><b>fw-modules/vortex_module/uv_http_server.cpp</b> · lines 396–414</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">A connection arrives</div>
+<pre>void on_connection(uv_stream_t *server_stream, int status) {
+  FwConn *c = new FwConn();
+  uv_tcp_init(fw_uv_loop(), &amp;c-&gt;handle);
+  uv_accept(server_stream, (uv_stream_t *)&amp;c-&gt;handle);
+
+  llhttp_init(&amp;c-&gt;parser, HTTP_REQUEST, &amp;c-&gt;settings);   <span style="color:#8b949e">/* per-connection parser */</span>
+
+  uv_timer_init(fw_uv_loop(), &amp;c-&gt;idle);
+  uv_unref((uv_handle_t *)&amp;c-&gt;idle);   <span style="color:#d29922">/* must not keep the loop alive alone */</span>
+  arm_idle(c);
+
+  uv_read_start((uv_stream_t *)&amp;c-&gt;handle, alloc_buffer, on_read);
+}</pre>
+    <p style="margin-bottom:0">Every connection gets its <b>own</b> llhttp parser and its
+    <b>own</b> idle timer. The parser is a state machine, so a request split across five TCP
+    packets is fine — each <code>on_read</code> feeds bytes in and the parser remembers where it
+    got to.</p>
+    <div class="file"><b>fw-modules/vortex_module/uv_http_server.cpp</b> · lines 340–369</div>
+  </div>
+
+  <div class="row">
+    <div class="col panel">
+      <div class="lbl">Bytes in</div>
+<pre>void on_read(uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
+  FwConn *c = s-&gt;data;
+
+  if (nread &lt; 0) {                 <span style="color:#8b949e">/* peer hung up */</span>
+    free(buf-&gt;base);
+    conn_close(c);
+    fw_sched_wake_io();            <span style="color:#d29922">/* waiter must re-check */</span>
+    return;
+  }
+
+  arm_idle(c);                     <span style="color:#8b949e">/* alive: restart the clock */</span>
+  llhttp_execute(&amp;c-&gt;parser, buf-&gt;base, nread);
+  free(buf-&gt;base);
+  ...
+}</pre>
+    </div>
+    <div class="col panel">
+      <div class="lbl">A whole request is in</div>
+<pre>int on_message_complete(llhttp_t *p) {
+  FwConn *c = p-&gt;data;
+
+  FwRequest *r = new FwRequest();
+  r-&gt;method     = llhttp_method_name(...);
+  r-&gt;path       = c-&gt;cur_url;
+  r-&gt;body       = c-&gt;cur_body;
+  r-&gt;keep_alive = llhttp_should_keep_alive(p);
+
+  c-&gt;server-&gt;ready.push_back(r);   <span style="color:#3fb950">/* hand to Flow-Wing */</span>
+
+  fw_sched_wake_io();              <span style="color:#3fb950">/* a task may be in accept() */</span>
+  return 0;
+}</pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The Flow-Wing side of <code>app.accept()</code></div>
+<pre>int64_t fw_http_accept(int64_t handle) {
+  FwServer *s = ...;
+
+  for (;;) {
+    if (!s-&gt;ready.empty()) {            <span style="color:#3fb950">/* a request is waiting: take it */</span>
+      FwRequest *r = s-&gt;ready.front();
+      s-&gt;ready.pop_front();
+      return (int64_t)r;
+    }
+    if (!fw_sched_in_task()) {          <span style="color:#d29922">/* no scheduler to yield to    */</span>
+      uv_run(fw_uv_loop(), UV_RUN_ONCE);<span style="color:#d29922">/* drive the loop directly     */</span>
+      continue;
+    }
+    fw_sched_park_io();                 <span style="color:#58a6ff">/* suspend just this task      */</span>
+  }
+}</pre>
+    <div class="good" style="margin-bottom:0">
+      <b>The two branches are why <code>spawn serverLoop(app)</code> matters.</b>
+      Inside a task, <code>accept()</code> parks and the scheduler runs your queued handlers.
+      At the top level there is no task to suspend, so it falls into
+      <code>uv_run</code> and drives the loop itself — the program still works, but nothing
+      else of yours gets a turn.
+    </div>
+    <div class="file"><b>fw-modules/vortex_module/uv_http_server.cpp</b> · lines 416–434</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">The limits, and which layer enforces each</div>
+    <table>
+      <tr><th>Limit</th><th>Where</th><th>What happens when it trips</th></tr>
+      <tr><td>header bytes</td><td class="mono">on_url, on_header_bytes</td>
+          <td>callback returns <code>-1</code>, llhttp aborts, <code class="no">400</code> + close</td></tr>
+      <tr><td>body bytes</td><td class="mono">on_body</td>
+          <td>callback returns <code>-1</code>, <code class="no">413 Payload Too Large</code> + close</td></tr>
+      <tr><td>idle timeout</td><td class="mono">uv_timer per connection</td>
+          <td><code>on_idle_timeout</code> → <code>conn_close</code> + <code>fw_sched_wake_io</code></td></tr>
+      <tr><td>backlog</td><td class="mono">uv_listen(…, 128, …)</td>
+          <td>the kernel refuses further pending connections</td></tr>
+    </table>
+    <p style="margin-bottom:0">All four are enforced <b>before</b> your Flow-Wing code ever sees the
+    request. A client that opens a socket, sends one byte and goes quiet is dropped by its own idle
+    timer without any task waking up for it.</p>
+  </div>
+</section>
+
+<!-- ============================================ 7 -->
+<section id="e-pool">
+  <h2>7 · Disk reads, and the threadpool rule</h2>
+  <p class="sub">Files are the one place Flow-Wing genuinely uses another thread — and the one place the rules get strict.</p>
+
+  <div class="panel">
+    <p style="margin-top:0">There is no portable way to wait on a regular file with
+    <code>epoll</code>. libuv's answer is a small worker pool: hand it a blocking job, it runs it on
+    a spare thread and calls you back <b>on the loop thread</b> when it is finished.</p>
+
+<pre>const char *file_read_all(const char *path) {
+  if (fw_sched_in_task() &amp;&amp; fw_uv_loop() != nullptr) {
+    FwReadJob job;                         <span style="color:#8b949e">/* lives on the TASK's stack */</span>
+    job.path     = path;
+    job.req.data = &amp;job;
+
+    if (uv_queue_work(fw_uv_loop(), &amp;job.req, read_work, read_done) == 0) {
+      while (!job.done) {
+        fw_sched_park_io();                <span style="color:#58a6ff">/* other tasks run here */</span>
+      }
+      return alloc_gc_string(job.data);    <span style="color:#3fb950">/* back on the FW thread */</span>
+    }
+  }
+
+  <span style="color:#8b949e">/* Outside a task there is nothing to switch to: read inline. */</span>
+  ...
+}</pre>
+    <div class="file"><b>fw-modules/file_module/libflowwing_file.cpp</b> · lines 114–142</div>
+  </div>
+
+  <div class="row">
+    <div class="col panel" style="border-color:#bc8cff">
+      <div class="lbl" style="color:#bc8cff">read_work — worker thread</div>
+<pre>void read_work(uv_work_t *handle) {
+  FwReadJob *job = handle-&gt;data;
+
+  std::ifstream file(job-&gt;path, ...);
+  if (!file) { job-&gt;error = 1; return; }
+
+  std::ostringstream contents;
+  contents &lt;&lt; file.rdbuf();
+  job-&gt;data = contents.str();   <span style="color:#bc8cff">/* std::string! */</span>
+}</pre>
+      <span class="pill r">no GC</span><span class="pill r">no scheduler</span><span class="pill">plain C++ only</span>
+    </div>
+    <div class="col panel" style="border-color:#3fb950">
+      <div class="lbl" style="color:#3fb950">read_done — Flow-Wing thread, inside uv_run</div>
+<pre>void read_done(uv_work_t *handle, int status) {
+  FwReadJob *job = handle-&gt;data;
+  if (status != 0 &amp;&amp; job-&gt;error == 0) job-&gt;error = 2;
+  job-&gt;done = true;
+  fw_sched_wake_io();           <span style="color:#3fb950">/* safe here */</span>
+}</pre>
+      <span class="pill g">GC allowed</span><span class="pill g">scheduler allowed</span>
+    </div>
+  </div>
+
+  <div class="danger">
+    <b>The rule that the <code>std::string</code> is protecting.</b>
+    The garbage collector is single-threaded and has no locks — that is a design choice the whole
+    runtime depends on. Calling <code>fw_gc_alloc</code> from a worker thread would corrupt the
+    heap, silently and unreproducibly.
+    <p style="margin-bottom:0">So <code>read_work</code> builds a plain <code>std::string</code>,
+    and the GC string is allocated later, back on the Flow-Wing thread, once the task resumes. The
+    cost is one copy. The alternative is making the GC thread-safe, which would mean locks on every
+    allocation in the language.</p>
+  </div>
+
+  <div class="note" style="margin-bottom:0">
+    <b>The job lives on the task's own stack</b> (<code>FwReadJob job;</code>, not
+    <code>new</code>). That is safe precisely because the task cannot return until
+    <code>job.done</code> is true — its stack is frozen, not unwound, while it is parked. A task
+    stack is a real block of memory that stays put; see the
+    <a href="/internals/concurrency.html" style="color:#58a6ff">tasks page</a>.
+  </div>
+</section>
+
+<!-- ============================================ 8 -->
+<section id="e-thread">
+  <h2>8 · <code>fw_uv_wake()</code> — the one call another thread may make</h2>
+  <p class="sub">Everything else in the runtime is single-threaded. This is the crack in the wall, and it is one function wide.</p>
+
+  <div class="panel">
+<pre>void fw_uv_wake(void) {
+  if (g_ready) uv_async_send(&amp;g_wake);
+}
+
+static void on_wake(uv_async_t *handle) {   <span style="color:#3fb950">/* runs on the FW thread, in uv_run */</span>
+  (void)handle;
+  fw_sched_wake_io();
+}</pre>
+    <p><code>uv_async_send</code> is the <b>only</b> function libuv documents as safe to call from a
+    thread other than the loop's own. Everything else in libuv — every
+    <code>uv_read_start</code>, every <code>uv_timer_start</code> — must happen on the loop thread.</p>
+    <div class="file"><b>fw-modules/uv_module/fw_uv.c</b> · lines 31–34, 76–78</div>
+  </div>
+
+  <div class="panel">
+    <div class="lbl">Why it is needed at all</div>
+    <p style="margin-top:0">The HTTP client in <code>libflowwing_vortex.cpp</code> runs its request
+    on a <code>std::thread</code> (it uses cpp-httplib, which is blocking). Meanwhile the Flow-Wing
+    thread may be fast asleep inside <code>uv_run</code>. When a chunk arrives on the worker thread,
+    something has to reach across and wake the sleeper:</p>
+<pre>[chunk arrives on worker thread]
+  std::lock_guard&lt;std::mutex&gt; lock(ctx-&gt;mtx);
+  ctx-&gt;chunks.push(std::string(data, len));
+  ctx-&gt;cv.notify_all();
+  <b style="color:#d29922">fw_uv_wake();</b>          <span style="color:#8b949e">/* ← nudge the loop thread */</span>
+
+[Flow-Wing thread, parked in uv_run]
+  on_wake  →  fw_sched_wake_io()  →  the reading task becomes runnable
+  it re-takes the mutex, sees a chunk, and returns it</pre>
+    <p style="margin-bottom:0">Without the wake, the chunk would sit in the queue and the loop would
+    keep sleeping — there is no socket <em>it</em> is watching, because the socket belongs to the
+    other thread.</p>
+    <div class="file"><b>fw-modules/vortex_module/libflowwing_vortex.cpp</b> · lines 120–182</div>
+  </div>
+
+  <div class="row">
+    <div class="col panel">
+      <div class="lbl">Inside a task</div>
+<pre>if (fw_sched_in_task()) {
+  for (;;) {
+    { std::lock_guard lock(ctx-&gt;mtx);
+      if (ctx-&gt;headers_received) break; }
+    fw_sched_park_io();     <span style="color:#3fb950">/* others run */</span>
+  }
+}</pre>
+    </div>
+    <div class="col panel">
+      <div class="lbl">Outside a task</div>
+<pre>else {
+  std::unique_lock lock(ctx-&gt;mtx);
+  ctx-&gt;cv.wait(lock, [ctx]{
+    return ctx-&gt;headers_received;
+  });                       <span style="color:#d29922">/* thread blocks */</span>
+}</pre>
+    </div>
+  </div>
+  <p>Both branches are correct. The difference is what stops: one task, or the whole program. This
+  pairing — <code>fw_sched_in_task()</code> deciding between suspending and blocking — appears in
+  every waiting primitive in the runtime.</p>
+
+  <div class="note" style="margin-bottom:0">
+    <b>Repeated wakes are coalesced.</b> <code>uv_async_send</code> may collapse several sends into
+    one callback. Nothing depends on the count, because <code>fw_sched_wake_io</code> simply marks
+    every parked task runnable and each one re-checks its own condition. Firing it a hundred times
+    and firing it once have the same effect — which is exactly what makes it safe to call from a
+    thread with no coordination.
+    <span class="pill" style="margin-left:6px">test_uv.c · test_repeated_wakes_are_coalesced_safely</span>
+  </div>
+</section>
+
+<!-- ============================================ 9 -->
+<section id="e-rules">
+  <h2>9 · Rules worth memorising</h2>
+  <p class="sub">The short version of everything above.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h4 class="b">One loop, one thread</h4>
+      <p>Server, client and file reads all share <code>g_loop</code>. Creating a second server does
+      not create a second loop or a second thread.</p>
+    </div>
+    <div class="card">
+      <h4 class="b">The loop only runs when nothing else can</h4>
+      <p><code>uv_run</code> is called from the scheduler's idle branch — or, once per millisecond,
+      as a non-blocking poll when tasks are busy. Your code is never pre-empted.</p>
+    </div>
+    <div class="card">
+      <h4 class="warn">A wake is a hint, not a delivery</h4>
+      <p><code>fw_sched_wake_io</code> wakes everyone. Every <code>park_io</code> must sit inside a
+      loop that re-checks its own condition.</p>
+    </div>
+    <div class="card">
+      <h4 class="no">Never touch the GC off-thread</h4>
+      <p>Threadpool work builds plain C++ values. GC objects are allocated in the completion
+      callback, back on the Flow-Wing thread.</p>
+    </div>
+    <div class="card">
+      <h4 class="p"><code>fw_uv_wake()</code> and nothing else</h4>
+      <p>It is the only runtime call another thread may make. It wraps
+      <code>uv_async_send</code>, the only call libuv documents as thread-safe.</p>
+    </div>
+    <div class="card">
+      <h4 class="ok">Sleeping is not a libuv timer</h4>
+      <p><code>sys::sleep</code> is an integer comparison in the scheduler. The single libuv timer
+      exists only to bound how long <code>uv_run</code> may wait.</p>
+    </div>
+    <div class="card">
+      <h4 class="warn">A top-level <code>while true</code> starves everything</h4>
+      <p>Queued tasks only drain after the top-level body finishes. Put the accept loop in a task:
+      <code>spawn serverLoop(app)</code>.</p>
+    </div>
+    <div class="card">
+      <h4 class="ok">No locks in your code</h4>
+      <p>Exactly one task runs at a time and switches happen only where you suspend. Two tasks can
+      never be inside the same function at the same instant.</p>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="lbl">Where each piece lives</div>
+    <table>
+      <tr><th>File</th><th>Lines</th><th>Owns</th></tr>
+      <tr><td class="mono b">fw-modules/uv_module/fw_uv.c</td><td class="mono">81</td>
+          <td>the loop, the waiter, the async wake</td></tr>
+      <tr><td class="mono b">fw-modules/gc/src/fw_sched.c</td><td class="mono">~800</td>
+          <td>tasks, stacks, the drain loop, park/wake</td></tr>
+      <tr><td class="mono b">fw-modules/vortex_module/uv_http_server.cpp</td><td class="mono">566</td>
+          <td>listener, connections, llhttp, limits</td></tr>
+      <tr><td class="mono b">fw-modules/vortex_module/uv_http_client.cpp</td><td class="mono">507</td>
+          <td>the libuv-native client</td></tr>
+      <tr><td class="mono b">fw-modules/vortex_module/libflowwing_vortex.cpp</td><td class="mono">—</td>
+          <td>the threaded client — the one place <code>fw_uv_wake</code> is needed</td></tr>
+      <tr><td class="mono b">fw-modules/file_module/libflowwing_file.cpp</td><td class="mono">—</td>
+          <td>threadpool file reads</td></tr>
+      <tr><td class="mono b">fw-modules/uv_module/tests/test_uv.c</td><td class="mono">20 checks</td>
+          <td>the loop and the cross-thread wake, threads included</td></tr>
+      <tr><td class="mono b">fw-modules/gc/tests/test_sched.c</td><td class="mono">49 checks</td>
+          <td>park/wake, the waiter hook, nested drain</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ---------- tabs ---------- */
+const TABS = [
+  ['e-why','1 · Why'], ['e-loop','2 · The loop'], ['e-hand','3 · Park & wake'],
+  ['e-drain','4 · The drain loop'], ['e-timer','5 · Timers'], ['e-socket','6 · A request'],
+  ['e-pool','7 · Threadpool'], ['e-thread','8 · Cross-thread'], ['e-rules','9 · Rules']
+];
+const nav = document.getElementById('nav');
+TABS.forEach(([id,label],i)=>{
+  const b=document.createElement('button');
+  b.textContent=label;
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); document.getElementById(id).classList.add('on');
+  };
+  if(i===0) b.classList.add('on');
+  nav.appendChild(b);
+});
+document.getElementById(TABS[0][0]).classList.add('on');
+
+/* ---------- generic stepper ---------- */
+function stepper(prefix, steps, render){
+  let i=0, timer=null;
+  const stepEl=document.getElementById(prefix+'-step');
+  const sayEl =document.getElementById(prefix+'-say');
+  function draw(){
+    stepEl.textContent = i+' / '+steps.length;
+    sayEl.innerHTML = i===0 ? sayEl.dataset.initial : steps[i-1].say;
+    render(i);
+  }
+  function next(){ if(i<steps.length){ i++; draw(); } else { stop(); } }
+  function stop(){ if(timer){clearInterval(timer); timer=null;
+                   document.getElementById(prefix+'-auto').textContent='Auto-play';} }
+  sayEl.dataset.initial = sayEl.innerHTML;
+  document.getElementById(prefix+'-next').onclick=()=>{stop();next();};
+  document.getElementById(prefix+'-auto').onclick=(e)=>{
+    if(timer){stop();return;}
+    if(i>=steps.length) i=0;
+    e.target.textContent='Pause'; timer=setInterval(next,1500); next();
+  };
+  document.getElementById(prefix+'-reset').onclick=()=>{stop(); i=0; draw();};
+  draw();
+}
+
+/* ---------- 3: park & wake handshake (file read) ---------- */
+const HS = [
+  {t:'task calls file::readText("a.txt")',      w:'libflowwing_file.cpp · file_read_all', th:'fw',   say:'The task is running normally. Nothing is blocked yet.'},
+  {t:'FwReadJob job;  — on the TASK stack',     w:'the task\'s own 256 KB stack',          th:'fw',   say:'The job struct is a local, not a heap allocation. It stays valid because the task\'s stack is frozen, not unwound, while it is parked.'},
+  {t:'uv_queue_work(loop, &job, read_work, read_done)', w:'handed to libuv\'s worker pool', th:'fw',  say:'libuv takes the job. Control returns immediately — nothing has been read yet.'},
+  {t:'while (!job.done) fw_sched_park_io();',   w:'fw_sched.c · park_io',                  th:'fw',   say:'wake_at_ns = −1, the task is pushed back on the ready queue, and swapcontext hands the CPU to the scheduler. <b>Other tasks now run.</b>'},
+  {t:'read_work(): ifstream → std::string',     w:'libflowwing_file.cpp',                  th:'pool', say:'A worker thread does the blocking read. It must not touch the GC or the scheduler — so it builds a plain std::string.'},
+  {t:'nothing ready → g_waiter(FW_WAKE_NEVER)', w:'fw_sched.c · drain, branch (B)',        th:'fw',   say:'Meanwhile the Flow-Wing thread runs out of work and sleeps inside uv_run. No timer is pending, so it waits indefinitely.'},
+  {t:'read_done(): job.done = true',            w:'libflowwing_file.cpp',                  th:'fw',   say:'The worker finished. libuv delivers the completion <b>on the Flow-Wing thread</b>, inside uv_run — which is why this callback may safely touch the scheduler.'},
+  {t:'fw_sched_wake_io()',                      w:'fw_sched.c · wake_io',                  th:'fw',   say:'Every task with wake_at_ns == −1 is marked runnable. That includes tasks waiting on something else entirely — they will re-check and park again.'},
+  {t:'uv_run returns → pop_ready() → swapcontext', w:'fw_sched.c · drain',                 th:'fw',   say:'The scheduler resumes the task on the line <b>after</b> park_io, inside its while loop.'},
+  {t:'job.done is true → alloc_gc_string(job.data)', w:'back on the FlowWing thread',      th:'fw',   say:'Only now is a GC string allocated, on the correct thread. The task returns the text and carries on as if the read had been instant.'}
+];
+(function(){
+  const pipe=document.getElementById('hs-pipe');
+  pipe.innerHTML = HS.map((s,n)=>`<div class="pstep" id="hs${n}">
+      <div class="pnum">${n+1}</div>
+      <div class="pbody"><div class="ptitle">${s.t}</div><div class="pwhere">${s.w}</div></div>
+      <div class="pthread ${s.th}">${s.th==='pool'?'worker thread':'FlowWing thread'}</div>
+    </div>`).join('');
+  stepper('hs', HS.map(s=>({say:s.say})), i=>{
+    HS.forEach((_,n)=>{
+      const el=document.getElementById('hs'+n);
+      el.className='pstep'+(n===i-1?' on':(n<i-1?' done':''));
+    });
+  });
+})();
+
+/* ---------- 4: one tick ---------- */
+const TK = [
+  {q:[['A','ready','compute'],['B','sleep','sleep 40ms'],['C','parked','socket']],
+   lanes:[['FlowWing','run','A runs',0,34]],
+   say:'A is runnable, B sleeps until t+40 ms, C is parked on a socket. pop_ready() picks A.'},
+  {q:[['A','ready','compute'],['B','sleep','sleep 40ms'],['C','parked','socket']],
+   lanes:[['FlowWing','run','A runs',0,34],['FlowWing','loop','poll g_waiter(0)',34,14]],
+   say:'C is parked, so the throttled poll fires — at most once per millisecond. g_waiter(0) drains ready I/O and returns at once. It never blocks while a task could run.'},
+  {q:[['A','gone','done'],['B','sleep','sleep 40ms'],['C','parked','socket']],
+   lanes:[['FlowWing','run','A runs',0,34],['FlowWing','loop','poll',34,14],['FlowWing','idle','pop_ready → NULL',48,20]],
+   say:'A finishes. pop_ready() returns NULL: B is not due yet and C has no data. Nothing can run.'},
+  {q:[['A','gone','done'],['B','sleep','sleep 40ms'],['C','parked','socket']],
+   lanes:[['FlowWing','run','A',0,34],['FlowWing','loop','poll',34,14],['FlowWing','idle','NULL',48,20],['FlowWing','loop','uv_run — sleeping',68,32]],
+   say:'due = B\'s deadline, io = 1. So g_waiter(due − now) is called: arm the 40 ms deadline timer, then sleep in the kernel watching C\'s socket <b>and</b> the clock together.'},
+  {q:[['A','gone','done'],['B','sleep','sleep 40ms'],['C','ready','woken']],
+   lanes:[['FlowWing','run','A',0,34],['FlowWing','loop','poll',34,14],['FlowWing','idle','NULL',48,20],['FlowWing','loop','uv_run',68,32],['kernel','pool','socket readable',82,18]],
+   say:'C\'s socket speaks first. on_read → llhttp → on_message_complete → fw_sched_wake_io(). C\'s wake_at_ns goes from −1 to 0.'},
+  {q:[['A','gone','done'],['B','sleep','sleep 40ms'],['C','ready','runnable']],
+   lanes:[['FlowWing','run','A',0,34],['FlowWing','loop','poll',34,14],['FlowWing','idle','NULL',48,20],['FlowWing','loop','uv_run',68,32],['FlowWing','run','C resumes',100,-1]],
+   say:'uv_run returns, the deadline timer is stopped, pop_ready() finds C, and swapcontext resumes it on the line after park_io. B is still sleeping — its 40 ms are not up.'}
+];
+(function(){
+  const qEl=document.getElementById('tk-q'), lEl=document.getElementById('tk-lanes');
+  function render(i){
+    if(i===0){
+      qEl.innerHTML='<span class="empty">press Step</span>'; lEl.innerHTML=''; return;
+    }
+    const s=TK[i-1];
+    qEl.innerHTML=s.q.map(([n,cls,txt])=>`<span class="chip ${cls}">${n} · ${txt}</span>`).join('');
+    const names=['FlowWing','kernel'];
+    lEl.innerHTML=names.map(nm=>{
+      const blocks=s.lanes.filter(b=>b[0]===nm).map(b=>{
+        const w = b[4]<0 ? (100-b[3]) : b[4];
+        return `<div class="blk ${b[1]}" style="left:${b[3]}%;width:${w}%">${b[2]}</div>`;
+      }).join('');
+      return `<div class="lane-name">${nm}</div><div class="lane">${blocks}</div>`;
+    }).join('');
+  }
+  stepper('tk', TK.map(s=>({say:s.say})), render);
+})();
+
+/* ---------- 6: a request ---------- */
+const SK = [
+  {t:'uv_listen(&s->listener, 128, on_connection)', w:'fw_http_server_listen', th:'fw',
+   say:'The listener is registered with the shared loop. 128 is the kernel backlog — connections the OS holds for you while your code is busy.'},
+  {t:'client connects → on_connection fires', w:'inside uv_run, FlowWing thread', th:'kern',
+   say:'The kernel accepts the TCP connection and libuv calls on_connection. A fresh FwConn is created with its own llhttp parser and its own idle timer.'},
+  {t:'uv_read_start(handle, alloc_buffer, on_read)', w:'uv_http_server.cpp · on_connection', th:'fw',
+   say:'The connection is now watched for readable bytes. Still nothing has been parsed.'},
+  {t:'meanwhile: serverLoop task calls app.accept()', w:'fw_http_accept', th:'fw',
+   say:'s->ready is empty and we are inside a task, so fw_sched_park_io() suspends the server loop. Your other tasks keep running.'},
+  {t:'bytes arrive → on_read(nread > 0)', w:'uv_http_server.cpp · on_read', th:'kern',
+   say:'arm_idle(c) restarts the idle clock — the peer is alive. Then llhttp_execute feeds the bytes to the parser. A request split across packets is fine: the parser remembers its state.'},
+  {t:'llhttp → on_message_complete', w:'uv_http_server.cpp', th:'fw',
+   say:'A full request has been parsed. An FwRequest is built with method, path, body and keep-alive, and pushed onto s->ready.'},
+  {t:'fw_sched_wake_io()', w:'fw_sched.c', th:'fw',
+   say:'Every parked task is marked runnable — including the server loop parked in accept().'},
+  {t:'accept() re-checks: s->ready is not empty', w:'fw_http_accept loop', th:'fw',
+   say:'The server loop resumes, pops the request and returns it to Flow-Wing. This is the re-check that makes a wake-everyone design correct.'},
+  {t:'spawn handler(res)', w:'your .fg code', th:'fw',
+   say:'The handler is queued, not run. The loop goes straight back to accept(), parks again, and the scheduler runs the handler while the next connection is still arriving.'},
+  {t:'res.json(...) → conn_write → uv_write', w:'uv_http_server.cpp · conn_write', th:'fw',
+   say:'The response is handed to libuv. on_write closes the connection if the request was not keep-alive. Nothing blocked at any point in this whole sequence.'}
+];
+(function(){
+  const pipe=document.getElementById('sk-pipe');
+  const label={fw:'FlowWing thread',kern:'kernel → libuv',pool:'worker thread'};
+  pipe.innerHTML = SK.map((s,n)=>`<div class="pstep" id="sk${n}">
+      <div class="pnum">${n+1}</div>
+      <div class="pbody"><div class="ptitle">${s.t}</div><div class="pwhere">${s.w}</div></div>
+      <div class="pthread ${s.th}">${label[s.th]}</div>
+    </div>`).join('');
+  stepper('sk', SK.map(s=>({say:s.say})), i=>{
+    SK.forEach((_,n)=>{
+      const el=document.getElementById('sk'+n);
+      el.className='pstep'+(n===i-1?' on':(n<i-1?' done':''));
+    });
+  });
+})();
+</script>
+</body>
+</html>

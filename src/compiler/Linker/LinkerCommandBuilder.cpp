@@ -236,30 +236,35 @@ void LinkerCommandBuilder::addSystemLibraries(
   args.push_back("-lstdc++");
 #elif defined(_WIN32)
 
-  // /STACK:16777216 reserves 16 MB for the main thread.
+  // /STACK:67108864 reserves 64 MB of stack for the main thread.
   //
   // Windows defaults to 1 MB, while Linux and macOS give main about 8 MB. That
   // gap is a portability trap rather than a tuning knob: a recursion depth a
-  // program survives everywhere else aborts on Windows with 0xC0000005 and no
-  // message at all.
+  // program survives everywhere else aborts on Windows with no message at all.
   //
-  // The figure is 16 MB and not 8 MB on purpose. What should match across
-  // platforms is the DEPTH a program can reach, not the byte count, and a
-  // Windows x64 frame is the larger of the two — the ABI makes every caller
-  // reserve 32 bytes of shadow space for the callee to spill its register
-  // arguments into, which SysV does not. Equal bytes would therefore still
-  // mean a shallower limit here. Doubling covers that difference with room to
-  // spare.
+  // What should match across platforms is the DEPTH a program can reach, not
+  // the byte count, and a Windows x64 frame is the larger of the two — the ABI
+  // makes every caller reserve 32 bytes of shadow space for the callee to spill
+  // its register arguments into, which SysV does not. Equal bytes therefore
+  // still mean a shallower limit here.
+  //
+  // The number is empirical, not derived. 8 MB (byte parity with POSIX) and
+  // 16 MB were both tried, and SchedulerTests/main_stack_deep_recursion.fg —
+  // 100000 frames, which passes on Linux and macOS — still exited 0xC00000FD
+  // STATUS_STACK_OVERFLOW on Windows at 16 MB. 64 MB leaves room for a frame
+  // several times larger than the POSIX one rather than guessing the exact
+  // multiplier.
   //
   // Reserve is address space, not committed memory — pages are committed as the
-  // stack actually grows, so this costs nothing until it is used. Task stacks
-  // are unaffected: those come from CreateFiberEx and follow FW_TASK_STACK_KB.
+  // stack actually grows, so an ordinary program pays nothing for this. Task
+  // stacks are unaffected: those come from CreateFiberEx and follow
+  // FW_TASK_STACK_KB.
   for (const auto &lib :
        {"ucrt.lib", "vcruntime.lib", "kernel32.lib", "user32.lib",
         "advapi32.lib", "msvcrt.lib", "legacy_stdio_definitions.lib",
 
         "bcrypt.lib", "ncrypt.lib", "/SUBSYSTEM:CONSOLE", "/IGNORE:4210",
-        "/STACK:16777216"}) {
+        "/STACK:67108864"}) {
     args.push_back(lib);
   }
 #endif

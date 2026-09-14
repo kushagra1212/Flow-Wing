@@ -55,8 +55,13 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
     // target uv_a an OUTPUT_NAME of "uv" and a Windows-only PREFIX of "lib".
     // uv.lib also exists but is the IMPORT library for uv.dll — linking it
     // makes the executable need a DLL that the SDK does not ship.
+    // ole32 and shell32 are libuv's, not ours: uv_os_homedir calls
+    // SHGetKnownFolderPath (shell32) and frees the result with CoTaskMemFree
+    // (ole32). They must appear here as well as on the vortex line below,
+    // because a program may bring `file` without ever bringing `vortex`.
     return "flowwing_file.lib flowwing_uv.lib libuv.lib "
-           "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib";
+           "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib "
+           "ole32.lib shell32.lib advapi32.lib";
 #elif defined(__linux__)
     return "-lflowwing_file -lflowwing_uv -lpthread -ldl -lrt";
 #else

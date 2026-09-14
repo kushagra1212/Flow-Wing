@@ -17,6 +17,17 @@ covering the whole concurrency API.
 **[▶ Open the interactive concurrency walkthrough](pathname:///internals/concurrency.html)**
 :::
 
+:::info Going deeper — the event loop itself
+This page covers **tasks**: how they are queued, how a stack swap works, why no
+locks are needed. The layer underneath — the libuv loop, the timers, and what
+actually happens when a network request arrives — has its own walkthrough.
+
+**[▶ Open the interactive event-loop walkthrough](pathname:///internals/event-loop.html)**
+
+It follows one disk read, one timer and one HTTP request from the system call
+back to the line of Flow-Wing that was waiting for it.
+:::
+
 <iframe
   src="/internals/concurrency.html"
   title="Interactive walkthrough of Flow-Wing concurrency, tasks and libuv"
@@ -103,10 +114,12 @@ ordinary bad pointer, or recursion that is simply too deep on `main`, still
 produces the normal crash rather than being mislabelled as a task overflow.
 
 The main stack is far larger than a task stack — about 8 MB on Linux and macOS.
-Windows would give only 1 MB by default, so Flow-Wing asks its linker for 16 MB
+Windows would give only 1 MB by default, so Flow-Wing asks its linker for 64 MB
 instead. A Windows x64 frame is bigger (the ABI adds 32 bytes of shadow space
 per call), so equal byte counts would still mean a shallower limit; the larger
-reserve keeps the reachable **depth** comparable across all three.
+reserve keeps the reachable **depth** comparable across all three. That reserve
+is address space, not committed memory, so a program that never recurses deeply
+pays nothing for it.
 
 ## Why no locks are needed
 

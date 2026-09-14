@@ -115,7 +115,22 @@ else()
     ExternalProject_Add(
         mongo_c_driver_external
         GIT_REPOSITORY  "https://github.com/mongodb/mongo-c-driver.git"
-        GIT_TAG         "2.3.0"
+        # 2.3.3, not 2.3.0. 2.3.0's own src/libmongoc/CMakeLists.txt passes a
+        # malformed argument to the accept() probe:
+        #
+        #   CMAKE_FLAGS "-Werror -DCMAKE_CXX_LINK_EXECUTABLE='echo not linking now...'"
+        #
+        # Both flags are one quoted string, so the inner cmake sees a single
+        # argument, reads the leading -W and treats the rest as a warning
+        # category name. CMake used to ignore an unknown category; newer
+        # releases make it fatal, which broke the macOS runner (its Homebrew
+        # cmake is ahead of the Linux one, and Windows never reaches the probe
+        # because mongoc guards it with `if (NOT WIN32)`).
+        #
+        # 2.3.3 is the upstream fix — the string is split into two proper
+        # arguments and -Werror moves into COMPILE_DEFINITIONS. Patch release
+        # on the same minor line, so no API change for us.
+        GIT_TAG         "2.3.3"
         GIT_SHALLOW     TRUE
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR}
