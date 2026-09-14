@@ -284,7 +284,27 @@ if [ "$fail" -ne 0 ]; then
     exit 1
 fi
 
-( cd "$OUTDIR" && shasum -a 256 "$ARCHIVE_NAME" > "${ARCHIVE_NAME}.sha256" )
+# SHA-256, whichever tool this platform has.
+#
+#   macOS      ships `shasum` (Perl); no `sha256sum`.
+#   Linux      ships `sha256sum` (coreutils).
+#   Git Bash   ships `sha256sum` but NOT `shasum` — assuming `shasum` is what
+#              made the Windows job fail with "missing required tool: shasum".
+#
+# Both print the same "<hash>  <filename>" format, so the .sha256 file is
+# identical either way and `sha256sum -c` can verify it anywhere.
+sha256_of() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1"
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1"
+    else
+        echo "error: no sha256sum or shasum on PATH" >&2
+        return 1
+    fi
+}
+
+( cd "$OUTDIR" && sha256_of "$ARCHIVE_NAME" > "${ARCHIVE_NAME}.sha256" )
 
 SIZE="$(du -h "$ARCHIVE" | cut -f1)"
 echo ""

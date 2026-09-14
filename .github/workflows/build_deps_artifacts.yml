@@ -219,14 +219,22 @@ jobs:
         shell: bash
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
-            tools="7z shasum"
+            tools="7z"
           else
-            tools="xz tar shasum"
+            tools="xz tar"
           fi
           for t in $tools; do
             command -v "$t" >/dev/null || { echo "missing required tool: $t" >&2; exit 1; }
           done
-          echo "tools present: $tools"
+
+          # Either hashing tool is fine — the script picks whichever exists and
+          # both print the same format. macOS has shasum, Linux and Git Bash
+          # have sha256sum. Requiring `shasum` specifically is what failed the
+          # Windows job.
+          command -v sha256sum >/dev/null || command -v shasum >/dev/null || {
+            echo "missing required tool: sha256sum or shasum" >&2; exit 1; }
+
+          echo "tools present: $tools + $(command -v sha256sum || command -v shasum)"
 
       # FW_LLVM_FROM_SOURCE=ON is the whole point of this job: it is the ONLY
       # place LLVM is still compiled. Normal CI downloads what this produces.
