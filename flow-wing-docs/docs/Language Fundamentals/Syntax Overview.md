@@ -49,3 +49,4 @@ fun fg_main() -> int {
 | Comment (line) | `/; comment` |
 | Comment (block) | `/# comment #/` |
 | Import | `bring "file.fg"` or `bring {a, b} from mod` |
+| Spawn a task | `spawn f()` or `spawn f(a, b)` |
