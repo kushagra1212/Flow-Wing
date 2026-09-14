@@ -11,8 +11,8 @@ the machinery.
 
 :::tip Interactive version
 Step through the stack swap register by register, watch the argument block being
-built, follow the libuv park-and-wake handshake, and see the `null` bug at the
-byte level.
+built, follow the libuv park-and-wake handshake, and run thirteen programs
+covering the whole concurrency API.
 
 **[▶ Open the interactive concurrency walkthrough](pathname:///internals/concurrency.html)**
 :::

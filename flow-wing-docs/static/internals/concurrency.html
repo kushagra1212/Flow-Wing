@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>FlowWing — what the feat/libuv branch actually does</title>
+<title>Flow-Wing — concurrency, tasks and libuv</title>
 <style>
   :root{
     --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
@@ -102,7 +102,7 @@
 <!-- ================= PROGRAMS ================= -->
 <section id="s-progs">
   <h2>0 · Every API, as a program you can run</h2>
-  <p class="sub">Thirteen programs covering every call this branch added. Each output below was captured
+  <p class="sub">Thirteen programs covering the concurrency API. Each output below was captured
   by compiling and running the program on the left.</p>
 
   <div class="panel">
@@ -148,7 +148,7 @@ println("3. top level ends here; the drain starts")</pre></div>
     <div class="lbl" style="margin-bottom:12px">spawn f(a, b)</div>
     <div class="row">
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 2 — spawn WITH ARGUMENTS  (new in this branch)
+/; FEATURE 2 — spawn WITH ARGUMENTS
 /;
 /; Arguments are evaluated at the spawn site and copied into a GC-traced block.
 /; What the task sees depends on the type:
@@ -274,7 +274,7 @@ println("5 tasks, each sleeping 200ms:")</pre></div>
     <div class="lbl" style="margin-bottom:12px">sys::nanos() micros() millis() elapsedNanos()</div>
     <div class="row">
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 5 — the monotonic clock  (new in this branch)
+/; FEATURE 5 — the monotonic clock
 /;
 /; sys::timestamp() is SECONDS. It cannot measure anything fast, and it jumps
 /; when the system clock changes. These four are nanosecond-precision and
@@ -312,7 +312,7 @@ println("  same in ms     = " + String(Int64(sys::elapsedNanos(t0) / 1000000l)) 
 /; Every task gets its OWN machine stack (default 256 KB). That is what lets
 /; it suspend mid-call and resume later.
 /;
-/; Two things this branch added:
+/; Two things worth knowing:
 /;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
 /;   a guard page          turns silent corruption into a NAMED error
 /;
@@ -362,7 +362,7 @@ println("one deep task + 300 shallow tasks:")</pre></div>
 /; Every task gets its OWN machine stack (default 256 KB). That is what lets
 /; it suspend mid-call and resume later.
 /;
-/; Two things this branch added:
+/; Two things worth knowing:
 /;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
 /;   a guard page          turns silent corruption into a NAMED error
 /;
@@ -409,15 +409,13 @@ println("one deep task + 300 shallow tasks:")</pre></div>
     <div class="lbl" style="margin-bottom:12px">null, map::Map.get()</div>
     <div class="row">
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FIX — the `null` literal and map.get()
+/; `null` and map::Map.get()
 /;
-/; A dyn value is a box: { tag, payload }. The null literal used to be written
-/; into an argument slot as a raw 8-byte pointer, which covered the tag and
-/; left the payload holding whatever was on the stack.
+/; `null` is a dyn value carrying the NIRAST tag. It behaves the same whether
+/; you hold it in a variable or pass it straight to a function.
 /;
-/; So this printed a DIFFERENT NUMBER on every run: 80, 88, -16, -34, -116.
-/; map.get() on a missing key used that same literal as its fallback, so it
-/; returned that garbage too.
+/; map.get(key) is getOr(key, null), so a key that is not present comes back
+/; as null. Use getOr(key, default) when you would rather have a value.
 /; ===========================================================================
 
 bring map
@@ -452,8 +450,8 @@ println("  map getOr default  = " + String(m.getOr("absent", 42)))</pre></div>
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
 /; FEATURE 6 — the Vortex HTTP SERVER, now libuv-native
 /;
-/; Before: cpp-httplib, one THREAD per connection.
-/; Now:    one uv_tcp_t per connection on the shared loop, zero extra threads.
+/; One uv_tcp_t per connection on the shared event loop — no thread per
+/; connection.
 /;
 /; accept() parks the task when no request is ready, so other tasks keep
 /; running while the server waits.
@@ -570,8 +568,8 @@ curl /stream  -&gt;  chunk 0
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
 /; FEATURE 7 — the Vortex HTTP CLIENT, now libuv-native
 /;
-/; Before: one std::thread per request + mutex + condition variable.
-/; Now:    parsed on the FlowWing thread inside the shared loop. No thread.
+/; The response is parsed on the Flow-Wing thread inside the shared event
+/; loop, so a request costs a socket and not a thread.
 /;
 /; So several requests overlap on ONE thread. This file fires 5 at once and
 /; times them.
@@ -884,7 +882,7 @@ println("watch A and B take turns:")</pre></div>
     <div class="lbl">Runnable program — <span style="color:var(--green)">spawn f(a, b)</span></div>
     <div class="row">
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 2 — spawn WITH ARGUMENTS  (new in this branch)
+/; FEATURE 2 — spawn WITH ARGUMENTS
 /;
 /; Arguments are evaluated at the spawn site and copied into a GC-traced block.
 /; What the task sees depends on the type:
@@ -1053,7 +1051,7 @@ println("5 tasks, each sleeping 200ms:")</pre></div>
     <div class="lbl">Runnable program — <span style="color:var(--green)">sys::nanos() micros() millis() elapsedNanos()</span></div>
     <div class="row">
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 5 — the monotonic clock  (new in this branch)
+/; FEATURE 5 — the monotonic clock
 /;
 /; sys::timestamp() is SECONDS. It cannot measure anything fast, and it jumps
 /; when the system clock changes. These four are nanosecond-precision and
@@ -1131,8 +1129,8 @@ println("  same in ms     = " + String(Int64(sys::elapsedNanos(t0) / 1000000l)) 
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
 /; FEATURE 6 — the Vortex HTTP SERVER, now libuv-native
 /;
-/; Before: cpp-httplib, one THREAD per connection.
-/; Now:    one uv_tcp_t per connection on the shared loop, zero extra threads.
+/; One uv_tcp_t per connection on the shared event loop — no thread per
+/; connection.
 /;
 /; accept() parks the task when no request is ready, so other tasks keep
 /; running while the server waits.
@@ -1247,8 +1245,8 @@ curl /stream  -&gt;  chunk 0
       <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
 /; FEATURE 7 — the Vortex HTTP CLIENT, now libuv-native
 /;
-/; Before: one std::thread per request + mutex + condition variable.
-/; Now:    parsed on the FlowWing thread inside the shared loop. No thread.
+/; The response is parsed on the Flow-Wing thread inside the shared event
+/; loop, so a request costs a socket and not a thread.
 /;
 /; So several requests overlap on ONE thread. This file fires 5 at once and
 /; times them.
@@ -1349,320 +1347,13 @@ with spawn handle(req, res):
   </div></section>
 
 <!-- ================= 7. NULL BUG ================= -->
-<section id="s-null">
-  <h2>7 · The <code>null</code> bug <span class="pill fix">fixed</span></h2>
-  <p class="sub">Why <code>map.get()</code> on a missing key returned −16, then −34, then −116.</p>
-
-  <div class="panel">
-    <div class="ctl">
-      <button class="act" onclick="NB.step()">Step ▸</button>
-      <button class="act ghost" onclick="NB.reset()">Reset</button>
-      <span class="step" id="nb-step"></span>
-    </div>
-    <div class="narrate" id="nb-say">Press Step.</div>
-
-    <div class="lbl" style="margin-top:16px">A <code>dyn</code> value in memory — 16 bytes</div>
-    <div class="bytes" id="nb-bytes"></div>
-    <div class="mono" style="color:var(--dim);font-size:11px">bytes 0-3 = tag &nbsp;|&nbsp; 4-7 = padding &nbsp;|&nbsp; 8-15 = payload</div>
-    <pre id="nb-out" style="margin-top:14px;min-height:56px"></pre>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">The chain</div>
-    <ul>
-      <li>A <code>dyn</code> is a box: <code class="mono">{ i32 tag, i64 payload }</code>.</li>
-      <li>The null literal was stored into an argument slot as a bare 8-byte pointer.</li>
-      <li>That covered the tag and the padding — and left the payload untouched.</li>
-      <li>Tag read as <code>0</code> (a number, not NIRAST=7), payload read as leftover stack.</li>
-      <li><code>map.get(k)</code> is <code>getOr(k, null)</code> — so it returned that leftover.</li>
-      <li>A <em>local</em> hid it: a fresh slot is zeroed, so it printed a believable <code>0</code>.</li>
-    </ul>
-    <p style="margin:8px 0 0"><b>Consequence:</b> with the tag correct, <code>String(null)</code> now prints
-    <code>null</code> and <code>Int32(null)</code> raises instead of returning <code>0</code>. Use
-    <code>getOr(key, 0)</code> when you want a default.</p>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">Runnable program — <span style="color:var(--green)">null, map::Map.get()</span></div>
-    <div class="row">
-      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FIX — the `null` literal and map.get()
-/;
-/; A dyn value is a box: { tag, payload }. The null literal used to be written
-/; into an argument slot as a raw 8-byte pointer, which covered the tag and
-/; left the payload holding whatever was on the stack.
-/;
-/; So this printed a DIFFERENT NUMBER on every run: 80, 88, -16, -34, -116.
-/; map.get() on a missing key used that same literal as its fallback, so it
-/; returned that garbage too.
-/; ===========================================================================
-
-bring map
-
-fun takesDyn(v: dyn) -&gt; nthg {
-  println("  passed as argument = " + String(v))
-}
-
-var held = null
-println("  held in a variable = " + String(held))
-takesDyn(null)
-takesDyn(held)
-
-var m: map::Map = new map::Map()
-m.set("present", "here")
-
-println("  map present        = " + String(m.get("present")))
-println("  map MISSING        = " + String(m.get("absent")))
-println("  map getOr default  = " + String(m.getOr("absent", 42)))</pre></div>
-      <div class="col"><div class="lbl">real output</div><pre class="outbox">held in a variable = null
-  passed as argument = null
-  passed as argument = null
-  map present        = here
-  map MISSING        = null
-  map getOr default  = 42</pre></div>
-    </div>
-  </div></section>
-
-<!-- ================= 8. API ================= -->
-<section id="s-api">
-  <h2>8 · Everything this branch added</h2>
-  <p class="sub">Language, library, environment, diagnostics, C runtime.</p>
-
-  <div class="panel">
-    <div class="lbl">Language</div>
-    <table>
-      <tr><th>Syntax</th><th>Meaning</th></tr>
-      <tr><td class="mono">spawn f()</td><td>queue f as a task; runs after the top-level body</td></tr>
-      <tr><td class="mono">spawn f(a, b)</td><td>same, arguments evaluated now into a GC block</td></tr>
-    </table>
-    <p style="margin:8px 0 0">That is the whole language change. One keyword. No new types, no new operators.</p>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">sys module</div>
-    <table>
-      <tr><th>Function</th><th>Returns</th><th>Notes</th></tr>
-      <tr><td class="mono">sys::nanos()</td><td class="mono">int64</td><td>monotonic, ns. Benchmark with this</td></tr>
-      <tr><td class="mono">sys::micros()</td><td class="mono">int64</td><td>same clock, µs</td></tr>
-      <tr><td class="mono">sys::millis()</td><td class="mono">int64</td><td>same clock, ms</td></tr>
-      <tr><td class="mono">sys::elapsedNanos(start)</td><td class="mono">int64</td><td>ns since an earlier reading</td></tr>
-      <tr><td class="mono">sys::sleep(ms)</td><td class="mono">nthg</td><td><b>suspends</b> in a task, blocks outside one</td></tr>
-      <tr><td class="mono">sys::yield()</td><td class="mono">nthg</td><td>give up the CPU, resume later</td></tr>
-    </table>
-    <p style="margin:8px 0 0"><code>sys::timestamp()</code> already existed and is seconds-resolution — useless for timing.</p>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">vortex module</div>
-    <table>
-      <tr><th>API</th><th>Notes</th></tr>
-      <tr><td class="mono">new vortex::Server()</td><td>unchanged API, libuv underneath</td></tr>
-      <tr><td class="mono">app.listen(port) → Err::Result</td><td></td></tr>
-      <tr><td class="mono">app.accept() → Request, Response</td><td>parks the task when nothing is ready</td></tr>
-      <tr><td class="mono">req.getMethod() / getPath() / getBody()</td><td></td></tr>
-      <tr><td class="mono">res.status() / header() / send() / json()</td><td>chainable</td></tr>
-      <tr><td class="mono">res.streamBegin() / streamWrite() / streamEnd()</td><td>chunked responses</td></tr>
-      <tr><td class="mono">res.sendStaticFile(path, type)</td><td></td></tr>
-      <tr><td class="mono">new vortex::Client(url, body)</td><td>POST; blocks only this task until headers</td></tr>
-      <tr><td class="mono">c.isOk() / readChunk() / isDone() / close()</td><td>read status <b>before</b> close()</td></tr>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">Environment knobs</div>
-    <table>
-      <tr><th>Variable</th><th>Default</th><th>Controls</th></tr>
-      <tr><td class="mono">FW_TASK_STACK_KB</td><td class="mono">256</td><td>per-task stack size</td></tr>
-      <tr><td class="mono">FW_GC_STRESS</td><td class="mono">off</td><td>collect on every allocation</td></tr>
-      <tr><td class="mono">FW_HTTP_MAX_BODY_KB</td><td class="mono">8192</td><td>request body cap → 413</td></tr>
-      <tr><td class="mono">FW_HTTP_MAX_HEADER_KB</td><td class="mono">32</td><td>header cap → 431</td></tr>
-      <tr><td class="mono">FW_HTTP_IDLE_TIMEOUT_MS</td><td class="mono">30000</td><td>drop silent connections</td></tr>
-      <tr><td class="mono">FW_HTTP_CLIENT_CONNECT_MS</td><td class="mono">5000</td><td>client connect timeout</td></tr>
-      <tr><td class="mono">FW_HTTP_CLIENT_READ_MS</td><td class="mono">120000</td><td>client read timeout</td></tr>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">New compiler errors</div>
-    <table>
-      <tr><th>Code</th><th>Triggered by</th></tr>
-      <tr><td class="mono">SpawnRequiresFunctionCall</td><td class="mono">spawn 42</td></tr>
-      <tr><td class="mono">SpawnRequiresNthgReturn</td><td class="mono">spawn returnsAnInt()</td></tr>
-      <tr><td class="mono">SpawnRequiresPlainFunction</td><td class="mono">spawn obj.method()</td></tr>
-      <tr><td class="mono">SpawnRequiresUserFunction</td><td class="mono">spawn println("x")</td></tr>
-      <tr><td class="mono">SpawnByReferenceArgument</td><td class="mono">spawn f(inout x)</td></tr>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">C runtime (not reachable from FlowWing)</div>
-    <table>
-      <tr><th>Function</th><th>Job</th></tr>
-      <tr><td class="mono">fw_sched_spawn / _spawn_args</td><td>queue a task</td></tr>
-      <tr><td class="mono">fw_sched_yield / _sleep_ms / _drain</td><td>switch, wait, run</td></tr>
-      <tr><td class="mono">fw_sched_park_io / _wake_io / _io_waiting</td><td>wait on an event, not a clock</td></tr>
-      <tr><td class="mono">fw_sched_set_waiter</td><td>libuv plugs in here</td></tr>
-      <tr><td class="mono">fw_uv_loop / _wake / _ready / _version</td><td>the one shared event loop</td></tr>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div class="lbl">Runnable program — <span style="color:var(--green)">FW_TASK_STACK_KB</span></div>
-    <div class="row">
-      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 8 — task stacks: size control + overflow protection
-/;
-/; Every task gets its OWN machine stack (default 256 KB). That is what lets
-/; it suspend mid-call and resume later.
-/;
-/; Two things this branch added:
-/;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
-/;   a guard page          turns silent corruption into a NAMED error
-/;
-/; Try:
-/;   FW_TASK_STACK_KB=64  FlowWing 08_stack.fg --emit=exe -o /tmp/s &amp;&amp; /tmp/s
-/;   FW_TASK_STACK_KB=16  ...   &lt;- deep task now overflows, cleanly
-/; ===========================================================================
-
-var depth: int = 0
-
-fun recurse(n: int) -&gt; nthg {
-  depth = n
-  if n &gt; 2000 {
-    return:
-  }
-  recurse(n + 1)
-}
-
-fun deepTask() -&gt; nthg {
-  recurse(0)
-  println("  recursion reached depth " + String(depth))
-}
-
-/; 300 tasks parked at once = 300 live stacks at the same time
-var awake: int = 0
-fun parked() -&gt; nthg {
-  awake = awake + 1
-}
-
-spawn deepTask()
-for var i: int = 0 to 299 {
-  spawn parked()
-}
-
-println("one deep task + 300 shallow tasks:")</pre></div>
-      <div class="col"><div class="lbl">real output</div><pre class="outbox">one deep task + 300 shallow tasks:
-  recursion reached depth 2001</pre></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="lbl">Runnable program — <span style="color:var(--green)">FW_TASK_STACK_KB=16</span></div>
-    <div class="row">
-      <div class="col"><div class="lbl">program</div><pre>/; ===========================================================================
-/; FEATURE 8 — task stacks: size control + overflow protection
-/;
-/; Every task gets its OWN machine stack (default 256 KB). That is what lets
-/; it suspend mid-call and resume later.
-/;
-/; Two things this branch added:
-/;   FW_TASK_STACK_KB=&lt;n&gt;  choose the size
-/;   a guard page          turns silent corruption into a NAMED error
-/;
-/; Try:
-/;   FW_TASK_STACK_KB=64  FlowWing 08_stack.fg --emit=exe -o /tmp/s &amp;&amp; /tmp/s
-/;   FW_TASK_STACK_KB=16  ...   &lt;- deep task now overflows, cleanly
-/; ===========================================================================
-
-var depth: int = 0
-
-fun recurse(n: int) -&gt; nthg {
-  depth = n
-  if n &gt; 2000 {
-    return:
-  }
-  recurse(n + 1)
-}
-
-fun deepTask() -&gt; nthg {
-  recurse(0)
-  println("  recursion reached depth " + String(depth))
-}
-
-/; 300 tasks parked at once = 300 live stacks at the same time
-var awake: int = 0
-fun parked() -&gt; nthg {
-  awake = awake + 1
-}
-
-spawn deepTask()
-for var i: int = 0 to 299 {
-  spawn parked()
-}
-
-println("one deep task + 300 shallow tasks:")</pre></div>
-      <div class="col"><div class="lbl">real output</div><pre class="outbox">[91mRuntime Error: Task Stack Overflow.
-  ▶ A spawned task used more stack than it owns.
-  ▶ A task stack is much smaller than main's.
-  ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096), or reduce the recursion depth.[0m</pre></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="lbl">Runnable program — <span style="color:var(--green)">compile-time diagnostics</span></div>
-    <div class="row">
-      <div class="col"><div class="lbl">program</div><pre>spawn 42
-
-fun computes() -&gt; int { return 7 }
-spawn computes()
-
-class Worker { fun run() -&gt; nthg { println("x") } }
-var w: Worker = new Worker()
-spawn w.run()
-
-spawn println("hello")
-
-fun bump(inout n: int) -&gt; nthg { n = n + 1 }
-var c: int = 0
-spawn bump(c)</pre></div>
-      <div class="col"><div class="lbl">real output</div><pre class="outbox">[Error:SpawnRequiresFunctionCall]  'spawn' expects a function call.
-[Error:SpawnRequiresNthgReturn]  'spawn' needs a function that returns 'nthg'.
-[Error:SpawnRequiresPlainFunction]  'spawn' cannot queue a method call.
-[Error:SpawnRequiresUserFunction]  'spawn' cannot queue a built-in call.
-[Error:SpawnByReferenceArgument]  'spawn' cannot pass an argument by reference.</pre></div>
-    </div><p style="margin:8px 0 0">Each is a compile error with its own name, so the message tells you what to change.</p>
-  </div></section>
-
-<!-- ================= 9. FIXES ================= -->
-<section id="s-fixes">
-  <h2>9 · The nine defects fixed</h2>
-  <p class="sub">Two were compiler crashes. Each has a regression test.</p>
-  <div class="panel">
-    <table>
-      <tr><th>#</th><th>Defect</th><th>Was</th><th>Now</th></tr>
-      <tr><td>1</td><td class="mono">spawn println(...)</td><td class="no">compiler SIGSEGV</td><td class="ok mono">SpawnRequiresUserFunction</td></tr>
-      <tr><td>2</td><td class="mono">re-entrant fw_sched_drain</td><td class="no">SIGSEGV after seeming to work</td><td class="ok">refused, returns</td></tr>
-      <tr><td>3</td><td>array spawn argument</td><td class="no mono">arr[0] = 36700424</td><td class="ok mono">arr[0] = 7</td></tr>
-      <tr><td>4</td><td>argument errors under spawn</td><td class="no">real message hidden</td><td class="ok mono">FunctionArgumentCountMismatch</td></tr>
-      <tr><td>5</td><td class="mono">kSpawnArgumentsNotSupported</td><td class="no">name outlived meaning</td><td class="ok mono">SpawnByReferenceArgument</td></tr>
-      <tr><td>6</td><td><code>null</code> as an argument</td><td class="no">uninitialised payload</td><td class="ok mono">null</td></tr>
-      <tr><td>7</td><td class="mono">map.get(missing)</td><td class="no mono">−16 / −34 / −116</td><td class="ok mono">null</td></tr>
-      <tr><td>8</td><td>client + <code>localhost</code></td><td class="no">picked IPv6, refused</td><td class="ok">prefers IPv4</td></tr>
-      <tr><td>9</td><td>client + HTTP/1.0 chunked</td><td class="no">rejected valid-in-practice reply</td><td class="ok">lenient, like curl</td></tr>
-    </table>
-  </div>
-  <div class="panel">
-    <div class="lbl">Test counts</div>
-    <p style="margin:0">AOT <b class="ok">2457/2457</b> · JIT <b class="ok">2457/2457</b> · formatter <b class="ok">392</b> ·
-    GC <b class="ok">982 checks</b> · scheduler <b class="ok">49</b> · event loop <b class="ok">20</b></p>
-  </div>
-</section>
 
 </main>
 
 <script>
 /* ---------- tabs ---------- */
 const TABS=[["s-progs","0 · PROGRAMS"],["s-spawn","1 · spawn"],["s-swap","2 · stack swap"],["s-args","3 · arguments"],
-["s-gc","4 · GC"],["s-uv","5 · libuv"],["s-http","6 · HTTP"],["s-null","7 · null bug"],
-["s-api","8 · API list"],["s-fixes","9 · fixes"]];
+["s-gc","4 · GC"],["s-uv","5 · libuv"],["s-http","6 · HTTP"]];
 const nav=document.getElementById('nav');
 TABS.forEach(([id,label],i)=>{
   const b=document.createElement('button');b.textContent=label;b.onclick=()=>show(id,b);
@@ -1849,35 +1540,6 @@ const HT={run(){
   $('ht-note').innerHTML='Same server, same 300 ms of work per request, same single thread. '+
     'The difference is one keyword — <b>1516 ms → 302 ms</b>. Both runs measured on this machine.';}};
 
-/* ---------- 7. null bug ---------- */
-const NB={i:0,
- steps:[
-  {b:null,out:'',say:'A <code>dyn</code> parameter slot: 16 bytes. Tag at 0, payload at 8.'},
-  {b:'garbage',out:'',say:'Before the spawn, the slot holds whatever the last call left on the stack. Normal — it is about to be written.'},
-  {b:'bug',out:'takesDyn(null)  →  80\n(next run)      →  -34\n(next run)      →  -116',
-   say:'<b>The bug.</b> <code>store ptr null</code> writes 8 zero bytes. Tag becomes 0 — which means <i>int</i>, not NIRAST — and the payload at byte 8 is <b>never touched</b>. The box claims to be an int holding leftover stack.'},
-  {b:'fixed',out:'takesDyn(null)  →  null\nm.get("absent") →  null',
-   say:'<b>The fix.</b> Route it through the same boxing path a variable uses: tag = 7 (NIRAST), payload = 0. All 16 bytes written. Deterministic.'}],
- reset(){this.i=0;this.render(this.steps[0]);$('nb-step').textContent='';$('nb-say').innerHTML='Press Step.';},
- step(){if(this.i>=this.steps.length){this.i=0;}
-   const s=this.steps[this.i++];this.render(s);$('nb-say').innerHTML=s.say;
-   $('nb-step').textContent=`step ${this.i}/${this.steps.length}`;},
- render(s){
-   const cells=[];
-   for(let i=0;i<16;i++){
-     let cls='byte',txt='?';
-     if(s.b===null){cls+=i<4?' tag':i>=8?' pay':'';txt=i<4?'tag':i>=8?'pay':'—';}
-     else if(s.b==='garbage'){txt=(Math.floor(Math.random()*200)-100);}
-     else if(s.b==='bug'){
-       if(i<8){cls+=' zero';txt='00';}
-       else{cls+=' bad';txt=(Math.floor(Math.random()*200)-100);}}
-     else{ if(i===0){cls+=' tag';txt='07';}
-           else if(i<8){cls+=' zero';txt='00';}
-           else{cls+=' pay';txt='00';}}
-     cells.push(`<div class="${cls}">${txt}</div>`);}
-   $('nb-bytes').innerHTML=cells.join('');
-   $('nb-out').textContent=s.out;}};
-NB.reset();
 </script>
 </body>
 </html>

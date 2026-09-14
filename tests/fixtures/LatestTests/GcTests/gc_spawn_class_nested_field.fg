@@ -1,0 +1,56 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A class whose FIELD is another class, passed to a task.
+/;
+/; The argument block stores one pointer: the outer instance. Everything else —
+/; the inner instance, and the strings inside both — is reachable only by
+/; walking that pointer through the class descriptor while the task is parked.
+/;
+/; The existing class tests pass a FLAT instance. This one is two levels deep,
+/; so a descriptor that listed the outer object's pointer fields but did not
+/; recurse into the inner one would sweep the inner instance and its string.
+/;
+/; Under FW_GC_STRESS every allocation collects, and the task allocates after
+/; its yield, so the whole chain has to survive a collection with nothing but
+/; the scheduler's root keeping it alive.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+class Engine {
+  var serial: str
+  var power: int
+  fun init(serial: str, power: int) -> nthg {
+    self.serial = serial
+    self.power = power
+  }
+  fun describe() -> str {
+    return self.serial + "/" + String(self.power)
+  }
+}
+
+class Car {
+  var name: str
+  var engine: Engine
+  fun init(name: str, engine: Engine) -> nthg {
+    self.name = name
+    self.engine = engine
+  }
+}
+
+fun inspect(c: Car, label: str) -> nthg {
+  sys::yield()
+  /; reaches the inner instance only through the outer pointer
+  println(label + ": " + c.name + " engine=" + c.engine.describe())
+  /; and mutating the inner one is visible to the caller, because both
+  /; levels are shared
+  c.engine.power = c.engine.power + 1
+}
+
+var e: Engine = new Engine("E" + "1", 100)
+var car: Car = new Car("c" + "ar1", e)
+
+spawn inspect(car, "first")
+spawn inspect(car, "second")
+
+println("queued 2")

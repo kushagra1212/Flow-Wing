@@ -568,6 +568,17 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Please provide a non-negative integer value for array dimension.",
       "Ensure that the value is a non-negative integer."}},
 
+    {(DiagnosticCode::kArrayOfClassNotSupported),
+     {"An array of class instances is not supported. '{0}' is a class.",
+      "Use a 'type' object instead of a class for the element, or hold the "
+      "instances in a 'vec' from the vec module.",
+      "A class variable is a POINTER to a heap instance, and an array needs a "
+      "default value for its elements before any are assigned. There is no "
+      "constant that stands for an instance, so the array cannot be laid out. "
+      "A 'type' object is stored inline and has a default, which is why "
+      "'MyType[3]' works where 'MyClass[3]' does not. Declaring one used to "
+      "crash the compiler here rather than report anything."}},
+
     {(DiagnosticCode::kTypeIsNotAFunction),
      {"Type '{0}' is not a function. Cannot perform function call operation.",
       "Ensure that the type '{0}' is a function before calling it.",
@@ -937,6 +948,8 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "NthgCannotBeUsedAsParameterType";
   case DiagnosticCode::kExpectedNonNegativeIntegerForArrayDimension:
     return "ExpectedNonNegativeIntegerForArrayDimension";
+  case DiagnosticCode::kArrayOfClassNotSupported:
+    return "ArrayOfClassNotSupported";
 
     // --- Class-related Semantic Errors ---
   case DiagnosticCode::kClassAlreadyDeclared:

@@ -354,8 +354,20 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
     return current_const;
   }
 
+  // No default exists for this kind. Callers immediately dereference the
+  // result (ConstantArray::get reads ->getType()), so returning null here
+  // surfaces as a segfault far from the cause — which is exactly what an array
+  // of class instances used to do. Asserts vanish in Release, so stop with a
+  // message the user can act on instead.
+  //
+  // The binder rejects the cases known to reach this (see TypeResolver::
+  // resolveArrayType), making this a backstop rather than a policy.
   assert(false && "Unsupported type [getDefaultValue]");
-  return nullptr;
+  llvm::report_fatal_error(
+      llvm::Twine("no default value exists for type '") +
+      (type != nullptr ? type->getName() : "<null>") +
+      "'; it cannot be used where one is required (for example as an array "
+      "element type)");
 }
 
 } // namespace ir_gen

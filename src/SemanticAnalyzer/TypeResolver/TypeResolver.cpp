@@ -230,6 +230,29 @@ TypeResolver::resolveArrayType(
 
   BINDER_DEBUG_LOG("Array Base Type Name: ", base_type->getName());
 
+  // An array of class instances cannot be laid out.
+  //
+  // An array needs a default value for its elements before any are assigned,
+  // and a class variable is a POINTER to a heap instance — there is no constant
+  // that stands for one. IRGenContext::getDefaultValue has a case for every
+  // other element kind; for a class it fell through to an assert that is
+  // compiled out in Release, returned null, and the caller dereferenced it
+  // while building the ArrayType. The result was a bare SIGSEGV with no
+  // message, on a plain declaration.
+  //
+  // This is the single point every array type passes through — variables,
+  // parameters, fields and return types alike — so rejecting here covers all of
+  // them, and does it with a real source location instead of a crash.
+  if (base_type != nullptr &&
+      base_type->getKind() == types::TypeKind::kClass) {
+    return {nullptr,
+            std::make_unique<binding::BoundErrorExpression>(
+                syntax->getSourceLocation(),
+                flow_wing::diagnostic::DiagnosticCode::
+                    kArrayOfClassNotSupported,
+                diagnostic::DiagnosticArgs{base_type->getName()})};
+  }
+
   return {std::make_shared<types::ArrayType>(base_type, dimensions), nullptr};
 }
 

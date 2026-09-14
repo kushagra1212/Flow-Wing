@@ -1,0 +1,3 @@
+queued 2
+producer published seq=42
+consumer reads from-producer seq=42
