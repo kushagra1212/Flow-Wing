@@ -1,0 +1,18 @@
+/; --------------------------------------------------------------------------
+/; The control for task_stack_overflow.fg: the SAME depth on the main stack.
+/;
+/; `main` gets about 8 MB from the operating system and grows on demand, so
+/; 100000 frames are fine there. A task gets 256 KB. This test exists so a
+/; failure in the overflow test can be read correctly: if BOTH fail, the cause
+/; is the recursion itself, not the task stack.
+/; --------------------------------------------------------------------------
+
+fun deep(n: int) -> int {
+  var pad: str = "x" + String(n)
+  if n <= 0 {
+    return 0
+  }
+  return deep(n - 1) + 1
+}
+
+println("depth " + String(deep(100000)))

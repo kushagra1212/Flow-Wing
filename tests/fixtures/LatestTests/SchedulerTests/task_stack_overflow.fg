@@ -1,0 +1,27 @@
+/; EXPECT_ERROR: Runtime Error: Task Stack Overflow.
+/; --------------------------------------------------------------------------
+/; A spawned task owns a much smaller stack than `main`. Recursion that is safe
+/; at top level can therefore exhaust a task.
+/;
+/; Before the guard page this wrote past the end of a malloc'd block and died
+/; with a bare SIGSEGV (exit 139) and no message. The stack now sits above an
+/; unreadable page, so the first write past the end faults at a known address
+/; and the handler reports it by name.
+/;
+/; Not in GcTests on purpose: 100000 frames under FW_GC_STRESS would collect on
+/; every allocation and never finish inside the runner's timeout.
+/; --------------------------------------------------------------------------
+
+fun deep(n: int) -> int {
+  var pad: str = "x" + String(n)
+  if n <= 0 {
+    return 0
+  }
+  return deep(n - 1) + 1
+}
+
+fun task() -> nthg {
+  println(String(deep(100000)))
+}
+
+spawn task()

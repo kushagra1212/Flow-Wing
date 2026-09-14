@@ -1,30 +1,13 @@
 bring sys
-bring vec
-var t_first: int64 = 0
-var ran: int = 0
-var v: vec::Vec = new vec::Vec()
-fun slowTask() -> nthg {
-    ran = ran + 1
-    if ran == 1 {
-        t_first = sys::nanos()
-    }
-    sys::sleep(100)
-    if ran >= 0 {
-        var total_ms: deci = sys::elapsedNanos(t_first) / 1e6
-        println("two 100ms tasks took: " + String(total_ms) + " ms")
-        println("overlapped (want true): " + String(total_ms < 150.0))
-        v.push(total_ms)
+var done: int = 0
+fun t() -> nthg {
+    sys::sleep(200)
+    done = done + 1
+    if done >= 4000 {
+        println("all 5000 woke")
     }
 }
-
-fun runItAfterDelay() -> nthg {
-    sys::sleep(10000)
-    println("1st Task timing: " + String(v.get(0)) + " ms")
-    println("2nd Task timing: " + String(v.get(1)) + " ms")
-    println("last Task timing: " + String(v.get(v.size() - 1)) + " ms")
+for var i: int = 0 to 4999 {
+    spawn t()
 }
-for var i: int = 0 to 100 {
-    spawn slowTask()
-}
-println("queued 2 tasks, each waits 100ms")
-spawn runItAfterDelay()
+println("queued 5000")

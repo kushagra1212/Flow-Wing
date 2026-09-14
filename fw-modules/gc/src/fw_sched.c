@@ -25,6 +25,15 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifndef _WIN32
+#  include <signal.h>
+#  include <sys/mman.h>
+#  include <unistd.h>
+#  ifndef MAP_ANONYMOUS
+#    define MAP_ANONYMOUS MAP_ANON
+#  endif
+#endif
+
 #ifdef _WIN32
 #  include <windows.h>
 #else
@@ -37,10 +46,16 @@
 #  endif
 #endif
 
-/* Big enough for ordinary FlowWing frames plus a C call or two through the
-   FFI. Stacks are recycled, so this is a peak-concurrency cost, not a
-   per-spawn cost. */
-#define FW_TASK_STACK_SIZE (256 * 1024)
+/* Default task stack. Big enough for ordinary FlowWing frames plus a C call or
+   two through the FFI. Stacks are recycled, so this is a peak-concurrency
+   cost, not a per-spawn cost.
+
+   Override at start-up with FW_TASK_STACK_KB. A task that recurses deeply
+   needs a bigger number; `main` gets 8 MB from the operating system, so code
+   that works at top level can still overflow inside a task. */
+#define FW_TASK_STACK_DEFAULT (256 * 1024)
+#define FW_TASK_STACK_MIN_KB  16L
+#define FW_TASK_STACK_MAX_KB  65536L
 
 typedef enum {
   FW_TASK_NEW,       /* queued, never started, owns no stack yet */
@@ -162,15 +177,172 @@ static void block_ns(long long ns) {
 
 /* ---- stack recycling ---------------------------------------------------- */
 
-/* Completed tasks hand their stack back instead of freeing it. A program that
-   spawns a million short tasks then reuses one stack a million times, because
-   only one runs at a time. */
+/* ---- stack size --------------------------------------------------------- */
+
+static size_t g_stack_size = 0; /* 0 = not resolved yet */
+
+static size_t page_size(void) {
+#ifdef _WIN32
+  return 4096;
+#else
+  long p = sysconf(_SC_PAGESIZE);
+  return (p > 0) ? (size_t)p : 4096;
+#endif
+}
+
+/* Resolved once, on the first spawn. Reading it later cannot change the size
+   of stacks already handed out, so the pool never holds mixed sizes. */
+static size_t stack_size(void) {
+  if (g_stack_size != 0) return g_stack_size;
+
+  size_t want = FW_TASK_STACK_DEFAULT;
+
+  const char *env = getenv("FW_TASK_STACK_KB");
+  if (env != NULL && env[0] != '\0') {
+    char *end = NULL;
+    long  kb = strtol(env, &end, 10);
+    if (end != NULL && *end == '\0' && kb >= FW_TASK_STACK_MIN_KB &&
+        kb <= FW_TASK_STACK_MAX_KB) {
+      want = (size_t)kb * 1024;
+    }
+    /* A value outside the range is ignored rather than honoured: a stack of
+       0 KB would fault on the first call, and a 4 GB one would fail to map. */
+  }
+
+  {
+    size_t page = page_size();
+    want = ((want + page - 1) / page) * page; /* whole pages */
+  }
+
+  g_stack_size = want;
+  return g_stack_size;
+}
+
+/* ---- guard pages -------------------------------------------------------- */
+
+#ifndef _WIN32
+/* Every live stack's guard page, so the SIGSEGV handler can tell a task stack
+   overflow apart from an ordinary bad pointer. Entries are never removed:
+   stacks are pooled and reused for the whole run. */
+typedef struct {
+  char *lo;
+  char *hi;
+} FWGuard;
+
+static FWGuard *g_guards = NULL;
+static size_t   g_guards_len = 0, g_guards_cap = 0;
+
+static void guard_record(char *lo, char *hi) {
+  if (g_guards_len == g_guards_cap) {
+    size_t   new_cap = g_guards_cap ? g_guards_cap * 2 : 16;
+    FWGuard *grown = (FWGuard *)realloc(g_guards, new_cap * sizeof(FWGuard));
+    if (grown == NULL) return; /* lose the record, keep the stack */
+    g_guards = grown;
+    g_guards_cap = new_cap;
+  }
+  g_guards[g_guards_len].lo = lo;
+  g_guards[g_guards_len].hi = hi;
+  g_guards_len++;
+}
+
+static int addr_in_guard(const void *addr) {
+  const char *p = (const char *)addr;
+  for (size_t i = 0; i < g_guards_len; i++) {
+    if (p >= g_guards[i].lo && p < g_guards[i].hi) return 1;
+  }
+  return 0;
+}
+
+/* Async-signal-safe only: write() and _exit(). No printf, no malloc. */
+static void segv_handler(int sig, siginfo_t *info, void *uctx) {
+  (void)uctx;
+
+  if (info != NULL && addr_in_guard(info->si_addr)) {
+    /* Same shape as fg_panic's output: red, "Runtime Error: <Title>." on the
+       first line, then indented detail lines marked with U+25B6. This handler
+       cannot call fg_panic itself — printf and malloc are not safe in a signal
+       handler — so the text is pre-built and written with write(2). */
+    static const char msg[] =
+        "\033[91mRuntime Error: Task Stack Overflow.\n"
+        "  ▶ A spawned task used more stack than it owns.\n"
+        "  ▶ A task stack is much smaller than main's.\n"
+        "  ▶ Raise it with FW_TASK_STACK_KB (e.g. FW_TASK_STACK_KB=4096),"
+        " or reduce the recursion depth.\033[0m\n";
+    ssize_t ignored = write(2, msg, sizeof(msg) - 1);
+    (void)ignored;
+    _exit(1);
+  }
+
+  /* Not one of our guard pages: let the default handler produce the usual
+     crash, so a real bug is not disguised as a stack overflow. */
+  signal(sig, SIG_DFL);
+  raise(sig);
+}
+
+/* The handler runs on its own small stack. Without this it would try to run on
+   the stack that just overflowed, and fault again immediately. */
+static void install_segv_handler_once(void) {
+  static int installed = 0;
+  if (installed) return;
+  installed = 1;
+
+  size_t alt_size = (size_t)SIGSTKSZ < 32768u ? 32768u : (size_t)SIGSTKSZ;
+  void  *alt = malloc(alt_size);
+  if (alt == NULL) return;
+
+  stack_t ss;
+  ss.ss_sp = alt;
+  ss.ss_size = alt_size;
+  ss.ss_flags = 0;
+  if (sigaltstack(&ss, NULL) != 0) { free(alt); return; }
+
+  struct sigaction sa;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+  sa.sa_sigaction = segv_handler;
+  sigaction(SIGSEGV, &sa, NULL);
+  sigaction(SIGBUS, &sa, NULL); /* Darwin reports guard hits as SIGBUS */
+}
+#endif /* !_WIN32 */
+
+/* ---- stack pool --------------------------------------------------------- */
+
+/* Completed tasks hand their stack back instead of releasing it. A program
+   that spawns a million short tasks reuses one stack a million times, because
+   only one runs at a time.
+
+   Each stack is its own mapping with an unreadable page below it. Stacks grow
+   DOWNWARD, so the guard sits at the low address and catches the overflow on
+   the first write past the end. */
 static char **g_stack_pool = NULL;
 static size_t g_stack_pool_len = 0, g_stack_pool_cap = 0;
 
 static char *stack_acquire(void) {
   if (g_stack_pool_len > 0) return g_stack_pool[--g_stack_pool_len];
-  return (char *)malloc(FW_TASK_STACK_SIZE);
+
+#ifdef _WIN32
+  /* Windows fibers get a stack with an OS guard page from CreateFiber; this
+     buffer is only a placeholder so the bookkeeping matches POSIX. */
+  return (char *)malloc(stack_size());
+#else
+  install_segv_handler_once();
+
+  size_t page = page_size();
+  size_t usable = stack_size();
+
+  char *base = (char *)mmap(NULL, usable + page, PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (base == MAP_FAILED) return NULL;
+
+  /* Make the lowest page unreadable and unwritable. */
+  if (mprotect(base, page, PROT_NONE) != 0) {
+    munmap(base, usable + page);
+    return NULL;
+  }
+
+  guard_record(base, base + page);
+  return base + page; /* the usable stack starts above the guard */
+#endif
 }
 
 static void stack_release(char *s) {
@@ -179,7 +351,7 @@ static void stack_release(char *s) {
     size_t new_cap = g_stack_pool_cap ? g_stack_pool_cap * 2 : 8;
     char **grown =
         (char **)realloc(g_stack_pool, new_cap * sizeof(char *));
-    if (grown == NULL) { free(s); return; }
+    if (grown == NULL) return; /* keep the mapping rather than leak the guard */
     g_stack_pool = grown;
     g_stack_pool_cap = new_cap;
   }
@@ -376,11 +548,11 @@ void fw_sched_drain(void) {
       fw_gc_shadow_top = NULL;
 
 #ifdef _WIN32
-      t->fiber = CreateFiber(FW_TASK_STACK_SIZE, task_entry, t);
+      t->fiber = CreateFiber(stack_size(), task_entry, t);
 #else
       getcontext(&t->ctx);
       t->ctx.uc_stack.ss_sp = t->stack;
-      t->ctx.uc_stack.ss_size = FW_TASK_STACK_SIZE;
+      t->ctx.uc_stack.ss_size = stack_size();
       t->ctx.uc_link = &g_sched_ctx;
       makecontext(&t->ctx, task_entry, 0);
 #endif

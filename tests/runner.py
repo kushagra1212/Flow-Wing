@@ -62,6 +62,27 @@ def test_forces_gc_stress(file_path):
         pass
     return False
 
+def get_test_env(file_path):
+    """Environment variables a test needs, declared in its header.
+
+        /; ENV: FW_TASK_STACK_KB=4096
+
+    Returns a dict. One directive per line; later lines win. Only the first 12
+    lines are scanned, so the marker has to sit in the header comment."""
+    env = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for _ in range(12):
+                line = f.readline()
+                if not line:
+                    break
+                match = re.search(r'/;\s*ENV:\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$', line)
+                if match:
+                    env[match.group(1)] = match.group(2).strip()
+    except Exception:
+        pass
+    return env
+
 def get_mock_server_port(file_path):
     """Checks if the FlowWing client test requires a Python mock server to connect to."""
     try:
@@ -303,6 +324,14 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
         # already covers every test; this only forces it for these on top.)
         if test_forces_gc_stress(file_path):
             run_env["FW_GC_STRESS"] = "1"
+
+        # Per-test environment, declared in the header as:
+        #     /; ENV: FW_TASK_STACK_KB=4096
+        # One variable per line, repeatable. Needed by tests whose behaviour is
+        # selected by the runtime rather than by the source (task stack size,
+        # for example), so the same .fg can be checked under several settings.
+        for key, value in get_test_env(file_path).items():
+            run_env[key] = value
 
         try:
             start_time = time.time()
