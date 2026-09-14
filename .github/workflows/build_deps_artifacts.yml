@@ -40,6 +40,25 @@ on:
         description: "Release tag to publish to (e.g. deps-llvm-17.0.6)"
         required: true
         default: "deps-llvm-17.0.6"
+      # Rebuilding a platform that ALREADY has a published artifact replaces it
+      # with a freshly compiled one, and a fresh compile does not reproduce the
+      # same bytes — so its SHA-256 changes and the hash recorded in
+      # cmake/deps_builder/CMakeLists.txt stops matching. Every build on that
+      # platform then fails on a hash mismatch.
+      #
+      # Hence this selector: build ONLY the platforms that still need an
+      # artifact. The default is the two that have none.
+      platforms:
+        description: "Which platforms to build (skip ones that already have a published artifact)"
+        required: true
+        default: "Linux,Windows"
+        type: choice
+        options:
+          - "Linux,Windows"
+          - "Darwin"
+          - "Linux"
+          - "Windows"
+          - "Darwin,Linux,Windows"
       build_types:
         description: "Which build types to produce"
         required: true
@@ -119,15 +138,20 @@ jobs:
         build_type: [Release, Debug]
 
     steps:
-      - name: Skip build types not requested
+      - name: Skip legs not requested
         id: gate
         shell: bash
         run: |
-          if [[ ",${{ inputs.build_types }}," == *",${{ matrix.build_type }},"* ]]; then
+          want_os=false
+          want_type=false
+          [[ ",${{ inputs.platforms }},"   == *",${{ matrix.artifact_os }},"* ]] && want_os=true
+          [[ ",${{ inputs.build_types }}," == *",${{ matrix.build_type }},"*  ]] && want_type=true
+
+          if [ "$want_os" = true ] && [ "$want_type" = true ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::${{ matrix.build_type }} not requested; skipping"
+            echo "::notice::${{ matrix.artifact_os }} / ${{ matrix.build_type }} not requested; skipping"
           fi
 
       - name: Checkout repository
