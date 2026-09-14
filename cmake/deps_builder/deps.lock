@@ -1,0 +1,48 @@
+# Pinned dependency versions — the CI cache key hashes THIS FILE, not
+# CMakeLists.txt.
+#
+# WHY IT EXISTS
+#
+#   The cache key used to be hashFiles('cmake/deps_builder/CMakeLists.txt').
+#   That file holds logic and comments as well as versions, so editing a
+#   comment changed the hash, missed the cache, and rebuilt every dependency
+#   on all three platforms — roughly three hours of CI for a typo fix. That
+#   happened.
+#
+#   Hashing a file that contains only versions means the cache is invalidated
+#   when a dependency genuinely changes, and never otherwise.
+#
+# HOW TO USE IT
+#
+#   When you bump a version in CMakeLists.txt, bump it here too. These lines
+#   are not read by the build — CMakeLists.txt remains the single source of
+#   truth for what is fetched. This file exists purely so the cache key has
+#   something stable to hash.
+#
+#   Keeping them in step is manual. If they drift, the failure mode is a
+#   stale cache, not a wrong build: the versions here are never consumed.
+
+llvm           llvmorg-17.0.6
+raylib         5.5
+libuv          v1.51.0
+llhttp         release/v9.2.1
+mongo-c-driver 2.3.3
+googletest     v1.17.0
+
+# The prebuilt LLVM artifacts these consume. Bumping llvm above means
+# publishing new artifacts (.github/workflows/build_deps_artifacts.yml) and
+# updating the SHA-256 values in CMakeLists.txt.
+llvm-artifact-release-tag deps-llvm-17.0.6
+
+# Bump this to force every platform's dependency cache to be rebuilt when
+# nothing above changed.
+#
+# The cache key hashes this file, so a change to the LOGIC in CMakeLists.txt —
+# a fixed include path, a new CMAKE_ARG, a corrected library name — does not
+# invalidate anything. On a cache hit the dependency build is skipped entirely
+# and the fix silently does not take effect. Bumping this number is the lever
+# for that case.
+#
+# scripts/check-deps-lock.sh does not check this line; it has no counterpart
+# in CMakeLists.txt to compare against.
+lockfile-revision 1

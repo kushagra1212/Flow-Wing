@@ -13,6 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # deps.lock drives the dependency cache key. If it drifts from the
+      # versions in CMakeLists.txt, CI silently restores and reuses the OLD
+      # dependencies. Nothing fails; you just build something you did not ask
+      # for. This costs a second and catches it.
+      - name: Verify deps.lock matches CMakeLists.txt
+        shell: bash
+        run: bash scripts/check-deps-lock.sh
+
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
@@ -20,7 +28,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
           lookup-only: true
 
       - name: Select Xcode Version
@@ -69,7 +77,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
 
       - name: Fail if cache not found
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
@@ -144,6 +152,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # deps.lock drives the dependency cache key. If it drifts from the
+      # versions in CMakeLists.txt, CI silently restores and reuses the OLD
+      # dependencies. Nothing fails; you just build something you did not ask
+      # for. This costs a second and catches it.
+      - name: Verify deps.lock matches CMakeLists.txt
+        shell: bash
+        run: bash scripts/check-deps-lock.sh
+
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
@@ -151,7 +167,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
           lookup-only: true
 
       - name: Install Build Tools
@@ -195,7 +211,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
 
       - name: Fail if cache not found
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
@@ -255,6 +271,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # deps.lock drives the dependency cache key. If it drifts from the
+      # versions in CMakeLists.txt, CI silently restores and reuses the OLD
+      # dependencies. Nothing fails; you just build something you did not ask
+      # for. This costs a second and catches it.
+      - name: Verify deps.lock matches CMakeLists.txt
+        shell: bash
+        run: bash scripts/check-deps-lock.sh
+
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
@@ -262,7 +286,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
           lookup-only: true
 
       - name: Install Tools
@@ -304,7 +328,7 @@ jobs:
           path: |
             .fw_dependencies/install
             .fw_dependencies/stamps
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/deps.lock') }}
 
       - name: Fail if cache not found
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}

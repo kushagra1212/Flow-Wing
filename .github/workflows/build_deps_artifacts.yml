@@ -1,0 +1,257 @@
+# Build and publish the prebuilt LLVM dependency artifacts.
+#
+# WHY THIS EXISTS
+#
+#   A cold dependency build takes ~66 minutes, and ~64 of them are LLVM.
+#   Every other dependency (libuv, llhttp, mongo-c-driver, raylib, gtest)
+#   finishes in 1m45s together and keeps building from source.
+#
+#   So LLVM — and only LLVM — is published as a prebuilt archive. The normal
+#   CI then downloads it and a cold dependency build drops to ~2 minutes.
+#
+# WHEN TO RUN IT
+#
+#   Only when the LLVM version changes in cmake/deps_builder/CMakeLists.txt,
+#   or when adding a platform. Not on every push — this job is deliberately
+#   manual because each run costs ~1 hour per platform.
+#
+# AFTER IT RUNS
+#
+#   The job prints a SHA-256 for each artifact. Paste them into the
+#   _FW_SHA_<Os>-<Arch>-<Type> block in cmake/deps_builder/CMakeLists.txt.
+#   A download is only ever taken when its hash is recorded there; a platform
+#   with no entry falls back to building LLVM from source, so an unverified
+#   binary is never pulled in.
+#
+# LICENSING
+#
+#   LLVM is Apache 2.0 with LLVM Exceptions, which permits binary
+#   redistribution provided the licence travels with it. The packaging script
+#   embeds THIRD_PARTY_LICENSES/ in every archive and refuses to build one
+#   without it. These are NOT official LLVM releases and must not be labelled
+#   as such.
+
+name: Build Dependency Artifacts (LLVM)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to publish to (e.g. deps-llvm-17.0.6)"
+        required: true
+        default: "deps-llvm-17.0.6"
+      build_types:
+        description: "Which build types to produce"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Debug
+          - "Release,Debug"
+      publish:
+        description: "Upload to the release. Unchecked = build and checksum only."
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write   # required to create/upload release assets
+
+jobs:
+  # Creating the release is its own job on purpose.
+  #
+  # Doing it inside the matrix is a race: several legs start at the same time,
+  # all see "release does not exist", and all call `gh release create`. One
+  # wins and the rest fail with "already exists". Creating it once, first,
+  # removes the race entirely.
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    if: inputs.publish
+    steps:
+      - name: Create the release if it does not exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ inputs.release_tag }}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release ${{ inputs.release_tag }} already exists; reusing it"
+          else
+            gh release create "${{ inputs.release_tag }}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Prebuilt LLVM for Flow-Wing dependencies" \
+              --notes "Prebuilt LLVM/Clang/LLD used by the Flow-Wing dependency build.
+
+          Built with LLVM_ENABLE_RTTI=ON, LLVM_ENABLE_EH=ON, LLVM_TARGETS_TO_BUILD=Native,
+          matching what a from-source Flow-Wing dependency build produces.
+
+          These are NOT official LLVM releases and are not endorsed by the LLVM Project.
+          Licence: Apache 2.0 with LLVM Exceptions; the full text ships inside every
+          archive under THIRD_PARTY_LICENSES/."
+          fi
+
+  build:
+    needs: [prepare]
+    # `prepare` is skipped when publish is false, and a skipped dependency
+    # would otherwise skip this job too.
+    if: always() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
+    name: ${{ matrix.label }} / ${{ matrix.build_type }}
+    runs-on: ${{ matrix.runner }}
+    # Each LLVM build is ~1 hour; the 6-hour default would not cover a slow
+    # runner plus a Debug build, which is substantially slower than Release.
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            label: Darwin-arm64
+            artifact_os: Darwin
+            artifact_arch: arm64
+          - runner: ubuntu-22.04
+            label: Linux-x86_64
+            artifact_os: Linux
+            artifact_arch: x86_64
+          - runner: windows-latest
+            label: Windows-AMD64
+            artifact_os: Windows
+            artifact_arch: AMD64
+        build_type: [Release, Debug]
+
+    steps:
+      - name: Skip build types not requested
+        id: gate
+        shell: bash
+        run: |
+          if [[ ",${{ inputs.build_types }}," == *",${{ matrix.build_type }},"* ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ matrix.build_type }} not requested; skipping"
+          fi
+
+      - name: Checkout repository
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      # A Debug LLVM build is enormous: measured locally at 33 GB
+      # (23 GB build tree + 10 GB install), against roughly 14 GB free on a
+      # GitHub-hosted runner. Release needs ~5 GB and fits comfortably.
+      #
+      # Ubuntu can reclaim ~30 GB by dropping preinstalled toolchains, which
+      # makes Debug feasible there. macOS and Windows have no equivalent, so a
+      # Debug leg on those will almost certainly run out of disk — build those
+      # locally and upload by hand instead.
+      - name: Free disk space (Linux, Debug)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Linux' && matrix.build_type == 'Debug'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          df -h /
+
+      - name: Warn about disk space (Debug on macOS/Windows)
+        if: steps.gate.outputs.run == 'true' && matrix.build_type == 'Debug' && runner.os != 'Linux'
+        shell: bash
+        run: |
+          echo "::warning::A Debug LLVM build needs about 33 GB. Hosted ${{ runner.os }} runners" \
+               "have roughly 14 GB free, so this leg is expected to fail on disk space." \
+               "Build the Debug artifact locally and upload it instead."
+          df -h . || true
+
+      - name: Enable longpaths (Windows)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
+        run: git config --system core.longpaths true
+
+      - name: Set up MSVC (Windows)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install tools (macOS)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'macOS'
+        run: brew install ninja ccache xz
+
+      - name: Install tools (Linux)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build ccache xz-utils
+
+      # xz is NOT present in the Windows runner's Git Bash, and the packaging
+      # script needs it for both `xz -9` and `tar -tJf`. Without this the job
+      # would build LLVM for an hour and only then fail at the packaging step.
+      - name: Install tools (Windows)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
+        run: choco install ninja xz -y
+
+      # Fail in seconds rather than after an hour of compiling if the packaging
+      # tools are missing on this runner.
+      - name: Check packaging prerequisites
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          for t in xz tar shasum; do
+            command -v "$t" >/dev/null || { echo "missing required tool: $t" >&2; exit 1; }
+          done
+          echo "xz:     $(xz --version | head -1)"
+          echo "shasum: ok"
+
+      # FW_LLVM_FROM_SOURCE=ON is the whole point of this job: it is the ONLY
+      # place LLVM is still compiled. Normal CI downloads what this produces.
+      - name: Build dependencies from source
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        env:
+          # `make deps-install-*` drives a fixed CMake preset, so there is no
+          # way to pass an extra -D through it. deps_builder/CMakeLists.txt
+          # reads this variable for exactly that reason.
+          FW_LLVM_FROM_SOURCE: "ON"
+        run: |
+          make deps-install-$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
+
+      - name: Package the LLVM artifact
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        env:
+          FW_ARTIFACT_OS: ${{ matrix.artifact_os }}
+          FW_ARTIFACT_ARCH: ${{ matrix.artifact_arch }}
+        run: |
+          if [ "${{ matrix.build_type }}" = "Debug" ]; then
+            PREFIX=.fw_dependencies_debug/install
+          else
+            PREFIX=.fw_dependencies/install
+          fi
+          bash scripts/package-llvm-artifact.sh "$PREFIX" dist "${{ matrix.build_type }}"
+
+      # Printed in the job summary so the hashes can be copied into
+      # cmake/deps_builder/CMakeLists.txt without downloading anything.
+      - name: Report checksum
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          {
+            echo "### ${{ matrix.label }} / ${{ matrix.build_type }}"
+            echo ''
+            echo '```'
+            cat dist/*.sha256
+            echo '```'
+            ls -la dist/*.tar.xz | awk '{printf "size: %.0f MB\n", $5/1048576}'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat dist/*.sha256
+
+      - name: Upload as a workflow artifact
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: llvm-${{ matrix.label }}-${{ matrix.build_type }}
+          path: dist/*
+          retention-days: 7
+
+      # The release itself is created once by the `prepare` job above, so this
+      # only ever uploads. --clobber makes a re-run replace an asset instead of
+      # failing on "already exists".
+      - name: Publish to the release
+        if: steps.gate.outputs.run == 'true' && inputs.publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ inputs.release_tag }}" dist/* \
+            --repo "$GITHUB_REPOSITORY" --clobber

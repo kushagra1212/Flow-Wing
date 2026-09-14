@@ -159,13 +159,124 @@ else()
         set(LLVM_BUILD_SHARED ON)
     endif()
 
-    # (LLVM and GTest sections remain unchanged)
+    # =======================================================================
+    # LLVM — downloaded as a prebuilt artifact, NOT built from source.
+    #
+    # Measured on a cold CI run: the whole dependency build took 66 minutes,
+    # and 64 of them were LLVM (18:46 [1/3776] -> 19:40 [3776/3776]). Every
+    # other dependency on this page finishes in 1m45s together. So LLVM is the
+    # only one worth shipping prebuilt, and the others keep building from
+    # source — which also means bumping libuv or llhttp costs nothing here.
+    #
+    # WHY NOT THE OFFICIAL llvm-project RELEASE TARBALL
+    #
+    #   We build with LLVM_ENABLE_RTTI=ON and LLVM_ENABLE_EH=ON. The official
+    #   binaries are built with both OFF. FlowWing does link against an
+    #   RTTI=OFF LLVM (verified: no undefined `typeinfo for llvm::` symbols in
+    #   any of its objects), but publishing our own keeps the downloaded
+    #   compiler byte-for-byte equivalent to a from-source build instead of
+    #   quietly diverging.
+    #
+    # The artifact is produced by scripts/package-llvm-artifact.sh and holds
+    # ONLY the LLVM/Clang/LLD part of the prefix, plus its Apache-2.0 licence.
+    #
+    # To go back to building from source — when bumping the LLVM version, or
+    # when no artifact exists yet for a platform:
+    #
+    #   cmake -DFW_LLVM_FROM_SOURCE=ON ...
+    # =======================================================================
+    option(FW_LLVM_FROM_SOURCE
+        "Build LLVM from source (~54 min) instead of downloading the prebuilt artifact" OFF)
+
+    # The environment variable exists because the dependency build is driven
+    # through `make deps-install-release`, which invokes a fixed CMake preset
+    # and has no way to forward an extra -D. The artifact-building workflow
+    # needs to force the source build, so it sets this instead. A -D on the
+    # command line still wins when one is given.
+    if(NOT FW_LLVM_FROM_SOURCE AND DEFINED ENV{FW_LLVM_FROM_SOURCE})
+        if("$ENV{FW_LLVM_FROM_SOURCE}" MATCHES "^(1|ON|on|TRUE|true|YES|yes)$")
+            set(FW_LLVM_FROM_SOURCE ON)
+            message(STATUS "LLVM: FW_LLVM_FROM_SOURCE set in the environment")
+        endif()
+    endif()
+
+    set(FW_LLVM_VERSION "17.0.6")
+    set(FW_LLVM_RELEASE_TAG "deps-llvm-${FW_LLVM_VERSION}"
+        CACHE STRING "GitHub release tag holding the prebuilt LLVM artifacts")
+    set(FW_LLVM_RELEASE_BASE
+        "https://github.com/kushagra1212/Flow-Wing/releases/download/${FW_LLVM_RELEASE_TAG}")
+
+    if(NOT FW_LLVM_FROM_SOURCE)
+        # Artifact names come from uname in the packaging script, so mirror
+        # that here rather than inventing a second naming scheme.
+        set(_FW_A_OS "${CMAKE_HOST_SYSTEM_NAME}")           # Darwin / Linux / Windows
+        set(_FW_A_ARCH "${CMAKE_HOST_SYSTEM_PROCESSOR}")    # arm64 / x86_64 / AMD64
+        set(_FW_ARTIFACT
+            "llvm-${FW_LLVM_VERSION}-${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}.tar.xz")
+
+        # SHA-256 per artifact. A download is only ever taken when its hash is
+        # recorded here — an unverified 100 MB binary dropped into the build
+        # would be a far bigger risk than any flag on this page. A platform
+        # with no entry falls back to the source build instead (see below).
+        #
+        # Produced by .github/workflows/build_deps_artifacts.yml, which prints
+        # each hash in its job summary. Add a line when a platform gains one.
+        set(_FW_SHA_Darwin-arm64-Release
+            "2f9c10d3b9fdeaa7d84f8927c3db0ab948d61d4f15bd57fc6167344421dff7bc")
+        set(_FW_SHA_Darwin-arm64-Debug
+            "a5cba543ec2760c38be16cd56b7b0b370901ff48f7da374f232bdd3f862cad2e")
+        # Linux-x86_64 and Windows-AMD64 have no artifacts published yet, so
+        # they still compile LLVM. Publishing theirs is what makes them fast.
+
+        set(_FW_SHA_KEY "_FW_SHA_${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}")
+        if(NOT DEFINED ${_FW_SHA_KEY})
+            # Fall back to the source build rather than failing.
+            #
+            # A hard error here would break every platform that has no artifact
+            # published yet — which is how this started life, and it meant the
+            # change could not be landed before all six artifacts existed. A
+            # source build is exactly the previous behaviour: slow, correct,
+            # and no security downgrade, because the thing worth refusing is an
+            # UNVERIFIED DOWNLOAD, not compiling from a pinned git tag.
+            message(WARNING
+                "No prebuilt LLVM artifact recorded for "
+                "${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE} — "
+                "falling back to building LLVM from source (~54 minutes).\n"
+                "To make this fast: publish an artifact with "
+                "scripts/package-llvm-artifact.sh and add its SHA-256 above.")
+            set(FW_LLVM_FROM_SOURCE ON)
+        else()
+            message(STATUS "LLVM: downloading prebuilt ${_FW_ARTIFACT}")
+        endif()
+    endif()
+
+    # Re-tested after the fallback above may have flipped it.
+    if(NOT FW_LLVM_FROM_SOURCE)
+
+        ExternalProject_Add(
+            llvm_external
+            URL "${FW_LLVM_RELEASE_BASE}/${_FW_ARTIFACT}"
+            URL_HASH "SHA256=${${_FW_SHA_KEY}}"
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+
+            # Nothing to configure or compile: the archive already IS the
+            # install tree. Unpack it straight into the shared prefix.
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+                            <SOURCE_DIR> ${DEPS_INSTALL_DIR}
+
+            USES_TERMINAL_DOWNLOAD true
+            USES_TERMINAL_INSTALL true
+        )
+    else()
+    message(STATUS "LLVM: building from source (this takes about 54 minutes)")
     ExternalProject_Add(
         llvm_external
 
         # --- REPLACED a URL download with a Git Clone ---
         GIT_REPOSITORY "https://github.com/llvm/llvm-project.git"
-        GIT_TAG "llvmorg-17.0.6" # The official tag for version 17.0.6
+        GIT_TAG "llvmorg-${FW_LLVM_VERSION}"
         GIT_SHALLOW TRUE # Downloads only the history for that one tag
 
         # --- END REPLACEMENT ---
@@ -184,10 +295,14 @@ else()
         USES_TERMINAL_CONFIGURE true
         USES_TERMINAL_BUILD true
         USES_TERMINAL_INSTALL true
-        
+
         GIT_PROGRESS TRUE
     )
+    endif()
 
+    # Both branches above define a target called llvm_external, so everything
+    # that depends on LLVM — gtest below, and the main build's find_package —
+    # works the same whether it was downloaded or compiled.
     ExternalProject_Add(
         gtest_external
         DEPENDS llvm_external

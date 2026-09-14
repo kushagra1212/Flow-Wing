@@ -25,3 +25,7 @@ __pycache__/
 .opencode/
 .yarn
 AGENTS.md
+# Dependency artifacts produced by scripts/package-llvm-artifact.sh.
+# These are hundreds of MB to over a GB — they belong in a GitHub release,
+# never in the repository.
+dist/
