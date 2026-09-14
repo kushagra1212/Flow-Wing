@@ -110,10 +110,10 @@ add_dependencies(${EXECUTABLE_NAME} version)
 # same source file fail on Windows alone. AOT-produced binaries get the same
 # figure from LinkerCommandBuilder::addSystemLibraries — keep the two in step.
 #
-# See that function for why the number is 16 MB rather than 8 MB. Reserve is
+# See that function for why the number is 64 MB rather than 8 MB. Reserve is
 # address space, not committed memory.
 if(MSVC)
-    target_link_options(${EXECUTABLE_NAME} PRIVATE "/STACK:16777216")
+    target_link_options(${EXECUTABLE_NAME} PRIVATE "/STACK:67108864")
 endif()
 
 # =============================================================================

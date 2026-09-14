@@ -55,7 +55,7 @@
    still overflow inside a task.
 
    That 8 MB is what Linux and macOS hand out by default. Windows hands out
-   1 MB, so FlowWing asks the linker for 16 MB there instead — see
+   1 MB, so FlowWing asks the linker for 64 MB there instead — see
    LinkerCommandBuilder::addSystemLibraries and cmake/targets.cmake for why the
    two numbers differ. The reachable DEPTH is then comparable on all three, and
    a recursion that works on one platform works on the others. */
