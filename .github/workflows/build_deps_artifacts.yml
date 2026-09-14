@@ -154,6 +154,15 @@ jobs:
             echo "::notice::${{ matrix.artifact_os }} / ${{ matrix.build_type }} not requested; skipping"
           fi
 
+      # MUST run BEFORE checkout. Some fixture filenames under
+      # tests/fixtures/LatestTests/ClassTests/legacy_Class_fixtures/ exceed
+      # Windows' 260-character MAX_PATH, so git fails mid-checkout with
+      # "Filename too long" before any build step is reached. Setting this
+      # afterwards is useless — the files are already missing.
+      - name: Enable longpaths (Windows)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
         if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@v4
@@ -181,10 +190,6 @@ jobs:
                "have roughly 14 GB free, so this leg is expected to fail on disk space." \
                "Build the Debug artifact locally and upload it instead."
           df -h . || true
-
-      - name: Enable longpaths (Windows)
-        if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
-        run: git config --system core.longpaths true
 
       - name: Set up MSVC (Windows)
         if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
