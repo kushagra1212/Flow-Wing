@@ -45,4 +45,10 @@ llvm-artifact-release-tag deps-llvm-17.0.6
 #
 # scripts/check-deps-lock.sh does not check this line; it has no counterpart
 # in CMakeLists.txt to compare against.
-lockfile-revision 1
+# rev 2 — the cached macOS dependency tree holds an LLVM built on Xcode 26.3
+#         and published by hand. CI runs Xcode 15.4, whose older libc++ lacks
+#         __cxa_init_primary_exception, so every macOS AOT and JIT test failed
+#         to link. Dropping the recorded hashes makes CMake fall back to a
+#         source build, but the CACHE would still restore the bad tree — this
+#         bump is what actually evicts it.
+lockfile-revision 2

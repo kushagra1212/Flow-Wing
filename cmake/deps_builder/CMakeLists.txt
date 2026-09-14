@@ -235,12 +235,35 @@ else()
         #
         # Produced by .github/workflows/build_deps_artifacts.yml, which prints
         # each hash in its job summary. Add a line when a platform gains one.
-        set(_FW_SHA_Darwin-arm64-Release
-            "2f9c10d3b9fdeaa7d84f8927c3db0ab948d61d4f15bd57fc6167344421dff7bc")
-        set(_FW_SHA_Darwin-arm64-Debug
-            "a5cba543ec2760c38be16cd56b7b0b370901ff48f7da374f232bdd3f862cad2e")
-        # Linux-x86_64 and Windows-AMD64 have no artifacts published yet, so
-        # they still compile LLVM. Publishing theirs is what makes them fast.
+        #
+        # ---------------------------------------------------------------
+        # BUILD THESE IN CI, NEVER ON A DEVELOPER MACHINE.
+        #
+        # The first macOS artifacts were packaged from a laptop running
+        # Xcode 26.3 and published. CI runs Xcode 15.4. A newer Xcode means a
+        # newer libc++, and libLLVMOrcJIT.a then references symbols the older
+        # one does not have:
+        #
+        #   ld64.lld: error: undefined symbol:
+        #       std::exception_ptr::__from_native_exception_pointer(void*)
+        #   ld64.lld: error: undefined symbol: __cxa_init_primary_exception
+        #
+        # Every AOT and JIT test on macOS failed to link. The LLVM version was
+        # identical in both cases — the toolchain that compiled it was not.
+        #
+        # An artifact is only as portable as the SDK it was built against, so
+        # the runner that produces it must be the same kind of machine that
+        # consumes it.
+        # ---------------------------------------------------------------
+        #
+        # No platform has a published artifact right now, so all three compile
+        # LLVM from source (the fallback below). Publishing artifacts built BY
+        # THE WORKFLOW is what makes them fast again.
+        #
+        # set(_FW_SHA_Darwin-arm64-Release  "...")   <- from the CI job summary
+        # set(_FW_SHA_Darwin-arm64-Debug    "...")
+        # set(_FW_SHA_Linux-x86_64-Release  "...")
+        # set(_FW_SHA_Windows-AMD64-Release "...")
 
         set(_FW_SHA_KEY "_FW_SHA_${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}")
         if(NOT DEFINED ${_FW_SHA_KEY})
