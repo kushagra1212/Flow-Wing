@@ -1,0 +1,8 @@
+/; EXPECT_ERROR: SpawnRequiresFunctionCall
+/; --------------------------------------------------------------------------
+/; A bare variable is not a call either. Naming a function without the
+/; parentheses is the likely mistake, so the message says to add them.
+/; --------------------------------------------------------------------------
+
+var handler: int = 1
+spawn handler

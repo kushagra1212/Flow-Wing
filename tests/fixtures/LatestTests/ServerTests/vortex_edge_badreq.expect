@@ -1,0 +1,5 @@
+Vortex server listening on port 9982
+ready
+handler saw /
+handler saw /valid
+handler saw 2 valid requests

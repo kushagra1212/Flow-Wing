@@ -1,0 +1,5 @@
+caller wrote index 2
+bare task sees [1000,2000,3]
+bare later    [1,2,3]
+held task sees [1000,2000,300] name=h1
+held later    [1000,2000,300]

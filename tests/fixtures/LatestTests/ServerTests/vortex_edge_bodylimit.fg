@@ -1,0 +1,41 @@
+/; TEST_SERVER_PORT: 9984
+/; ENV: FW_HTTP_MAX_BODY_KB=1
+/; --------------------------------------------------------------------------
+/; The request body limit.
+/;
+/; Without a cap, any client can make the server allocate as much memory as it
+/; likes by declaring a huge Content-Length. The parser therefore refuses a
+/; body larger than FW_HTTP_MAX_BODY_KB and answers 413 without ever calling
+/; the handler.
+/;
+/; The default cap is 8 MB, which no test can reach in reasonable time, so the
+/; limit is lowered to 1 KB here and the runner posts 4 KB against it. That is
+/; the only way this path gets exercised at all.
+/;
+/; The assertion is what the handler does NOT see: two requests are accepted,
+/; the readiness probe and /valid. If the oversized POST ever reached the
+/; handler there would be a third line and the expected output would not match.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9984)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+  println("ready")
+
+  for var i: int = 0 to 1 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("handler saw " + req.getPath())
+    res.status(200).send("ok")
+  }
+
+  println("oversized body never reached the handler")
+}
+
+fg_main()

@@ -1,0 +1,25 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `const` values as spawn arguments.
+/;
+/; A const is read-only at the spawn site but the argument block is ordinary
+/; writable GC memory, so the copy into it must not inherit the constness. The
+/; task then owns a normal value it could modify.
+/;
+/; Both a const primitive and a const string are used: the string is a pointer
+/; copy into a traced field, the int a plain store.
+/; --------------------------------------------------------------------------
+
+const LIMIT: int = 10
+const LABEL: str = "const" + "-label"
+
+fun useConst(n: int, name: str) -> nthg {
+  /; the task's own parameter is writable even though the source was const
+  n = n * 2
+  println(name + " doubled=" + String(n))
+}
+
+spawn useConst(LIMIT, LABEL)
+spawn useConst(LIMIT + 5, LABEL + "-2")
+
+println("LIMIT still " + String(LIMIT))

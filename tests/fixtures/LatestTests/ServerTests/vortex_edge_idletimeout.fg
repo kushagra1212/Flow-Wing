@@ -1,0 +1,45 @@
+/; TEST_SERVER_PORT: 9985
+/; ENV: FW_HTTP_IDLE_TIMEOUT_MS=600
+/; --------------------------------------------------------------------------
+/; The idle connection timeout.
+/;
+/; A connection that opens and then says nothing holds a socket and a timer for
+/; ever. Enough of them and the server runs out of descriptors without a single
+/; valid request being sent. Each connection therefore carries an idle timer
+/; that closes it when nothing arrives.
+/;
+/; The default is 30 seconds, far longer than any test may wait, so it is cut
+/; to 600 ms here.
+/;
+/; Proving a close from the server's own output needs care: a connection that
+/; is silently ignored and one that is closed both produce no handler line. So
+/; the runner waits past the timeout and THEN sends "GET /late" on that same
+/; connection. If the timeout fired, the socket is gone and /late reaches
+/; nobody. If it did not fire, the handler picks /late up and prints a third
+/; line, which no longer matches the expected output.
+/;
+/; In other words, the missing "/late" line IS the assertion.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9985)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+  println("ready")
+
+  for var i: int = 0 to 1 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("handler saw " + req.getPath())
+    res.status(200).send("ok")
+  }
+
+  println("idle connection was dropped before it could send")
+}
+
+fg_main()

@@ -1,0 +1,67 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Spawning FROM inside control flow.
+/;
+/; The existing control-flow test runs loops and branches INSIDE a task. This
+/; is the other direction: the `spawn` itself sits in a nested block — an if, a
+/; loop body, a switch case.
+/;
+/; That matters because a spawn site allocates its argument block and registers
+/; a GC root for it in the enclosing frame. A site inside a loop runs that
+/; sequence once per iteration and must produce a separate block each time; a
+/; site in a branch that is not taken must produce none at all.
+/; --------------------------------------------------------------------------
+
+fun note(tag: str) -> nthg {
+  println("ran " + tag)
+}
+
+var enabled: bool = true
+var skip: bool = false
+
+if enabled {
+  spawn note("if-taken")
+} else {
+  spawn note("if-not-taken")
+}
+
+if skip {
+  spawn note("never")
+}
+
+var i: int = 0
+while i < 3 {
+  if i == 1 {
+    i = i + 1
+    continue
+  }
+  spawn note("while-" + String(i))
+  i = i + 1
+}
+
+for var k: int = 0 to 3 {
+  if k == 2 {
+    break
+  }
+  spawn note("for-" + String(k))
+}
+
+var mode: bool = true
+switch mode {
+  case true: {
+    spawn note("switch-true")
+  }
+  case false: {
+    spawn note("switch-false")
+  }
+  default: {
+    spawn note("switch-default")
+  }
+}
+
+{
+  var inner: str = "nested" + "-block"
+  spawn note(inner)
+}
+
+println("queued")

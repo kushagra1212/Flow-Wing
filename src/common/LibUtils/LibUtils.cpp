@@ -41,13 +41,47 @@ std::string getRuntimeLibraryForModule(const std::string &file_name) {
   }
 
   if (file_name == "file-module.fg") {
-    return "flowwing_file";
+    // Reads inside a task go through libuv's threadpool, so flowwing_uv must
+    // follow flowwing_file: static link order decides resolution.
+    //
+    // A string containing a space is passed to the linker VERBATIM by
+    // LinkerCommandBuilder, bypassing getLibLinkFlag. That is why each
+    // platform spells its own flags here: MSVC wants "name.lib", not "-lname".
+#if defined(_WIN32)
+    // uv_a.lib is libuv itself. Windows has no archive-merge step, so it must
+    // be named on the link line rather than folded into flowwing_uv.lib.
+    return "flowwing_file.lib flowwing_uv.lib uv_a.lib "
+           "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib";
+#elif defined(__linux__)
+    return "-lflowwing_file -lflowwing_uv -lpthread -ldl -lrt";
+#else
+    return "-lflowwing_file -lflowwing_uv";
+#endif
   }
   if (file_name == "io-module.fg") {
     return "flowwing_io";
   }
   if (file_name == "vortex-module.fg") {
-    return "flowwing_vortex";
+    // flowwing_uv carries libuv and must follow flowwing_vortex: static link
+    // order decides resolution, and vortex is the one referencing uv_*.
+    //
+    // libuv is a separate archive on purpose. The JIT build force-loads every
+    // module archive, so merging libuv into more than one would define every
+    // uv_* symbol twice.
+    // Spelled per platform for the same reason as file-module above: a string
+    // with a space skips getLibLinkFlag and reaches the linker unchanged.
+    // libuv needs the Winsock and related system libraries on Windows.
+#if defined(_WIN32)
+    // uv_a.lib and llhttp.lib are the real libraries: on Windows they are not
+    // merged into the flowwing_* archives, so they are named explicitly.
+    return "flowwing_vortex.lib flowwing_uv.lib uv_a.lib llhttp.lib "
+           "ws2_32.lib iphlpapi.lib userenv.lib dbghelp.lib "
+           "ole32.lib shell32.lib advapi32.lib";
+#elif defined(__linux__)
+    return "-lflowwing_vortex -lflowwing_uv -lpthread -ldl -lrt";
+#else
+    return "-lflowwing_vortex -lflowwing_uv";
+#endif
   }
 
   if (file_name == "raylib-module.fg") {

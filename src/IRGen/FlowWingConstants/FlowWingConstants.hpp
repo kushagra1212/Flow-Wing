@@ -122,6 +122,7 @@ const std::string_view kGC_add_root_fn = "fw_gc_add_root";
 
 const std::string_view kSched_spawn_fn = "fw_sched_spawn";
 const std::string_view kSched_drain_fn = "fw_sched_drain";
+const std::string_view kSched_spawn_args_fn = "fw_sched_spawn_args";
 
 // Entry Point
 

@@ -19,6 +19,7 @@
 
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
+#include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundErrorStatement/BoundErrorStatement.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundSpawnStatement/BoundSpawnStatement.hpp"
@@ -54,6 +55,19 @@ StatementBinder::bindSpawnStatement(syntax::SpawnStatementSyntax *statement) {
   auto bound_expression =
       m_expression_binder->bind(statement->getCallExpression().get());
 
+  // Binding the call can fail on its own terms — wrong argument count, wrong
+  // argument type, unknown name. Those come with a precise message and a
+  // location that points at the offending argument. Adding "spawn expects a
+  // function call" on top of one of them would bury the message that actually
+  // tells the user what to change, so propagate the failure silently.
+  if (bound_expression != nullptr &&
+      bound_expression->getKind() == NodeKind::kErrorExpression) {
+    return std::make_unique<BoundErrorStatement>(
+        statement->getSourceLocation(),
+        diagnostic::DiagnosticCode::kSpawnRequiresFunctionCall,
+        diagnostic::DiagnosticArgs{});
+  }
+
   // The parser accepts any expression after `spawn` so that a bad operand
   // reaches here with a real source location instead of dying as a parse error.
   if (bound_expression == nullptr ||
@@ -83,11 +97,22 @@ StatementBinder::bindSpawnStatement(syntax::SpawnStatementSyntax *statement) {
     return fail(diagnostic::DiagnosticCode::kSpawnRequiresPlainFunction);
   }
 
+  // A built-in such as `println` is emitted inline by the compiler: no function
+  // is added to the module, so there is no address for the scheduler to store,
+  // and its declared parameter list does not describe the call's arguments
+  // (print takes any number of them). IRGen looked up a function that does not
+  // exist and then dereferenced the null result, which crashed the compiler on
+  // `spawn println("hi")`. Reject it here, where the user gets a real message.
+  if (function_symbol == nullptr || function_symbol->getType() == nullptr ||
+      analysis::Builtins::isBuiltInFunction(function_symbol->getName())) {
+    return fail(diagnostic::DiagnosticCode::kSpawnRequiresUserFunction);
+  }
+
   // A value-returning function is `void f(T *out)` in IR — it takes a hidden
   // out-parameter. The scheduler calls tasks through `void (*)(void)`, so that
   // parameter would be garbage and the task would segfault. Only `nthg`
   // returns are callable with no arguments at all.
-  if (function_symbol != nullptr && function_symbol->getType() != nullptr) {
+  {
     const auto *function_type =
         static_cast<const types::FunctionType *>(function_symbol->getType().get());
     const auto &return_types = function_type->getReturnTypes();
@@ -102,11 +127,24 @@ StatementBinder::bindSpawnStatement(syntax::SpawnStatementSyntax *statement) {
     }
   }
 
-  // Arguments would have to survive from here until the scheduler runs the
-  // call, which needs GC-traced storage a queued task does not own yet.
-  // Rejecting is better than silently dropping them.
-  if (!call_expression->getArguments().empty()) {
-    return fail(diagnostic::DiagnosticCode::kSpawnArgumentsNotSupported);
+  // Arguments are supported. IRGen evaluates them at the spawn site into a
+  // GC-traced block whose descriptor lists its pointer fields, and the
+  // scheduler roots that block until the task runs — a queued task owns no
+  // stack yet, so there is nowhere else to put them.
+  //
+  // By-reference (`inout`) arguments stay rejected: they alias a stack slot in
+  // the spawning frame, and that frame is long gone by the time the task runs.
+  {
+    const auto *ft = static_cast<const types::FunctionType *>(
+        function_symbol->getType().get());
+    const auto &params = ft->getParameterTypes();
+    const size_t n = call_expression->getArguments().size();
+
+    for (size_t i = 0; i < n && i < params.size(); i++) {
+      if (params[i]->value_kind == types::ValueKind::kByReference) {
+        return fail(diagnostic::DiagnosticCode::kSpawnByReferenceArgument);
+      }
+    }
   }
 
   return std::make_unique<BoundSpawnStatement>(std::move(call_expression),

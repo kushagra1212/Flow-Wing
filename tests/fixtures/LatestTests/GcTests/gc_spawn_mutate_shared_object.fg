@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; One object, several tasks: the aliasing case.
+/;
+/; An object argument copies the POINTER, not the fields. When the same object
+/; goes to more than one task, they all point at one instance. Task A's write
+/; is visible to task B, and to the top level after the drain.
+/;
+/; This is the sharp edge of spawn arguments. It is also the only way to get a
+/; result back out of a task, because a task body returns nothing to the
+/; spawner.
+/; --------------------------------------------------------------------------
+
+type Counter = { total: int, log: str }
+
+fun addTo(c: Counter, amount: int, who: str) -> nthg {
+  c.total = c.total + amount
+  c.log = c.log + who
+  println(who + " saw total=" + String(c.total))
+}
+
+var shared: Counter = { total: 0, log: "" }
+
+spawn addTo(shared, 1, "a")
+spawn addTo(shared, 2, "b")
+spawn addTo(shared, 3, "c")
+
+println("before drain total=" + String(shared.total))

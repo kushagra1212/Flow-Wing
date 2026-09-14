@@ -1,0 +1,11 @@
+/; EXPECT_ERROR: FunctionNotFound
+/; --------------------------------------------------------------------------
+/; REGRESSION: a misspelled name under `spawn` used to report only "'spawn'
+/; expects a function call", hiding the real problem.
+/;
+/; When binding the call fails on its own terms the binder already reported a
+/; precise message with a useful location. Adding the generic spawn error on
+/; top buried it, so the failure is now propagated silently.
+/; --------------------------------------------------------------------------
+
+spawn thisFunctionDoesNotExist()

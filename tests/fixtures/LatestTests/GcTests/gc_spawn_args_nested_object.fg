@@ -1,0 +1,47 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Nested objects and arrays of objects as spawn arguments.
+/;
+/; An object argument stores one pointer, so the whole tree hangs off a single
+/; traced field. The collector reaches the inner object and the strings only by
+/; walking that pointer, and it must do so while the task is still parked.
+/;
+/; The array of objects is the opposite shape: several pointers side by side
+/; inside the copied aggregate. Missing any one of them would leave that
+/; element's strings unreachable.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+type Inner = { tag: str, n: int }
+type Outer = { name: str, inner: Inner }
+type Item  = { id: int, label: str }
+
+fun showOuter(o: Outer) -> nthg {
+  sys::yield()
+  println("outer " + o.name + " inner " + o.inner.tag + "/" + String(o.inner.n))
+}
+
+fun showItems(items: Item[3]) -> nthg {
+  sys::yield()
+  for var i: int = 0 to 2 {
+    println("item " + String(items[i].id) + " " + items[i].label)
+  }
+}
+
+var o: Outer = { name: "out" + "er1", inner: { tag: "in" + "ner1", n: 5 } }
+var items: Item[3] = [
+  { id: 1, label: "a" + "lpha" },
+  { id: 2, label: "b" + "eta" },
+  { id: 3, label: "g" + "amma" }
+]
+
+spawn showOuter(o)
+spawn showItems(items)
+
+/; the object is aliased, so this IS visible; the array is copied, so its
+/; element change is NOT
+o.inner.n = 99
+items[0].id = 99
+
+println("queued 2")

@@ -1,0 +1,37 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `dyn` carries a runtime tag with the value, so mutation can change the TYPE
+/; and not only the contents.
+/;
+/; A dyn argument is copied, tag and all. The caller may then store a value of
+/; a completely different type into the same variable; the task still sees the
+/; type and the value that were there at the spawn. A global dyn is not copied,
+/; so a re-type IS visible to the task.
+/;
+/; GC note: the dyn descriptor is TAGGED — whether the payload word is a
+/; pointer depends on the tag. Storing an int over a str must therefore also
+/; change the tag, or the collector would follow 42 as an address. That is why
+/; this test re-types in both directions and runs under stress.
+/; --------------------------------------------------------------------------
+
+var g_dyn: dyn = "global" + "-str"
+
+fun showDyn(d: dyn, label: str) -> nthg {
+  println(label + ": arg=" + String(d) + " global=" + String(g_dyn))
+}
+
+var a: dyn = "text" + "-one"
+var b: dyn = 42
+var c: dyn = true
+
+spawn showDyn(a, "was-str")
+spawn showDyn(b, "was-int")
+spawn showDyn(c, "was-bool")
+
+/; re-type every one of them after the spawns
+a = 1000
+b = "now" + "-a-string"
+c = 2.5
+g_dyn = 7
+
+println("re-typed all")

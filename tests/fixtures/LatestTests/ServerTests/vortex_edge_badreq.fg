@@ -1,0 +1,42 @@
+/; TEST_SERVER_PORT: 9982
+/; ENV: FW_HTTP_MAX_HEADER_KB=2
+/; --------------------------------------------------------------------------
+/; Bad input must be rejected by the parser and never reach the handler, and
+/; must not damage the server.
+/;
+/; The runner sends, in order:
+/;   1. GET /          the readiness probe        -> reaches the handler
+/;   2. "NOT-HTTP GARBAGE"                        -> 400, handler never sees it
+/;   3. a 60 KB URL against a 2 KB header limit   -> 413, handler never sees it
+/;   4. GET /valid                                -> reaches the handler
+/;
+/; So the handler sees exactly TWO paths. If a malformed request leaked through
+/; there would be a third line; if either killed the server, /valid would never
+/; arrive and this would hang.
+/;
+/; The limit is set through the ENV header rather than the source, because it
+/; is a runtime setting.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9982)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+  println("ready")
+
+  for var i: int = 0 to 1 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("handler saw " + req.getPath())
+    res.status(200).send("ok")
+  }
+
+  println("handler saw 2 valid requests")
+}
+
+fg_main()

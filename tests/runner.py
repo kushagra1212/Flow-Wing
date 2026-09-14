@@ -545,6 +545,129 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                             try: urllib.request.urlopen(url)
                             except EXPECTED_REQUEST_ERRORS: pass
 
+                    elif "vortex_edge_keepalive" in filename:
+                        # Two requests on ONE connection, then two more sent as
+                        # a single write (pipelined). urllib opens a fresh
+                        # connection per call and cannot express either, so
+                        # this drives a raw socket.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /ka1 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.2)
+                            c.recv(4096)
+                            c.sendall(b"GET /ka2 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.2)
+                            c.recv(4096)
+                            c.close()
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /p1 HTTP/1.1\r\nHost: x\r\n\r\n"
+                                      b"GET /p2 HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.4)
+                            c.recv(8192)
+                            c.close()
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_badreq" in filename:
+                        # A malformed request and an oversized one must be
+                        # rejected by the parser and never reach the handler.
+                        # The valid request after them must still be served.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"NOT-HTTP GARBAGE\r\n\r\n")
+                            time.sleep(0.2); c.close()
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /" + b"a" * 60000 + b" HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.3); c.close()
+
+                            urllib.request.urlopen(f"{base_url}/valid")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_abandon" in filename:
+                        # Client vanishes before the handler replies: once with
+                        # a clean close, once with an RST. The server must
+                        # survive both and still serve the request after them.
+                        try:
+                            import socket as _s, struct as _st
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"GET /abandon HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.1); c.close()
+                            time.sleep(0.6)
+
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.setsockopt(_s.SOL_SOCKET, _s.SO_LINGER,
+                                         _st.pack('ii', 1, 0))
+                            c.sendall(b"GET /reset HTTP/1.1\r\nHost: x\r\n\r\n")
+                            time.sleep(0.1); c.close()
+                            time.sleep(0.6)
+
+                            urllib.request.urlopen(f"{base_url}/after")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_bodylimit" in filename:
+                        # A body larger than FW_HTTP_MAX_BODY_KB (set to 1 KB
+                        # by the fixture) must be answered 413 by the parser
+                        # and never handed to the handler. The valid request
+                        # after it must still be served.
+                        try:
+                            import socket as _s
+                            body = b"x" * 4096
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            c.sendall(b"POST /toobig HTTP/1.1\r\nHost: x\r\n"
+                                      b"Content-Length: " + str(len(body)).encode() +
+                                      b"\r\n\r\n" + body)
+                            time.sleep(0.3)
+                            c.close()
+
+                            urllib.request.urlopen(f"{base_url}/valid")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_edge_idletimeout" in filename:
+                        # Open a connection and say nothing. The fixture sets
+                        # FW_HTTP_IDLE_TIMEOUT_MS=600, so the server must close
+                        # it. Sending "GET /late" afterwards is the assertion:
+                        # if the socket were still open the handler would print
+                        # a line for it and the expected output would not match.
+                        try:
+                            import socket as _s
+                            c = _s.create_connection(("127.0.0.1", server_port), timeout=5)
+                            time.sleep(1.2)          # well past the 600 ms cap
+                            try:
+                                c.sendall(b"GET /late HTTP/1.1\r\nHost: x\r\n\r\n")
+                            except OSError:
+                                pass                  # already closed, as intended
+                            time.sleep(0.3)
+                            c.close()
+
+                            urllib.request.urlopen(f"{base_url}/after")
+                        except EXPECTED_REQUEST_ERRORS:
+                            pass
+                        except Exception:
+                            pass
+
+                    elif "vortex_overlap" in filename:
+                        # The DELAY is the test. Request 1 was the readiness
+                        # probe above; this is request 2. The gap between them
+                        # is the window in which the server task sits parked on
+                        # accept(), and the test checks that FlowWing's timers
+                        # kept firing throughout it.
+                        time.sleep(0.5)
+                        try: urllib.request.urlopen(f"{base_url}/go")
+                        except EXPECTED_REQUEST_ERRORS: pass
+
                     elif "mission_control" in filename:
                         # ---------------------------------------------
                         # Requests for the test_mission_control.fg test

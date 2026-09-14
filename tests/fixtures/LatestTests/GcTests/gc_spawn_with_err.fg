@@ -1,0 +1,38 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The Err module inside spawned tasks.
+/;
+/; A task must return `nthg`, so it cannot hand an error back to whoever
+/; spawned it. What it CAN do is call a function that returns a value together
+/; with an Err::Result and handle the failure itself — which is how a task
+/; reports trouble without a return value.
+/;
+/; The multi-return call happens inside a task's own stack, so the hidden
+/; out-parameters live on that stack rather than the main one. Suspending
+/; between the two calls checks that those slots survive a task switch.
+/; --------------------------------------------------------------------------
+
+bring Err
+bring sys
+
+fun parse(flag: bool) -> str, Err::Result {
+  if flag {
+    return "ready", Err::ok("fine")
+  }
+  return "", Err::error("failed", Err::CODE.INVALID_ARGUMENT, "flag was false")
+}
+
+fun attempt(flag: bool, label: str) -> nthg {
+  var value: str, err: Err::Result = parse(flag)
+  sys::yield()
+  if err.isOk() {
+    println(label + " ok    value=" + value)
+  } else {
+    println(label + " error " + err.toString())
+  }
+}
+
+spawn attempt(true, "good")
+spawn attempt(false, "bad ")
+
+println("queued 2")

@@ -22,6 +22,14 @@
  */
 
 #include <cstdio>
+
+// Shared libuv loop + the task scheduler. A file read is pushed onto libuv's
+// threadpool so a task waiting on disk suspends instead of parking the thread.
+// This matters most inside an HTTP handler: a blocking read there stalls every
+// other connection and every timer for the whole duration.
+#include "fw_sched.h"
+#include "fw_uv.h"
+#include <string>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -64,8 +72,64 @@ const char *file_absolute_path(const char *path) {
 
 // --- Static One-Shot Operations ---
 
+namespace {
+
+// State for one off-thread read. Deliberately uses std::string and not GC
+// memory: `work` runs on a libuv threadpool thread, and the GC is
+// single-threaded — calling fw_gc_alloc from there would corrupt the heap.
+// The GC string is built later, on the FlowWing thread.
+struct FwReadJob {
+  uv_work_t req;
+  std::string path;
+  std::string data;
+  int         error = 0;
+  bool        done = false;
+};
+
+// Threadpool thread. Must touch NOTHING owned by the GC or the scheduler.
+void read_work(uv_work_t *handle) {
+  FwReadJob *job = static_cast<FwReadJob *>(handle->data);
+
+  std::ifstream file(fs::path(job->path), std::ios::in | std::ios::binary);
+  if (!file) {
+    job->error = 1; // NOT_FOUND
+    return;
+  }
+  std::ostringstream contents;
+  contents << file.rdbuf();
+  job->data = contents.str();
+  job->error = 0;
+}
+
+// Back on the FlowWing thread, inside uv_run. Safe to wake tasks here.
+void read_done(uv_work_t *handle, int status) {
+  FwReadJob *job = static_cast<FwReadJob *>(handle->data);
+  if (status != 0 && job->error == 0) job->error = 2; // cancelled / failed
+  job->done = true;
+  fw_sched_wake_io();
+}
+
+} // namespace
+
 const char *file_read_all(const char *path) {
-  // fs::path automatically normalizes slashes for the host OS
+  // Inside a task: hand the blocking read to libuv's threadpool and suspend
+  // only this task. Other tasks and timers keep running.
+  if (fw_sched_in_task() && fw_uv_loop() != nullptr) {
+    FwReadJob job;
+    job.path = path ? path : "";
+    job.req.data = &job;
+
+    if (uv_queue_work(fw_uv_loop(), &job.req, read_work, read_done) == 0) {
+      while (!job.done) {
+        fw_sched_park_io();
+      }
+      last_file_error = job.error;
+      return job.error == 0 ? alloc_gc_string(job.data) : alloc_gc_string("");
+    }
+    // Could not queue the work: fall through to the blocking path.
+  }
+
+  // Outside a task there is nothing to switch to, so read inline.
   std::ifstream file(fs::path(path), std::ios::in | std::ios::binary);
   if (!file) {
     last_file_error = 1; // NOT_FOUND

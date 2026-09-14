@@ -1,0 +1,34 @@
+/; EXPECT_ERROR: Runtime Error: Array Index Out of Bounds.
+/; --------------------------------------------------------------------------
+/; A runtime error raised INSIDE a task.
+/;
+/; A task body has no way to return a failure to whoever spawned it, so the
+/; question is what a trap does to the rest of the program. The answer is that
+/; it ends the process exactly as it would on the main stack: the message
+/; names the real fault rather than a scheduler-level one, and the exit status
+/; is non-zero.
+/;
+/; It matters that the diagnostic survives the task's own stack. The trap fires
+/; on a stack the scheduler allocated, not the process stack, so a handler that
+/; assumed otherwise would print nothing and exit on a signal instead.
+/;
+/; Work the task completed before the fault is still flushed: "task start"
+/; appears, "task end" never does.
+/; --------------------------------------------------------------------------
+
+fun bad() -> nthg {
+  var a: int[2] = [1, 2]
+  var i: int = 5
+  println("task start")
+  println(String(a[i]))
+  println("task end")
+}
+
+fun other() -> nthg {
+  println("other task")
+}
+
+spawn bad()
+spawn other()
+
+println("queued 2")

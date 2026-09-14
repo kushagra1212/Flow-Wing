@@ -1,0 +1,42 @@
+/; TEST_SERVER_PORT: 9983
+/; --------------------------------------------------------------------------
+/; The client goes away BEFORE the handler replies. This is the use-after-free
+/; path: the request object outlives its connection, and the handler then calls
+/; send() on a socket that no longer exists.
+/;
+/; The runner does it twice — once closing cleanly, once with an RST (SO_LINGER
+/; 0) — then sends a normal request. The handler sleeps 300 ms before replying
+/; every time, so the client is always gone first.
+/;
+/; What protects this: on_close sets request->conn to null, and send() on a
+/; request with no connection is a no-op instead of a write to freed memory.
+/;
+/; Four requests: the readiness probe, the two abandoned ones, and /after.
+/; Reaching "survived 4" means no crash and no hang.
+/; --------------------------------------------------------------------------
+bring vortex
+bring Err
+bring sys
+
+fun fg_main() -> nthg {
+  var app: vortex::Server = new vortex::Server()
+  var err: Err::Result = app.listen(9983)
+
+  if Err::isErr(err) {
+    println(err.getMessage())
+    return:
+  }
+  println("ready")
+
+  for var i: int = 0 to 3 {
+    var req: vortex::Request, res: vortex::Response = app.accept()
+    println("handling " + req.getPath())
+    /; the client for the abandoned requests is long gone by now
+    sys::sleep(300)
+    res.status(200).send("late reply")
+  }
+
+  println("survived 4")
+}
+
+fg_main()

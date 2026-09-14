@@ -1,0 +1,53 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Several tasks read files at the same time.
+/;
+/; libuv's threadpool has 4 threads by default, so these reads genuinely run in
+/; parallel on different cores. Each work callback touches only its own job
+/; struct and plain malloc memory — never the GC, which is single-threaded.
+/; A GC allocation on a pool thread would corrupt the heap, and FW_GC_STRESS
+/; collecting on every allocation makes that far more likely to show up.
+/;
+/; The assertion is deliberately ORDER-INDEPENDENT. Parallel work finishes in
+/; whatever order the operating system picks, so only the last task to finish
+/; prints, and it reports totals. An earlier version of this test printed per
+/; task and failed the moment task 3 beat task 1 — a flaky test, not a bug.
+/; --------------------------------------------------------------------------
+bring sys
+bring file
+bring Err
+
+var started: int = 0
+var finished: int = 0
+var correct: int = 0
+
+fun reader() -> nthg {
+  started = started + 1
+  var me: int = started
+
+  var path: str = "gc_conc_" + String(me) + ".txt"
+  var payload: str = "payload" + "-" + String(me)
+
+  var wrote: bool, e1: Err::Result = file::writeText(path, payload)
+
+  /; park so every task is mid-flight at the same moment
+  sys::sleep(30)
+
+  var back: str, e2: Err::Result = file::readText(path)
+  if back == payload {
+    correct = correct + 1
+  }
+
+  var gone: bool, e3: Err::Result = file::delete(path)
+
+  finished = finished + 1
+  if finished >= 4 {
+    println("finished " + String(finished) + " correct " + String(correct))
+  }
+}
+
+spawn reader()
+spawn reader()
+spawn reader()
+spawn reader()
+println("queued 4 readers")

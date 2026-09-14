@@ -1,0 +1,34 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; `spawn f(args)` — arguments are evaluated at the SPAWN SITE, stored, and
+/; handed to the task when it finally runs.
+/;
+/; That storage is the whole difficulty. A queued task owns no stack yet (the
+/; stack is taken on first resume), so the values need a GC-traced home in the
+/; meantime. Each spawn site gets an argument object with its own type
+/; descriptor, and the scheduler roots it for as long as the task is alive.
+/;
+/; Under FW_GC_STRESS every allocation collects, so an argument object that was
+/; not rooted would be swept between the spawn and the call, and the strings
+/; below would come back as garbage.
+/;
+/; The values are built with `+` so they are fresh heap allocations rather than
+/; constants the compiler could fold.
+/; --------------------------------------------------------------------------
+
+fun greet(name: str) -> nthg {
+  println("hello " + name)
+}
+
+fun add(a: int, b: int) -> nthg {
+  println("sum " + String(a + b))
+}
+
+fun describe(label: str, count: int, ratio: deci) -> nthg {
+  println(label + " x" + String(count) + " @" + String(ratio))
+}
+
+spawn greet("wor" + "ld")
+spawn add(2, 3)
+spawn describe("item" + "s", 7, 1.5)
+println("queued 3")

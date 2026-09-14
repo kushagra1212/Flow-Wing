@@ -1,0 +1,28 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The case that rules out every shortcut: the SAME spawn site, many times,
+/; each with a different value.
+/;
+/; A tempting implementation is one global per spawn site. It passes a single
+/; spawn and fails here, because all ten tasks would read whichever value was
+/; written last. Each spawn must get its OWN argument block.
+/;
+/; Arguments are evaluated at the SPAWN SITE, so every task sees the `i` from
+/; the moment it was queued — not the loop variable's final value.
+/; --------------------------------------------------------------------------
+
+var seen: str = ""
+var done: int = 0
+
+fun record(n: int, tag: str) -> nthg {
+  seen = seen + tag + String(n) + " "
+  done = done + 1
+  if done >= 5 {
+    println(seen)
+  }
+}
+
+for var i: int = 0 to 4 {
+  spawn record(i * 10, "v")
+}
+println("queued 5")

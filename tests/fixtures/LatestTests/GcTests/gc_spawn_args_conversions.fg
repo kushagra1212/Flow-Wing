@@ -1,0 +1,25 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; Conversion functions on both sides of a spawn.
+/;
+/; On the caller's side the argument is the RESULT of a conversion, so the
+/; value stored into the block is a temporary rather than a variable — there is
+/; no slot to load from, and the store has to use the value directly.
+/;
+/; Inside the task the conversions run on the task's own stack after the
+/; suspend, which is where TypeConversionFunctionTests meets the scheduler.
+/; --------------------------------------------------------------------------
+
+bring sys
+
+fun receive(n: int, d: deci, flag: bool, text: str) -> nthg {
+  sys::yield()
+  println("n=" + String(n) + " d=" + String(d) + " flag=" + String(flag) +
+          " text=" + text)
+  println("back to int " + String(Int32(d)) + " and to str " + String(n))
+}
+
+spawn receive(Int32("41"), Decimal("2.5"), Bool("true"), String(99))
+spawn receive(Int32(7.9), Decimal(3), Bool(1), String(true))
+
+println("queued 2")

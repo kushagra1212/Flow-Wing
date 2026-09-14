@@ -195,8 +195,13 @@ FW_JIT_RUNTIME_SYMBOL(fw_gc_shadow_top)
 
 // ---- fw-modules/gc: cooperative scheduler (`spawn`) -----------------------
 FW_JIT_RUNTIME_SYMBOL(fw_sched_spawn)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_spawn_args)
 FW_JIT_RUNTIME_SYMBOL(fw_sched_drain)
 FW_JIT_RUNTIME_SYMBOL(fw_sched_pending)
 FW_JIT_RUNTIME_SYMBOL(fw_sched_yield)
 FW_JIT_RUNTIME_SYMBOL(fw_sched_sleep_ms)
 FW_JIT_RUNTIME_SYMBOL(fw_sched_in_task)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_set_waiter)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_park_io)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_wake_io)
+FW_JIT_RUNTIME_SYMBOL(fw_sched_io_waiting)

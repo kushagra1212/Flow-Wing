@@ -24,3 +24,14 @@ target_include_directories(test_gc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
 set_target_properties(test_gc PROPERTIES C_STANDARD 11)
+
+# Scheduler unit tests. The .fg fixtures reach fw_sched only through `spawn`;
+# park_io/wake_io/io_waiting/set_waiter have no FlowWing spelling and are
+# covered here instead.
+add_executable(test_sched tests/test_sched.c)
+target_link_libraries(test_sched PRIVATE flowwing_gc)
+target_include_directories(test_sched PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+set_target_properties(test_sched PROPERTIES C_STANDARD 11)

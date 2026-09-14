@@ -1,0 +1,49 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; The map module inside spawned tasks.
+/;
+/; `map::Map` is a class, so passing one to a task copies the POINTER: every
+/; task works on the same map, and the entries a task adds are visible to the
+/; next task and to the top level after the drain.
+/;
+/; A map holds its entries in native C++ storage rather than in fields the GC
+/; can see from the object's layout, so it relies on the custom trace hook. Each
+/; writer suspends between its two writes, and under FW_GC_STRESS every
+/; allocation collects, so an entry the hook missed would be swept while the
+/; writer is parked.
+/;
+/; The reader yields twice before reading so that both writers have finished.
+/; Task order is deterministic — ready tasks run first-in first-out — so this
+/; is a fixed sequence, not a race:
+/;
+/;   A writes "a", yields      B writes "b", yields      R yields
+/;   A writes "a-2", ends      B writes "b-2", ends      R yields again
+/;   R reads all four
+/; --------------------------------------------------------------------------
+
+bring map
+bring sys
+
+var shared: map::Map = new map::Map()
+
+fun addPair(m: map::Map, key: str, value: str) -> nthg {
+  m.set(key, value)
+  sys::yield()
+  m.set(key + "-2", value + "-2")
+  println("added " + key)
+}
+
+fun report(m: map::Map) -> nthg {
+  sys::yield()
+  sys::yield()
+  println("a   = " + String(m.get("a")))
+  println("a-2 = " + String(m.get("a-2")))
+  println("b   = " + String(m.get("b")))
+  println("b-2 = " + String(m.get("b-2")))
+}
+
+spawn addPair(shared, "a", "alpha")
+spawn addPair(shared, "b", "beta")
+spawn report(shared)
+
+println("queued")

@@ -1,0 +1,14 @@
+/; EXPECT_ERROR: SpawnByReferenceArgument
+/; --------------------------------------------------------------------------
+/; An `inout` argument aliases a slot in the SPAWNING frame. That frame is gone
+/; by the time the task runs, so the task would write through a dangling
+/; pointer. By-value arguments are copied into the GC block and are fine;
+/; by-reference ones cannot be, so they are rejected.
+/; --------------------------------------------------------------------------
+
+fun bump(inout n: int) -> nthg {
+  n = n + 1
+}
+
+var counter: int = 0
+spawn bump(counter)

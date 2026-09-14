@@ -123,6 +123,11 @@ void fw_gc_mark_shadow_chain(FWFrame *top);
 typedef void (*FWAuxRootScanFn)(void);
 void fw_gc_set_aux_root_scanner(FWAuxRootScanFn fn);
 
+/* Seed one object as a root during marking. Used by the scheduler to keep a
+   task's argument block alive: that block is reachable from nowhere else until
+   the task actually runs. Only valid from inside an aux root scanner. */
+void fw_gc_push_root_object(void *obj);
+
 void fw_gc_add_root(void **slot);
 void fw_gc_remove_root(void **slot);
 

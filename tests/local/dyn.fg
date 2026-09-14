@@ -1,13 +1,18 @@
-bring sys
-var done: int = 0
-fun t() -> nthg {
-    sys::sleep(200)
-    done = done + 1
-    if done >= 4000 {
-        println("all 5000 woke")
+bring vortex
+bring json
+bring Err
+fun fg_main() -> nthg {
+    var app: vortex::Server = new vortex::Server()
+    var err: Err::Result = app.listen(9922)
+    if Err::isErr(err) {
+        println(err.getMessage())
+        return:
+    }
+    println("ready")
+    for var i: int = 0 to 1 {
+        var req: vortex::Request, res: vortex::Response = app.accept()
+        println("-> " + req.getMethod() + " " + req.getPath() + " body=" + req.getBody())
+        res.status(200).send("echo:" + req.getBody())
     }
 }
-for var i: int = 0 to 4999 {
-    spawn t()
-}
-println("queued 5000")
+fg_main()

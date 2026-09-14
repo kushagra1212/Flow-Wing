@@ -462,6 +462,16 @@ test-gc: build-aot-release
 	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_gc$(EXE_EXT)
 
 
+#? Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c)
+#? Covers queueing, yielding, sleeping, task arguments and the event-parking
+#? API (park_io / wake_io / io_waiting / set_waiter) that the socket layer
+#? calls and that no `spawn` statement can reach.
+.PHONY: test-sched
+test-sched: build-aot-release
+	$(ECHO_MSG) "--> Running scheduler runtime unit tests..."
+	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_sched$(EXE_EXT)
+
+
 #! ----- LSP -----
 
 .PHONY: lsp-compile run-lsp lsp-test

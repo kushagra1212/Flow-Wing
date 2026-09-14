@@ -1,0 +1,29 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; An array of POINTERS passed as a spawn argument.
+/;
+/; The argument block's descriptor comes from getOrEmitPlain(), which lists the
+/; pointer fields of a struct. A `str[3]` field is not a single pointer — it is
+/; three of them nested inside an aggregate. If the descriptor missed those,
+/; the three strings would have no root at all: nothing else refers to them
+/; once the caller's local goes out of scope.
+/;
+/; The loop after the spawn allocates hard on purpose. Under FW_GC_STRESS that
+/; is a collection per allocation, so an untraced element would be swept long
+/; before the task runs and print as garbage or crash.
+/; --------------------------------------------------------------------------
+
+fun showStrArr(a: str[3]) -> nthg {
+  println("[" + a[0] + "," + a[1] + "," + a[2] + "]")
+}
+
+var arr: str[3] = ["x" + "1", "y" + "2", "z" + "3"]
+spawn showStrArr(arr)
+
+/; heavy allocation between the spawn and the drain
+var junk: str = ""
+for var i: int = 0 to 50 {
+  junk = junk + String(i)
+}
+
+println("queued, then allocated")

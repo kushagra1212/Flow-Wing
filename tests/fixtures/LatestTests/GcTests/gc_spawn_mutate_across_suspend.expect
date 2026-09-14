@@ -1,0 +1,4 @@
+queued
+reader before: n=5 cell.v=1 note=initial epoch=1
+writer done
+reader after : n=5 cell.v=99 note=touched-by-writer epoch=2

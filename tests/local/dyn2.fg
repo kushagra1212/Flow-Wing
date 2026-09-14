@@ -1,0 +1,62 @@
+/; ===========================================================================
+/; CLIENT — run this SECOND, in terminal 2, while dyn.fg is running
+/;
+/;   make run-aot-debug FILE=tests/local/dyn2.fg ARGS="--emit=exe -S"
+/;
+/; The -S flag links the Vortex library. Without it the link fails.
+/;
+/; What to watch: the [timer] lines keep arriving every 150 ms while a fetch is
+/; in flight — including the /slow one, which takes 500 ms on the server. The
+/; client used to block the whole thread waiting for a reply.
+/;
+/; Note: vortex::Client sends POST. `spawn` cannot pass arguments yet, so each
+/; route gets its own zero-argument function.
+/; ===========================================================================
+bring vortex
+bring sys
+
+var ticks: int = 0
+
+fun ticker() -> nthg {
+  for var i: int = 0 to 29 {
+    sys::sleep(150)
+    ticks = ticks + 1
+    println("  [timer] tick " + String(ticks))
+  }
+}
+
+fun drain(c: vortex::Client, label: str) -> nthg {
+  while !c.isDone() {
+    var chunk: str = c.readChunk()
+    if chunk != "" {
+      println("  [client] " + label + " -> " + chunk)
+    }
+  }
+  c.close()
+  println("  [client] " + label + " done   (timer had reached tick " +
+          String(ticks) + ")")
+}
+
+fun fetchHello() -> nthg {
+  println("  [client] / start")
+  var c: vortex::Client = new vortex::Client("http://127.0.0.1:9090/", "{}")
+  drain(c, "/")
+}
+
+fun fetchJson() -> nthg {
+  println("  [client] /json start")
+  var c: vortex::Client = new vortex::Client("http://127.0.0.1:9090/json", "{}")
+  drain(c, "/json")
+}
+
+fun fetchSlow() -> nthg {
+  println("  [client] /slow start")
+  var c: vortex::Client = new vortex::Client("http://127.0.0.1:9090/slow", "{}")
+  drain(c, "/slow")
+}
+
+spawn ticker()
+spawn fetchHello()
+spawn fetchJson()
+spawn fetchSlow()
+println("main done — 3 fetches queued, all share one thread")

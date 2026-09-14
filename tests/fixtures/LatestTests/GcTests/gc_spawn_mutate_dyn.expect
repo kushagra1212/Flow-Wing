@@ -1,0 +1,4 @@
+re-typed all
+was-str: arg=text-one global=7
+was-int: arg=42 global=7
+was-bool: arg=true global=7

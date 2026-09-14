@@ -1,0 +1,30 @@
+/; FW_GC_STRESS
+/; --------------------------------------------------------------------------
+/; A FUNCTION passed as a spawn argument.
+/;
+/; Function values are one of the three reference kinds the argument block
+/; treats as a bare pointer, alongside objects and classes. This is the branch
+/; that FunctionTests/FunctionTypeTest covers for ordinary calls, and it is the
+/; only reference kind that carries no fields for the collector to trace.
+/;
+/; The spawned function receives the callback and calls it after the top level
+/; has finished, so the function value has to survive the wait.
+/; --------------------------------------------------------------------------
+
+fun shout(x: int) -> nthg {
+  println("shout " + String(x))
+}
+
+fun whisper(x: int) -> nthg {
+  println("whisper " + String(x))
+}
+
+fun runTwice(f: [(int) -> nthg], v: int) -> nthg {
+  f(v)
+  f(v + 1)
+}
+
+spawn runTwice(shout, 10)
+spawn runTwice(whisper, 20)
+
+println("queued 2")

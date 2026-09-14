@@ -53,6 +53,9 @@
    Override at start-up with FW_TASK_STACK_KB. A task that recurses deeply
    needs a bigger number; `main` gets 8 MB from the operating system, so code
    that works at top level can still overflow inside a task. */
+/* A deadline no clock can reach: the task waits for an event, not a time. */
+#define FW_WAKE_NEVER (-1LL)
+
 #define FW_TASK_STACK_DEFAULT (256 * 1024)
 #define FW_TASK_STACK_MIN_KB  16L
 #define FW_TASK_STACK_MAX_KB  65536L
@@ -64,14 +67,17 @@ typedef enum {
 } FWTaskState;
 
 typedef struct FWTask {
-  FWTaskFn    fn;
-  FWTaskState state;
+  FWTaskFn     fn;      /* used when args_fn is NULL */
+  FWTaskArgsFn args_fn; /* takes the argument block below */
+  void        *args;    /* GC object; rooted while this task is alive */
+  FWTaskState  state;
 
   /* GC chain head while this task is NOT the one running. */
   FWFrame *shadow_top;
 
-  /* 0 = runnable now. Otherwise the monotonic-ns instant before which this
-     task must not be resumed. */
+  /* 0            = runnable now.
+     FW_WAKE_NEVER = parked on an event; only fw_sched_wake_io releases it.
+     otherwise     = the monotonic-ns instant before which it must not run. */
   long long wake_at_ns;
 
   char *stack; /* NULL until first resume */
@@ -321,9 +327,9 @@ static char *stack_acquire(void) {
   if (g_stack_pool_len > 0) return g_stack_pool[--g_stack_pool_len];
 
 #ifdef _WIN32
-  /* Windows fibers get a stack with an OS guard page from CreateFiber; this
-     buffer is only a placeholder so the bookkeeping matches POSIX. */
-  return (char *)malloc(stack_size());
+  /* Never called on Windows: CreateFiber owns the stack. Returning NULL keeps
+     the signature without allocating memory nothing would use. */
+  return NULL;
 #else
   install_segv_handler_once();
 
@@ -366,6 +372,10 @@ static void sched_scan_roots(void) {
   for (FWTask *t = g_all_tasks; t != NULL; t = t->next_all) {
     if (t != g_current && t->state == FW_TASK_SUSPENDED)
       fw_gc_mark_shadow_chain(t->shadow_top);
+
+    /* Argument blocks belong to tasks that have not started yet, so they are
+       reachable from nowhere else. Roots every state, not just SUSPENDED. */
+    if (t->args != NULL) fw_gc_push_root_object(t->args);
   }
 }
 
@@ -398,14 +408,16 @@ static void unregister_task(FWTask *t) {
 #ifdef _WIN32
 static VOID CALLBACK task_entry(PVOID param) {
   FWTask *t = (FWTask *)param;
-  t->fn();
+  if (t->args_fn != NULL) t->args_fn(t->args);
+  else                    t->fn();
   t->state = FW_TASK_DONE;
   SwitchToFiber(g_sched_fiber);
 }
 #else
 static void task_entry(void) {
   FWTask *t = g_current;
-  t->fn();
+  if (t->args_fn != NULL) t->args_fn(t->args);
+  else                    t->fn();
   t->state = FW_TASK_DONE;
   /* uc_link returns us to the scheduler. */
 }
@@ -420,6 +432,26 @@ void fw_sched_spawn(FWTaskFn fn) {
   if (t == NULL) return;
 
   t->fn = fn;
+  t->args_fn = NULL;
+  t->args = NULL;
+  t->state = FW_TASK_NEW;
+  t->shadow_top = NULL;
+  t->stack = NULL;
+
+  register_task(t);
+  register_scanner_once();
+  queue_push(t);
+}
+
+void fw_sched_spawn_args(FWTaskArgsFn fn, void *args) {
+  if (fn == NULL) return;
+
+  FWTask *t = (FWTask *)calloc(1, sizeof(FWTask));
+  if (t == NULL) return;
+
+  t->fn = NULL;
+  t->args_fn = fn;
+  t->args = args;
   t->state = FW_TASK_NEW;
   t->shadow_top = NULL;
   t->stack = NULL;
@@ -462,6 +494,8 @@ static FWTask *pop_ready(void) {
     FWTask *t = g_ready[i];
     if (t == NULL) continue;
 
+    if (t->wake_at_ns == FW_WAKE_NEVER) continue; /* waiting on an event */
+
     if (t->wake_at_ns != 0) {
       if (!have_now) { now = now_ns(); have_now = 1; }
       if (t->wake_at_ns > now) continue; /* still parked */
@@ -476,15 +510,55 @@ static FWTask *pop_ready(void) {
   return NULL;
 }
 
-/* Earliest deadline among queued tasks, or 0 if none are sleeping. */
+/* Earliest deadline among queued tasks, or 0 if none is waiting on a clock.
+   Event-parked tasks have no deadline and are ignored here. */
 static long long earliest_deadline(void) {
   long long best = 0;
   for (size_t i = g_head; i < g_tail; i++) {
     FWTask *t = g_ready[i];
     if (t == NULL || t->wake_at_ns == 0) continue;
+    if (t->wake_at_ns == FW_WAKE_NEVER) continue;
     if (best == 0 || t->wake_at_ns < best) best = t->wake_at_ns;
   }
   return best;
+}
+
+/* ---- waiting on events -------------------------------------------------- */
+
+static FWWaitFn g_waiter = NULL;
+
+void fw_sched_set_waiter(FWWaitFn fn) { g_waiter = fn; }
+
+unsigned long fw_sched_io_waiting(void) {
+  unsigned long n = 0;
+  for (size_t i = g_head; i < g_tail; i++) {
+    FWTask *t = g_ready[i];
+    if (t != NULL && t->wake_at_ns == FW_WAKE_NEVER) n++;
+  }
+  return n;
+}
+
+void fw_sched_park_io(void) {
+  FWTask *t = g_current;
+  if (t == NULL) return; /* outside a task there is nothing to park */
+
+  t->wake_at_ns = FW_WAKE_NEVER;
+  t->shadow_top = fw_gc_shadow_top;
+  t->state = FW_TASK_SUSPENDED;
+  queue_push(t);
+
+#ifdef _WIN32
+  SwitchToFiber(g_sched_fiber);
+#else
+  swapcontext(&t->ctx, &g_sched_ctx);
+#endif
+}
+
+void fw_sched_wake_io(void) {
+  for (size_t i = g_head; i < g_tail; i++) {
+    FWTask *t = g_ready[i];
+    if (t != NULL && t->wake_at_ns == FW_WAKE_NEVER) t->wake_at_ns = 0;
+  }
 }
 
 void fw_sched_sleep_ms(long long ms) {
@@ -509,7 +583,29 @@ void fw_sched_sleep_ms(long long ms) {
 #endif
 }
 
+/* Non-zero while a drain loop is running. See fw_sched_drain. */
+static int g_draining = 0;
+
 void fw_sched_drain(void) {
+  /* Re-entrancy guard.
+   *
+   * The loop below saves the scheduler's resume point in ONE global
+   * (g_sched_ctx) and zeroes the queue indices when it finishes. Calling it
+   * again from inside a task destroys both: the nested call overwrites
+   * g_sched_ctx with a point inside the running task, so when that task later
+   * finishes and switches back, it returns into a frame that has already been
+   * left. Measured result was a SIGSEGV, after the nested call appeared to
+   * succeed — the outer drain simply never returned.
+   *
+   * Nesting also has no useful meaning. The outer loop already runs everything
+   * in the queue, including work the current task spawns, so returning at once
+   * loses nothing: the tasks still run, just one level up.
+   */
+  if (g_draining) {
+    return;
+  }
+  g_draining = 1;
+
 #ifdef _WIN32
   int converted = 0;
   if (g_sched_fiber == NULL) {
@@ -522,11 +618,25 @@ void fw_sched_drain(void) {
     FWTask *t = pop_ready();
 
     if (t == NULL) {
-      /* Everything left is waiting on a clock. Idle until the soonest one is
-         due instead of spinning. */
+      /* Nothing can run right now. Work out what could change that. */
       long long due = earliest_deadline();
-      if (due == 0) break; /* nothing runnable and nothing timed: done */
-      block_ns(due - now_ns());
+      unsigned long io = fw_sched_io_waiting();
+
+      if (due == 0 && io == 0) break; /* no timers, no events: finished */
+
+      if (g_waiter != NULL) {
+        /* An event layer is installed, so a socket can wake us as well as a
+           clock. A pending timer caps the wait; otherwise wait indefinitely,
+           because only an event can make progress. */
+        g_waiter(due != 0 ? (due - now_ns()) : FW_WAKE_NEVER);
+      } else if (due != 0) {
+        block_ns(due - now_ns());
+      } else {
+        /* Tasks are parked on events but nothing can deliver one. Releasing
+           them is wrong (they would see no data); hanging is worse. Give up
+           and let the program end rather than deadlock in silence. */
+        break;
+      }
       continue;
     }
 
@@ -537,6 +647,9 @@ void fw_sched_drain(void) {
     g_current = t;
 
     if (t->state == FW_TASK_NEW) {
+#ifndef _WIN32
+      /* POSIX only. CreateFiber allocates and guards its own stack, so asking
+         for one here would waste stack_size() bytes per task on Windows. */
       t->stack = stack_acquire();
       if (t->stack == NULL) { /* OOM: skip the task rather than crash */
         g_current = saved_current;
@@ -544,11 +657,18 @@ void fw_sched_drain(void) {
         free(t);
         continue;
       }
+#endif
       /* A fresh task starts with an empty chain of its own. */
       fw_gc_shadow_top = NULL;
 
 #ifdef _WIN32
       t->fiber = CreateFiber(stack_size(), task_entry, t);
+      if (t->fiber == NULL) { /* OOM: skip the task rather than crash */
+        g_current = saved_current;
+        unregister_task(t);
+        free(t);
+        continue;
+      }
 #else
       getcontext(&t->ctx);
       t->ctx.uc_stack.ss_sp = t->stack;
@@ -588,6 +708,8 @@ void fw_sched_drain(void) {
     g_sched_fiber = NULL;
   }
 #endif
+
+  g_draining = 0;
 }
 
 unsigned long fw_sched_pending(void) {

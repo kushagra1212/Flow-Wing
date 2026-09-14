@@ -1,0 +1,3 @@
+LIMIT still 10
+const-label doubled=20
+const-label-2 doubled=30

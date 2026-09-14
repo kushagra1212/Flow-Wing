@@ -295,13 +295,14 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Write 'spawn myFunction()' — the operand must be a call, not a value.",
       "'spawn' queues a call to run later, so it needs something callable. An "
       "expression like 'spawn 42' or 'spawn myVariable' has nothing to run."}},
-    {(DiagnosticCode::kSpawnArgumentsNotSupported),
-     {"'spawn' cannot pass arguments yet.",
-      "Call a function that takes no parameters, or capture the values in "
-      "globals the spawned function reads.",
-      "A spawned call runs after the current code finishes, so its arguments "
-      "would have to be stored somewhere the garbage collector traces until "
-      "then. That storage does not exist until a task owns its own stack."}},
+    {(DiagnosticCode::kSpawnByReferenceArgument),
+     {"'spawn' cannot pass an argument by reference.",
+      "Pass the value instead of using 'inout', or have the task return its "
+      "result through a global.",
+      "An 'inout' argument points at a slot in the spawning function's frame. "
+      "A spawned task runs after that frame is gone, so the write would land "
+      "in memory that no longer belongs to anyone. By-value arguments are "
+      "copied into a garbage-collected block and are safe."}},
     {(DiagnosticCode::kSpawnRequiresNthgReturn),
      {"'spawn' needs a function that returns 'nthg'.",
       "Change the function's return type to 'nthg', or store its result in a "
@@ -316,6 +317,13 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "A method call passes the receiver ('self') as a hidden argument, which "
       "would have to stay traced by the garbage collector from the spawn until "
       "the scheduler runs the call."}},
+    {(DiagnosticCode::kSpawnRequiresUserFunction),
+     {"'spawn' cannot queue a built-in call.",
+      "Wrap the call in a function of your own and spawn that function "
+      "instead.",
+      "Built-ins such as 'println' are emitted inline by the compiler rather "
+      "than called through a symbol, so there is no address for the scheduler "
+      "to store and no parameter list to copy the arguments from."}},
     {(DiagnosticCode::kFileNotFound),
      {"File '<{0}>' was not found.",
       "Ensure that the file '<{0}>' exists at the specified path.",
@@ -846,12 +854,14 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "InvalidBreakStatementUsage";
   case DiagnosticCode::kSpawnRequiresFunctionCall:
     return "SpawnRequiresFunctionCall";
-  case DiagnosticCode::kSpawnArgumentsNotSupported:
-    return "SpawnArgumentsNotSupported";
+  case DiagnosticCode::kSpawnByReferenceArgument:
+    return "SpawnByReferenceArgument";
   case DiagnosticCode::kSpawnRequiresNthgReturn:
     return "SpawnRequiresNthgReturn";
   case DiagnosticCode::kSpawnRequiresPlainFunction:
     return "SpawnRequiresPlainFunction";
+  case DiagnosticCode::kSpawnRequiresUserFunction:
+    return "SpawnRequiresUserFunction";
 
   // --- Semantic Errors ---
   case DiagnosticCode::kUnexpectedTypeExpression:

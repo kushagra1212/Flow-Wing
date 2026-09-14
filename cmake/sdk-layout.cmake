@@ -32,6 +32,7 @@
 set(SDK_LIBRARY_TARGETS
     built_in_module
     flowwing_gc
+    flowwing_uv
     dynamic
     flowwing_map
     flowwing_vec
@@ -62,6 +63,15 @@ file(GLOB THIRD_PARTY_LIBS
     # the FlowWing user-code link line must reference the archives directly.
     "${DEPS_LIB_DIR}/mongoc2.lib"
     "${DEPS_LIB_DIR}/bson2.lib"
+
+    # Same reason: libuv backs the task scheduler's event loop and llhttp parses
+    # HTTP. Both are merged into flowwing_uv / flowwing_vortex on macOS + Linux
+    # by a POST_BUILD libtool/ar step, which has no Windows equivalent, so the
+    # link line needs the archives themselves.
+    "${DEPS_LIB_DIR}/uv_a.lib"
+    "${DEPS_LIB_DIR}/uv.lib"
+    "${DEPS_LIB_DIR}/libuv.lib"
+    "${DEPS_LIB_DIR}/llhttp.lib"
 
     # This glob will also find any other .a files you might need.
 )

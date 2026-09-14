@@ -1,0 +1,3 @@
+queued from methods
+j1 ran via from-method runs=1
+j1 ran via from-method runs=2
