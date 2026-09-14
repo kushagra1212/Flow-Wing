@@ -203,12 +203,14 @@ jobs:
         if: steps.gate.outputs.run == 'true' && runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build ccache xz-utils
 
-      # xz is NOT present in the Windows runner's Git Bash, and the packaging
-      # script needs it for both `xz -9` and `tar -tJf`. Without this the job
-      # would build LLVM for an hour and only then fail at the packaging step.
+      # 7zip, NOT xz. Chocolatey has no `xz` package — `choco install xz`
+      # fails with "package was not found with the source(s) listed", which is
+      # exactly how this job failed the first time. 7zip is what
+      # .github/workflows/release.yml already installs and uses to build the
+      # Windows release archive, so the packaging script produces a .zip here.
       - name: Install tools (Windows)
         if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
-        run: choco install ninja xz -y
+        run: choco install ninja 7zip -y
 
       # Fail in seconds rather than after an hour of compiling if the packaging
       # tools are missing on this runner.
@@ -216,11 +218,15 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         shell: bash
         run: |
-          for t in xz tar shasum; do
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            tools="7z shasum"
+          else
+            tools="xz tar shasum"
+          fi
+          for t in $tools; do
             command -v "$t" >/dev/null || { echo "missing required tool: $t" >&2; exit 1; }
           done
-          echo "xz:     $(xz --version | head -1)"
-          echo "shasum: ok"
+          echo "tools present: $tools"
 
       # FW_LLVM_FROM_SOURCE=ON is the whole point of this job: it is the ONLY
       # place LLVM is still compiled. Normal CI downloads what this produces.

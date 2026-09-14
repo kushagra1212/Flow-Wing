@@ -211,8 +211,22 @@ else()
         # that here rather than inventing a second naming scheme.
         set(_FW_A_OS "${CMAKE_HOST_SYSTEM_NAME}")           # Darwin / Linux / Windows
         set(_FW_A_ARCH "${CMAKE_HOST_SYSTEM_PROCESSOR}")    # arm64 / x86_64 / AMD64
+
+        # Windows artifacts are .zip, everything else .tar.xz.
+        #
+        # Not a style choice: Chocolatey has no `xz` package at all (a
+        # `choco install xz` fails with "package was not found"), so the
+        # Windows runner cannot produce a .tar.xz. 7-Zip is already what
+        # .github/workflows/release.yml uses there. Keep this in step with
+        # scripts/package-llvm-artifact.sh, which picks the same two formats.
+        if(_FW_A_OS STREQUAL "Windows")
+            set(_FW_A_EXT "zip")
+        else()
+            set(_FW_A_EXT "tar.xz")
+        endif()
+
         set(_FW_ARTIFACT
-            "llvm-${FW_LLVM_VERSION}-${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}.tar.xz")
+            "llvm-${FW_LLVM_VERSION}-${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}.${_FW_A_EXT}")
 
         # SHA-256 per artifact. A download is only ever taken when its hash is
         # recorded here — an unverified 100 MB binary dropped into the build
