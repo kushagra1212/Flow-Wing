@@ -14,7 +14,7 @@ import hashlib
 import signal
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 
 # Subprocess output encoding: use UTF-8 so compiler/binary output decodes correctly on Windows (avoid cp1252 UnicodeDecodeError).
@@ -719,6 +719,47 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                                 
                             self.wfile.write(b"0\r\n\r\n") # Send EOF chunk
                             self.wfile.flush()
+                        elif self.path == '/concurrent':
+                            # Concurrency probe for the libuv HTTP client.
+                            #
+                            # Each request waits at a barrier until EXPECTED of
+                            # them have arrived, then every one reports how many
+                            # were in flight together. A client that runs
+                            # requests one after another can never raise that
+                            # count above 1, so the assertion is on the number
+                            # rather than on elapsed time -- which would flake on
+                            # a loaded CI runner.
+                            #
+                            # The wait is bounded, so a serialising client fails
+                            # the test instead of hanging it.
+                            n = int(self.headers.get('Content-Length', 0))
+                            if n:
+                                self.rfile.read(n)
+
+                            with MockStreamHandler.lock:
+                                MockStreamHandler.in_flight += 1
+                                MockStreamHandler.peak = max(
+                                    MockStreamHandler.peak,
+                                    MockStreamHandler.in_flight)
+
+                            deadline = time.time() + 3.0
+                            while time.time() < deadline:
+                                with MockStreamHandler.lock:
+                                    if MockStreamHandler.peak >= MockStreamHandler.EXPECTED:
+                                        break
+                                time.sleep(0.01)
+
+                            with MockStreamHandler.lock:
+                                peak = MockStreamHandler.peak
+                                MockStreamHandler.in_flight -= 1
+
+                            payload = ("peak=%d\n" % peak).encode('utf-8')
+                            self.send_response(200)
+                            self.send_header('Content-Type', 'text/plain')
+                            self.send_header('Content-Length', str(len(payload)))
+                            self.end_headers()
+                            self.wfile.write(payload)
+                            self.wfile.flush()
                         else:
                             self.send_response(404)
                             self.end_headers()
@@ -726,7 +767,15 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     def log_message(self, format, *args):
                         pass # Suppress logging to keep FlowWing CLI output clean
 
-                mock_server = HTTPServer(('127.0.0.1', mock_server_port), MockStreamHandler)
+                MockStreamHandler.lock = threading.Lock()
+                MockStreamHandler.in_flight = 0
+                MockStreamHandler.peak = 0
+                MockStreamHandler.EXPECTED = 5
+
+                # Threaded: the concurrency probe above needs several requests
+                # served at once, which a single-threaded HTTPServer cannot do.
+                # The streaming test is unaffected by the change.
+                mock_server = ThreadingHTTPServer(('127.0.0.1', mock_server_port), MockStreamHandler)
                 mock_server_thread = threading.Thread(target=mock_server.serve_forever)
                 mock_server_thread.daemon = True
                 mock_server_thread.start()

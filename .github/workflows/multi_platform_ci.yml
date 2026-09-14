@@ -99,6 +99,13 @@ jobs:
         if: success() || failure()
         run: make test-sched
 
+      # Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c). Drives
+      # fw_uv_wake() from a real worker thread — the handoff the HTTP client
+      # and async file I/O depend on, which no .fg fixture can assert about.
+      - name: Event loop unit tests
+        if: success() || failure()
+        run: make test-uv
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -210,6 +217,13 @@ jobs:
       - name: Scheduler runtime unit tests
         if: success() || failure()
         run: make test-sched
+
+      # Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c). Drives
+      # fw_uv_wake() from a real worker thread — the handoff the HTTP client
+      # and async file I/O depend on, which no .fg fixture can assert about.
+      - name: Event loop unit tests
+        if: success() || failure()
+        run: make test-uv
 
       - name: Formatter golden tests
         if: success()
@@ -324,6 +338,15 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-sched
+
+      # Event-loop unit tests — see the note on the other platforms.
+      - name: Event loop unit tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-uv
 
       - name: Formatter golden tests
         if: success()

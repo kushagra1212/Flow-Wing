@@ -1,0 +1,62 @@
+/; MOCK_SERVER_PORT: 9435
+/; --------------------------------------------------------------------------
+/; Five HTTP client requests in flight at once, on one thread.
+/;
+/; The client used to start a std::thread per request and hand the body back
+/; through a mutex, a condition variable and uv_async_send. Five requests meant
+/; five threads and five stacks. It now runs on the shared libuv loop like the
+/; server does: the response is parsed on the FlowWing thread, and a task that
+/; is waiting for bytes parks so the others can run.
+/;
+/; Proving that from inside FlowWing needs the server's help. The mock's
+/; /concurrent endpoint holds every request at a barrier until five have
+/; arrived, then tells each one how many were in flight together. A client that
+/; ran its requests one after another could never get that number above 1, so
+/; the check is on the number and not on elapsed time — a timing assertion
+/; would flake on a loaded CI machine.
+/;
+/; The barrier gives up after three seconds, so a client that serialises fails
+/; this test rather than hanging it.
+/; --------------------------------------------------------------------------
+
+bring vortex
+bring sys
+
+var replies: int = 0
+var all_saw_five: bool = true
+
+fun hit(id: int) -> nthg {
+  var c: vortex::Client = new vortex::Client(
+      "http://127.0.0.1:9435/concurrent", `{"id":1}`)
+
+  var body: str = ""
+  while !c.isDone() {
+    var chunk: str = c.readChunk()
+    if chunk != "" {
+      body = body + chunk
+    }
+  }
+  c.close()
+
+  /; every reply reports the peak number of simultaneous requests
+  if body != "peak=5\n" {
+    all_saw_five = false
+    println("request " + String(id) + " saw " + body)
+  }
+
+  replies = replies + 1
+}
+
+fun report() -> nthg {
+  /; last task to wake: every request has finished by now
+  sys::sleep(600)
+  println("replies      = " + String(replies))
+  println("all saw five = " + String(all_saw_five))
+}
+
+for var i: int = 0 to 4 {
+  spawn hit(i)
+}
+spawn report()
+
+println("five requests queued")

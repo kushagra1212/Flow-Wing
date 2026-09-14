@@ -49,3 +49,15 @@ elseif(WIN32)
     target_link_libraries(flowwing_uv PUBLIC ${LIBUV_LIB}
         ws2_32 iphlpapi userenv dbghelp ole32 shell32)
 endif()
+
+# Event-loop unit tests. fw_uv_wake() is the only call in the runtime that
+# another thread may make, and "a socket woke us" is not something a .fg
+# fixture can assert about — so it is driven directly here, threads included.
+add_executable(test_uv tests/test_uv.c)
+target_link_libraries(test_uv PRIVATE flowwing_uv flowwing_gc)
+target_include_directories(test_uv PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/fw-modules/gc/include
+    ${CMAKE_SOURCE_DIR}/fw-modules/gc/tests
+)
+set_target_properties(test_uv PROPERTIES C_STANDARD 11)

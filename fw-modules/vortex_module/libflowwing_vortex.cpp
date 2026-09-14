@@ -26,6 +26,7 @@
 #include "httplib.h"
 #include "fw_uv.h"
 #include "uv_http_server.h"
+#include "uv_http_client.h"
 #include <condition_variable>
 #include <cstring>
 #include <map>
@@ -96,7 +97,7 @@ static void parse_vortex_url(const std::string &url, std::string &base,
 
 extern "C" {
 
-int64_t vortex_client_post_stream(const char *url_c, const char *body_c) {
+int64_t vortex_client_post_stream_httplib(const char *url_c, const char *body_c) {
   std::string url = url_c ? url_c : "";
   std::string body = body_c ? body_c : "";
 
@@ -180,14 +181,14 @@ int64_t vortex_client_post_stream(const char *url_c, const char *body_c) {
   return reinterpret_cast<int64_t>(ctx);
 }
 
-bool vortex_client_res_ok(int64_t handle) {
+bool vortex_client_res_ok_httplib(int64_t handle) {
   if (!handle)
     return false;
   HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
   return ctx->is_ok;
 }
 
-const char *vortex_client_read_chunk(int64_t handle) {
+const char *vortex_client_read_chunk_httplib(int64_t handle) {
   if (!handle)
     return alloc_gc_string("");
   HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
@@ -218,7 +219,7 @@ const char *vortex_client_read_chunk(int64_t handle) {
   return alloc_gc_string(chunk);
 }
 
-bool vortex_client_is_done(int64_t handle) {
+bool vortex_client_is_done_httplib(int64_t handle) {
   if (!handle)
     return true;
   HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
@@ -227,7 +228,7 @@ bool vortex_client_is_done(int64_t handle) {
   return ctx->is_done && ctx->chunks.empty();
 }
 
-void vortex_client_close(int64_t handle) {
+void vortex_client_close_httplib(int64_t handle) {
   if (!handle)
     return;
   HttpClientContext *ctx = reinterpret_cast<HttpClientContext *>(handle);
@@ -312,5 +313,37 @@ void vortex_res_send_file(int64_t r, const char *filepath,
   if (content_type) fw_http_res_header(r, "Content-Type", content_type);
   fw_http_res_send(r, data.c_str());
 }
+
+} // extern "C"
+
+// ===========================================================================
+// Public client FFI -> libuv implementation (uv_http_client.cpp)
+//
+// The cpp-httplib versions above keep a _httplib suffix as reference. They are
+// no longer reachable from FlowWing.
+//
+// The libuv path has no thread per request and no mutex: the response is
+// parsed on the FlowWing thread inside the shared loop, so ten concurrent
+// requests from ten tasks share one thread instead of starting ten.
+// ===========================================================================
+extern "C" {
+
+int64_t vortex_client_post_stream(const char *url, const char *body) {
+  return fw_http_client_post_stream(url, body);
+}
+
+bool vortex_client_res_ok(int64_t handle) {
+  return fw_http_client_ok(handle) != 0;
+}
+
+const char *vortex_client_read_chunk(int64_t handle) {
+  return fw_http_client_read_chunk(handle);
+}
+
+bool vortex_client_is_done(int64_t handle) {
+  return fw_http_client_is_done(handle) != 0;
+}
+
+void vortex_client_close(int64_t handle) { fw_http_client_close(handle); }
 
 } // extern "C"

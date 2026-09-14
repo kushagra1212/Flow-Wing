@@ -2,6 +2,7 @@
 add_library(flowwing_vortex STATIC
     libflowwing_vortex.cpp
     uv_http_server.cpp
+    uv_http_client.cpp
 )
 
 # llhttp: HTTP/1.1 parsing only. Sockets, response writing, chunked encoding

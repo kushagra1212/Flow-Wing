@@ -462,6 +462,15 @@ test-gc: build-aot-release
 	@$(AOT_RELEASE_DIR)/fw-modules/gc/test_gc$(EXE_EXT)
 
 
+#? Event-loop unit tests (fw-modules/uv_module/tests/test_uv.c)
+#? Covers the shared libuv loop and fw_uv_wake(), the one call a worker thread
+#? is allowed to make — the handoff the HTTP client and async file I/O rely on.
+.PHONY: test-uv
+test-uv: build-aot-release
+	$(ECHO_MSG) "--> Running event loop unit tests..."
+	@$(AOT_RELEASE_DIR)/fw-modules/uv_module/test_uv$(EXE_EXT)
+
+
 #? Scheduler runtime unit tests (fw-modules/gc/tests/test_sched.c)
 #? Covers queueing, yielding, sleeping, task arguments and the event-parking
 #? API (park_io / wake_io / io_waiting / set_waiter) that the socket layer

@@ -1,0 +1,4 @@
+/; EXPECT_ERROR: Runtime Error: Cannot cast Dynamic value to Int8.
+/; See dyn_null_to_int32.fg — NIRAST is not a numeric tag.
+var _null = null
+println(Int8(_null))
