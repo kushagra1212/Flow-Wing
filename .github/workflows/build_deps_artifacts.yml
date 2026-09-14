@@ -114,15 +114,26 @@ jobs:
     # `prepare` is skipped when publish is false, and a skipped dependency
     # would otherwise skip this job too.
     if: always() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
-    name: ${{ matrix.label }} / ${{ matrix.build_type }}
-    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.platform.label }} / ${{ matrix.build_type }}
+    runs-on: ${{ matrix.platform.runner }}
     # Each LLVM build is ~1 hour; the 6-hour default would not cover a slow
     # runner plus a Debug build, which is substantially slower than Release.
     timeout-minutes: 300
     strategy:
       fail-fast: false
+      # TWO real dimensions, deliberately NOT `include:`.
+      #
+      # With `include:` holding the three platforms and `build_type` as the
+      # only base dimension, GitHub builds 2 combinations from build_type and
+      # then merges EVERY include object into both of them — because none of
+      # them pin a build_type. The three merges land on the same two slots and
+      # the last one wins, so the matrix collapsed to 2 Windows jobs and the
+      # macOS and Linux legs silently never existed.
+      #
+      # A named dimension expands properly: 3 platforms x 2 build types = 6.
       matrix:
-        include:
+        build_type: [Release, Debug]
+        platform:
           - runner: macos-14
             label: Darwin-arm64
             artifact_os: Darwin
@@ -135,7 +146,6 @@ jobs:
             label: Windows-AMD64
             artifact_os: Windows
             artifact_arch: AMD64
-        build_type: [Release, Debug]
 
     steps:
       - name: Skip legs not requested
@@ -144,14 +154,14 @@ jobs:
         run: |
           want_os=false
           want_type=false
-          [[ ",${{ inputs.platforms }},"   == *",${{ matrix.artifact_os }},"* ]] && want_os=true
+          [[ ",${{ inputs.platforms }},"   == *",${{ matrix.platform.artifact_os }},"* ]] && want_os=true
           [[ ",${{ inputs.build_types }}," == *",${{ matrix.build_type }},"*  ]] && want_type=true
 
           if [ "$want_os" = true ] && [ "$want_type" = true ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::${{ matrix.artifact_os }} / ${{ matrix.build_type }} not requested; skipping"
+            echo "::notice::${{ matrix.platform.artifact_os }} / ${{ matrix.build_type }} not requested; skipping"
           fi
 
       # MUST run BEFORE checkout. Some fixture filenames under
@@ -253,8 +263,8 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         shell: bash
         env:
-          FW_ARTIFACT_OS: ${{ matrix.artifact_os }}
-          FW_ARTIFACT_ARCH: ${{ matrix.artifact_arch }}
+          FW_ARTIFACT_OS: ${{ matrix.platform.artifact_os }}
+          FW_ARTIFACT_ARCH: ${{ matrix.platform.artifact_arch }}
         run: |
           if [ "${{ matrix.build_type }}" = "Debug" ]; then
             PREFIX=.fw_dependencies_debug/install
@@ -270,7 +280,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### ${{ matrix.label }} / ${{ matrix.build_type }}"
+            echo "### ${{ matrix.platform.label }} / ${{ matrix.build_type }}"
             echo ''
             echo '```'
             cat dist/*.sha256
@@ -283,7 +293,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: llvm-${{ matrix.label }}-${{ matrix.build_type }}
+          name: llvm-${{ matrix.platform.label }}-${{ matrix.build_type }}
           path: dist/*
           retention-days: 7
 
