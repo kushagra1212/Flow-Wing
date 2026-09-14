@@ -416,5 +416,58 @@ x = [2 fill {x:0, y:0}]
 
       `,
     },
+  },,
+  {
+    label: "spawn",
+    kind: CompletionItemKind.Keyword,
+    data: "spawn",
+    detail: "Spawn a concurrent task",
+    insertText: "spawn funName()",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Spawn Keyword**
+
+\`spawn f()\` does **not** call \`f\`. It queues \`f\` as a task. Queued tasks
+run after the top-level body of the program finishes.
+
+Each task gets its own stack, so it can suspend part-way through
+(\`sys::sleep\`, \`sys::yield\`, a socket read) and resume later exactly where
+it stopped. Tasks are cooperative and single-threaded: only one runs at a
+time, and a switch happens only where you suspend.
+
+### Example:
+\`\`\`flowwing
+bring sys
+
+fun worker(id: int) -> nthg {
+  sys::sleep(100)
+  println("task " + String(id))
+}
+
+for var i: int = 0 to 4 {
+  spawn worker(i)
+}
+println("queued 5")
+\`\`\`
+
+Five tasks each waiting 100ms finish in about 100ms total, not 500ms.
+
+### Arguments
+
+Arguments are evaluated at the spawn site and copied into a
+garbage-collected block:
+
+- \`int\`, \`str\`, \`dyn\`, arrays → **copied**; later changes by the caller are invisible
+- objects and classes → **pointer copied**; the task and the caller share one instance
+- globals → not arguments at all; read when the task runs
+
+### Rules
+
+- the spawned function must return \`nthg\`
+- \`inout\` parameters are rejected
+- built-ins such as \`println\` cannot be spawned — wrap them in your own function
+      `,
+    },
   },
 ];

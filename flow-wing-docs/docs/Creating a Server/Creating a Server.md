@@ -85,6 +85,116 @@ In functions that return `nthg`, use **`return :`** (with a colon) for early exi
 - **Static or HTML files** — **`bring file`**, read with **`file::readText`**, and send text or HTML in **`send`**; **`file::__DIR__`** is handy for files next to your **`.fg`** (see the larger *ServerTests* demo below).
 - **Maps** for small in-memory data — **`bring map`**, or **`vec`** for lists—same as the rest of the language.
 
+## Handling many requests at once
+
+`accept()` returns **one** request and your loop handles it. If that handler is
+slow, the next `accept()` waits behind it and requests queue up.
+
+`spawn` the handler and the loop goes straight back to accepting:
+
+<CodeBlock code={
+`bring vortex
+bring Err
+bring sys
+
+fun handle(req: vortex::Request, res: vortex::Response) -> nthg {
+    sys::sleep(300)              /; slow work: a database call, an LLM, anything
+    res.status(200).send("done\\n")
+}
+
+fun fg_main() -> nthg {
+    var app: vortex::Server = new vortex::Server()
+    var err: Err::Result = app.listen(8080)
+    if Err::isErr(err) {
+        println(err.getMessage())
+        return:
+    }
+
+    for var i: int = 0 to 4 {
+        var req: vortex::Request, res: vortex::Response = app.accept()
+        spawn handle(req, res)   /; <- the whole difference
+    }
+}
+
+fg_main()
+`} language="fg"/>
+
+Five requests against that server, each needing 300 ms of work:
+
+| | without `spawn` | with `spawn` |
+|---|---|---|
+| request 0 | 302 ms | 302 ms |
+| request 1 | 607 ms | 302 ms |
+| request 2 | 911 ms | 302 ms |
+| request 3 | 1212 ms | 302 ms |
+| request 4 | 1516 ms | 302 ms |
+
+Same server, same work, **same single thread**. `req` and `res` are objects, so
+the spawned task receives pointers to the same instances.
+
+:::note
+Vortex runs on **libuv**. One connection costs one socket on a shared event
+loop — not a thread — so a server holding many idle connections costs almost
+nothing. While `accept()` waits, the thread sleeps in the kernel and other
+tasks keep running.
+:::
+
+## Limits and timeouts
+
+The server enforces these so one client cannot exhaust memory or hold a
+connection open forever. Override any of them in the environment:
+
+| Variable | Default | Controls |
+|---|---|---|
+| `FW_HTTP_MAX_BODY_KB` | `8192` (8 MB) | Request body cap. Larger bodies get **413** and never reach your handler |
+| `FW_HTTP_MAX_HEADER_KB` | `32` | Header cap. Over-long headers get **431** |
+| `FW_HTTP_IDLE_TIMEOUT_MS` | `30000` | A connection that sends nothing is dropped after this |
+
+```bash
+FW_HTTP_MAX_BODY_KB=512 ./myserver
+```
+
+## Making requests: `vortex::Client`
+
+The client posts a body and streams the response back. It runs on the same
+event loop, so several requests from several tasks share one thread.
+
+<CodeBlock code={
+`bring vortex
+
+fun fetch(id: int) -> nthg {
+    var c: vortex::Client = new vortex::Client("http://127.0.0.1:8080/api", \`{"q":1}\`)
+
+    var ok: bool = c.isOk()      /; read the status BEFORE close()
+    var body: str = ""
+    while !c.isDone() {
+        var chunk: str = c.readChunk()
+        if chunk != "" {
+            body = body + chunk
+        }
+    }
+    c.close()
+
+    println("request ", id, " ok=", ok)
+}
+
+for var i: int = 0 to 4 {
+    spawn fetch(i)               /; five requests, one thread
+}
+`} language="fg"/>
+
+:::caution
+`close()` releases the request. Read `isOk()` **before** calling it.
+:::
+
+| Variable | Default | Controls |
+|---|---|---|
+| `FW_HTTP_CLIENT_CONNECT_MS` | `5000` | Connection timeout |
+| `FW_HTTP_CLIENT_READ_MS` | `120000` | Read timeout, restarted by each chunk |
+
+The client speaks plain **HTTP**. There is no TLS, so `https://` URLs are
+rejected — put a reverse proxy in front for public traffic.
+
 ## Request and response (API cheat sheet)
 
 - **`vortex::Server`**: **`listen(port)`** → **`Err::Result`**. On success, call **`accept()`** when you are ready.

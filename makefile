@@ -159,6 +159,8 @@ help:
 	@echo "    test-jit                 Build and run all tests in JIT mode."
 	@echo "    test-format              Build AOT and run formatter golden tests (tests/formatter_golden_test.py)."
 	@echo "    test-gc                  Build AOT and run the GC runtime unit tests (fw-modules/gc/tests)."
+	@echo "    test-sched               Build AOT and run the scheduler unit tests (spawn/yield/park_io)."
+	@echo "    test-uv                  Build AOT and run the event-loop unit tests (shared libuv loop)."
 	@echo "    (Example: make test-aot FILTER=MyTestSuite.*)"
 	@echo ""
 	@echo "  Dependency Management:"
