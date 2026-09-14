@@ -175,24 +175,64 @@ EOF
 # ---------------------------------------------------------------------------
 # Build the archive.
 #
-# xz -9 rather than the default: debug archives are almost entirely DWARF and
-# compress about 9x at -9 against about 5.7x at -1. On a 10 GB debug prefix
-# that is the difference between fitting in one GitHub release asset (2 GiB
-# limit) and having to split it.
+# FORMAT DIFFERS BY PLATFORM, and not for cosmetic reasons.
+#
+#   Unix    .tar.xz via `xz -9`. Debug archives are nearly all DWARF and
+#           compress about 9x at -9 against 5.7x at -1. On a 10 GB debug
+#           prefix that is the difference between fitting in one GitHub
+#           release asset (2 GiB cap) and having to split it. tar also
+#           preserves symlinks and the executable bit.
+#
+#   Windows .zip via 7-Zip. There is NO `xz` package on Chocolatey — a
+#           `choco install xz` simply fails with "package was not found".
+#           7zip is what .github/workflows/release.yml already installs and
+#           uses to build the Windows release archive, so this follows a
+#           path that is known to work on the runner. Nothing is lost:
+#           Windows has no symlinks in the LLVM prefix and no exec bit.
 # ---------------------------------------------------------------------------
 mkdir -p "$OUTDIR"
-ARCHIVE="$OUTDIR/${NAME}.tar.xz"
 
-echo "--> compressing (xz -9, threaded) ..."
-tar -C "$PREFIX" "${TAR_EXCLUDE_ARGS[@]}" -cf - . \
-    -C "$STAGE" THIRD_PARTY_LICENSES \
-  | xz -9 -T0 > "$ARCHIVE"
+if [ "$OS" = "Windows" ]; then
+    command -v 7z >/dev/null 2>&1 || {
+        echo "error: 7z not found. Install it with: choco install 7zip -y" >&2
+        exit 1
+    }
+    ARCHIVE="$OUTDIR/${NAME}.zip"
+    ARCHIVE_NAME="${NAME}.zip"
+
+    # 7z has no --exclude-from-a-directory-walk equivalent to tar's -C, so
+    # stage the tree first, prune what does not belong, then zip the result.
+    echo "--> staging (Windows) ..."
+    STAGE_TREE="$STAGE/tree"
+    mkdir -p "$STAGE_TREE"
+    cp -R "$PREFIX"/. "$STAGE_TREE"/
+    for e in "${EXCLUDES[@]}"; do
+        rm -rf "$STAGE_TREE"/$e
+    done
+    cp -R "$STAGE/THIRD_PARTY_LICENSES" "$STAGE_TREE"/
+
+    echo "--> compressing (7z, zip) ..."
+    rm -f "$ARCHIVE"
+    ( cd "$STAGE_TREE" && 7z a -tzip -mx=9 -r "$ARCHIVE" . >/dev/null )
+else
+    ARCHIVE="$OUTDIR/${NAME}.tar.xz"
+    ARCHIVE_NAME="${NAME}.tar.xz"
+
+    echo "--> compressing (xz -9, threaded) ..."
+    tar -C "$PREFIX" "${TAR_EXCLUDE_ARGS[@]}" -cf - . \
+        -C "$STAGE" THIRD_PARTY_LICENSES \
+      | xz -9 -T0 > "$ARCHIVE"
+fi
 
 # ---------------------------------------------------------------------------
 # Verify before anyone uploads it.
 # ---------------------------------------------------------------------------
 echo "--> verifying"
-MEMBERS="$(tar -tJf "$ARCHIVE")"
+if [ "$OS" = "Windows" ]; then
+    MEMBERS="$(7z l -slt "$ARCHIVE" | sed -n 's/^Path = //p')"
+else
+    MEMBERS="$(tar -tJf "$ARCHIVE")"
+fi
 
 fail=0
 
@@ -244,7 +284,7 @@ if [ "$fail" -ne 0 ]; then
     exit 1
 fi
 
-( cd "$OUTDIR" && shasum -a 256 "${NAME}.tar.xz" > "${NAME}.tar.xz.sha256" )
+( cd "$OUTDIR" && shasum -a 256 "$ARCHIVE_NAME" > "${ARCHIVE_NAME}.sha256" )
 
 SIZE="$(du -h "$ARCHIVE" | cut -f1)"
 echo ""
