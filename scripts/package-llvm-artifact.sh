@@ -122,6 +122,14 @@ if [ "$OS" = "Windows" ]; then
         "bin/mongoc2-stat.exe"
         "lib/mongoc2.lib"
         "lib/bson2.lib"
+        # Windows-only: these dependencies build SHARED libraries too, so each
+        # leaves a .dll in bin/ and a .dll.lib import library in lib/. Neither
+        # exists on Unix, so neither appears in the list below.
+        "bin/mongoc2.dll"
+        "bin/bson2.dll"
+        "bin/uv.dll"
+        "lib/mongoc2.dll.lib"
+        "lib/bson2.dll.lib"
         # libuv installs BOTH: libuv.lib is the static archive, uv.lib the
         # import library for uv.dll. Neither belongs here.
         "lib/libuv.lib"

@@ -323,7 +323,15 @@ jobs:
             echo '```'
             cat dist/*.sha256
             echo '```'
-            ls -la dist/*.tar.xz | awk '{printf "size: %.0f MB\n", $5/1048576}'
+            # The archive extension is platform-specific: .tar.xz on Unix,
+            # .zip on Windows. Hardcoding .tar.xz made this glob match nothing
+            # on Windows; with GitHub's default `bash -eo pipefail` a failing
+            # `ls` fails the whole step — AFTER the 2-hour build had already
+            # succeeded. Match anything that is not a checksum instead.
+            for f in dist/*; do
+              case "$f" in *.sha256) continue;; esac
+              ls -la "$f" | awk '{printf "size: %.0f MB\n", $5/1048576}'
+            done
           } >> "$GITHUB_STEP_SUMMARY"
           cat dist/*.sha256
 
