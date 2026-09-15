@@ -239,7 +239,11 @@ fi
 # ---------------------------------------------------------------------------
 echo "--> verifying"
 if [ "$OS" = "Windows" ]; then
-    MEMBERS="$(7z l -slt "$ARCHIVE" | sed -n 's/^Path = //p')"
+    # 7z prints Windows-style paths ("lib\\cmake\\llvm\\LLVMConfig.cmake").
+    # Translate to forward slashes so one set of patterns works everywhere —
+    # without this every check below silently fails to match and the artifact
+    # looks empty.
+    MEMBERS="$(7z l -slt "$ARCHIVE" | sed -n 's/^Path = //p' | tr '\\\\' '/')"
 else
     MEMBERS="$(tar -tJf "$ARCHIVE")"
 fi
@@ -266,12 +270,24 @@ check_present() {
 # Non-LLVM files must not be here. Libraries AND headers AND pkg-config: an
 # earlier version of this script only checked the .a files, which would have
 # let a whole include/mongoc-2.3.3 tree ride along unnoticed.
-check_absent "libuv\.a"
-check_absent "libmongoc2\.a"
-check_absent "libraylib\.a"
-check_absent "libllhttp\.a"
-check_absent "libbson2\.a"
-check_absent "libgtest"
+# Library names differ per platform, so a Unix-only list would never match on
+# Windows and would report a clean artifact no matter what leaked into it.
+if [ "$OS" = "Windows" ]; then
+    check_absent "lib/uv\.lib"
+    check_absent "lib/libuv\.lib"
+    check_absent "lib/mongoc2\.lib"
+    check_absent "lib/bson2\.lib"
+    check_absent "lib/raylib\.lib"
+    check_absent "lib/llhttp\.lib"
+    check_absent "lib/gtest"
+else
+    check_absent "libuv\.a"
+    check_absent "libmongoc2\.a"
+    check_absent "libraylib\.a"
+    check_absent "libllhttp\.a"
+    check_absent "libbson2\.a"
+    check_absent "libgtest"
+fi
 check_absent "include/mongoc-"
 check_absent "include/bson-"
 check_absent "include/gtest/"
@@ -282,11 +298,19 @@ check_absent "lib/pkgconfig"
 check_absent "share/mongo-c-driver"
 
 # The pieces the FlowWing build genuinely needs.
+# File naming is platform-specific: MSVC produces LLVMCore.lib where Unix
+# produces libLLVMCore.a, and executables carry a .exe suffix. Checking for
+# the Unix names on Windows reported every required file as missing.
 check_present "lib/cmake/llvm/LLVMConfig.cmake"
-check_present "lib/libLLVMCore.a"
-check_present "bin/clang++"
 check_present "lib/clang/"          # clang's resource headers (stddef.h etc.)
 check_present "THIRD_PARTY_LICENSES/LLVM-LICENSE.TXT"
+if [ "$OS" = "Windows" ]; then
+    check_present "lib/LLVMCore\.lib"
+    check_present "bin/clang++\.exe"
+else
+    check_present "lib/libLLVMCore\.a"
+    check_present "bin/clang++"
+fi
 
 if [ "$fail" -ne 0 ]; then
     echo "error: artifact failed verification; not writing a checksum" >&2
