@@ -51,4 +51,9 @@ llvm-artifact-release-tag deps-llvm-17.0.6
 #         to link. Dropping the recorded hashes makes CMake fall back to a
 #         source build, but the CACHE would still restore the bad tree — this
 #         bump is what actually evicts it.
-lockfile-revision 2
+# rev 3 — all four prebuilt LLVM artifacts are now published and their hashes
+#         recorded, so every platform downloads instead of compiling. Linux's
+#         recorded hash was also stale (the asset had been republished), which
+#         is what failed the v1.0.11 Release run. Without this bump the cache
+#         would hit and none of those hashes would take effect.
+lockfile-revision 3
