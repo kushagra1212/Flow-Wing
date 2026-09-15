@@ -6,8 +6,23 @@
 /; because each task asks for a different delay. A scheduler that ignored the
 /; deadlines and just ran the queue in order would print "SMF".
 /;
-/; The gaps are 20ms, 60ms and 120ms. They are far apart so a busy machine
-/; cannot reorder them.
+/; The delays are 20ms, 500ms and 1000ms, so the gaps between them are ~500ms.
+/;
+/; WHY THE GAPS MUST BE THIS WIDE
+/;   A task's deadline is set when it FIRST RUNS, not when it is spawned. slow
+/;   is spawned first, so its clock starts first. If starting the next task
+/;   costs more than the difference in delays, the absolute deadlines invert
+/;   and pop_ready() falls back to queue order — which is spawn order, "SMF".
+/;
+/;   The previous values were 20/60/120, leaving gaps of only 40ms and 60ms.
+/;   Under FW_GC_STRESS — a full collection on every allocation — starting a
+/;   task on the CI macOS runner cost more than 60ms, and this printed "SMF".
+/;   Both the trace and the count were otherwise correct, so the scheduler was
+/;   behaving; the margin was simply too small.
+/;
+/;   That startup cost tracks heap size, not sleep length, so it stays roughly
+/;   constant while the gaps scale. ~500ms of separation buys real margin for
+/;   about 1s of suite time.
 /; --------------------------------------------------------------------------
 bring sys
 
@@ -28,13 +43,13 @@ fun fast() -> nthg {
 }
 
 fun mid() -> nthg {
-  sys::sleep(60)
+  sys::sleep(500)
   trace = trace + "M"
   report()
 }
 
 fun slow() -> nthg {
-  sys::sleep(120)
+  sys::sleep(1000)
   trace = trace + "S"
   report()
 }
