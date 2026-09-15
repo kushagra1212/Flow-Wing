@@ -1,0 +1,91 @@
+/; ===========================================================================
+/; DEMO 5 of 5 — reads suspend, writes block. Same module, opposite behaviour.
+/;
+/;   make run-aot-release FILE=tests/local/spawn_demo_5_write_blocks_read_suspends.fg ARGS="--emit=exe"
+/;
+/; WHY THEY DIFFER
+/;
+/;   file_read_all is the ONLY uv_queue_work call site in the whole runtime
+/;   (libflowwing_file.cpp:122). It hands the blocking read to one of libuv's
+/;   4 threadpool threads and parks the task.
+/;
+/;   file_write_all, file_append_all, file_delete, file_open and file_read_line
+/;   have no such path. They run inline on the one FlowWing thread. While one
+/;   of them runs, NO task runs and NO socket is served.
+/;
+/;   This is an implementation gap, not a language rule. If someone adds
+/;   uv_queue_work to file_write_all, none of your .fg code changes — writes
+/;   just start suspending too. That is the point of the model: async-ness is a
+/;   property of the implementation, never of your call site.
+/;
+/; TASK vs THREAD — the distinction that answers "should I spawn it?"
+/;
+/;             stops the calling task   stops the whole thread
+/;   readText        yes (suspends)             no
+/;   writeText       yes                        YES
+/;   sleep           yes                        no
+/;
+/;   `spawn` changes NEITHER column. Wrapping a blocking write in a task moves
+/;   WHEN it runs, not WHAT it blocks. There is no second thread to absorb it.
+/;
+/; WHAT TO LOOK FOR
+/;
+/;   `heavy` writes a large file with no suspend point anywhere inside it.
+/;   `pinger` is spawned first and wants to print three times. It gets its
+/;   first turn, then `heavy` takes the CPU and does not give it back until the
+/;   whole write is done. The pings resume only afterwards.
+/;
+/;   Contrast the reader: it suspends, so the pings interleave with it.
+/;
+/; EXPECTED OUTPUT (order is what matters, not the byte count)
+/;
+/;   [main] queued pinger, heavy, reader
+/;     ping 1
+/;   [heavy] writing 20000 rows, NO suspend point inside this call
+/;   [heavy] write finished — nothing else ran during it
+/;     ping 2
+/;     ping 3
+/;   [reader] read back 20000 rows
+/; ===========================================================================
+
+bring sys
+bring file
+bring Err
+
+var pings: int = 0
+
+fun pinger() -> nthg {
+  while pings < 3 {
+    pings = pings + 1
+    println("  ping " + String(pings))
+    sys::yield()
+  }
+}
+
+fun heavy() -> nthg {
+  /; Build a payload big enough that the write is measurable.
+  var row: str = "0123456789012345678901234567890123456789\n"
+  var payload: str = ""
+  var i: int = 0
+  while i < 20000 {
+    payload = payload + row
+    i = i + 1
+  }
+
+  println("[heavy] writing 20000 rows, NO suspend point inside this call")
+  var ok: bool, e: Err::Result = file::writeText("spawn_demo_5.txt", payload)
+  println("[heavy] write finished — nothing else ran during it")
+}
+
+fun reader() -> nthg {
+  /; Suspends here, so the remaining pings get their turn.
+  var back: str, e: Err::Result = file::readText("spawn_demo_5.txt")
+  println("[reader] read back 20000 rows")
+
+  var gone: bool, e2: Err::Result = file::delete("spawn_demo_5.txt")
+}
+
+spawn pinger()
+spawn heavy()
+spawn reader()
+println("[main] queued pinger, heavy, reader")

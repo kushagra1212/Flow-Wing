@@ -1,0 +1,66 @@
+/; ===========================================================================
+/; DEMO 3 of 5 — the SAME read, inside a task, suspends instead of blocking.
+/;
+/;   make run-aot-release FILE=tests/local/spawn_demo_3_intask_read_suspends.fg ARGS="--emit=exe"
+/;
+/; Compare against DEMO 2. The read line is identical. Only its location moved.
+/;
+/; WHAT HAPPENS
+/;
+/;   `reader` is spawned FIRST, so FIFO order gives it the CPU first. It calls
+/;   file::readText, which this time takes the other branch of
+/;   libflowwing_file.cpp:117 because fw_sched_in_task() is now true:
+/;
+/;       FwReadJob job;                  // ordinary local, on the task's stack
+/;       job.req.data = &job;            // libuv gets a POINTER to that local
+/;       uv_queue_work(fw_uv_loop(), &job.req, read_work, read_done);
+/;       while (!job.done) { fw_sched_park_io(); }
+/;
+/;   park_io sets wake_at_ns = FW_WAKE_NEVER (-1), so pop_ready will never pick
+/;   this task again until fw_sched_wake_io() releases it. The scheduler moves
+/;   on and runs `worker`.
+/;
+/;   Meanwhile one of libuv's 4 threadpool threads does the blocking read and
+/;   writes into `job` — a local belonging to a suspended task. That is only
+/;   legal because the task's stack was never unwound. swapcontext saved the
+/;   registers; the stack itself stayed exactly where it was.
+/;
+/;   The loop around park_io is not decoration. fw_sched_wake_io() releases
+/;   EVERY event-parked task, so each one must re-check its own condition.
+/;
+/; NOTE the read is NOT spawned. It cannot be:
+/;   - file::readText is a built-in         -> SpawnRequiresUserFunction
+/;   - it returns two values                -> SpawnRequiresNthgReturn
+/; And it does not need to be. Suspension is automatic; `spawn` is only for
+/; starting a SECOND task.
+/;
+/; EXPECTED OUTPUT
+/;
+/;   [main] spawned reader FIRST, then worker
+/;     [task] worker ran
+/;   [task] TASK read -> hello-from-disk
+/;
+/; `reader` was spawned first and finished last, because it suspended in the
+/; middle and let `worker` through. That is the line demo 2 could not print.
+/; ===========================================================================
+
+bring file
+bring Err
+
+fun worker() -> nthg {
+  println("  [task] worker ran")
+}
+
+fun reader() -> nthg {
+  var body: str, e: Err::Result = file::readText("spawn_demo_3.txt")
+  println("[task] TASK read -> " + body)
+
+  var gone: bool, e2: Err::Result = file::delete("spawn_demo_3.txt")
+}
+
+/; Written at top level on purpose: the file must exist before either task runs.
+var wrote: bool, e0: Err::Result = file::writeText("spawn_demo_3.txt", "hello-from-disk")
+
+spawn reader()
+spawn worker()
+println("[main] spawned reader FIRST, then worker")

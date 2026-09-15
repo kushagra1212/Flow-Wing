@@ -1,0 +1,59 @@
+/; ===========================================================================
+/; DEMO 2 of 5 — a file read at TOP LEVEL blocks. Nothing else runs.
+/;
+/;   make run-aot-release FILE=tests/local/spawn_demo_2_toplevel_read_blocks.fg ARGS="--emit=exe"
+/;
+/; Read this together with DEMO 3. The two programs contain the SAME read of
+/; the SAME file, and behave in opposite ways. This one blocks; demo 3 suspends.
+/;
+/; WHY IT BLOCKS — two independent reasons, both real
+/;
+/;   1. It takes a different code path. libflowwing_file.cpp:117
+/;
+/;          if (fw_sched_in_task() && fw_uv_loop() != nullptr) {
+/;              ... uv_queue_work + fw_sched_park_io ...
+/;          }
+/;          // Outside a task there is nothing to switch to, so read inline.
+/;          std::ifstream file(...);
+/;
+/;      and fw_sched.c:527
+/;
+/;          int fw_sched_in_task(void) { return g_current != NULL; }
+/;
+/;      At top level g_current is NULL, so the threadpool branch is skipped.
+/;      No uv_queue_work, no pool thread — a plain blocking ifstream.
+/;
+/;   2. Even a suspend would have nowhere to go. The drain has not started, so
+/;      `worker` is queued but not runnable.
+/;
+/; This is not a bug. `preload()` in the portfolio's server.fg reads index.html
+/; exactly like this, on purpose: it is start-up, no request exists yet, and the
+/; read must finish before the socket is bound.
+/;
+/; EXPECTED OUTPUT
+/;
+/;   [main] spawned worker BEFORE the read
+/;   [main] TOP-LEVEL read -> hello-from-disk
+/;   [main] top-level finished
+/;     [task] worker ran
+/;
+/; `worker` was spawned first and still ran last. The read gave it no chance.
+/; ===========================================================================
+
+bring file
+bring Err
+
+fun worker() -> nthg {
+  println("  [task] worker ran")
+}
+
+spawn worker()
+println("[main] spawned worker BEFORE the read")
+
+var wrote: bool, e0: Err::Result = file::writeText("spawn_demo_2.txt", "hello-from-disk")
+
+var body: str, e1: Err::Result = file::readText("spawn_demo_2.txt")
+println("[main] TOP-LEVEL read -> " + body)
+
+var gone: bool, e2: Err::Result = file::delete("spawn_demo_2.txt")
+println("[main] top-level finished")

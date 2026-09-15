@@ -1,0 +1,45 @@
+/; ===========================================================================
+/; DEMO 1 of 5 — `spawn` QUEUES a call. It does not make one.
+/;
+/;   make run-aot-release FILE=tests/local/spawn_demo_1_queue_not_call.fg ARGS="--emit=exe"
+/;
+/; WHAT TO LOOK FOR
+/;
+/;   Every `spawn` below is written BEFORE the println it appears to race, and
+/;   every one of them prints AFTER it. That is the whole lesson: `spawn` builds
+/;   a task record and pushes it on a queue. Nothing runs.
+/;
+/;   The queue is drained by fw_sched_drain(), which starts only once the
+/;   TOP-LEVEL BODY has finished. This is why a `while true` accept loop must
+/;   itself be spawned — a top-level loop never finishes, so the drain never
+/;   starts, and everything queued inside it waits for ever.
+/;
+/;   Order inside the drain is FIFO, so the three tasks run in spawn order.
+/;
+/; EXPECTED OUTPUT
+/;
+/;   [main] spawned three tasks
+/;   [main] top-level body is finishing now
+/;   [task] alpha
+/;   [task] beta 7
+/;   [task] gamma
+/; ===========================================================================
+
+fun alpha() -> nthg {
+  println("[task] alpha")
+}
+
+fun beta(n: int) -> nthg {
+  println("[task] beta " + String(n))
+}
+
+fun gamma() -> nthg {
+  println("[task] gamma")
+}
+
+spawn alpha()
+spawn beta(7)
+spawn gamma()
+
+println("[main] spawned three tasks")
+println("[main] top-level body is finishing now")

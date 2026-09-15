@@ -1,0 +1,89 @@
+/; ===========================================================================
+/; DEMO 4 of 5 — a timer wait and an I/O wait are different things.
+/;
+/;   make run-aot-release FILE=tests/local/spawn_demo_4_timer_vs_event.fg ARGS="--emit=exe"
+/;
+/; Three tasks give up the CPU in the three different ways the scheduler knows.
+/; All three use ONE field of the task record, fw_sched.c:84-87:
+/;
+/;     /; 0            = runnable now.
+/;        FW_WAKE_NEVER = parked on an event; only fw_sched_wake_io releases it.
+/;        otherwise     = the monotonic-ns instant before which it must not run.
+/;     long long wake_at_ns;
+/;
+/;   sys::yield()      -> 0              -> already runnable, back of the queue
+/;   sys::sleep(400)   -> now + 400ms    -> the clock wakes it
+/;   file::readText()  -> FW_WAKE_NEVER  -> only a threadpool completion wakes it
+/;
+/; THE POINT
+/;
+/;   The reader touches the disk. The sleeper only counts. The reader still
+/;   finishes FIRST. fw_sched.c:710-721 is why:
+/;
+/;       long long due = earliest_deadline();       /; the sleeper, +400 ms
+/;       unsigned long io = fw_sched_io_waiting();  /; 1 — the reader
+/;       if (g_waiter != NULL) {
+/;         g_waiter(due != 0 ? (due - now_ns()) : FW_WAKE_NEVER);
+/;       }
+/;
+/;   When both a clock and an event could make progress, the timer sets a
+/;   CEILING on how long uv_run may block — never a floor. The read completes
+/;   after a few milliseconds and cuts the wait short.
+/;
+/;   sleep(400) is a promise not to run BEFORE 400 ms.
+/;   readText is a promise not to run UNTIL WOKEN.
+/;
+/; The sleep is 400 ms rather than 120 ms so the gap is obvious by eye even on
+/; a slow or loaded machine.
+/;
+/; EXPECTED OUTPUT
+/;
+/;   [main] queued yielder, sleeper, reader
+/;   trace = Y1 Y2 F S
+/;
+/;   Y1 yielder, before giving up the CPU
+/;   Y2 yielder, resumed on the next turn
+/;   F  reader, woken by the file-read completion
+/;   S  sleeper, woken by the clock, last
+/; ===========================================================================
+
+bring sys
+bring file
+bring Err
+
+var trace: str = ""
+var done: int = 0
+
+fun report() -> nthg {
+  done = done + 1
+  if done >= 3 {
+    println("trace = " + trace)
+  }
+}
+
+fun yielder() -> nthg {
+  trace = trace + "Y1 "
+  sys::yield()
+  trace = trace + "Y2 "
+  report()
+}
+
+fun sleeper() -> nthg {
+  sys::sleep(400)
+  trace = trace + "S"
+  report()
+}
+
+fun reader() -> nthg {
+  var path: str = "spawn_demo_4.txt"
+  var wrote: bool, e1: Err::Result = file::writeText(path, "data")
+  var back: str, e2: Err::Result = file::readText(path)
+  var gone: bool, e3: Err::Result = file::delete(path)
+  trace = trace + "F "
+  report()
+}
+
+spawn yielder()
+spawn sleeper()
+spawn reader()
+println("[main] queued yielder, sleeper, reader")
