@@ -192,6 +192,16 @@ EOF
 # ---------------------------------------------------------------------------
 mkdir -p "$OUTDIR"
 
+# Absolute, BEFORE anything cds elsewhere.
+#
+# The Windows branch below runs 7z from inside the staging tree, so a relative
+# $OUTDIR ("dist") resolved against that tree instead: the zip was written to
+# <staging>/dist/... , the staging tree was then wiped by the EXIT trap, and
+# verification failed with "The system cannot find the file specified" after a
+# 2.5 hour build. The Unix branch never hit this because its redirection is
+# evaluated in the original working directory.
+OUTDIR="$(cd "$OUTDIR" && pwd)"
+
 if [ "$OS" = "Windows" ]; then
     command -v 7z >/dev/null 2>&1 || {
         echo "error: 7z not found. Install it with: choco install 7zip -y" >&2

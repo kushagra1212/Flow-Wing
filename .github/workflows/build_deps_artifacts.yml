@@ -205,13 +205,46 @@ jobs:
         if: steps.gate.outputs.run == 'true' && runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # The macOS environment below MIRRORS the deps job in
+      # multi_platform_ci.yml, deliberately and exactly.
+      #
+      # An artifact is only usable by builds whose toolchain matches the one
+      # that produced it. The first hand-published macOS artifact was built on
+      # Xcode 26.3 while CI runs 15.4, and every macOS AOT/JIT test then failed
+      # to link on __cxa_init_primary_exception. Pinning the Xcode version and
+      # using the same brew llvm@17 as the consumer is what prevents a repeat.
+      - name: Select Xcode version (macOS)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'macOS'
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
       - name: Install tools (macOS)
         if: steps.gate.outputs.run == 'true' && runner.os == 'macOS'
-        run: brew install ninja ccache xz
+        run: brew install ninja ccache llvm@17 xz
 
+      - name: Set compiler environment (macOS)
+        if: steps.gate.outputs.run == 'true' && runner.os == 'macOS'
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-fuse-ld=lld" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+
+      # Same package list as the Linux deps job in multi_platform_ci.yml, which
+      # is known to build these dependencies. The X11/GL packages are raylib's,
+      # not LLVM's: raylib bundles GLFW, and GLFW's configure step hard-errors
+      # with "RandR headers not found; install libxrandr development package"
+      # without them. Omitting these let LLVM build for 1h20m and then died on
+      # raylib, which takes seconds.
+      #
+      # xz-utils is the only addition — the packaging step needs it, and the
+      # other workflows do not package anything.
       - name: Install tools (Linux)
         if: steps.gate.outputs.run == 'true' && runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build ccache xz-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 lld ninja-build ccache wget \
+            libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev xz-utils
 
       # 7zip, NOT xz. Chocolatey has no `xz` package — `choco install xz`
       # fails with "package was not found with the source(s) listed", which is
