@@ -79,6 +79,22 @@ Description: FlowWing Programming Language
  static and dynamic typing, object-oriented programming, and memory management.
 
 Package: flowwing
+Version: 1.0.14
+Architecture: amd64
+Maintainer: FlowWing <kushagrarathore002@gmail.com>
+Depends: libllvm17, libc6, libgl1
+Filename: pool/main/flowwing_1.0.14_amd64.deb
+Size: 101312996
+MD5sum: 4bc19e9d27371e85985cc41fe6ae9e83
+SHA1: 13f52949e6a37c29bbbaf8e1b5f9525c1051d62b
+SHA256: a6633d7cf9534a4234b4a3e9ac9928e9faeff90acb14c7a073215cf7cb6f1804
+Section: devel
+Priority: optional
+Description: FlowWing Programming Language
+ FlowWing is a fast, simple, and easy to use programming language with
+ static and dynamic typing, object-oriented programming, and memory management.
+
+Package: flowwing
 Version: 1.0.2
 Architecture: amd64
 Maintainer: FlowWing <kushagrarathore002@gmail.com>
