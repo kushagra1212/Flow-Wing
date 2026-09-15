@@ -75,13 +75,11 @@ echo "    prefix: $PREFIX"
 # — wasteful, and confusing when versions drift. The verification step at the
 # bottom catches the common cases.
 # ---------------------------------------------------------------------------
+# Headers, CMake packages and pkg-config are named the same everywhere.
 EXCLUDES=(
     # mongo-c-driver + libbson
-    "bin/mongoc2-stat"
     "include/mongoc-*"
     "include/bson-*"
-    "lib/libmongoc2.a"
-    "lib/libbson2.a"
     "lib/cmake/mongoc-*"
     "lib/cmake/bson-*"
     "share/mongo-c-driver"
@@ -89,31 +87,62 @@ EXCLUDES=(
     # libuv
     "include/uv.h"
     "include/uv"
-    "lib/libuv.a"
     "lib/cmake/libuv"
 
     # llhttp
     "include/llhttp.h"
-    "lib/libllhttp.a"
     "lib/cmake/llhttp"
 
     # raylib
     "include/raylib.h"
     "include/raymath.h"
     "include/rlgl.h"
-    "lib/libraylib.a"
     "lib/cmake/raylib"
 
     # googletest
     "include/gtest"
-    "lib/libgtest.a"
-    "lib/libgtest_main.a"
     "lib/cmake/GTest"
 
     # Every .pc file in the prefix belongs to a non-LLVM dependency; LLVM does
     # not install pkg-config files.
     "lib/pkgconfig"
 )
+
+# LIBRARY FILENAMES ARE PLATFORM-SPECIFIC, and getting this wrong is silent.
+#
+# MSVC produces mongoc2.lib where Unix produces libmongoc2.a, and executables
+# carry .exe. A Unix-only list simply matches nothing on Windows, so every
+# non-LLVM library was copied into the zip — libuv, mongoc, bson, raylib,
+# llhttp and gtest all shipped inside an artifact labelled "LLVM".
+#
+# Nothing warned, because the leak checks at the bottom were Unix-only too.
+# Both lists have to name the platform's real files or neither works.
+if [ "$OS" = "Windows" ]; then
+    EXCLUDES+=(
+        "bin/mongoc2-stat.exe"
+        "lib/mongoc2.lib"
+        "lib/bson2.lib"
+        # libuv installs BOTH: libuv.lib is the static archive, uv.lib the
+        # import library for uv.dll. Neither belongs here.
+        "lib/libuv.lib"
+        "lib/uv.lib"
+        "lib/llhttp.lib"
+        "lib/raylib.lib"
+        "lib/gtest.lib"
+        "lib/gtest_main.lib"
+    )
+else
+    EXCLUDES+=(
+        "bin/mongoc2-stat"
+        "lib/libmongoc2.a"
+        "lib/libbson2.a"
+        "lib/libuv.a"
+        "lib/libllhttp.a"
+        "lib/libraylib.a"
+        "lib/libgtest.a"
+        "lib/libgtest_main.a"
+    )
+fi
 
 TAR_EXCLUDE_ARGS=()
 for e in "${EXCLUDES[@]}"; do
