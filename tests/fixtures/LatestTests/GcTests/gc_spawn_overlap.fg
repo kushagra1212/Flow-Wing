@@ -2,13 +2,27 @@
 /; --------------------------------------------------------------------------
 /; The point of the whole exercise: waiting tasks OVERLAP.
 /;
-/; Three tasks each wait 100ms. Sequentially that is ~300ms; overlapped it is
-/; ~100ms, because sys::sleep inside a task parks it with a deadline and hands
+/; Three tasks each wait 500ms. Sequentially that is ~1500ms; overlapped it is
+/; ~500ms, because sys::sleep inside a task parks it with a deadline and hands
 /; the scheduler back control instead of blocking the thread.
 /;
-/; Three tasks rather than two so the margin is wide (100ms vs 300ms). The
-/; suite runs with --parallel, so a two-task version's 100-vs-200 gap could be
-/; closed by CPU contention alone and flake.
+/; Three tasks rather than two so the margin is wide. The suite runs with
+/; --parallel, so a two-task version's gap could be closed by CPU contention
+/; alone and flake.
+/;
+/; WHY 500ms AND NOT 100ms
+/;   At 100ms with a 200ms threshold this failed on the CI macOS runner:
+/;   "overlapped: false". The overhead here is FW_GC_STRESS — a full collection
+/;   on every allocation while three tasks start — and that cost depends on
+/;   heap size, not on how long anything sleeps. So it is roughly CONSTANT
+/;   while the sleep scales. Stretching the sleep widens the real signal
+/;   without widening the noise:
+/;
+/;     100ms sleeps -> overlapped ~100 + overhead, threshold 200  (100ms slack)
+/;     500ms sleeps -> overlapped ~500 + overhead, threshold 1000 (500ms slack)
+/;
+/;   Serial would be ~1500ms, so 1000ms still separates the two cleanly.
+/;   Costs ~0.4s of extra suite time.
 /;
 /; Under FW_GC_STRESS this also exercises the reason the GC had to change: all
 /; three tasks are parked on their own stacks at once, so their shadow chains
@@ -27,13 +41,13 @@ fun slowTask() -> nthg {
     t_first = sys::nanos()
   }
 
-  sys::sleep(100)
+  sys::sleep(500)
 
   /; whichever task wakes first reports; the rest stay quiet
   if !reported {
     reported = true
     var total_ms: deci = sys::elapsedNanos(t_first) / 1e6
-    println("overlapped: " + String(total_ms < 200.0))
+    println("overlapped: " + String(total_ms < 1000.0))
   }
 }
 

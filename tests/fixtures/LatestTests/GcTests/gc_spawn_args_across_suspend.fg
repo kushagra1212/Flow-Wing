@@ -6,6 +6,21 @@
 /; Once the task starts, the values are read through pointers INTO that block,
 /; so it has to survive not just until the task begins but until it finishes —
 /; including across sleeps, where other tasks run and allocate freely.
+/;
+/; WHY 20 AND 900 RATHER THAN 20 AND 120
+/;   The delays must differ by more than the time it takes to START both tasks,
+/;   because each deadline is set when its task first RUNS, not when it is
+/;   spawned. slow-task is spawned first, so its clock starts first.
+/;
+/;   At 20 vs 120 the gap was 100ms. Under FW_GC_STRESS — a full collection on
+/;   every allocation — starting the second task on the CI macOS runner took
+/;   longer than that, which put fast-task's absolute deadline AFTER
+/;   slow-task's and inverted the output order. Both values printed correctly;
+/;   only the order flipped, so this was never a lifetime bug.
+/;
+/;   That startup cost tracks heap size, not sleep length, so it stays roughly
+/;   constant while the gap scales. 880ms of separation buys a lot of margin
+/;   for ~0.9s of suite time.
 /; --------------------------------------------------------------------------
 bring sys
 
@@ -17,6 +32,6 @@ fun worker(label: str, delay: int) -> nthg {
   done = done + 1
 }
 
-spawn worker("slow" + "-task", 120)
+spawn worker("slow" + "-task", 900)
 spawn worker("fast" + "-task", 20)
 println("queued 2")
