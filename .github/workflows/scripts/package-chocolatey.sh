@@ -92,7 +92,14 @@ cat > "$BUILD_DIR/flowwing.nuspec" << NUSPEC_EOF
     <authors>Kushagra Rathore</authors>
     <owners>Kushagra Rathore</owners>
     <projectUrl>https://github.com/kushagra1212/Flow-Wing</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/src/lsp/client/src/resources/icon.png</iconUrl>
+    <!-- Must be a CDN, NOT raw.githubusercontent.com.
+         Chocolatey moderation rejected flowwing 1.0.9 on 03 Sep 2026 for exactly
+         this: a raw GitHub icon link is not permitted (the licenseUrl below on
+         raw GitHub is fine — the restriction applies only to icons). jsDelivr
+         serves the same file from the repo with correct image/png headers.
+         Pinned to the release tag, not `main`, so the icon a published package
+         points at can never change after approval. -->
+    <iconUrl>https://cdn.jsdelivr.net/gh/kushagra1212/Flow-Wing@${RAW_VERSION}/src/lsp/client/src/resources/icon.png</iconUrl>
     <licenseUrl>https://raw.githubusercontent.com/kushagra1212/Flow-Wing/main/LICENSE.txt</licenseUrl>
     <projectSourceUrl>https://github.com/kushagra1212/Flow-Wing</projectSourceUrl>
     <packageSourceUrl>https://github.com/kushagra1212/Flow-Wing</packageSourceUrl>

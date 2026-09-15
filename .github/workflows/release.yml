@@ -26,6 +26,19 @@ jobs:
     # ============================================================================
     build:
         name: Build ${{ matrix.name }} installer
+        # Ignore dependency-artifact releases (`deps-*`).
+        #
+        # build_deps_artifacts.yml publishes prebuilt LLVM trees under tags like
+        # `deps-llvm-17.0.6`. Those are inputs to the dependency cache, not FlowWing
+        # versions — the tag carries no installer to build. Publishing one still
+        # fired this workflow: run 34955... started all three installer builds and
+        # all three failed, which is the only reason the publish jobs below show as
+        # `skipped` there rather than having pushed a bogus `deps-llvm-17.0.6`
+        # package to Homebrew, apt and Chocolatey.
+        #
+        # Guarding `build` is enough. Every other job reaches it through `needs`,
+        # directly or through `upload`, so they all skip with it.
+        if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'deps-')
         runs-on: ${{ matrix.os }}
         # `github.workspace` is valid here (unlike in matrix.include). Required so `${{ env.INSTALL_PREFIX }}`
         # works in `working-directory` and other expressions; GITHUB_ENV alone is not applied early enough for that.
