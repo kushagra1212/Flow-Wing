@@ -260,9 +260,9 @@ else()
         # LLVM from source (the fallback below). Publishing artifacts built BY
         # THE WORKFLOW is what makes them fast again.
         #
-        # set(_FW_SHA_Darwin-arm64-Release  "...")   <- from the CI job summary
-        # set(_FW_SHA_Darwin-arm64-Debug    "...")
-        # set(_FW_SHA_Linux-x86_64-Release  "...")
+        set(_FW_SHA_Darwin-arm64-Release  "5d1fea3ced9caddbf9effbc8eec4e7580e9bf9e01eb12c43e2589d80fc0c5f01")
+        set(_FW_SHA_Darwin-arm64-Debug    "0cb0ef87a90d9108f8ce138eb5ce9929f20be51dcbd262ab28e47f9af08c9322")
+        set(_FW_SHA_Linux-x86_64-Release  "7f46bbb10108c19720375d480168f5f6f142aec2e651493ec685a524c2214eab")
         # set(_FW_SHA_Windows-AMD64-Release "...")
 
         set(_FW_SHA_KEY "_FW_SHA_${_FW_A_OS}-${_FW_A_ARCH}-${CMAKE_CONFIG_TYPE}")
