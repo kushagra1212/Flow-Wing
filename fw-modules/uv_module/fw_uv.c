@@ -20,6 +20,10 @@
 #include "fw_uv.h"
 #include "fw_sched.h"
 
+#ifndef _WIN32
+#  include <signal.h>
+#endif
+
 static uv_loop_t  g_loop;
 static uv_async_t g_wake;
 static uv_timer_t g_deadline;
@@ -56,6 +60,37 @@ static void fw_uv_wait(long long max_wait_ns) {
 
 uv_loop_t *fw_uv_loop(void) {
   if (g_ready) return &g_loop;
+
+#ifndef _WIN32
+  /* Ignore SIGPIPE before any socket exists.
+   *
+   * A peer that closes early is ordinary HTTP — a browser cancels a request, a
+   * client reads what it wanted and hangs up. Writing to that socket afterwards
+   * raises SIGPIPE, whose default action is to KILL THE PROCESS. A server must
+   * never die because a client left.
+   *
+   * libuv does not cover this for us on every platform:
+   *
+   *   macOS/BSD  uv__socket sets SO_NOSIGPIPE, but the call sits behind
+   *              `#if defined(SO_NOSIGPIPE)`.
+   *   Linux      SO_NOSIGPIPE does not exist, so that block compiles away, and
+   *              libuv uses writev() with no MSG_NOSIGNAL anywhere in its
+   *              source. A write to a closed socket signals.
+   *
+   * That difference is exactly what made ServerTests/vortex_router.fg pass on
+   * macOS and die on Linux in the same run, with signal=13 and no output at all.
+   *
+   * cpp-httplib did this for us at httplib.h:10712 — but that path is dead
+   * since the server moved to libuv, so the protection went with it.
+   *
+   * Nothing is lost by ignoring it: uv_write reports the failure through its
+   * callback, and on_read already tears the connection down when nread < 0.
+   *
+   * Installed here rather than in the HTTP server because the client writes to
+   * sockets too, and this is the one place both of them must pass through.
+   */
+  signal(SIGPIPE, SIG_IGN);
+#endif
 
   if (uv_loop_init(&g_loop) != 0) return NULL;
   uv_async_init(&g_loop, &g_wake, on_wake);
