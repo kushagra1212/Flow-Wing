@@ -19,7 +19,7 @@ Flow-Wing programming language supports the following keywords, grouped by categ
 | `deci32`  | 32-bit decimal type                        | [Data Types](Data%20Types.md) |
 | `bool`    | Boolean type                               | [Data Types](Data%20Types.md) |
 | `nthg`    | Represents 'nothing' or 'void'             | [Data Types](Data%20Types.md) |
-| `unknown` | Represents an unknown type                 | [Data Types](Data%20Types.md) |
+| `unknown` | Reserved — the compiler's internal name for a dynamic value's type. **Cannot be written in source**; use `dyn` or omit the annotation | [Data Types](Data%20Types.md) |
 
 ## Literal Values
 
@@ -34,7 +34,7 @@ Flow-Wing programming language supports the following keywords, grouped by categ
 | Keyword   | Description                                          | Docs |
 |-----------|------------------------------------------------------|------|
 | `if`      | Conditional statement                                 | [Or if else Statement](Conditionals/Or%20if%20else%20Statement.md) |
-| `or`      | Logical OR operator / alternative `if` branch         | [Or if else Statement](Conditionals/Or%20if%20else%20Statement.md) |
+| `or`      | Starts an alternative `if` branch — `or if`. **Not** a boolean operator; use `\|\|` for logical OR | [Or if else Statement](Conditionals/Or%20if%20else%20Statement.md) |
 | `else`    | Alternative branch in conditional statement           | [Or if else Statement](Conditionals/Or%20if%20else%20Statement.md) |
 | `switch`  | Switch statement                                      | [Switch Statement](Conditionals/Switch%20Statement.md) |
 | `case`    | Case in a switch statement                            | [Switch Statement](Conditionals/Switch%20Statement.md) |

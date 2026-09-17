@@ -28,9 +28,23 @@ println(m.size())
 **Output:**
 ```
 1
-two
+"two"
 2
 ```
+
+:::note Why `"two"` has quotes
+Map values are stored in the language's **dynamic** representation, and printing
+a dynamic value shows its JSON form — so a text value keeps its quotes. A value
+already held in a typed `str` prints without them:
+
+<CodeBlock code={
+`var plain: str = "two"
+println(plain)          /; two
+println(m.get("b"))     /; "two"
+`} language="fg"/>
+
+Numbers are unaffected, which is why `1` and `2` print bare.
+:::
 
 **Typical uses:** small **JSON-like** in-memory data, **config** keyed by name, and **caches** in scripts.
 
@@ -116,10 +130,13 @@ for (var i: int = 0 to keys.size() - 1 : 1) {
 
 **Output:**
 ```
-a = 1
-b = 2
-c = 3
+"a" = 1
+"b" = 2
+"c" = 3
 ```
+
+The keys print with quotes for the same reason as above: they come back out of
+the `vec::Vec` as dynamic values, not as typed `str`.
 
 ## More detail: keys, values, and `dyn`
 

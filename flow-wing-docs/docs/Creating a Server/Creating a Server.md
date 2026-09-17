@@ -220,12 +220,19 @@ Those paths are for people who have **cloned the repo**; you do not need them to
 - *Language Fundamentals → **Flow-Wing CLI*** — flags and **`--entry-point`**
 - Standard modules are **case-sensitive**; the import is always **`bring vortex`** in lowercase
 
-<iframe
-  width="800"
-  height="400"
-  src="https://github.com/user-attachments/assets/4d7502a9-e1de-4c20-a82b-4ffee80df2b9"
-  title="YouTube — Flow-Wing Vortex (optional video)"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen
-></iframe>
+## Video walkthrough
+
+▶ **[Flow-Wing Vortex — video walkthrough](https://github.com/user-attachments/assets/4d7502a9-e1de-4c20-a82b-4ffee80df2b9)**
+
+<!--
+  A LINK, not an <iframe>, on purpose.
+
+  This asset used to be embedded in an iframe titled "YouTube". It is neither
+  embeddable nor YouTube: the URL is a GitHub user-attachment that answers with
+  `x-frame-options: deny`, so every browser refuses to render it in a frame, and
+  it redirects to a signed S3 .mp4 carrying `X-Amz-Expires=300`. Readers saw a
+  blank box. Following the link works, because GitHub mints a fresh signed URL
+  on each request — which is also why the resolved S3 address must never be
+  pasted here directly.
+-->
+

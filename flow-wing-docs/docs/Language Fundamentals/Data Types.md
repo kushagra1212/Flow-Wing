@@ -197,9 +197,29 @@ print(letter, " ", emoji)
 
 ---
 
-## 11. Dynamic Type (`dyn` / `unknown`)
+## 11. Dynamic Type (`dyn`)
 
-Declare a variable **without** a type annotation and Flow-Wing gives you a **dynamic** variable. The keyword `unknown` is the compile-time type for these values. A dynamic variable holds **any value** and can **change its type** at runtime — like a box that reshapes itself to fit whatever you put in.
+Declare a variable **without** a type annotation and Flow-Wing gives you a **dynamic** variable. A dynamic variable holds **any value** and can **change its type** at runtime — like a box that reshapes itself to fit whatever you put in.
+
+Two ways to get one, and both work:
+
+<CodeBlock code={
+`var a = 42          /; no annotation
+var b: dyn = 42     /; explicit dyn
+`} language="fg"/>
+
+:::caution `unknown` is reserved, not writable
+`unknown` is the compiler's internal name for the type of a dynamic value. It is
+a **reserved keyword you cannot write in source** — as a variable type, a
+parameter type, or a return type it is a syntax error:
+
+```
+var x: unknown = 1
+/; Error:UnexpectedToken — Unexpected token '<ReservedUnknownKeyword>'
+```
+
+Write `dyn`, or leave the annotation off.
+:::
 
 ### Example Usage:
 

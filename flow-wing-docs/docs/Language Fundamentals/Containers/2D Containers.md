@@ -32,7 +32,7 @@ grid[1][0] = 10     /; modify an element
 `var grid: int[2][3] = [[1, 2, 3], [4, 5, 6]]
 for (var i: int = 0 to 1 : 1) {
     for (var j: int = 0 to 2 : 1) {
-        print(grid[i][j])
+        print(grid[i][j], " ")
     }
 }
 `} language="fg"/>
