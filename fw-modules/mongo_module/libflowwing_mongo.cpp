@@ -287,7 +287,17 @@ const char* _mongo_find_one(int64_t coll_h, const char* filterJson) {
     return _find_one_result.c_str();
 }
 
-int64_t _mongo_find(int64_t coll_h, const char* filterJson, int64_t limit) {
+// Shared body for _mongo_find and _mongo_find_sorted.
+//
+// sortJson is optional: null or "" means "no sort", which is what plain find()
+// has always done. Passing a sort matters more than it looks — without one
+// the server answers in NATURAL order, which is roughly insertion order, so a
+// `limit` returns the OLDEST n documents rather than the newest. A caller that
+// asks for "the 2000 most recent events" and gets the 2000 oldest sees a
+// dashboard that silently empties out as the collection grows past the limit.
+// That is a real bug this module shipped with, not a hypothetical.
+static int64_t _mongo_find_impl(int64_t coll_h, const char* filterJson,
+                                int64_t limit, const char* sortJson) {
     _last_error.clear();
     if (coll_h <= 0 || coll_h >= MAX_COLLECTIONS || _collections[coll_h] == nullptr) {
         _last_error = "mongo: invalid collection handle";
@@ -303,6 +313,20 @@ int64_t _mongo_find(int64_t coll_h, const char* filterJson, int64_t limit) {
     bson_t opts = BSON_INITIALIZER;
     if (limit > 0) BSON_APPEND_INT64(&opts, "limit", limit);
 
+    // A bad sort is reported rather than ignored. Silently dropping it would
+    // reintroduce the oldest-first bug with no way for the caller to notice.
+    if (sortJson != nullptr && *sortJson != '\0') {
+        bson_t* sort = bson_new_from_json(reinterpret_cast<const uint8_t*>(sortJson), -1, &err);
+        if (sort == nullptr) {
+            _last_error = std::string("mongo: bad sort json: ") + err.message;
+            bson_destroy(filter);
+            bson_destroy(&opts);
+            return 0;
+        }
+        BSON_APPEND_DOCUMENT(&opts, "sort", sort);
+        bson_destroy(sort);
+    }
+
     mongoc_cursor_t* cur = mongoc_collection_find_with_opts(
         _collections[coll_h], filter, &opts, nullptr);
     bson_destroy(filter);
@@ -316,6 +340,15 @@ int64_t _mongo_find(int64_t coll_h, const char* filterJson, int64_t limit) {
     }
     _cursors[h] = cur;
     return h;
+}
+
+int64_t _mongo_find(int64_t coll_h, const char* filterJson, int64_t limit) {
+    return _mongo_find_impl(coll_h, filterJson, limit, nullptr);
+}
+
+int64_t _mongo_find_sorted(int64_t coll_h, const char* filterJson, int64_t limit,
+                           const char* sortJson) {
+    return _mongo_find_impl(coll_h, filterJson, limit, sortJson);
 }
 
 const char* _mongo_cursor_next(int64_t cur_h) {

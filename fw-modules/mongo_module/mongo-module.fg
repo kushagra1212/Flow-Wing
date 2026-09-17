@@ -37,6 +37,7 @@ fun _mongo_insert_one(coll: as int64, json: as str) -> as int64 decl
 fun _mongo_insert_many(coll: as int64, jsonArray: as str) -> as int64 decl
 fun _mongo_find_one(coll: as int64, filterJson: as str) -> as str decl
 fun _mongo_find(coll: as int64, filterJson: as str, limit: as int64) -> as int64 decl
+fun _mongo_find_sorted(coll: as int64, filterJson: as str, limit: as int64, sortJson: as str) -> as int64 decl
 fun _mongo_count(coll: as int64, filterJson: as str) -> as int64 decl
 fun _mongo_cursor_next(cur: as int64) -> as str decl
 fun _mongo_cursor_close(cur: as int64) -> as nthg decl
@@ -73,8 +74,23 @@ class Collection {
     fun findOne(filterJson: str) -> str {
         return _mongo_find_one(self._h, filterJson)
     }
+    /; Returns documents in NATURAL order — roughly insertion order, so oldest
+    /; first. Combined with `limit` that means the OLDEST n documents, not the
+    /; newest. If you want the most recent n, use findSorted.
     fun find(filterJson: str, limit: int64) -> mongo::Cursor {
         var ch: int64 = _mongo_find(self._h, filterJson, limit)
+        return new mongo::Cursor(ch)
+    }
+
+    /; find() with an explicit order. sortJson is a Mongo sort document, so
+    /; "{\"ts\": -1}" is newest-first and "{\"ts\": 1}" is oldest-first.
+    /;
+    /; Reach for this whenever you pass a limit. Without a sort the server picks
+    /; the order, and a capped query then returns the oldest matches — a query
+    /; for "the 2000 most recent events" quietly returns the 2000 oldest, and
+    /; keeps doing so as the collection grows.
+    fun findSorted(filterJson: str, limit: int64, sortJson: str) -> mongo::Cursor {
+        var ch: int64 = _mongo_find_sorted(self._h, filterJson, limit, sortJson)
         return new mongo::Cursor(ch)
     }
     fun count(filterJson: str) -> int64 {
