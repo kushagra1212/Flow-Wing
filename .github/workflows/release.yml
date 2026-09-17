@@ -752,10 +752,45 @@ jobs:
               run: npx --yes @vscode/vsce publish --yarn --packagePath "${GITHUB_WORKSPACE}/FlowWing-${{ github.event.release.tag_name }}.vsix"
 
             # Same VSIX as GitHub Release / VS Marketplace; ovsx reads OVSX_PAT from the environment.
+            #
+            # Retried, and non-fatal, and it runs even when the step above failed.
+            # Three separate problems, all seen on real releases:
+            #
+            #   1. Open VSX answers 503 when it is busy. v1.0.15 failed that way
+            #      seconds after the Marketplace publish above had SUCCEEDED.
+            #   2. Because this step used to abort the job, a Marketplace failure
+            #      meant Open VSX was never even attempted. v1.0.13 and v1.0.14
+            #      both show `openvsx=skipped` for exactly that reason, which is
+            #      why Open VSX sat on 1.0.10 for five releases.
+            #   3. A secondary registry outage marked the whole release red,
+            #      which trains you to ignore red releases.
+            #
+            # The two registries are independent, so they are treated that way.
+            # `continue-on-error` still surfaces the failure as a warning
+            # annotation, and the VSIX is on the GitHub Release regardless.
             - name: Publish to Open VSX Registry
+              if: success() || failure() # not on cancel
+              continue-on-error: true
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
-              run: npx --yes ovsx publish "${GITHUB_WORKSPACE}/FlowWing-${{ github.event.release.tag_name }}.vsix"
+              run: |
+                  VSIX="${GITHUB_WORKSPACE}/FlowWing-${{ github.event.release.tag_name }}.vsix"
+                  if [ ! -f "$VSIX" ]; then
+                    echo "::warning::No VSIX at $VSIX; the packaging step did not run. Skipping Open VSX."
+                    exit 0
+                  fi
+                  for attempt in 1 2 3; do
+                    if npx --yes ovsx publish "$VSIX"; then
+                      echo "Published to Open VSX on attempt $attempt."
+                      exit 0
+                    fi
+                    if [ "$attempt" -lt 3 ]; then
+                      echo "::warning::Open VSX publish failed (attempt $attempt of 3). Retrying in $((attempt * 30))s."
+                      sleep $((attempt * 30))
+                    fi
+                  done
+                  echo "::warning::Open VSX publish failed 3 times. The Marketplace publish is unaffected. Re-run this job, or publish the VSIX by hand from the GitHub Release."
+                  exit 1
 
     # ============================================================================
     # VERIFY INSTALL: install the native release artifact + run test fixtures

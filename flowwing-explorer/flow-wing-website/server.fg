@@ -5,7 +5,47 @@ bring io
 bring Err
 bring json
 bring sys
+bring mongo
+
+/; =========================================================
+/;  Analytics
+/;
+/;  Same shape as the portfolio site: the browser POSTs one JSON document per
+/;  event to /track, and /admin/<token>/events reads them back newest-first.
+/;
+/;  Both are OPTIONAL. Without a Mongo URI the server runs exactly as before —
+/;  /track answers 204 and discards, /admin answers 404. A landing page must
+/;  not refuse to boot because an analytics database is unreachable.
+/; =========================================================
 fun fg_main() -> nthg {
+    var mongoUri: str = sys::getArg(1)
+    var adminToken: str = sys::getArg(2)
+
+    var events: mongo::Collection = null
+    var trackingOn: bool = false
+    if mongoUri != "" {
+        var mc: mongo::Client = new mongo::Client(mongoUri)
+        if mc.isOk() {
+            events = mc.getCollection("flowwing", "events")
+            trackingOn = true
+            /; Never log mongoUri itself — an Atlas URI carries the password in
+            /; plain text and this line would put it in `docker logs` on every
+            /; start, where it persists on disk.
+            io::printLogln("analytics on (db flowwing)", "green")
+        } else {
+            io::printErrorLogln("mongo connect failed: " + mongo::lastError(), "yellow")
+        }
+    } else {
+        io::printLogln("analytics off (no MONGO_URI given)", "yellow")
+    }
+
+    var adminPath: str = ""
+    var adminEventsPath: str = ""
+    if adminToken != "" {
+        adminPath = "/admin/" + adminToken
+        adminEventsPath = adminPath + "/events"
+    }
+
     var app: vortex::Server = new vortex::Server()
     var err: Err::Result = app.listen(8080)
     if Err::isErr(err) {
@@ -41,6 +81,22 @@ fun fg_main() -> nthg {
                 content = text::replace(content, "{{CARD_2_DESC}}", "Compiles directly to optimized machine code using the LLVM infrastructure. The toolchain produces native binaries for macOS, Windows, and Linux without requiring a heavy runtime or interpreter.")
                 content = text::replace(content, "{{CARD_3_TITLE}}", "Standard Library")
                 content = text::replace(content, "{{CARD_3_DESC}}", "Built-in modules cover core requirements including file I/O, JSON serialization, and system utilities. The SDK also includes integrated bindings for Raylib graphics and the Vortex HTTP framework.")
+
+                /; Cards 4 and 5 cover what the first three left out: the runtime.
+                /;
+                /; Concurrency and async I/O were briefly two cards, which was
+                /; wrong — they are one feature described from two ends. Waiting
+                /; on a socket IS what a task does, so splitting them implied the
+                /; language had two unrelated systems.
+                /;
+                /; Kept at the same level as the cards above: what it does for the
+                /; reader, not how it is built. The internals belong in the docs,
+                /; where they can be stated precisely instead of compressed into
+                /; three lines.
+                content = text::replace(content, "{{CARD_4_TITLE}}", "Concurrency")
+                content = text::replace(content, "{{CARD_4_DESC}}", "Run thousands of tasks on a single thread with no callbacks, no async keywords, and no locks. Each task keeps its own stack, so code that waits on a timer, a file, or a network socket still reads straight down the page. Waiting tasks step aside and let the others run.")
+                content = text::replace(content, "{{CARD_5_TITLE}}", "Automatic Memory")
+                content = text::replace(content, "{{CARD_5_DESC}}", "Memory is managed for you. There is no manual free, no ownership model to learn, and no lifetime annotations to satisfy. A precise collector tracks exactly what is still reachable and reclaims everything else.")
                 res.status(200).header("Content-Type", "text/html; charset=utf-8").send(content)
             }
         } /; === THE REAL EXECUTION ENGINE ===
@@ -69,13 +125,75 @@ fun fg_main() -> nthg {
             var responseObj: json::JsonNode = json::newObject()
             responseObj.put("output", json::newString(output))
             res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
+        }
+        /; === POST /track -> store one event ===
+        /;
+        /; Answers 204 even when tracking is off or the insert fails. The tracker
+        /; uses sendBeacon and cannot act on an error anyway, and a visitor must
+        /; never see the page degrade because analytics is down. Failures go to
+        /; the server log, which is where someone can actually act on them.
+        else if method == "POST" && path == "/track" {
+            var body: str = req.getBody()
+            if trackingOn && body != "" {
+                if !events.insertOne(body) {
+                    io::printErrorLogln("track insert failed: " + mongo::lastError(), "red")
+                }
+            }
+            res.status(204).send("")
+        }
+        /; === GET /admin/<token>/events -> newest events as JSON ===
+        /;
+        /; findSorted, not find. find() cannot express an order, so the server
+        /; answers in natural order — oldest first — and a limit would then
+        /; return the OLDEST 2000 documents. That stays invisible until the
+        /; collection outgrows the limit, at which point the dashboard silently
+        /; freezes on old data. Requires the mongo module's findSorted.
+        else if adminEventsPath != "" && method == "GET" && path == adminEventsPath {
+            if !trackingOn {
+                res.status(503).header("Content-Type", "application/json").send("[]")
+            } else {
+                var cur: mongo::Cursor = events.findSorted("{}", 2000, "{\"ts\": -1}")
+                res.status(200).streamBegin("application/json")
+                res.streamWrite("[")
+                var s: str = cur.next()
+                var first: bool = true
+                while s != "" {
+                    if first {
+                        first = false
+                    } else {
+                        res.streamWrite(",")
+                    }
+                    res.streamWrite(s)
+                    s = cur.next()
+                }
+                res.streamWrite("]")
+                res.streamEnd()
+                cur.close()
+            }
+        }
+        /; === GET /admin/<token> -> the dashboard ===
+        else if adminPath != "" && method == "GET" && path == adminPath {
+            res.status(200).sendStaticFile(CURRENT_DIR + "/assets/admin.html", "text/html; charset=utf-8")
         } else if method == "GET" && pathAsText.startsWith("/assets/") {
             var assetPath: str = CURRENT_DIR + pathAsText.get()
             /; Default to icon
             var contentType: str = "image/x-icon"
-            /; Dynamically assign the correct MIME type
+            /; Dynamically assign the correct MIME type.
+            /;
+            /; .js and .css were missing and fell through to image/x-icon. A
+            /; browser will not execute a script served as an image, so any
+            /; asset added here — the tracker below, for one — would silently
+            /; never run. The failure is invisible in the server log.
             if pathAsText.endsWith(".png") {
                 contentType = "image/png"
+            } else if pathAsText.endsWith(".js") {
+                contentType = "text/javascript; charset=utf-8"
+            } else if pathAsText.endsWith(".css") {
+                contentType = "text/css; charset=utf-8"
+            } else if pathAsText.endsWith(".svg") {
+                contentType = "image/svg+xml"
+            } else if pathAsText.endsWith(".html") {
+                contentType = "text/html; charset=utf-8"
             } else if pathAsText.endsWith(".webmanifest") {
                 contentType = "application/manifest+json"
             }

@@ -1,36 +1,52 @@
 # Flow-Wing
 
-![repl](https://github.com/user-attachments/assets/ae3ef362-769d-475e-96ba-3142851d2404)
+Flow-Wing language support for [Visual Studio Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), and other editors that use the Open VSX Registry (e.g. [VSCodium](https://vscodium.com/)): syntax highlighting, a bundled dark theme, diagnostics, IntelliSense, and format-on-save, powered by the **Flow-Wing compiler** you configure locally (`FlowWing.compilerPath`).
 
-Flow-Wing language support for [Visual Studio Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), and other editors that use the Open VSX Registry (e.g. [VSCodium](https://vscodium.com/)). It provides syntax highlighting, a bundled dark theme, diagnostics, IntelliSense, and format-on-save by running the **Flow-Wing compiler** you configure locally (`FlowWing.compilerPath`).
+<!-- The lead image is the editor, not the terminal.
+     This README used to open with the REPL recording. A marketplace visitor
+     sees roughly one screenshot before deciding, and that one showed a shell
+     prompt evaluating `2+2`, which is the one thing this extension does not do.
+     The image below shows highlighted Flow-Wing source with a completion popup
+     open, so the first frame answers "what does installing this give me?". -->
 
-**Source repository:** [github.com/kushagra1212/Flow-Wing](https://github.com/kushagra1212/Flow-Wing) (extension lives under `src/lsp/`). **Publisher ID** on marketplaces must match `publisher` in `package.json` (e.g. `Kushagra` on the Visual Studio Marketplace).
-
-## Features
-
-- **IntelliSense**: Get context-aware code completions as you type.
-- **Code Completion**: Easily complete statements and expressions with suggested options.
-- **Error Reporting (Diagnostics)**: Receive instant feedback on code errors and issues directly within the editor.
-- **Code Browsing**: Navigate through your codebase effortlessly with enhanced code browsing capabilities.
-
-### DEMO
-
-## IntelliSense
+## Syntax highlighting and IntelliSense
 
 <img src="https://github.com/user-attachments/assets/7137dcc5-c3bc-47d9-a460-77ec5bf9ff8d" />
 
+Highlighting covers every keyword the compiler knows, including `spawn`, `fill`,
+`inout`, `extends`, and the module and class namespaces. Completions are
+context-aware and come from the compiler itself, not from a word list.
+
 <img src="https://github.com/user-attachments/assets/a15514ac-2c0a-4cd6-9c39-4d188f351a6b" />
 
-## Code Browsing
+## Error reporting as you type
 
-<img src="https://github.com/user-attachments/assets/e90050e5-7bc0-4736-b4c8-0fea238b5491" />
-
-## Error Reporting
+Red squiggles appear on the line that is wrong, with the compiler's own message
+on hover. This is the part the web playground cannot give you: there, errors
+only surface after you press Run.
 
 <img src="https://github.com/user-attachments/assets/93d7a8f3-1a38-4317-9cdc-9e0239a2ad3d" />
 
+## Code browsing
+
+Go to definition, references, and symbol navigation across a multi-file project.
+
+<img src="https://github.com/user-attachments/assets/e90050e5-7bc0-4736-b4c8-0fea238b5491" />
+
+## Features
+
+- **Syntax highlighting** with a bundled dark theme tuned for Flow-Wing.
+- **IntelliSense**: context-aware completions as you type.
+- **Error reporting (diagnostics)**: compiler errors inline, while you edit.
+- **Code browsing**: jump to definitions and references across files.
+- **Format on save**, using the compiler's own formatter.
+
+**Source repository:** [github.com/kushagra1212/Flow-Wing](https://github.com/kushagra1212/Flow-Wing) (extension lives under `src/lsp/`). **Publisher ID** on marketplaces must match `publisher` in `package.json` (e.g. `Kushagra` on the Visual Studio Marketplace).
 
 ## REPL
+
+The compiler also ships an interactive REPL, which is separate from this
+extension.
 
 <img src="https://github.com/user-attachments/assets/12db4897-5659-42f4-969b-166de9179f6d" />
 
@@ -66,7 +82,7 @@ If you would like to contribute to Flow-Wing IntelliSense, feel free to fork the
 
 This extension **does not** ship analytics, advertising, or third-party telemetry. It starts a **local** Language Server Protocol (LSP) process and, for analysis and formatting, invokes the **Flow-Wing compiler binary** you configure (default: `FlowWing` on your `PATH`). Your source files and workspace paths remain on your machine.
 
-Optional editor settings can increase logging (for example `FlowWing.trace.server`), which may print LSP traffic to your editor’s output panel—still **local**, not sent to Flow-Wing or Eclipse servers.
+Optional editor settings can increase logging (for example `FlowWing.trace.server`), which may print LSP traffic to your editor’s output panel. That is still **local**, not sent to Flow-Wing or Eclipse servers.
 
 ## Trademarks
 
@@ -81,7 +97,7 @@ Optional editor settings can increase logging (for example `FlowWing.trace.serve
 
 ## License
 
-This extension uses the **same license as the Flow-Wing compiler** and the rest of this repository: **GNU General Public License v2.0 only** (GPL-2.0) — see [`LICENSE.txt`](https://github.com/kushagra1212/Flow-Wing/blob/main/LICENSE.txt) in the repository root. SPDX: `GPL-2.0-only`.
+This extension uses the **same license as the Flow-Wing compiler** and the rest of this repository: **GNU General Public License v2.0 only** (GPL-2.0). See [`LICENSE.txt`](https://github.com/kushagra1212/Flow-Wing/blob/main/LICENSE.txt) in the repository root. SPDX: `GPL-2.0-only`.
 
 ## Support
 

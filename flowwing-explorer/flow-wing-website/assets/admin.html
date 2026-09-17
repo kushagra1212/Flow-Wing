@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Flow-Wing · Analytics</title>
+<link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+<style>
+  :root{--bg:#050505;--panel:#0d1117;--line:#30363d;--fg:#f0f6fc;--mut:#8b949e;
+        --blue:#79c0ff;--green:#7ee787;--yellow:#ffbd2e;--red:#ff7b72;--purple:#d2a8ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font-family:'Inter',system-ui,-apple-system,sans-serif}
+  .wrap{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 5rem}
+  header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+  h1{font-size:1.4rem;font-weight:600;margin:0}
+  h1 small{color:var(--mut);font-weight:400;font-size:.8rem;margin-left:.5rem}
+  .ctl{margin-left:auto;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+  select,button{background:transparent;border:1px solid var(--line);color:var(--fg);
+       border-radius:6px;padding:.4rem .7rem;font-size:.82rem;cursor:pointer;font-family:inherit}
+  label{color:var(--mut);font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;cursor:pointer}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.25rem;background:rgba(255,255,255,.02)}
+  .stat b{display:block;font-size:1.9rem;font-weight:600;line-height:1.1}
+  .stat span{color:var(--mut);font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1.25rem}
+  .panel{border:1px solid var(--line);border-radius:10px;padding:1.25rem;background:rgba(255,255,255,.02)}
+  .bars div{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;font-size:.82rem}
+  .bars .k{width:38%;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bars .b{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+  .bars .b i{display:block;height:100%;background:var(--blue);border-radius:4px}
+  .bars .n{width:3.2rem;text-align:right;font-variant-numeric:tabular-nums}
+  .feed{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.75rem;
+        max-height:420px;overflow:auto}
+  .feed div{padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);
+       display:flex;gap:.65rem;white-space:nowrap}
+  .feed .t{color:var(--mut)}
+  .feed .e{color:var(--green);min-width:8.5rem}
+  .msg{color:var(--mut);font-size:.85rem;padding:2rem 0}
+  .err{color:var(--red)}
+
+  /* The toolbar follows you down the page. Changing the range should not mean
+     scrolling back to the top first. */
+  header{position:sticky;top:0;z-index:50;margin:0 -1.5rem 2rem;padding:1.1rem 1.5rem;
+         background:rgba(5,5,5,.9);backdrop-filter:blur(10px) saturate(1.2);
+         border-bottom:1px solid var(--line)}
+  @supports not (backdrop-filter:blur(4px)){header{background:var(--bg)}}
+  select:hover,button:hover{border-color:var(--blue);color:var(--blue)}
+  button:active{transform:translateY(1px)}
+  :is(select,button,input):focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  input[type=checkbox]{accent-color:var(--blue);cursor:pointer}
+
+  /* Numbers must not jitter when auto-refresh swaps the DOM. */
+  .stat b,.bars .n,.feed{font-variant-numeric:tabular-nums}
+  .stat{transition:border-color .18s}
+  .stat:hover{border-color:var(--blue)}
+
+  /* Panel titles need to read as labels, not as body text. */
+  .panel h2{font-size:.78rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+            color:var(--mut);margin:0 0 .9rem;padding-bottom:.6rem;
+            border-bottom:1px solid rgba(255,255,255,.06)}
+
+  /* Something to look at while the first fetch is in flight. */
+  .panel.is-loading,.stat.is-loading{position:relative;overflow:hidden}
+  .panel.is-loading::after,.stat.is-loading::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);
+    background-size:200% 100%;animation:shim 1.2s linear infinite}
+  @keyframes shim{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  .bars div:hover{background:rgba(255,255,255,.035);border-radius:5px}
+  .feed div:first-child{animation:fresh .5s ease-out}
+  @keyframes fresh{from{background:rgba(126,231,135,.12)}to{background:transparent}}
+
+  #state{font-size:.76rem;color:var(--mut)}
+  #state.loading{color:var(--yellow)} #state.ok{color:var(--green)} #state.err{color:var(--red)}
+
+  @media (max-width:720px){
+    header{position:static;margin:0 0 1.5rem;padding:0 0 1rem}
+    .ctl{width:100%} select,button{flex:1 1 auto}
+    .wrap{padding:1.25rem 1rem 4rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .panel.is-loading::after,.stat.is-loading::after,.feed div:first-child{animation:none}
+    .stat,select,button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Flow-Wing · Analytics <small id="meta"></small></h1>
+    <div class="ctl">
+      <select id="range">
+        <option value="1">last 1h</option>
+        <option value="24" selected>last 24h</option>
+        <option value="168">last 7d</option>
+        <option value="0">all time</option>
+      </select>
+      <label><input type="checkbox" id="self"> include my events</label>
+      <button id="refresh">Refresh</button>
+      <span id="state"></span>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+  <div class="grid">
+    <div class="panel"><h2>Events</h2><div class="bars" id="types"></div></div>
+    <div class="panel"><h2>Install tab opened</h2><div class="bars" id="os"></div></div>
+    <div class="panel"><h2>Referrers</h2><div class="bars" id="refs"></div></div>
+    <div class="panel"><h2>Screen width</h2><div class="bars" id="widths"></div></div>
+  </div>
+  <div class="panel" style="margin-top:1.25rem">
+    <h2>Live feed <span id="feedCount" style="color:var(--mut);font-weight:400"></span></h2>
+    <div class="feed" id="feed"></div>
+  </div>
+  <p class="msg" id="msg"></p>
+</div>
+
+<script>
+/* The token is already in this page's own URL (/admin/<token>), so the events
+   endpoint is derived from it rather than typed in or stored anywhere. */
+var EVENTS = location.pathname.replace(/\/+$/, "") + "/events";
+var ALL = [];
+
+function num(e, k){ var v = e[k]; if (v && typeof v === "object" && v.$numberLong) return parseInt(v.$numberLong, 10); return v; }
+
+function panels(on){
+  document.querySelectorAll(".panel,.stat").forEach(function(p){ p.classList.toggle("is-loading", on); });
+}
+function state(t, cls){
+  var el = document.getElementById("state");
+  el.textContent = t; el.className = cls || "";
+}
+
+function load(){
+  state("loading\u2026", "loading");
+  panels(true);
+  msg("");
+  fetch(EVENTS).then(function(r){
+    if (!r.ok) throw new Error("HTTP " + r.status + (r.status===503 ? ": analytics is off on the server" : ""));
+    return r.json();
+  }).then(function(rows){
+    ALL = rows.map(function(e){ e.ts = num(e, "ts"); return e; });
+    panels(false);
+    state("updated " + new Date().toLocaleTimeString(), "ok");
+    msg("");
+    render();
+  }).catch(function(err){
+    panels(false);
+    state("error", "err");
+    msg("Could not load events: " + err.message, true);
+  });
+}
+
+function msg(t, isErr){
+  var el = document.getElementById("msg");
+  el.textContent = t || "";
+  el.className = "msg" + (isErr ? " err" : "");
+}
+
+function filtered(){
+  var hours = parseFloat(document.getElementById("range").value);
+  var self  = document.getElementById("self").checked;
+  var cut   = hours ? Date.now() - hours*3600*1000 : 0;
+  return ALL.filter(function(e){
+    if (!self && e.is_self) return false;
+    return !cut || (e.ts && e.ts >= cut);
+  });
+}
+
+function tally(rows, fn){
+  var m = {};
+  rows.forEach(function(e){ var k = fn(e); if (k === undefined || k === null || k === "") return; m[k] = (m[k]||0)+1; });
+  return Object.keys(m).map(function(k){ return [k, m[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
+}
+
+function bars(id, pairs){
+  var el = document.getElementById(id);
+  if (!pairs.length) { el.innerHTML = '<div style="color:var(--mut)">no data</div>'; return; }
+  var max = pairs[0][1];
+  el.innerHTML = pairs.slice(0,10).map(function(p){
+    return '<div><span class="k" title="'+esc(p[0])+'">'+esc(p[0])+'</span>'
+         + '<span class="b"><i style="width:'+Math.round(p[1]/max*100)+'%"></i></span>'
+         + '<span class="n">'+p[1]+'</span></div>';
+  }).join("");
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; }); }
+
+function render(){
+  var rows = filtered();
+  var views = rows.filter(function(e){ return e.type === "view"; });
+  var runs  = rows.filter(function(e){ return e.type === "run_code"; });
+  var exits = rows.filter(function(e){ return e.type === "exit" && e.ms; });
+  var sids  = {}; rows.forEach(function(e){ if (e.sid) sids[e.sid] = 1; });
+  var avg   = exits.length ? Math.round(exits.reduce(function(a,e){ return a+e.ms; },0)/exits.length/1000) : 0;
+
+  document.getElementById("stats").innerHTML =
+    stat(rows.length,"events") + stat(views.length,"page views") +
+    stat(Object.keys(sids).length,"sessions") + stat(runs.length,"code runs") +
+    stat(avg ? avg+"s" : "—","avg time");
+
+  bars("types",  tally(rows, function(e){ return e.type; }));
+  bars("os",     tally(rows.filter(function(e){ return e.type==="install_tab"; }), function(e){ return e.os; }));
+  bars("refs",   tally(views, function(e){ return e.ref ? host(e.ref) : "direct"; }));
+  bars("widths", tally(views, function(e){ return e.w ? bucket(e.w) : ""; }));
+
+  var feed = rows.slice(0, 200);
+  document.getElementById("feedCount").textContent = "(" + feed.length + " newest)";
+  document.getElementById("feed").innerHTML = feed.map(function(e){
+    return '<div><span class="t">'+ (e.ts ? new Date(e.ts).toLocaleTimeString() : "—") +'</span>'
+         + '<span class="e">'+esc(e.type||"?")+'</span>'
+         + '<span>'+esc(detail(e))+'</span></div>';
+  }).join("") || '<div style="color:var(--mut)">no events in range</div>';
+
+  document.getElementById("meta").textContent = ALL.length + " loaded · " + rows.length + " in range";
+}
+
+function stat(v,l){ return '<div class="stat"><b>'+v+'</b><span>'+l+'</span></div>'; }
+function host(u){ try { return new URL(u).hostname; } catch(e){ return u; } }
+function bucket(w){ return w<640?"< 640":w<1040?"640–1039":w<1440?"1040–1439":"1440+"; }
+function detail(e){
+  var bits = [];
+  ["cta","os","where","to","open","ms","scroll_pct","w"].forEach(function(k){
+    if (e[k] !== undefined && e[k] !== "") bits.push(k+"="+e[k]);
+  });
+  return bits.join("  ");
+}
+
+document.getElementById("refresh").addEventListener("click", load);
+document.getElementById("range").addEventListener("change", render);
+document.getElementById("self").addEventListener("change", render);
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

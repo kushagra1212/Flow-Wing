@@ -1,196 +1,1017 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{TITLE}} - Hybrid-Typed Language</title>
 
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/assets/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/assets/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/assets/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/assets/site.webmanifest" />
 
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-    <link rel="manifest" href="/assets/site.webmanifest">
-   
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --bg-base: #050505; --bg-panel: #0d1117; --text-main: #f0f6fc;
-            --text-muted: #8b949e; --border-color: #30363d;
+      :root {
+        --bg-base: #050505;
+        --bg-panel: #0d1117;
+        --text-main: #f0f6fc;
+        --text-muted: #8b949e;
+        --border-color: #30363d;
 
-            /* Syntax Shades */
-            --hl-kw: #ff7b72;      /* Keywords - Reddish */
-            --hl-mod: #a5d6ff;     /* Modules - Light Cyan/Blue */
-            --hl-cls: #d2a8ff;     /* Classes - Purple */
-            --hl-fn: #79c0ff;      /* Functions - Sky Blue */
-            --hl-str: #7ee787;     /* Strings - Green */
-            --hl-num: #ffbd2e;     /* Numbers - Yellow */
-            --hl-com: #8b949e;     /* Comments - Gray */
+        /* Syntax Shades */
+        --hl-kw: #ff7b72; /* Keywords - Reddish */
+        --hl-mod: #a5d6ff; /* Modules - Light Cyan/Blue */
+        --hl-cls: #d2a8ff; /* Classes - Purple */
+        --hl-fn: #79c0ff; /* Functions - Sky Blue */
+        --hl-str: #7ee787; /* Strings - Green */
+        --hl-num: #ffbd2e; /* Numbers - Yellow */
+        --hl-com: #8b949e; /* Comments - Gray */
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-base);
+        color: var(--text-main);
+      }
+
+      /* --- Custom Scrollbars to blend with UI --- */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #30363d;
+        border-radius: 5px;
+        border: 2px solid var(--bg-panel);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #484f58;
+      }
+
+      /* Fix for the white corner at the bottom right of scrollable textareas */
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      .editor-wrapper::-webkit-scrollbar-thumb {
+        border-color: #010409;
+      }
+      .tab-content::-webkit-scrollbar-thumb {
+        border-color: #010409;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* Navigation */
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+      }
+      .nav-logo {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #fff;
+        text-decoration: none;
+      }
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-left: 2rem;
+        font-size: 0.9rem;
+      }
+
+      /* Hero */
+      .hero {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      /* Two columns only where there is genuinely room. Below 1040px the card
+           drops under the copy and the hero stays centred, exactly as before. */
+      .hero-card {
+        display: none;
+      }
+      @media (min-width: 1040px) {
+        .hero {
+          display: grid;
+          /* minmax(0, ...) rather than a bare fr.
+             A grid item defaults to min-width:auto, so it cannot shrink below
+             its MIN-CONTENT width. The three buttons below carry
+             `white-space: nowrap` (.btn), so adding the Playground button made
+             the left column's min-content wider than its 1fr track. It overran
+             the track and squeezed the terminal into a square. minmax(0, ...)
+             lets the track win, and the card keeps the width it was given. */
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.06fr);
+          gap: 3rem;
+          align-items: center;
+          text-align: left;
         }
-
-        body, html {
-            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
-            background-color: var(--bg-base); color: var(--text-main);
+        .hero-copy .tagline {
+          margin-left: 0;
+          margin-right: 0;
         }
-
-        /* --- Custom Scrollbars to blend with UI --- */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 5px; border: 2px solid var(--bg-panel); }
-        ::-webkit-scrollbar-thumb:hover { background: #484f58; }
-        
-        /* Fix for the white corner at the bottom right of scrollable textareas */
-        ::-webkit-scrollbar-corner { background: transparent; }
-        
-        .editor-wrapper::-webkit-scrollbar-thumb { border-color: #010409; }
-        .tab-content::-webkit-scrollbar-thumb { border-color: #010409; }
-
-        .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
-
-        /* Navigation */
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 2rem 0; margin-bottom: 2rem; }
-        .nav-logo { font-size: 1.25rem; font-weight: 600; color: #fff; text-decoration: none;}
-        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 2rem; font-size: 0.9rem; }
-
-        /* Hero */
-        .hero { text-align: center; margin-bottom: 4rem; }
-        .version { display: inline-block; padding: 0.3rem 1rem; border-radius: 50px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.85rem; margin-bottom: 2rem; }
-        h1 { font-size: 4.5rem; font-weight: 600; letter-spacing: -0.04em; margin: 0 0 1.5rem 0; line-height: 1.1;}
-        .tagline { font-size: 1.25rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 3rem auto; line-height: 1.6; }
-        
-        .actions { display: flex; justify-content: center; align-items: flex-start; gap: 1rem; margin-bottom: 4rem; }
-
-        .download-container { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-
-        .platform-labels { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0.02em; }
-        .btn { padding: 0.8rem 2rem; border-radius: 6px; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid var(--border-color); white-space: nowrap;}
-        .btn-primary { background: var(--text-main); color: var(--bg-base); }
-        .btn-secondary { background: transparent; color: var(--text-main); }
-
-        /* Static Code Showcase */
-        .static-code-window {
-            background: #010409; border: 1px solid var(--border-color); border-radius: 12px;
-            padding: 1.5rem; text-align: left; max-width: 700px; margin: 0 auto 6rem auto;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        /* Belt and braces for the same blowout: a future long word or a wide
+           child cannot re-widen this column past its track. */
+        .hero-copy {
+          min-width: 0;
         }
-        .static-code-window .mac-dots { margin-bottom: 1.5rem; }
-        .static-code-window pre { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #d1d5db; margin: 0; line-height: 1.5; overflow-x: auto; }
-
-        /* Live Playground */
-        .playground-header { text-align: center; margin-bottom: 2rem; }
-        .playground-header p { color: var(--text-muted); font-size: 1.1rem; }
-        
-        .playground-container {
-            display: flex; gap: 1rem; background: var(--bg-panel); border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 1rem; margin-bottom: 6rem; height: 500px;
+        .hero-copy .actions {
+          justify-content: flex-start;
+          margin-bottom: 0;
+          /* Wrap onto a second row instead of forcing the column wider. */
+          flex-wrap: wrap;
         }
-
-        .pane { flex: 1; display: flex; flex-direction: column; background: #010409; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; }
-        .pane-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #0d1117; border-bottom: 1px solid var(--border-color); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
-        .pane-title { color: var(--text-main); text-align: center; flex: 1; margin-left: -20px;}
-
-        /* Editor Overlays */
-        .editor-wrapper { position: relative; flex: 1; overflow: hidden; background: #010409;}
-        .code-input, .code-highlight {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 1.5;
-            border: none; margin: 0; box-sizing: border-box; white-space: pre; overflow: auto;
+        .hero-copy .download-container {
+          align-items: flex-start;
         }
-        .code-input { color: transparent; caret-color: var(--text-main); background: transparent; z-index: 2; resize: none; outline: none; }
-        .code-highlight { color: #d1d5db; z-index: 1; pointer-events: none; }
+        .hero-copy .platform-labels {
+          justify-content: flex-start;
+        }
+        .hero-card {
+          display: block;
+          position: relative;
+        }
+        /* 4.5rem was sized for a full-width centred hero; in a half-width
+             column it wraps badly. Scale with the viewport instead of picking
+             a second fixed number. */
+        .hero-copy h1 {
+          font-size: clamp(2.6rem, 3.6vw, 3.9rem);
+        }
+        .hero-copy .tagline {
+          font-size: 1.1rem;
+          margin-bottom: 2.25rem;
+        }
+      }
 
-        /* Highlight classes based on specific shades */
-        .hl-keyword  { color: var(--hl-kw); }
-        .hl-module   { color: var(--hl-mod); }
-        .hl-class    { color: var(--hl-cls); }
-        .hl-func     { color: var(--hl-fn); }
-        .hl-string   { color: var(--hl-str); }
-        .hl-comment  { color: var(--hl-com); }
-        .hl-number   { color: var(--hl-num); }
+      /* The float: a slow bob plus a barely-there tilt. Two different periods
+           (7s and 11s) so the motion never looks like it is on a metronome. */
+      .hero-card-inner {
+        position: relative;
+        z-index: 1;
+        background: #010409;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow:
+          0 30px 60px -20px rgba(0, 0, 0, 0.85),
+          0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+        animation: heroFloat 7s ease-in-out infinite;
+        transition:
+          transform 0.35s ease,
+          box-shadow 0.35s ease;
+      }
+      @keyframes heroFloat {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-0.25deg);
+        }
+        50% {
+          transform: translateY(-14px) rotate(0.25deg);
+        }
+      }
+      .hero-card:hover .hero-card-inner {
+        animation-play-state: paused;
+        transform: translateY(-6px) scale(1.012);
+        box-shadow:
+          0 40px 80px -24px rgba(0, 0, 0, 0.9),
+          0 0 0 1px rgba(121, 192, 255, 0.18) inset;
+      }
 
-        .mac-dots { display: flex; gap: 8px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
-        .tabs { display: flex; gap: 1rem; }
-        .tab-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;}
-        .tab-btn.active { color: #fff; border-bottom: 2px solid var(--text-main); }
-        .tab-content { flex: 1; padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
-        .run-btn { background: var(--text-main); color: var(--bg-base); font-family: 'Inter', sans-serif; font-weight: 600; padding: 0.4rem 1rem; border-radius: 6px; border: none; cursor: pointer; transition: opacity 0.2s;}
-        .run-btn:hover { opacity: 0.8; }
+      /* Soft coloured glow behind the card, drifting on its own clock. */
+      .hero-card-glow {
+        position: absolute;
+        inset: -18% -12%;
+        z-index: 0;
+        border-radius: 50%;
+        background: radial-gradient(
+          closest-side,
+          rgba(88, 166, 255, 0.16),
+          transparent 72%
+        );
+        filter: blur(28px);
+        animation: heroGlow 11s ease-in-out infinite;
+      }
+      @keyframes heroGlow {
+        0%,
+        100% {
+          transform: translate3d(-4%, 2%, 0) scale(1);
+          opacity: 0.75;
+        }
+        50% {
+          transform: translate3d(4%, -3%, 0) scale(1.08);
+          opacity: 1;
+        }
+      }
 
-        /* Features Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 6rem; }
-        .card { background: transparent; border: 1px solid var(--border-color); border-radius: 12px; padding: 2.5rem; }
-        .card h3 { margin-top: 0; font-size: 1.25rem; font-weight: 500; }
-        .card p { color: var(--text-muted); line-height: 1.6; margin-bottom: 0; }
+      .hero-card-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .hero-card-os {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .hero-card-pre {
+        margin: 0;
+        padding: 1.15rem 1.25rem;
+        min-height: 10.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.74rem;
+        line-height: 1.85;
+        color: #d1d5db;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      /* Each OS swap fades the text rather than snapping it. */
+      .hero-card-pre.out {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      .hero-card-pre {
+        opacity: 1;
+        transform: none;
+        transition:
+          opacity 0.32s ease,
+          transform 0.32s ease;
+      }
 
-        /* Footer */
-        footer { text-align: center; padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem; }
+      .hero-card-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+      }
+      .hero-card-dots i {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--border-color);
+        transition:
+          background 0.3s,
+          width 0.3s;
+      }
+      .hero-card-dots i.on {
+        background: var(--hl-fn);
+        width: 16px;
+        border-radius: 3px;
+      }
 
-        /* =========================================
+      @media (prefers-reduced-motion: reduce) {
+        .hero-card-inner,
+        .hero-card-glow {
+          animation: none;
+        }
+        .hero-card-pre {
+          transition: none;
+        }
+      }
+      .version {
+        display: inline-block;
+        padding: 0.3rem 1rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-size: 0.85rem;
+        margin-bottom: 2rem;
+      }
+      h1 {
+        font-size: 4.5rem;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.1;
+      }
+      .tagline {
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        max-width: 700px;
+        margin: 0 auto 3rem auto;
+        line-height: 1.6;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 4rem;
+      }
+
+      .download-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .platform-labels {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+      }
+      .btn {
+        padding: 0.8rem 2rem;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        white-space: nowrap;
+      }
+      .btn-primary {
+        background: var(--text-main);
+        color: var(--bg-base);
+      }
+      .btn-secondary {
+        background: transparent;
+        color: var(--text-main);
+      }
+
+      /* Static Code Showcase */
+      .static-code-window {
+        background: #010409;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: left;
+        max-width: 700px;
+        margin: 0 auto 6rem auto;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      }
+      .static-code-window .mac-dots {
+        margin-bottom: 1.5rem;
+      }
+      .static-code-window pre {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.95rem;
+        color: #d1d5db;
+        margin: 0;
+        line-height: 1.5;
+        overflow-x: auto;
+      }
+
+      /* Live Playground */
+      .playground-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .playground-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+      }
+
+      /* Smooth scroll for the hero's Playground link, but never for someone
+           who asked the OS to stop animating things. */
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      #playground {
+        scroll-margin-top: 2rem;
+      }
+
+      .lsp-note {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        max-width: 1100px;
+        margin: 0 auto 1.5rem;
+        padding: 0.9rem 1.15rem;
+        border: 1px solid var(--border-color);
+        border-left: 3px solid var(--hl-fn);
+        border-radius: 10px;
+        background: rgba(121, 192, 255, 0.05);
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        line-height: 1.55;
+      }
+      .lsp-note b {
+        color: var(--text-main);
+        font-weight: 600;
+      }
+      .lsp-note .ico {
+        width: 1.15rem;
+        height: 1.15rem;
+        color: var(--hl-fn);
+        flex: none;
+        margin: 0;
+      }
+      .lsp-cta {
+        margin-left: auto;
+        flex: none;
+        white-space: nowrap;
+        border: 1px solid var(--hl-fn);
+        color: var(--hl-fn);
+        border-radius: 6px;
+        padding: 0.45rem 0.9rem;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.82rem;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .lsp-cta:hover {
+        background: var(--hl-fn);
+        color: var(--bg-base);
+      }
+      @media (max-width: 760px) {
+        .lsp-note {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .lsp-cta {
+          margin-left: 0;
+        }
+      }
+
+      .playground-container {
+        display: flex;
+        gap: 1rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 6rem;
+        height: 500px;
+      }
+
+      .pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #010409;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+      }
+      .pane-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #0d1117;
+        border-bottom: 1px solid var(--border-color);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+      }
+      .pane-title {
+        color: var(--text-main);
+        text-align: center;
+        flex: 1;
+        margin-left: -20px;
+      }
+
+      /* Editor Overlays */
+      .editor-wrapper {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        background: #010409;
+      }
+      .code-input,
+      .code-highlight {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 1.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        border: none;
+        margin: 0;
+        box-sizing: border-box;
+        white-space: pre;
+        overflow: auto;
+      }
+      .code-input {
+        color: transparent;
+        caret-color: var(--text-main);
+        background: transparent;
+        z-index: 2;
+        resize: none;
+        outline: none;
+      }
+      .code-highlight {
+        color: #d1d5db;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Highlight classes based on specific shades */
+      .hl-keyword {
+        color: var(--hl-kw);
+      }
+      .hl-module {
+        color: var(--hl-mod);
+      }
+      .hl-class {
+        color: var(--hl-cls);
+      }
+      .hl-func {
+        color: var(--hl-fn);
+      }
+      .hl-string {
+        color: var(--hl-str);
+      }
+      .hl-comment {
+        color: var(--hl-com);
+      }
+      .hl-number {
+        color: var(--hl-num);
+      }
+
+      .mac-dots {
+        display: flex;
+        gap: 8px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot.red {
+        background: #ff5f56;
+      }
+      .dot.yellow {
+        background: #ffbd2e;
+      }
+      .dot.green {
+        background: #27c93f;
+      }
+      .tabs {
+        display: flex;
+        gap: 1rem;
+      }
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+      }
+      .tab-btn.active {
+        color: #fff;
+        border-bottom: 2px solid var(--text-main);
+      }
+      .tab-content {
+        flex: 1;
+        padding: 1.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .run-btn {
+        background: var(--text-main);
+        color: var(--bg-base);
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .run-btn:hover {
+        opacity: 0.8;
+      }
+
+      /* ── Expand the playground ──────────────────────────────────────────
+           A persistent button, never a hover-only affordance: at 500px tall the
+           editor truncates real lines mid-string, and a control you cannot see
+           does not help someone who has already hit that wall.
+        ── */
+      .pane-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .expand-btn {
+        display: inline-flex;
+        align-items: center;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        border-radius: 6px;
+        padding: 0.35rem 0.75rem;
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          color 0.2s,
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .expand-btn:hover {
+        color: var(--text-main);
+        border-color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .expand-btn:focus-visible {
+        outline: 2px solid var(--hl-fn);
+        outline-offset: 2px;
+      }
+
+      /* Expanded = a fixed overlay, not the Fullscreen API. Fullscreen needs a
+           user gesture, is refused inside some embeds, and hides the browser
+           chrome people use to leave. This keeps Escape, the back button and the
+           page itself behaving normally. */
+      .playground-container.expanded {
+        position: fixed;
+        inset: 1.5rem;
+        z-index: 999;
+        height: auto;
+        margin: 0;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
+        animation: pgIn 0.22s ease-out;
+      }
+      @keyframes pgIn {
+        from {
+          opacity: 0;
+          transform: scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .pg-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 998;
+        background: rgba(2, 4, 8, 0.72);
+        backdrop-filter: blur(3px);
+        animation: pgFade 0.22s ease-out;
+      }
+      @keyframes pgFade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      body.pg-open {
+        overflow: hidden;
+      } /* no scrolling behind it */
+      .pg-hint {
+        position: fixed;
+        left: 50%;
+        bottom: 1.9rem;
+        transform: translateX(-50%);
+        z-index: 1000;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-family: "JetBrains Mono", monospace;
+        pointer-events: none;
+        background: rgba(2, 4, 8, 0.8);
+        border: 1px solid var(--border-color);
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .playground-container.expanded,
+        .pg-backdrop {
+          animation: none;
+        }
+      }
+
+      /* Features Grid */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 6rem;
+      }
+      .card {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2.5rem;
+      }
+      .card h3 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+      }
+      .card p {
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 0;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 3rem 0;
+        margin-top: 4rem;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* =========================================
            MOBILE & RESPONSIVE FIXES ADDED HERE 
            ========================================= */
-        @media (max-width: 768px) {
-            .container { padding: 0 1rem; }
-            nav { flex-direction: column; gap: 1rem; }
-            .nav-links { display: flex; gap: 1rem; }
-            .nav-links a { margin-left: 0; }
-            
-            h1 { font-size: 2.8rem; }
-            .tagline { font-size: 1.1rem; margin-bottom: 2rem; }
-            .actions { flex-direction: column; align-items: center; width: 100%; gap: 1.5rem;}
-            .download-container, .btn-secondary { width: 100%; }
-            .btn { width: 100%; box-sizing: border-box; text-align: center; }
-
-            /* Adjust code blocks */
-            .static-code-window { padding: 1rem; margin-bottom: 3rem; border-radius: 8px;}
-            .static-code-window pre { font-size: 0.8rem; }
-            
-            /* Stack the Playground panes */
-            .playground-container { 
-                flex-direction: column; 
-                height: 800px; /* Make taller to accommodate stacked views */
-                margin-bottom: 3rem;
-                padding: 0.5rem;
-            }
-            .pane { flex: none; height: calc(50% - 0.5rem); } /* Split 50/50 */
-            .code-input, .code-highlight { font-size: 0.85rem; padding: 1rem; }
-            
-            .run-btn { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-            
-            .platform-grid { gap: 1.5rem !important; }
-            .card { padding: 1.5rem; }
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 1rem;
         }
+        nav {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .nav-links {
+          display: flex;
+          gap: 1rem;
+        }
+        .nav-links a {
+          margin-left: 0;
+        }
+
+        h1 {
+          font-size: 2.8rem;
+        }
+        .tagline {
+          font-size: 1.1rem;
+          margin-bottom: 2rem;
+        }
+        .actions {
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          gap: 1.5rem;
+        }
+        .download-container,
+        .btn-secondary {
+          width: 100%;
+        }
+        .btn {
+          width: 100%;
+          box-sizing: border-box;
+          text-align: center;
+        }
+
+        /* Adjust code blocks */
+        .static-code-window {
+          padding: 1rem;
+          margin-bottom: 3rem;
+          border-radius: 8px;
+        }
+        .static-code-window pre {
+          font-size: 0.8rem;
+        }
+
+        /* Stack the Playground panes */
+        .playground-container {
+          flex-direction: column;
+          height: 800px; /* Make taller to accommodate stacked views */
+          margin-bottom: 3rem;
+          padding: 0.5rem;
+        }
+        .pane {
+          flex: none;
+          height: calc(50% - 0.5rem);
+        } /* Split 50/50 */
+        .code-input,
+        .code-highlight {
+          font-size: 0.85rem;
+          padding: 1rem;
+        }
+
+        .run-btn {
+          padding: 0.3rem 0.6rem;
+          font-size: 0.8rem;
+        }
+
+        .platform-grid {
+          gap: 1.5rem !important;
+        }
+        .card {
+          padding: 1.5rem;
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <!-- ── Icon sprite ────────────────────────────────────────────────────
+     Inline, so the icons cost no extra request and inherit currentColor.
+     apple/linux paths come from Simple Icons v13.21.0 (CC0-1.0). The Windows
+     mark is authored here: Simple Icons removed Microsoft's brand icons, so
+     there is no upstream path to take. Apple, Windows and Linux logos are the
+     trademarks of their owners and appear here only to label which build a
+     visitor should download.
+── -->
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      style="display: none"
+      aria-hidden="true"
+    >
+      <symbol id="i-apple" viewBox="0 0 24 24">
+        <path
+          d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+        />
+      </symbol>
+      <symbol id="i-linux" viewBox="0 0 24 24">
+        <path
+          d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"
+        />
+      </symbol>
+      <symbol id="i-windows" viewBox="0 0 24 24">
+        <path
+          d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"
+        />
+      </symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"
+        />
+      </symbol>
+      <symbol id="i-collapse" viewBox="0 0 24 24">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"
+        />
+      </symbol>
+      <symbol id="i-code" viewBox="0 0 24 24">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M8 17l-5-5 5-5M16 7l5 5-5 5"
+        />
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path d="M8 5v14l11-7z" />
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path
+          d="M12 3v11M7.5 9.5L12 14l4.5-4.5M4 16.5V20h16v-3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+    </svg>
 
-<div class="container">
-    <nav>
-        <a href="/" class="nav-logo">{{TITLE}}</a>
+    <div class="container">
+      <nav>
+        <a href="/" class="nav-logo"
+          ><img
+            src="/assets/android-chrome-192x192.png"
+            alt=""
+            width="26"
+            height="26"
+            class="nav-mark"
+          />{{TITLE}}</a
+        >
         <div class="nav-links">
-            <a href="{{DOCS_URL}}">Documentation</a>
-            <a href="{{GITHUB_URL}}">GitHub</a>
+          <a href="{{DOCS_URL}}">Documentation</a>
+          <a href="{{GITHUB_URL}}">GitHub</a>
         </div>
-    </nav>
+      </nav>
 
-    <header class="hero">
-        <div class="version">Build <span id="latest-version">Loading...</span></div>
-        <h1>An Experimental<br>Hybrid-Typed Language.</h1>
-        <div class="tagline">{{TAGLINE}}</div>
-        
-        <div class="actions">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="version">
+            Build <span id="latest-version">Loading...</span>
+          </div>
+          <h1>An Experimental<br />Hybrid-Typed Language.</h1>
+          <div class="tagline">{{TAGLINE}}</div>
+
+          <div class="actions">
             <div class="download-container">
-                <a href="#downloads" class="btn btn-primary">Download Release</a>
-                <div class="platform-labels">macOS, Windows, Linux</div>
+              <a href="#downloads" class="btn btn-primary"
+                ><svg class="ico" aria-hidden="true">
+                  <use href="#i-download" /></svg
+                >Download &amp; Install</a
+              >
+              <div class="platform-labels">
+                <svg class="ico" aria-hidden="true"><use href="#i-apple" /></svg
+                >macOS<span class="sep">·</span
+                ><svg class="ico" aria-hidden="true">
+                  <use href="#i-windows" /></svg
+                >Windows<span class="sep">·</span
+                ><svg class="ico" aria-hidden="true">
+                  <use href="#i-linux" /></svg
+                >Linux
+              </div>
             </div>
+            <a href="#playground" class="btn btn-secondary"
+              ><svg class="ico" aria-hidden="true"><use href="#i-play" /></svg
+              >Try the Playground</a
+            >
             <a href="{{DOCS_URL}}" class="btn btn-secondary">Read the Docs</a>
+          </div>
         </div>
-    </header>
 
-    <div class="static-code-window">
-        <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-<pre><code><span class="hl-keyword">bring</span> <span class="hl-module">vortex</span>
+        <!-- Floating install card. Cycles macOS -> Windows -> Linux on its own,
+           typing each platform's real commands. Shares INSTALL_STEPS with the
+           terminal further down the page, so the two can never disagree. -->
+        <aside class="hero-card" id="heroCard" aria-label="Install commands">
+          <div class="hero-card-glow" aria-hidden="true"></div>
+          <div class="hero-card-inner">
+            <div class="hero-card-bar">
+              <span class="dot red"></span><span class="dot yellow"></span
+              ><span class="dot green"></span>
+              <span class="hero-card-os">
+                <svg class="ico" aria-hidden="true">
+                  <use href="#i-apple" id="heroIconUse" />
+                </svg>
+                <span id="heroOsName">macOS</span>
+              </span>
+            </div>
+            <pre class="hero-card-pre" id="heroPre"></pre>
+            <div class="hero-card-foot">
+              <div
+                class="hero-card-dots"
+                id="heroDots"
+                aria-hidden="true"
+              ></div>
+              <button
+                class="install-copy"
+                id="heroCopy"
+                type="button"
+                title="Copy these commands"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </aside>
+      </header>
+
+      <div class="static-code-window">
+        <div class="mac-dots">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+        </div>
+        <pre><code><span class="hl-keyword">bring</span> <span class="hl-module">vortex</span>
 
 <span class="hl-comment">/; Server Setup</span>
 <span class="hl-keyword">var</span> app: <span class="hl-module">vortex</span>::<span class="hl-class">Server</span> = <span class="hl-keyword">new</span> <span class="hl-module">vortex</span>::<span class="hl-class">Server</span>()
@@ -209,18 +1030,67 @@ app.<span class="hl-func">listen</span>(port)
            .<span class="hl-func">send</span>(<span class="hl-string">"&lt;h1&gt;Welcome to Flow-Wing&lt;/h1&gt;"</span>)
     }
 }</code></pre>
-    </div>
+      </div>
 
-    <section class="playground-section">
+      <section class="playground-section" id="playground">
+        <!-- Says what the playground CANNOT do, next to the thing that cannot do
+           it. A visitor whose first taste of the language is an editor with no
+           diagnostics will assume the language has none. -->
+        <div class="lsp-note">
+          <svg class="ico" aria-hidden="true"><use href="#i-code" /></svg>
+          <div>
+            <b>This is a sandbox, not an editor.</b>
+            It compiles and runs your code, but there is no language server
+            here. No red squiggles as you type, no hover types, no
+            go-to-definition and no completion. Errors only appear after you
+            press Run.
+          </div>
+          <a
+            class="lsp-cta"
+            href="https://marketplace.visualstudio.com/items?itemName=Kushagra.Flow-Wing"
+            target="_blank"
+            rel="noopener"
+            >Get the VS Code extension</a
+          >
+        </div>
         <div class="playground-container">
-            <div class="pane">
-                <div class="pane-header">
-                    <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                    <span class="pane-title">main.fg</span>
-                    <button class="run-btn" onclick="runCode()">Run Code 🚀</button>
-                </div>
-                <div class="editor-wrapper">
-                    <textarea id="codeInput" class="code-input" spellcheck="false" oninput="updateHighlight()" onscroll="syncScroll()">bring io
+          <div class="pane">
+            <div class="pane-header">
+              <div class="mac-dots">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+              </div>
+              <span class="pane-title">main.fg</span>
+              <div class="pane-actions">
+                <button
+                  class="expand-btn"
+                  id="expandBtn"
+                  type="button"
+                  onclick="togglePlayground()"
+                  aria-expanded="false"
+                  title="Expand the playground (E)"
+                >
+                  <svg class="ico" aria-hidden="true">
+                    <use href="#i-expand" id="expandIcon" /></svg
+                  ><span id="expandLabel">Expand</span>
+                </button>
+                <button class="run-btn" onclick="runCode()">
+                  <svg class="ico" aria-hidden="true">
+                    <use href="#i-play" /></svg
+                  >Run Code
+                </button>
+              </div>
+            </div>
+            <div class="editor-wrapper">
+              <textarea
+                id="codeInput"
+                class="code-input"
+                spellcheck="false"
+                oninput="updateHighlight()"
+                onscroll="syncScroll()"
+              >
+bring io
 bring sys
 bring Err
 
@@ -247,169 +1117,1159 @@ fun fgMain() -> nthg {
     println("Your number multiplied by 10 is: " , String(result))
 }
 
-fgMain()</textarea>
-                    <pre class="code-highlight" id="codeHighlight" aria-hidden="true"></pre>
-                </div>
+fgMain()</textarea
+              >
+              <pre
+                class="code-highlight"
+                id="codeHighlight"
+                aria-hidden="true"
+              ></pre>
+            </div>
+          </div>
+
+          <div class="pane">
+            <div class="pane-header">
+              <div class="tabs">
+                <button
+                  id="btn-output"
+                  class="tab-btn active"
+                  onclick="switchTab('output')"
+                >
+                  Console Output
+                </button>
+                <button
+                  id="btn-input"
+                  class="tab-btn"
+                  onclick="switchTab('input')"
+                >
+                  Standard Input
+                </button>
+              </div>
+            </div>
+            <div
+              id="tab-output"
+              class="tab-content"
+              style="color: var(--text-muted)"
+            >
+              [Output will appear here]
+            </div>
+            <div
+              id="tab-input"
+              class="tab-content"
+              style="display: none; padding: 0"
+            >
+              <textarea
+                id="stdInput"
+                style="
+                  box-sizing: border-box;
+                  width: 100%;
+                  height: 100%;
+                  background: transparent;
+                  border: none;
+                  color: #fff;
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  padding: 1.5rem;
+                  resize: none;
+                  outline: none;
+                "
+                placeholder="Enter STDIN here..."
+              >
+42</textarea
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="downloads"
+        class="download-options"
+        style="
+          text-align: center;
+          margin-bottom: 6rem;
+          padding: 2.5rem;
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.02);
+        "
+      >
+        <h2 style="font-size: 1.5rem; margin-bottom: 2rem; font-weight: 500">
+          Get the Flow-Wing SDK
+        </h2>
+        <div
+          class="platform-grid"
+          style="
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+          "
+        >
+          <a
+            href="{{RELEASE_URL}}"
+            class="platform-item"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.75rem;
+              color: var(--text-muted);
+              text-decoration: none;
+              transition: color 0.2s;
+            "
+          >
+            <svg class="ico-lg" aria-hidden="true"><use href="#i-apple" /></svg>
+            <span style="font-weight: 500; color: var(--text-main)">macOS</span>
+            <span style="font-size: 0.8rem">Apple Silicon</span>
+          </a>
+
+          <a
+            href="{{RELEASE_URL}}"
+            class="platform-item"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.75rem;
+              color: var(--text-muted);
+              text-decoration: none;
+              transition: color 0.2s;
+            "
+          >
+            <svg class="ico-lg" aria-hidden="true">
+              <use href="#i-windows" />
+            </svg>
+            <span style="font-weight: 500; color: var(--text-main)"
+              >Windows</span
+            >
+            <span style="font-size: 0.8rem">x64 Installer / Zip</span>
+          </a>
+
+          <a
+            href="{{RELEASE_URL}}"
+            class="platform-item"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.75rem;
+              color: var(--text-muted);
+              text-decoration: none;
+              transition: color 0.2s;
+            "
+          >
+            <svg class="ico-lg" aria-hidden="true"><use href="#i-linux" /></svg>
+            <span style="font-weight: 500; color: var(--text-main)">Linux</span>
+            <span style="font-size: 0.8rem">x64 (.deb / .zip)</span>
+          </a>
+        </div>
+        <p
+          style="margin-top: 2rem; color: var(--text-muted); font-size: 0.85rem"
+        >
+          Artifacts include the AOT compiler, JIT tool, and standard library.
+        </p>
+
+        <!-- ── Install from a package manager ─────────────────────────────
+             All three commands were verified live against the published
+             channels: Homebrew tap kushagra1212/homebrew-flowwing, the apt
+             repo at kushagra1212.github.io/Flow-Wing, and the Chocolatey
+             community feed. Each served 1.0.14 at the time of writing.
+             Tab state uses switchInstall(), NOT the playground's switchTab(),
+             which is a different widget on this same page.
+        ──────────────────────────────────────────────────────────────── -->
+        <div
+          class="install-block"
+          style="
+            margin-top: 3rem;
+            text-align: left;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          <h3
+            style="
+              font-size: 1.05rem;
+              font-weight: 500;
+              margin-bottom: 1rem;
+              text-align: center;
+              color: var(--text-main);
+            "
+          >
+            Or install from a package manager
+          </h3>
+
+          <div
+            class="install-tabs"
+            style="display: flex; gap: 0.5rem; margin-bottom: -1px"
+          >
+            <button
+              class="install-tab active"
+              data-os="mac"
+              onclick="switchInstall('mac')"
+            >
+              <svg class="ico" aria-hidden="true"><use href="#i-apple" /></svg
+              >macOS
+            </button>
+            <button
+              class="install-tab"
+              data-os="linux"
+              onclick="switchInstall('linux')"
+            >
+              <svg class="ico" aria-hidden="true"><use href="#i-linux" /></svg
+              >Linux
+            </button>
+            <button
+              class="install-tab"
+              data-os="win"
+              onclick="switchInstall('win')"
+            >
+              <svg class="ico" aria-hidden="true"><use href="#i-windows" /></svg
+              >Windows
+            </button>
+          </div>
+
+          <div class="install-term">
+            <div class="install-term-bar">
+              <span class="dot" style="background: #ff5f56"></span>
+              <span class="dot" style="background: #ffbd2e"></span>
+              <span class="dot" style="background: #27c93f"></span>
+              <span class="install-term-title" id="installTitle"
+                >bash - macOS</span
+              >
+              <button class="install-copy" onclick="copyInstall(this)">
+                Copy
+              </button>
             </div>
 
-            <div class="pane">
-                <div class="pane-header">
-                    <div class="tabs">
-                        <button id="btn-output" class="tab-btn active" onclick="switchTab('output')">Console Output</button>
-                        <button id="btn-input" class="tab-btn" onclick="switchTab('input')">Standard Input</button>
-                    </div>
-                </div>
-                <div id="tab-output" class="tab-content" style="color: var(--text-muted);">[Output will appear here]</div>
-                <div id="tab-input" class="tab-content" style="display: none; padding: 0;">
-                    <textarea id="stdInput" style="box-sizing: border-box; width:100%; height:100%; background:transparent; border:none; color:#fff; font-family:'JetBrains Mono', monospace; padding:1.5rem; resize:none; outline:none;" placeholder="Enter STDIN here...">42</textarea>
-                </div>
-            </div>
+            <pre class="install-pane" id="installPane"></pre>
+          </div>
+
+          <p class="install-note" id="installNote">
+            Apple Silicon only. The tap has no Intel build, so on an Intel Mac
+            download the SDK above or build from source.
+          </p>
         </div>
-    </section>
+      </section>
 
-    <section id="downloads" class="download-options" style="text-align: center; margin-bottom: 6rem; padding: 2.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.02);">
-        <h2 style="font-size: 1.5rem; margin-bottom: 2rem; font-weight: 500;">Get the Flow-Wing SDK</h2>
-        <div class="platform-grid" style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;">
-            
-            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
-                <span style="font-size: 2rem;"></span>
-                <span style="font-weight: 500; color: var(--text-main);">macOS</span>
-                <span style="font-size: 0.8rem;">Apple Silicon</span>
-            </a>
+      <style>
+        .install-tab {
+          background: transparent;
+          border: 1px solid var(--border-color);
+          border-bottom: none;
+          color: var(--text-muted);
+          padding: 0.5rem 1.1rem;
+          border-radius: 8px 8px 0 0;
+          cursor: pointer;
+          font-family: "JetBrains Mono", monospace;
+          font-size: 0.82rem;
+          transition:
+            color 0.15s,
+            background 0.15s;
+        }
+        .install-tab:hover {
+          color: var(--text-main);
+        }
+        .install-tab.active {
+          color: var(--text-main);
+          background: rgba(255, 255, 255, 0.04);
+        }
+        .install-term {
+          border: 1px solid var(--border-color);
+          border-radius: 0 8px 8px 8px;
+          background: rgba(0, 0, 0, 0.35);
+          overflow: hidden;
+        }
+        .install-term-bar {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.6rem 0.9rem;
+          border-bottom: 1px solid var(--border-color);
+          background: rgba(255, 255, 255, 0.03);
+        }
+        .install-term-bar .dot {
+          width: 11px;
+          height: 11px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .install-term-title {
+          margin-left: 0.6rem;
+          color: var(--text-muted);
+          font-size: 0.75rem;
+          font-family: "JetBrains Mono", monospace;
+        }
+        .install-copy {
+          margin-left: auto;
+          background: transparent;
+          border: 1px solid var(--border-color);
+          color: var(--text-muted);
+          border-radius: 6px;
+          padding: 0.22rem 0.6rem;
+          font-size: 0.72rem;
+          cursor: pointer;
+          font-family: "JetBrains Mono", monospace;
+        }
+        .install-copy:hover {
+          color: var(--text-main);
+        }
+        .install-pane {
+          margin: 0;
+          padding: 1.15rem 1.25rem;
+          font-family: "JetBrains Mono", monospace;
+          font-size: 0.83rem;
+          line-height: 1.75;
+          color: var(--text-main);
+          white-space: pre-wrap;
+          word-break: break-word;
+          overflow-x: auto;
+        }
+        /* Icons. `fill:currentColor` is what lets one sprite serve a dark hero
+         button, a muted label row and a bright tile without recolouring. */
+        .ico {
+          width: 1em;
+          height: 1em;
+          fill: currentColor;
+          vertical-align: -0.125em;
+          margin-right: 0.45em;
+          flex: none;
+        }
+        .ico-lg {
+          width: 2rem;
+          height: 2rem;
+          fill: currentColor;
+          color: var(--text-main);
+        }
+        .platform-labels {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.15rem;
+        }
+        .platform-labels .sep {
+          margin: 0 0.55rem;
+          opacity: 0.45;
+        }
+        .btn-primary .ico {
+          color: var(--bg-base);
+        }
+        .nav-logo {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+        }
+        .nav-mark {
+          display: block;
+          border-radius: 4px;
+        }
+        .install-tab {
+          display: inline-flex;
+          align-items: center;
+        }
+        .platform-item:hover .ico-lg {
+          color: var(--hl-fn);
+          transition: color 0.2s;
+        }
+        .install-copy.ok {
+          color: var(--hl-str);
+          border-color: var(--hl-str);
+        }
 
-            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
-                <span style="font-size: 2rem;">⊞</span>
-                <span style="font-weight: 500; color: var(--text-main);">Windows</span>
-                <span style="font-size: 0.8rem;">x64 Installer / Zip</span>
-            </a>
+        /* Copy lives in the FOOTER, not the title bar. The dots stay optically
+         centred because the button is taken out of flow - a flex sibling would
+         shove them left by half its width. */
+        .hero-card-foot {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 1rem 0.95rem;
+          min-height: 1.9rem;
+        }
+        .hero-card-foot .install-copy {
+          position: absolute;
+          right: 1rem;
+          bottom: 0.72rem;
+          opacity: 0;
+          transform: translateY(3px);
+          transition:
+            opacity 0.25s,
+            transform 0.25s,
+            color 0.2s,
+            border-color 0.2s;
+        }
+        .hero-card:hover .hero-card-foot .install-copy,
+        .hero-card-foot .install-copy:focus-visible {
+          opacity: 1;
+          transform: none;
+        }
+        /* No hover on a touch screen, so never reveal-on-hover there. */
+        @media (hover: none) {
+          .hero-card-foot .install-copy {
+            opacity: 1;
+            transform: none;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-card-foot .install-copy {
+            transform: none;
+            transition: opacity 0.25s;
+          }
+        }
+        .install-pane .p,
+        .hero-card-pre .p {
+          color: #27c93f;
+          user-select: none;
+          margin-right: 0.5rem;
+        }
+        /* Shell highlighting - reuses the page's own syntax palette so the
+         terminal and the Flow-Wing code window read as one design. */
+        .sh-cmd {
+          color: var(--hl-fn);
+        } /* sudo, brew, curl … */
+        .sh-sub {
+          color: var(--hl-cls);
+        } /* tap, install, update */
+        .sh-flag {
+          color: var(--hl-num);
+        } /* -fsSL, --version    */
+        .sh-str {
+          color: var(--hl-str);
+        } /* "deb [signed-by=…]" */
+        .sh-url {
+          color: var(--hl-mod);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+        .sh-op {
+          color: var(--hl-kw);
+        } /* | && >              */
+        .sh-arg {
+          color: #d1d5db;
+        }
+        .sh-caret {
+          display: inline-block;
+          width: 8px;
+          height: 1.05em;
+          background: var(--hl-fn);
+          vertical-align: text-bottom;
+          margin-left: 2px;
+          animation: shBlink 1s step-end infinite;
+        }
+        @keyframes shBlink {
+          50% {
+            opacity: 0;
+          }
+        }
+        .install-pane {
+          min-height: 7.5rem;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sh-caret {
+            animation: none;
+          }
+        }
+        .install-note {
+          margin-top: 0.9rem;
+          color: var(--text-muted);
+          font-size: 0.78rem;
+          text-align: center;
+        }
+        @media (max-width: 640px) {
+          .install-pane {
+            font-size: 0.75rem;
+          }
+        }
+      </style>
 
-            <a href="{{RELEASE_URL}}" class="platform-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">
-                <span style="font-size: 2rem;">🐧</span>
-                <span style="font-weight: 500; color: var(--text-main);">Linux</span>
-                <span style="font-size: 0.8rem;">x64 (.deb / .zip)</span>
-            </a>
+      <script>
+        /* ── Playground expand ─────────────────────────────────────────────
+         Escape closes it, focus returns to the button that opened it, and the
+         page behind is locked from scrolling. `E` is a shortcut, but only when
+         focus is NOT in the editor — otherwise it would swallow the letter e
+         from anyone typing code.
+      ──────────────────────────────────────────────────────────────────── */
+        var PG_OPEN = false;
 
-        </div>
-        <p style="margin-top: 2rem; color: var(--text-muted); font-size: 0.85rem;">Artifacts include the AOT compiler, JIT tool, and standard library.</p>
-    </section>
+        function togglePlayground() {
+          var box = document.querySelector(".playground-container");
+          var btn = document.getElementById("expandBtn");
+          var icon = document.getElementById("expandIcon");
+          var label = document.getElementById("expandLabel");
+          if (!box) return;
 
-    <div class="grid">
+          PG_OPEN = !PG_OPEN;
+          box.classList.toggle("expanded", PG_OPEN);
+          document.body.classList.toggle("pg-open", PG_OPEN);
+          btn.setAttribute("aria-expanded", PG_OPEN ? "true" : "false");
+          icon.setAttribute("href", PG_OPEN ? "#i-collapse" : "#i-expand");
+          label.textContent = PG_OPEN ? "Close" : "Expand";
+          btn.title = PG_OPEN
+            ? "Close the playground (Esc)"
+            : "Expand the playground (E)";
+
+          var back = document.getElementById("pgBackdrop");
+          var hint = document.getElementById("pgHint");
+          if (PG_OPEN) {
+            if (!back) {
+              back = document.createElement("div");
+              back.className = "pg-backdrop";
+              back.id = "pgBackdrop";
+              back.addEventListener("click", togglePlayground);
+              document.body.appendChild(back);
+            }
+            if (!hint) {
+              hint = document.createElement("div");
+              hint.className = "pg-hint";
+              hint.id = "pgHint";
+              hint.textContent = "Esc to close";
+              document.body.appendChild(hint);
+            }
+          } else {
+            if (back) back.remove();
+            if (hint) hint.remove();
+            btn.focus();
+          }
+        }
+
+        document.addEventListener("keydown", function (e) {
+          var inEditor =
+            document.activeElement &&
+            /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName);
+          if (e.key === "Escape" && PG_OPEN) {
+            e.preventDefault();
+            togglePlayground();
+          } else if (
+            (e.key === "e" || e.key === "E") &&
+            !inEditor &&
+            !e.metaKey &&
+            !e.ctrlKey &&
+            !e.altKey
+          ) {
+            var box = document.querySelector(".playground-container");
+            if (!box) return;
+            var r = box.getBoundingClientRect();
+            /* only when the playground is actually the thing on screen */
+            if (
+              PG_OPEN ||
+              (r.top < window.innerHeight * 0.75 && r.bottom > 0)
+            ) {
+              e.preventDefault();
+              togglePlayground();
+            }
+          }
+        });
+
+        /* ── Install terminal: highlight + typing animation ────────────────
+         One source of truth per OS: an array of shell lines. The prompt, the
+         colouring and the copied text are all DERIVED from it, so they cannot
+         drift apart. Copy yields exactly these lines — no prompts, no spans.
+      ──────────────────────────────────────────────────────────────────── */
+        var INSTALL_STEPS = {
+          mac: [
+            "brew tap kushagra1212/flowwing",
+            "brew install flowwing",
+            "flowwing --version",
+          ],
+          linux: [
+            "sudo install -m 0755 -d /etc/apt/keyrings",
+            "curl -fsSL https://kushagra1212.github.io/Flow-Wing/flowwing.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/flowwing.gpg",
+            'echo "deb [signed-by=/etc/apt/keyrings/flowwing.gpg] https://kushagra1212.github.io/Flow-Wing/ ./" | sudo tee /etc/apt/sources.list.d/flowwing.list > /dev/null',
+            "sudo apt-get update && sudo apt-get install -y flowwing",
+            "flowwing --version",
+          ],
+          win: ["choco install flowwing", "flowwing --version"],
+        };
+        /* Hero-only short forms.
+         Linux is long for a reason, not by choice: Debian deprecated apt-key,
+         so every third-party repo now needs its own keyring file, a signed-by
+         source list, and an update — four steps before the install. That is the
+         correct instruction and it stays in the terminal further down.
+         The hero is a teaser, so it drops the `mkdir /etc/apt/keyrings` (present
+         by default on Ubuntu 22.04+ and Debian 12) and merges update+install:
+         5 lines becomes 3. macOS and Windows are already short, so they have no
+         override and fall through to INSTALL_STEPS. */
+        var INSTALL_SHORT = {
+          linux: [
+            "curl -fsSL https://kushagra1212.github.io/Flow-Wing/flowwing.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/flowwing.gpg",
+            'echo "deb [signed-by=/etc/apt/keyrings/flowwing.gpg] https://kushagra1212.github.io/Flow-Wing/ ./" | sudo tee /etc/apt/sources.list.d/flowwing.list',
+            "sudo apt update && sudo apt install flowwing",
+          ],
+        };
+
+        var INSTALL_META = {
+          mac: [
+            "bash - macOS",
+            "$",
+            "Apple Silicon only. The tap has no Intel build, so on an Intel Mac download the SDK above or build from source.",
+          ],
+          linux: [
+            "bash - Debian / Ubuntu",
+            "$",
+            "x86_64 Debian and Ubuntu. Other distributions: use the .zip from the releases page.",
+          ],
+          win: [
+            "PowerShell - Windows",
+            ">",
+            "Needs Chocolatey. Run the shell as Administrator. No Chocolatey? Use the .exe installer above.",
+          ],
+        };
+
+        var SH_CMDS =
+          /^(sudo|brew|curl|echo|gpg|tee|apt-get|choco|flowwing|install|tap|update|dearmor)$/;
+        var SH_SUBS = /^(tap|install|update|--version)$/;
+
+        function esc(s) {
+          return s
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        }
+
+        /* Tokenise one shell line into coloured spans. Strings are matched first
+         so that a URL or flag inside quotes is not re-coloured. */
+        function shHighlight(line) {
+          /* The string alternative accepts a closing quote OR end-of-input. That
+           matters because the typing animation slices lines mid-token: while
+           `echo "deb ...` is being typed the quote is still open, and a pattern
+           demanding a closing quote would skip it, silently dropping characters
+           and leaving unbalanced spans. Verified across all 515 partial states. */
+          var out = "",
+            re =
+              /("(?:[^"\\]|\\.)*(?:"|$))|(\s+)|(\|\||&&|[|>&])|(https?:\/\/[^\s"]+)|(--?[A-Za-z][\w-]*)|([^\s|>&"]+)/g,
+            m,
+            first = true;
+          while ((m = re.exec(line)) !== null) {
+            var t = m[0];
+            if (m[1]) out += '<span class="sh-str">' + esc(t) + "</span>";
+            else if (m[2]) out += esc(t);
+            else if (m[3]) out += '<span class="sh-op">' + esc(t) + "</span>";
+            else if (m[4]) out += '<span class="sh-url">' + esc(t) + "</span>";
+            else if (m[5]) out += '<span class="sh-flag">' + esc(t) + "</span>";
+            else {
+              var cls =
+                first || SH_CMDS.test(t)
+                  ? "sh-cmd"
+                  : SH_SUBS.test(t)
+                    ? "sh-sub"
+                    : "sh-arg";
+              out += '<span class="' + cls + '">' + esc(t) + "</span>";
+            }
+            if (m[2] === undefined) first = false;
+          }
+          return out;
+        }
+
+        var CURRENT_INSTALL = "mac",
+          installTimer = null,
+          installSeen = false;
+
+        function renderInstall(os, upto, partial) {
+          var steps = INSTALL_STEPS[os],
+            prompt = INSTALL_META[os][1],
+            html = "";
+          for (var i = 0; i < upto; i++)
+            html +=
+              '<span class="p">' +
+              prompt +
+              "</span> " +
+              shHighlight(steps[i]) +
+              "\n";
+          if (partial !== null && upto < steps.length)
+            html +=
+              '<span class="p">' +
+              prompt +
+              "</span> " +
+              shHighlight(steps[upto].slice(0, partial)) +
+              '<span class="sh-caret"></span>';
+          document.getElementById("installPane").innerHTML = html;
+        }
+
+        function playInstall(os) {
+          clearTimeout(installTimer);
+          var steps = INSTALL_STEPS[os];
+          if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ) {
+            renderInstall(os, steps.length, null);
+            return; /* no animation */
+          }
+          var line = 0,
+            ch = 0;
+          (function step() {
+            if (os !== CURRENT_INSTALL) return; /* tab changed */
+            if (line >= steps.length) {
+              renderInstall(os, steps.length, null);
+              return;
+            }
+            ch++;
+            renderInstall(os, line, ch);
+            if (ch >= steps[line].length) {
+              line++;
+              ch = 0;
+              installTimer = setTimeout(step, 420);
+            } else {
+              installTimer = setTimeout(step, 16);
+            }
+          })();
+        }
+
+        function switchInstall(os) {
+          CURRENT_INSTALL = os;
+          document.querySelectorAll(".install-tab").forEach(function (b) {
+            b.classList.toggle("active", b.getAttribute("data-os") === os);
+          });
+          document.getElementById("installTitle").textContent =
+            INSTALL_META[os][0];
+          document.getElementById("installNote").textContent =
+            INSTALL_META[os][2];
+          playInstall(os);
+        }
+
+        function copyInstall(btn) {
+          fwCopy(INSTALL_STEPS[CURRENT_INSTALL].join("\n"), function () {
+            btn.textContent = "Copied";
+            setTimeout(function () {
+              btn.textContent = "Copy";
+            }, 1400);
+          });
+        }
+
+        /* navigator.clipboard exists only in a SECURE CONTEXT: https, or
+         localhost. Served over plain http on a LAN address - which is exactly
+         how you test a build before deploying - it is undefined, and calling
+         .writeText on it throws with no visible effect. The textarea +
+         execCommand path is the documented fallback for that case. */
+        function fwCopy(text, done) {
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done, function () {
+              legacy();
+            });
+          } else {
+            legacy();
+          }
+          function legacy() {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand("copy");
+            } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+          }
+        }
+
+        /* ── Hero card: auto-cycling install preview ───────────────────────
+         Reuses INSTALL_STEPS and shHighlight, so the hero and the terminal
+         further down always show the same commands. The cycle is: fade in,
+         type every line, hold, fade out, next OS - looping for ever. It pauses
+         while the tab is hidden so a backgrounded page burns no timers, and
+         while the pointer is over the card so a reader can actually finish
+         reading it.
+      ──────────────────────────────────────────────────────────────────── */
+        (function () {
+          var pre = document.getElementById("heroPre");
+          if (!pre) return;
+
+          var ORDER = ["mac", "win", "linux"];
+          var ICON = { mac: "#i-apple", win: "#i-windows", linux: "#i-linux" };
+          var NAME = { mac: "macOS", win: "Windows", linux: "Linux" };
+          var iconUse = document.getElementById("heroIconUse");
+          var osName = document.getElementById("heroOsName");
+          var dotsEl = document.getElementById("heroDots");
+          var card = document.getElementById("heroCard");
+
+          ORDER.forEach(function () {
+            dotsEl.appendChild(document.createElement("i"));
+          });
+          var dots = dotsEl.querySelectorAll("i");
+
+          var idx = 0,
+            t = null,
+            hovering = false;
+          var reduce =
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+          function paint(os, upto, partial) {
+            var steps = INSTALL_SHORT[os] || INSTALL_STEPS[os],
+              p = INSTALL_META[os][1],
+              html = "";
+            for (var i = 0; i < upto; i++)
+              html +=
+                '<span class="p">' +
+                p +
+                "</span> " +
+                shHighlight(steps[i]) +
+                "\n";
+            if (partial !== null && upto < steps.length)
+              html +=
+                '<span class="p">' +
+                p +
+                "</span> " +
+                shHighlight(steps[upto].slice(0, partial)) +
+                '<span class="sh-caret"></span>';
+            pre.innerHTML = html;
+          }
+
+          function wait(ms, fn) {
+            t = setTimeout(fn, ms);
+          }
+
+          function show() {
+            var os = ORDER[idx],
+              steps = INSTALL_SHORT[os] || INSTALL_STEPS[os];
+            iconUse.setAttribute("href", ICON[os]);
+            osName.textContent = NAME[os];
+            dots.forEach(function (d, i) {
+              d.classList.toggle("on", i === idx);
+            });
+            pre.classList.remove("out");
+
+            if (reduce) {
+              paint(os, steps.length, null);
+              wait(4200, next);
+              return;
+            }
+
+            var line = 0,
+              ch = 0;
+            (function type() {
+              if (hovering) {
+                wait(300, type);
+                return;
+              } /* hold while hovered */
+              if (line >= steps.length) {
+                paint(os, steps.length, null);
+                wait(2600, next);
+                return;
+              }
+              ch++;
+              paint(os, line, ch);
+              if (ch >= steps[line].length) {
+                line++;
+                ch = 0;
+                wait(380, type);
+              } else {
+                wait(20, type);
+              }
+            })();
+          }
+
+          function next() {
+            if (hovering) {
+              wait(500, next);
+              return;
+            }
+            pre.classList.add("out");
+            wait(340, function () {
+              idx = (idx + 1) % ORDER.length;
+              show();
+            });
+          }
+
+          /* Copies what is ON SCREEN, which for Linux is the shortened teaser
+           rather than the full apt block below. Copying something other than
+           what the reader is looking at would be worse than not offering it. */
+          var copyBtn = document.getElementById("heroCopy");
+          if (copyBtn)
+            copyBtn.addEventListener("click", function () {
+              var os = ORDER[idx];
+              var text = (INSTALL_SHORT[os] || INSTALL_STEPS[os]).join("\n");
+              fwCopy(text, function () {
+                copyBtn.textContent = "Copied";
+                copyBtn.classList.add("ok");
+                setTimeout(function () {
+                  copyBtn.textContent = "Copy";
+                  copyBtn.classList.remove("ok");
+                }, 1400);
+              });
+            });
+
+          card.addEventListener("mouseenter", function () {
+            hovering = true;
+          });
+          card.addEventListener("mouseleave", function () {
+            hovering = false;
+          });
+          document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+              clearTimeout(t);
+            } else {
+              clearTimeout(t);
+              show();
+            }
+          });
+
+          show();
+        })();
+
+        /* Start typing when the section is actually on screen, not at page load,
+         so a visitor who scrolls down still sees it play from the first char. */
+        (function () {
+          var el = document.getElementById("installPane");
+          if (!el) return;
+          renderInstall("mac", 0, 0);
+          if (!("IntersectionObserver" in window)) {
+            playInstall("mac");
+            return;
+          }
+          new IntersectionObserver(
+            function (es, obs) {
+              es.forEach(function (e) {
+                if (e.isIntersecting && !installSeen) {
+                  installSeen = true;
+                  playInstall(CURRENT_INSTALL);
+                  obs.disconnect();
+                }
+              });
+            },
+            { threshold: 0.35 },
+          ).observe(el);
+        })();
+      </script>
+
+      <div class="grid">
         <div class="card">
-            <h3>{{CARD_1_TITLE}}</h3>
-            <p>{{CARD_1_DESC}}</p>
+          <h3>{{CARD_1_TITLE}}</h3>
+          <p>{{CARD_1_DESC}}</p>
         </div>
         <div class="card">
-            <h3>{{CARD_2_TITLE}}</h3>
-            <p>{{CARD_2_DESC}}</p>
+          <h3>{{CARD_2_TITLE}}</h3>
+          <p>{{CARD_2_DESC}}</p>
         </div>
         <div class="card">
-            <h3>{{CARD_3_TITLE}}</h3>
-            <p>{{CARD_3_DESC}}</p>
+          <h3>{{CARD_3_TITLE}}</h3>
+          <p>{{CARD_3_DESC}}</p>
         </div>
+        <div class="card">
+          <h3>{{CARD_4_TITLE}}</h3>
+          <p>{{CARD_4_DESC}}</p>
+        </div>
+        <div class="card">
+          <h3>{{CARD_5_TITLE}}</h3>
+          <p>{{CARD_5_DESC}}</p>
+        </div>
+      </div>
+
+      <footer>
+        <p>&copy; 2026 The Flow-Wing Project. Built with LLVM & C++.</p>
+      </footer>
     </div>
 
-    <footer>
-        <p>&copy; 2026 The Flow-Wing Project. Built with LLVM & C++.</p>
-    </footer>
-</div>
-
-<script>
-    async function fetchVersion() {
+    <script>
+      async function fetchVersion() {
         try {
-            const response = await fetch('https://api.github.com/repos/kushagra1212/Flow-Wing/releases/latest');
-            const data = await response.json();
-            document.getElementById('latest-version').innerText = data.tag_name || "v1.0.0";
+          const response = await fetch(
+            "https://api.github.com/repos/kushagra1212/Flow-Wing/releases/latest",
+          );
+          const data = await response.json();
+          document.getElementById("latest-version").innerText =
+            data.tag_name || "v1.0.0";
         } catch (e) {
-            document.getElementById('latest-version').innerText = "v1.0.0-rc.1";
+          document.getElementById("latest-version").innerText = "v1.0.0-rc.1";
         }
-    }
-    fetchVersion();
+      }
+      fetchVersion();
 
-    function applySyntax(text) {
-        let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        
-        const keywords =['bring', 'fun', 'var', 'const', 'class', 'type', 'init', 'new', 'return', 'if', 'else', 'while', 'for', 'true', 'false', 'null', 'break', 'continue', 'expose', 'super'];
-        const builtInTypes =['int', 'deci', 'str', 'bool', 'nthg', 'dyn', 'int8', 'int64', 'char', 'deci32'];
-        const modules =['io', 'sys', 'Err', 'vortex', 'file', 'text', 'json', 'vec', 'map', 'raylib'];
+      function applySyntax(text) {
+        let safeText = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
 
-        const regex = /("(?:\\.|[^"\\])*")|(\/;.*)|(\b\d+(?:\.\d+)?(?:f|l)?\b)|([a-zA-Z_]\w*)(?=\s*\()|([a-zA-Z_]\w*)(?=\s*::)|\b([a-zA-Z_]\w*)\b/g;
-        
-        return safeText.replace(regex, function(match, str, comment, num, func, ns, word) {
+        /* Kept in step with the compiler's own table, which lives in
+           src/SourceTokenizer/tokenReaders/KeywordTokenReader/KeywordTokenReader.cpp.
+           A diff against it found 14 real keywords unhighlighted here, `spawn`
+           among them - the language's headline feature rendering as plain text.
+           If you add a keyword to the lexer, add it here too. */
+        const keywords = [
+          "as",
+          "break",
+          "bring",
+          "case",
+          "class",
+          "const",
+          "continue",
+          "decl",
+          "default",
+          "else",
+          "expose",
+          "extends",
+          "false",
+          "fill",
+          "for",
+          "from",
+          "fun",
+          "if",
+          "init",
+          "inout",
+          "module",
+          "new",
+          "null",
+          "or",
+          "return",
+          "spawn",
+          "super",
+          "switch",
+          "to",
+          "true",
+          "type",
+          "var",
+          "while",
+        ];
+        const builtInTypes = [
+          "int",
+          "deci",
+          "str",
+          "bool",
+          "nthg",
+          "dyn",
+          "int8",
+          "int64",
+          "char",
+          "deci32",
+          "unknown",
+        ];
+        const modules = [
+          "io",
+          "sys",
+          "Err",
+          "vortex",
+          "file",
+          "text",
+          "json",
+          "vec",
+          "map",
+          "raylib",
+          "mongo",
+        ];
+
+        const regex =
+          /("(?:\\.|[^"\\])*")|(\/;.*)|(\b\d+(?:\.\d+)?(?:f|l)?\b)|([a-zA-Z_]\w*)(?=\s*\()|([a-zA-Z_]\w*)(?=\s*::)|\b([a-zA-Z_]\w*)\b/g;
+
+        return safeText.replace(
+          regex,
+          function (match, str, comment, num, func, ns, word) {
             if (str) return `<span class="hl-string">${str}</span>`;
             if (comment) return `<span class="hl-comment">${comment}</span>`;
             if (num) return `<span class="hl-number">${num}</span>`;
             if (func) return `<span class="hl-func">${func}</span>`;
-            if (ns) return modules.includes(ns) ? `<span class="hl-module">${ns}</span>` : `<span class="hl-class">${ns}</span>`;
+            if (ns)
+              return modules.includes(ns)
+                ? `<span class="hl-module">${ns}</span>`
+                : `<span class="hl-class">${ns}</span>`;
             if (word) {
-                if (keywords.includes(word)) return `<span class="hl-keyword">${word}</span>`;
-                if (builtInTypes.includes(word)) return `<span class="hl-module">${word}</span>`;
-                if (modules.includes(word)) return `<span class="hl-module">${word}</span>`;
-                if (/^[A-Z]/.test(word)) return `<span class="hl-class">${word}</span>`;
-                return word;
+              if (keywords.includes(word))
+                return `<span class="hl-keyword">${word}</span>`;
+              if (builtInTypes.includes(word))
+                return `<span class="hl-module">${word}</span>`;
+              if (modules.includes(word))
+                return `<span class="hl-module">${word}</span>`;
+              if (/^[A-Z]/.test(word))
+                return `<span class="hl-class">${word}</span>`;
+              return word;
             }
             return match;
-        });
-    }
+          },
+        );
+      }
 
-    function updateHighlight() {
-        const input = document.getElementById('codeInput');
-        const highlight = document.getElementById('codeHighlight');
-        highlight.innerHTML = applySyntax(input.value) + '<br/>'; 
-    }
+      function updateHighlight() {
+        const input = document.getElementById("codeInput");
+        const highlight = document.getElementById("codeHighlight");
+        highlight.innerHTML = applySyntax(input.value) + "<br/>";
+      }
 
-    function syncScroll() {
-        const input = document.getElementById('codeInput');
-        const highlight = document.getElementById('codeHighlight');
+      function syncScroll() {
+        const input = document.getElementById("codeInput");
+        const highlight = document.getElementById("codeHighlight");
         highlight.scrollTop = input.scrollTop;
         highlight.scrollLeft = input.scrollLeft;
-    }
+      }
 
-    function switchTab(tab) {
-        document.getElementById('tab-output').style.display = tab === 'output' ? 'block' : 'none';
-        document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
-        document.getElementById('btn-output').className = tab === 'output' ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('btn-input').className = tab === 'input' ? 'tab-btn active' : 'tab-btn';
-    }
+      function switchTab(tab) {
+        document.getElementById("tab-output").style.display =
+          tab === "output" ? "block" : "none";
+        document.getElementById("tab-input").style.display =
+          tab === "input" ? "block" : "none";
+        document.getElementById("btn-output").className =
+          tab === "output" ? "tab-btn active" : "tab-btn";
+        document.getElementById("btn-input").className =
+          tab === "input" ? "tab-btn active" : "tab-btn";
+      }
 
-    // =========================================
-    // ANSI ESCAPE CODE FIX ADDED HERE
-    // =========================================
-    function ansiToHtml(text) {
-        return text.replace(/\x1b\[1;31m/g, '<span style="color: #ff7b72; font-weight: bold;">')
-                   .replace(/\x1b\[91m/g, '<span style="color: #ff7b72;">')   /* <- Added Bright Red (Your error color) */
-                   .replace(/\x1b\[1;32m/g, '<span style="color: #27c93f; font-weight: bold;">')
-                   .replace(/\x1b\[1;33m/g, '<span style="color: #ffbd2e; font-weight: bold;">')
-                   .replace(/\x1b\[1;37m/g, '<span style="color: #ffffff; font-weight: bold;">')
-                   .replace(/\x1b\[0m/g, '</span>')
-                   .replace(/\x1b\[[0-9;]*m/g, ''); /* <- Catch-All to strip unsupported ANSI codes so they don't break UI */
-    }
+      // =========================================
+      // ANSI ESCAPE CODE FIX ADDED HERE
+      // =========================================
+      function ansiToHtml(text) {
+        return text
+          .replace(
+            /\x1b\[1;31m/g,
+            '<span style="color: #ff7b72; font-weight: bold;">',
+          )
+          .replace(
+            /\x1b\[91m/g,
+            '<span style="color: #ff7b72;">',
+          ) /* <- Added Bright Red (Your error color) */
+          .replace(
+            /\x1b\[1;32m/g,
+            '<span style="color: #27c93f; font-weight: bold;">',
+          )
+          .replace(
+            /\x1b\[1;33m/g,
+            '<span style="color: #ffbd2e; font-weight: bold;">',
+          )
+          .replace(
+            /\x1b\[1;37m/g,
+            '<span style="color: #ffffff; font-weight: bold;">',
+          )
+          .replace(/\x1b\[0m/g, "</span>")
+          .replace(
+            /\x1b\[[0-9;]*m/g,
+            "",
+          ); /* <- Catch-All to strip unsupported ANSI codes so they don't break UI */
+      }
 
-    async function runCode() {
-        switchTab('output');
-        const out = document.getElementById('tab-output');
+      async function runCode() {
+        switchTab("output");
+        const out = document.getElementById("tab-output");
         out.style.color = "var(--text-muted)";
         out.innerText = "Compiling and executing via Flow-Wing JIT...";
         try {
-            const response = await fetch('/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: document.getElementById('codeInput').value, input: document.getElementById('stdInput').value })
-            });
-            const responseText = await response.text();
+          const response = await fetch("/run", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: document.getElementById("codeInput").value,
+              input: document.getElementById("stdInput").value,
+            }),
+          });
+          const responseText = await response.text();
 
-// Escape all control characters so JSON.parse doesn't choke
-const safeText = responseText.replace(/[\x00-\x1F]/g, c => 
-    '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')
-);
-            const result = JSON.parse(safeText);
-            out.style.color = "var(--text-main)";
-            out.innerHTML = ansiToHtml(result.output);
+          // Escape all control characters so JSON.parse doesn't choke
+          const safeText = responseText.replace(
+            /[\x00-\x1F]/g,
+            (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
+          );
+          const result = JSON.parse(safeText);
+          out.style.color = "var(--text-main)";
+          out.innerHTML = ansiToHtml(result.output);
         } catch (err) {
-            out.style.color = "#ff7b72";
-            out.innerText = "Execution failed: " + ansiToHtml(err.message);
+          out.style.color = "#ff7b72";
+          out.innerText = "Execution failed: " + ansiToHtml(err.message);
         }
-    }
-    updateHighlight();
-</script>
-</body>
+      }
+      updateHighlight();
+    </script>
+    <!-- Analytics. Loaded last and deferred so it can never delay the page,
+         and the whole file is a no-op if /track is not wired up. -->
+    <script src="/assets/track.js" defer></script>
+  </body>
 </html>
