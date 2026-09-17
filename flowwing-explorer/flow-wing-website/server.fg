@@ -53,6 +53,19 @@ fun fg_main() -> nthg {
         return :
     }
     const CURRENT_DIR: str = file::__DIR__ == "" ? "." : file::__DIR__
+    /; Pre-warm the sandbox image.
+    /;
+    /; The first `docker run` of a cold image faults its layers in from disk,
+    /; creates the container and starts the process. On a small VM that can
+    /; exceed the whole timeout budget, so the FIRST person to press Run got a
+    /; killed container and a blank console, while a second press worked
+    /; because the image was warm by then.
+    /;
+    /; Backgrounded with `&`: sys::exec returns at once, so the accept loop
+    /; starts serving immediately instead of waiting for the warm-up.
+    sys::exec("docker run --rm --network none flowwing-sandbox true >/dev/null 2>&1 &")
+    io::printLogln("warming the sandbox image in the background", "yellow")
+
     io::printLogln("Flow-Wing Live Environment running at http://127.0.0.1:8080", "cyan")
     while true {
         var req: vortex::Request, res: vortex::Response = app.accept()
@@ -113,10 +126,21 @@ fun fg_main() -> nthg {
             var inFile: str = subDir + "/input.txt"
             file::writeText(tempFile, userCode)
             file::writeText(inFile, stdInput)
-            var cmd: str = "timeout 5s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
+            /; 20s, not 5s. This budget covers the container STARTING and the
+            /; user program running. Five seconds left almost nothing for the
+            /; program once a cold container had eaten the rest. A runaway loop
+            /; is still killed, just later.
+            var cmd: str = "timeout 20s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
             var output: str = sys::exec(cmd)
             /; Clean up the unique submission files immediately after execution
             sys::exec("rm -rf " + subDir)
+            /; An empty result is indistinguishable from success in the UI: the
+            /; console simply stays blank, which is what a cold start looked like.
+            /; Empty means the container was killed by `timeout`, failed to start,
+            /; or the program genuinely printed nothing. Say which.
+            if output == "" {
+                output = "[no output]\n\nThe program printed nothing, or the sandbox timed out.\nIf this was the first run after a deploy, press Run again: the container image was still warming up."
+            }
             /; Safely escape JSON strings to prevent frontend crashes on compilation errors
             output = text::replace(output, "\\", "\\\\")
             output = text::replace(output, "\"", "\\\"")

@@ -2260,7 +2260,16 @@ fgMain()</textarea
           );
           const result = JSON.parse(safeText);
           out.style.color = "var(--text-main)";
-          out.innerHTML = ansiToHtml(result.output);
+          // Belt and braces for the same blank-console bug the server now guards:
+          // never paint an empty string, because it is indistinguishable from a hang.
+          var shown = (result.output || "").trim();
+          if (!shown) {
+            out.style.color = "var(--text-muted)";
+            out.innerText = "[no output]\n\nThe program printed nothing, or the sandbox timed out.\n"
+                          + "If this is the first run after a deploy, press Run again.";
+          } else {
+            out.innerHTML = ansiToHtml(result.output);
+          }
         } catch (err) {
           out.style.color = "#ff7b72";
           out.innerText = "Execution failed: " + ansiToHtml(err.message);
