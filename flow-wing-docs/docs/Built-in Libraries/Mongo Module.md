@@ -133,6 +133,19 @@ if hit == "" {
 
 For multiple results, open a cursor with `find(filterJson, limit)` (pass `limit = 0` for no limit). Read with `next()` until it returns `""`, then `close()`.
 
+:::caution `find` has no order — pair every `limit` with `findSorted`
+`find` returns documents in **natural order**, which is roughly insertion order:
+oldest first. Combined with a `limit` that means you get the **oldest** *n*
+documents, not the newest.
+
+This stays invisible while a collection holds fewer than `limit` documents,
+because "the oldest *n*" and "all of them" are the same set. The moment it grows
+past `limit`, the same query silently starts returning stale data — and keeps
+returning it as new documents pile up behind the cap.
+
+Use `findSorted` whenever you pass a `limit`.
+:::
+
 <CodeBlock code={
 `bring mongo
 
@@ -146,6 +159,31 @@ cur.close()
 `} language="fg"/>
 
 > **Always `close()` cursors** to release the server-side cursor and the local handle slot. `mc.close()` also clears every open cursor as a safety net.
+
+### Sorted cursor
+
+`findSorted(filterJson, limit, sortJson)` is `find` with an explicit order.
+`sortJson` is a Mongo sort document: `-1` is descending, `1` ascending.
+
+<CodeBlock code={
+`bring mongo
+
+/; the 100 MOST RECENT signups, not the 100 oldest
+var cur: mongo::Cursor = coll.findSorted("{\\"k\\":\\"signup\\"}", 100, "{\\"ts\\": -1}")
+var s: str = cur.next()
+while s != "" {
+    println(s)
+    s = cur.next()
+}
+cur.close()
+`} language="fg"/>
+
+With a sort in place, hitting the `limit` drops the **oldest** matches — the only
+end that is safe to lose.
+
+A malformed `sortJson` is reported through `mongo::lastError()` and returns an
+empty cursor. It is never ignored, because silently dropping the sort would put
+the oldest-first behaviour back with nothing to reveal it.
 
 ## Error handling
 
@@ -176,7 +214,8 @@ if !ok {
 | `.insertOne(json)` | `bool` | Inserts one JSON document |
 | `.insertMany(jsonArr)` | `bool` | Inserts each element of a JSON array of documents |
 | `.findOne(filterJson)` | `str` | First match as JSON, or `""` for none/error |
-| `.find(filterJson, limit)` | `mongo::Cursor` | Opens a cursor; `limit = 0` means unlimited |
+| `.find(filterJson, limit)` | `mongo::Cursor` | Opens a cursor in **natural order (oldest first)**; `limit = 0` means unlimited |
+| `.findSorted(filterJson, limit, sortJson)` | `mongo::Cursor` | Same, with an explicit sort — e.g. `"{\\"ts\\": -1}"` for newest first |
 | `.count(filterJson)` | `int64` | Document count; `-1` on error; `""` filter = `{}` |
 
 ## `mongo::Cursor`

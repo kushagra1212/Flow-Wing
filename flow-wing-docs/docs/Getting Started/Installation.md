@@ -284,14 +284,31 @@ git config --system core.longpaths true
 git clone https://github.com/kushagra1212/Flow-Wing.git
 cd Flow-Wing
 
-# Download and build LLVM, GTest, raylib etc.
+# Fetch LLVM (prebuilt) and build GTest, raylib etc.
 make deps-install-debug    # Debug dependencies (~hundreds of MB)
 # or for release builds:
 # make deps-install-release
 ```
 
-This downloads and compiles the following from source via CMake ExternalProject:
-- **LLVM 17** (llvmorg-17.0.6 tag) — with Clang, LLD projects
+**LLVM is downloaded, not compiled.** A prebuilt LLVM 17.0.6 archive is fetched
+from the `deps-llvm-17.0.6` release and verified against a recorded SHA-256. This
+is the single biggest factor in first-build time: compiling LLVM from source
+takes roughly **54 minutes**, while downloading it takes about **2 minutes**.
+
+If no prebuilt artifact is published for your platform and configuration, the
+build prints a warning and falls back to a source build by itself — it does not
+fail.
+
+To compile LLVM from source deliberately:
+
+```bash
+make deps-install-release FW_LLVM_FROM_SOURCE=ON
+# or as an environment variable
+FW_LLVM_FROM_SOURCE=1 make deps-install-release
+```
+
+Everything else below is still built from source via CMake ExternalProject:
+- **LLVM 17** (llvmorg-17.0.6 tag) — with Clang, LLD projects — **downloaded unless `FW_LLVM_FROM_SOURCE=ON`**
 - **Google Test** v1.17.0 — for unit testing
 - **raylib** 5.5 — game/media library (static build)
 
@@ -505,7 +522,7 @@ Both commands should print `1`, `2`, `3`, followed by the error's string represe
 | `LLVM 17 required but not found` after deps build | Dependencies not built or wrong prefix | Ensure `.fw_dependencies_debug/install/` exists; re-run `make deps-install-debug` |
 | LSP tests fail: compiler path error | Compiler binary at non-default location | Set `FLOWWING_COMPILER_PATH=/absolute/path/to/build/sdk/bin/FlowWing` env var, or configure `FlowWing.compilerPath` in VS Code settings |
 | Windows: long path errors during git clone | Git max path limit on Windows | Run `git config --system core.longpaths true` before cloning |
-| Slow dependency builds (LLVM takes 30+ min) | Single-threaded build by default | Set `JOBS=-j<N>` to use more cores, e.g. `make deps-install-debug JOBS=-j8` |
+| Slow dependency build (LLVM compiling for 30+ min) | The prebuilt LLVM artifact was skipped, so it fell back to a source build | Look for a `WARNING` about a missing artifact or SHA-256 earlier in the log. To use more cores meanwhile, set `JOBS=-j<N>`, e.g. `make deps-install-debug JOBS=-j8` |
 
 ### Cleaning Builds
 
@@ -557,7 +574,7 @@ You now have the **AOT** compiler (build a native app from **`.fg`**) and the **
 | **Windows 64-bit** | **`.exe` installer** or the **windows-x86_64** **`.zip`** |
 | **Linux 64-bit (x86_64)** | **`.deb`** (where that fits your distro) or the **linux-x86_64** **`.zip`** |
 
-Release assets are named with the **version tag** (for example **`FlowWing-v1.0.4-macos-arm64.pkg`**)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
+Release assets are named with the **version tag** (for example **`FlowWing-<version>-macos-arm64.pkg`**, where `<version>` is the tag you are downloading, such as `v1.0.14`)—pick the same tag on the [releases](https://github.com/kushagra1212/Flow-Wing/releases) page for every file you download.
 
 A full **SDK** install gives you the **`bin`** tools (**`flowwing` / `FlowWing`**, **`flowwing-jit` / `FlowWing-jit`**) plus **`lib/modules/`** (standard **`.fg` library**) and the pieces the compiler needs to **link** AOT output on your machine, without you installing **LLVM** yourself for normal use.
 

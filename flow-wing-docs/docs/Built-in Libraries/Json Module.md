@@ -75,7 +75,7 @@ Parse a JSON string into a `JsonNode` tree:
 <CodeBlock code={
 `bring json
 
-var raw: str = "{\"x\":10,\"y\":[1,2,3],\"ok\":true}"
+var raw: str = "{\\"x\\":10,\\"y\\":[1,2,3],\\"ok\\":true}"
 var root: json::JsonNode = json::parse(raw)
 
 println("x = ", root.get("x").numVal)
