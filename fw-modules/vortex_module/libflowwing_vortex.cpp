@@ -273,6 +273,7 @@ int64_t vortex_server_accept(int64_t handle) { return fw_http_accept(handle); }
 
 const char *vortex_req_method(int64_t r) { return fw_http_req_method(r); }
 const char *vortex_req_path(int64_t r)   { return fw_http_req_path(r); }
+const char *vortex_req_query(int64_t r)  { return fw_http_req_query(r); }
 const char *vortex_req_body(int64_t r)   { return fw_http_req_body(r); }
 
 void vortex_res_status(int64_t r, int32_t status) {
@@ -311,7 +312,10 @@ void vortex_res_send_file(int64_t r, const char *filepath,
   oss << file.rdbuf();
   std::string data = oss.str();
   if (content_type) fw_http_res_header(r, "Content-Type", content_type);
-  fw_http_res_send(r, data.c_str());
+  // .data()/.size(), NOT .c_str(): the file was read binary-safe into `data`,
+  // and c_str() would hand the sender a NUL-terminated view that stops at the
+  // first zero byte. That truncated every PNG to its 8-byte signature.
+  fw_http_res_send_n(r, data.data(), data.size());
 }
 
 } // extern "C"

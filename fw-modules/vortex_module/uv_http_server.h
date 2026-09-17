@@ -45,6 +45,7 @@
 #ifndef FW_UV_HTTP_SERVER_H
 #define FW_UV_HTTP_SERVER_H
 
+#include <cstddef>   // size_t, for the length-aware send below
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -64,12 +65,15 @@ int64_t fw_http_accept(int64_t server);
 /* Request accessors. Each returns GC memory owned by FlowWing. */
 const char *fw_http_req_method(int64_t req);
 const char *fw_http_req_path(int64_t req);
+const char *fw_http_req_query(int64_t req);  // '?' onwards, without the '?'
 const char *fw_http_req_body(int64_t req);
 
 /* Response building. */
 void fw_http_res_status(int64_t req, int status);
 void fw_http_res_header(int64_t req, const char *key, const char *value);
 void fw_http_res_send(int64_t req, const char *body);
+// Binary-safe: use when the body may contain NUL bytes (images, archives).
+void fw_http_res_send_n(int64_t req, const char *body, size_t len);
 
 /* Chunked streaming. */
 void fw_http_res_stream_begin(int64_t req, const char *content_type);

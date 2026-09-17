@@ -14,6 +14,7 @@ fun vortex_server_accept(handle: as int64) -> as int64 decl
 fun vortex_req_method(req_handle: as int64) -> as str decl
 
 fun vortex_req_path(req_handle: as int64) -> as str decl
+fun vortex_req_query(req_handle: as int64) -> as str decl
 
 fun vortex_req_body(req_handle: as int64) -> as str decl
 
@@ -53,11 +54,13 @@ class Request {
     var _handle: int64
     var method: str
     var path: str
+    var query: str
     var body: str
     init(handle: int64) {
         self._handle = handle
         self.method = vortex_req_method(handle)
         self.path = vortex_req_path(handle)
+        self.query = vortex_req_query(handle)
         self.body = vortex_req_body(handle)
     }
     getMethod() -> str {
@@ -65,6 +68,16 @@ class Request {
     }
     getPath() -> str {
         return self.path
+    }
+    /; The query string, without the leading '?'. Empty when there is none.
+    /;
+    /; getPath() excludes it on purpose. It used to include it, so a route
+    /; written as `path == "/track"` stopped matching the moment a client
+    /; appended ?utm_source=..., and a cache-busted asset like
+    /; /assets/admin.js?v=2 was looked up as a file with '?v=2' in its name
+    /; and answered 404.
+    getQuery() -> str {
+        return self.query
     }
     getBody() -> str {
         return self.body

@@ -82,7 +82,8 @@ struct FwConn;
 // be long after the parser produced it.
 struct FwRequest {
   std::string method;
-  std::string path;
+  std::string path;   // path ONLY, never the query string
+  std::string query;  // everything after '?', without the '?'
   std::string body;
 
   // Response state, filled in by the FlowWing side.
@@ -283,7 +284,25 @@ int on_message_complete(llhttp_t *p) {
 
   FwRequest *r = new FwRequest();
   r->method = llhttp_method_name((llhttp_method_t)p->method);
-  r->path = c->cur_url;
+  // Split the query off the path.
+  //
+  // llhttp hands us the raw request target, so cur_url is "/a/b.js?v=2" and
+  // assigning it straight to path made every comparison and every file lookup
+  // see the query as part of the name. A cache-busted asset 404'd, and any
+  // route written as `path == "/track"` silently stopped matching once a query
+  // was appended. Observed live: /assets/admin.js?v=2 -> 404 while
+  // /assets/admin.js -> 200, which left the admin dashboard with no JS at all.
+  {
+    const std::string &u = c->cur_url;
+    std::string::size_type q = u.find('?');
+    if (q == std::string::npos) {
+      r->path = u;
+      r->query.clear();
+    } else {
+      r->path = u.substr(0, q);
+      r->query = u.substr(q + 1);
+    }
+  }
   r->body = c->cur_body;
   r->conn = c;
   r->keep_alive = llhttp_should_keep_alive(p) != 0;
@@ -441,6 +460,10 @@ const char *fw_http_req_path(int64_t h) {
   return h ? gc_str(reinterpret_cast<FwRequest *>(h)->path) : gc_str("");
 }
 
+const char *fw_http_req_query(int64_t h) {
+  return h ? gc_str(reinterpret_cast<FwRequest *>(h)->query) : gc_str("");
+}
+
 const char *fw_http_req_body(int64_t h) {
   return h ? gc_str(reinterpret_cast<FwRequest *>(h)->body) : gc_str("");
 }
@@ -458,13 +481,20 @@ void fw_http_res_header(int64_t h, const char *key, const char *value) {
   r->headers += "\r\n";
 }
 
-void fw_http_res_send(int64_t h, const char *body) {
+// Length-aware body send.
+//
+// fw_http_res_send takes a NUL-terminated C string, which silently truncates
+// any body containing a zero byte. Every binary file does: a PNG is 8 signature
+// bytes followed by 0x00, so sendStaticFile answered 200 with exactly 8 bytes
+// and every image on the site rendered as a broken icon. Text assets were fine,
+// which is why it went unnoticed. Callers holding a known length must use this.
+void fw_http_res_send_n(int64_t h, const char *body, size_t len) {
   if (!h) return;
   FwRequest *r = reinterpret_cast<FwRequest *>(h);
   if (r->done) return;
   r->done = true;
 
-  std::string payload = body ? body : "";
+  std::string payload = (body && len) ? std::string(body, len) : std::string();
   char head[256];
   std::snprintf(head, sizeof(head),
                 "HTTP/1.1 %d %s\r\nContent-Length: %zu\r\nConnection: %s\r\n",
@@ -483,6 +513,10 @@ void fw_http_res_send(int64_t h, const char *body) {
     c->server->live.erase(r);
   }
   delete r;
+}
+
+void fw_http_res_send(int64_t h, const char *body) {
+  fw_http_res_send_n(h, body, body ? std::strlen(body) : 0);
 }
 
 void fw_http_res_stream_begin(int64_t h, const char *content_type) {
