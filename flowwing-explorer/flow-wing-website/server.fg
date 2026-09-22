@@ -1,3 +1,34 @@
+/; =========================================================
+/;  The Flow-Wing website, served by Flow-Wing
+/;
+/;  ---- Shape of this server ----
+/;
+/;  The accept loop is a TASK, not top-level code:
+/;
+/;      fg_main()  ->  spawn serverLoop(app)  ->  spawn handleRequest(req, res)
+/;
+/;  That matters. `spawn` only QUEUES work, and the queue drains after the
+/;  top-level body has finished. This file used to run `while true { accept() }`
+/;  directly inside fg_main, so:
+/;
+/;    - the loop never finished, so nothing spawned inside it could ever run
+/;    - accept() saw fw_sched_in_task() == false and took the blocking branch,
+/;      `uv_run(loop, UV_RUN_ONCE)`, which owns the thread until a connection
+/;      arrives
+/;
+/;  The result was one request at a time, start to finish. A visitor loading the
+/;  page waited behind whoever was ahead of them.
+/;
+/;  Once the loop is itself a task, accept() suspends instead of blocking, and
+/;  the scheduler runs queued handlers while it waits for the next connection.
+/;  Same shape as the portfolio site.
+/;
+/;  ---- The one route concurrency does NOT help ----
+/;
+/;  POST /run calls sys::exec, which is a blocking fork/exec with no libuv
+/;  threadpool behind it. It stops every task for as long as docker takes. See
+/;  the comment on runSandbox below.
+/; =========================================================
 bring vortex
 bring file
 bring text
@@ -6,29 +37,277 @@ bring Err
 bring json
 bring sys
 bring mongo
+/; =========================================================
+/;  Shared state
+/;
+/;  Globals on purpose: a spawned task reads them without them being copied into
+/;  every argument block. Written once in fg_main, read-only afterwards.
+/;
+/;  gEvents stays null when no Mongo URI was given. Every read of it is guarded
+/;  by gTrackingOn, so the null is never dereferenced.
+/; =========================================================
+var gCurrentDir: str = "."
+var gAdminPath: str = ""
+var gAdminEventsPath: str = ""
+var gEvents: mongo::Collection = null
+var gTrackingOn: bool = false
+/; =========================================================
+/;  GET / -> the landing page
+/;
+/;  template.html is read from disk on every request on purpose. The page is
+/;  edited often during development, and caching it would mean restarting the
+/;  server to see a change. Under the task scheduler this read SUSPENDS the
+/;  handler rather than blocking the loop, so other requests keep moving while
+/;  the threadpool does the read.
+/; =========================================================
+fun sendIndex(res: vortex::Response) -> nthg {
+    var tplPath: str = gCurrentDir + "/template.html"
+    var content: str, rerr: Err::Result = file::readText(tplPath)
+    if Err::isErr(rerr) {
+        res.status(500).header("Content-Type", "text/html").send("<h1>Missing template.html</h1>")
+        return :
+    }
+    content = text::replace(content, "{{TITLE}}", "Flow-Wing")
+    content = text::replace(content, "{{VERSION}}", "Build v1.0.0-rc.1")
+    /; Exact Tagline Match
+    content = text::replace(content, "{{TAGLINE}}", "Built on LLVM. Flow-Wing combines a strict static core with supported dynamic primitives.")
+    content = text::replace(content, "{{DOCS_URL}}", "https://flow-wing-docs.vercel.app/")
+    content = text::replace(content, "{{GITHUB_URL}}", "https://github.com/kushagra1212/Flow-Wing")
+    content = text::replace(content, "{{RELEASE_URL}}", "https://github.com/kushagra1212/Flow-Wing/releases")
+    content = text::replace(content, "{{CARD_1_TITLE}}", "Hybrid Type System")
+    content = text::replace(content, "{{CARD_1_DESC}}", "Use strict type and class definitions for core architecture, or utilize supported dyn primitives for flexible variable assignments and scripting.")
+    content = text::replace(content, "{{CARD_2_TITLE}}", "LLVM Backend")
+    content = text::replace(content, "{{CARD_2_DESC}}", "Compiles directly to optimized machine code using the LLVM infrastructure. The toolchain produces native binaries for macOS, Windows, and Linux without requiring a heavy runtime or interpreter.")
+    content = text::replace(content, "{{CARD_3_TITLE}}", "Standard Library")
+    content = text::replace(content, "{{CARD_3_DESC}}", "Built-in modules cover core requirements including file I/O, JSON serialization, and system utilities. The SDK also includes integrated bindings for Raylib graphics and the Vortex HTTP framework.")
+    /; Cards 4 and 5 cover what the first three left out: the runtime.
+    /;
+    /; Concurrency and async I/O were briefly two cards, which was wrong. They
+    /; are one feature described from two ends. Waiting on a socket IS what a
+    /; task does, so splitting them implied the language had two unrelated
+    /; systems.
+    /;
+    /; Kept at the same level as the cards above: what it does for the reader,
+    /; not how it is built. The internals belong in the docs, where they can be
+    /; stated precisely instead of compressed into three lines.
+    content = text::replace(content, "{{CARD_4_TITLE}}", "Concurrency")
+    content = text::replace(content, "{{CARD_4_DESC}}", "Run thousands of tasks on a single thread with no callbacks, no async keywords, and no locks. Each task keeps its own stack, so code that waits on a timer, a file, or a network socket still reads straight down the page. Waiting tasks step aside and let the others run.")
+    content = text::replace(content, "{{CARD_5_TITLE}}", "Automatic Memory")
+    content = text::replace(content, "{{CARD_5_DESC}}", "Memory is managed for you. There is no manual free, no ownership model to learn, and no lifetime annotations to satisfy. A precise collector tracks exactly what is still reachable and reclaims everything else.")
+    res.status(200).header("Content-Type", "text/html; charset=utf-8").send(content)
+}
+
+/; =========================================================
+/;  POST /run -> compile and run user code in a sandbox
+/;
+/;  This is THE EXECUTION ENGINE, and it is also the one route that does not
+/;  benefit from the scheduler.
+/;
+/;  sys::exec is a blocking fork/exec. It is not routed through the libuv
+/;  threadpool the way file::readText is, so it does not suspend the task. It
+/;  stops the whole loop, including accept(), for as long as docker runs, up to
+/;  the 20 second timeout below.
+/;
+/;  That is no worse than before this file used spawn, because before it the
+/;  server was sequential anyway. It does mean one visitor pressing Run can
+/;  delay every other visitor. Moving sys::exec onto the threadpool is the fix,
+/;  and it belongs in the runtime, not here.
+/; =========================================================
+fun runSandbox(req: vortex::Request, res: vortex::Response) -> nthg {
+    var body: str = req.getBody()
+    var parsed: json::JsonNode = json::parse(body)
+    var userCode: str = parsed.get("code").strVal
+    var stdInput: str = parsed.get("input").strVal
+    /; Generate a unique identifier using the system timestamp to prevent race conditions
+    var uniqueId: str = text::replace(sys::exec("date +%s%N"), "\n", "")
+    var subDir: str = "/tmp/submissions/" + uniqueId
+    sys::exec("mkdir -p " + subDir)
+    var tempFile: str = subDir + "/code.fg"
+    var inFile: str = subDir + "/input.txt"
+    file::writeText(tempFile, userCode)
+    file::writeText(inFile, stdInput)
+    /; 20s, not 5s. This budget covers the container STARTING and the user
+    /; program running. Five seconds left almost nothing for the program once a
+    /; cold container had eaten the rest. A runaway loop is still killed, just
+    /; later.
+    var cmd: str = "timeout 20s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
+    var output: str = sys::exec(cmd)
+    /; Clean up the unique submission files immediately after execution
+    sys::exec("rm -rf " + subDir)
+    /; An empty result is indistinguishable from success in the UI: the console
+    /; simply stays blank, which is what a cold start looked like. Empty means
+    /; the container was killed by `timeout`, failed to start, or the program
+    /; genuinely printed nothing. Say which.
+    if output == "" {
+        output = "[no output]\n\nThe program printed nothing, or the sandbox timed out.\nIf this was the first run after a deploy, press Run again: the container image was still warming up."
+    }
+    /; Safely escape JSON strings to prevent frontend crashes on compilation errors
+    output = text::replace(output, "\\", "\\\\")
+    output = text::replace(output, "\"", "\\\"")
+    output = text::replace(output, "\n", "\\n")
+    output = text::replace(output, "\r", "")
+    var responseObj: json::JsonNode = json::newObject()
+    responseObj.put("output", json::newString(output))
+    res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
+}
+
+/; =========================================================
+/;  GET /admin/<token>/events -> newest events as JSON
+/;
+/;  findSorted, not find. find() cannot express an order, so the server answers
+/;  in natural order, oldest first, and a limit would then return the OLDEST
+/;  2000 documents. That stays invisible until the collection outgrows the
+/;  limit, at which point the dashboard silently freezes on old data. Requires
+/;  the mongo module's findSorted.
+/;
+/;  Streamed, not concatenated. Nothing larger than one document is ever held.
+/; =========================================================
+fun sendAdminEvents(res: vortex::Response) -> nthg {
+    if !gTrackingOn {
+        res.status(503).header("Content-Type", "application/json").send("[]")
+        return :
+    }
+    var cur: mongo::Cursor = gEvents.findSorted("{}", 2000, "{\"ts\": -1}")
+    res.status(200).streamBegin("application/json")
+    res.streamWrite("[")
+    var s: str = cur.next()
+    var first: bool = true
+    while s != "" {
+        if first {
+            first = false
+        } else {
+            res.streamWrite(",")
+        }
+        res.streamWrite(s)
+        s = cur.next()
+    }
+    res.streamWrite("]")
+    res.streamEnd()
+    cur.close()
+}
+
+/; Dynamically assign the correct MIME type.
+/;
+/; .js and .css were missing once and fell through to image/x-icon. A browser
+/; will not execute a script served as an image, so any asset added here, the
+/; tracker for one, would silently never run. The failure is invisible in the
+/; server log.
+fun mimeForAsset(p: text::Text) -> str {
+    var contentType: str = "image/x-icon"
+    if p.endsWith(".png") {
+        contentType = "image/png"
+    } else if p.endsWith(".js") {
+        contentType = "text/javascript; charset=utf-8"
+    } else if p.endsWith(".css") {
+        contentType = "text/css; charset=utf-8"
+    } else if p.endsWith(".svg") {
+        contentType = "image/svg+xml"
+    } else if p.endsWith(".html") {
+        contentType = "text/html; charset=utf-8"
+    } else if p.endsWith(".webmanifest") {
+        contentType = "application/manifest+json"
+    }
+    return contentType
+}
+
+/; =========================================================
+/;  One request. Runs as its own task.
+/;
+/;  Routes are ordered by how often they are hit, so the common case does the
+/;  fewest comparisons. `new text::Text(path)` is built only in the /assets/
+/;  branch, not for every request.
+/; =========================================================
+fun handleRequest(req: vortex::Request, res: vortex::Response) -> nthg {
+    var method: str = req.getMethod()
+    var path: str = req.getPath()
+    /; === GET / -> the landing page ===
+    if method == "GET" && path == "/" {
+        sendIndex(res)
+        return :
+    }
+    /; === GET /assets/* -> css / js / icons ===
+    if method == "GET" {
+        var pathAsText: text::Text = new text::Text(path)
+        if pathAsText.startsWith("/assets/") {
+            res.status(200).sendStaticFile(gCurrentDir + pathAsText.get(), mimeForAsset(pathAsText))
+            return :
+        }
+    }
+    /; === POST /track -> store one event ===
+    /;
+    /; Answers 204 even when tracking is off or the insert fails. The tracker
+    /; uses sendBeacon and cannot act on an error anyway, and a visitor must
+    /; never see the page degrade because analytics is down. Failures go to the
+    /; server log, which is where someone can actually act on them.
+    if method == "POST" && path == "/track" {
+        var body: str = req.getBody()
+        if gTrackingOn && body != "" {
+            if !gEvents.insertOne(body) {
+                io::printErrorLogln("track insert failed: " + mongo::lastError(), "red")
+            }
+        }
+        res.status(204).send("")
+        return :
+    }
+    /; === POST /run -> the sandbox ===
+    if method == "POST" && path == "/run" {
+        runSandbox(req, res)
+        return :
+    }
+    /; === GET /admin/<token>/events -> JSON feed ===
+    if gAdminEventsPath != "" && method == "GET" && path == gAdminEventsPath {
+        sendAdminEvents(res)
+        return :
+    }
+    /; === GET /admin/<token> -> the dashboard ===
+    if gAdminPath != "" && method == "GET" && path == gAdminPath {
+        res.status(200).sendStaticFile(gCurrentDir + "/assets/admin.html", "text/html; charset=utf-8")
+        return :
+    }
+    /; === everything else ===
+    res.status(404).header("Content-Type", "text/html").send("<h1>404</h1>")
+}
+
+/; =========================================================
+/;  The accept loop, as a task.
+/;
+/;  Two spawns matter here, and they do different jobs:
+/;
+/;    spawn serverLoop(app)      lets accept() SUSPEND instead of owning the
+/;                               thread, so queued handlers get to run
+/;    spawn handleRequest(...)   returns to accept() at once, so the kernel's
+/;                               backlog keeps draining while a handler works
+/; =========================================================
+fun serverLoop(app: vortex::Server) -> nthg {
+    while true {
+        var req: vortex::Request, res: vortex::Response = app.accept()
+        if req == null {
+            continue
+        }
+        spawn handleRequest(req, res)
+    }
+}
 
 /; =========================================================
 /;  Analytics
 /;
 /;  Same shape as the portfolio site: the browser POSTs one JSON document per
-/;  event to /track, and /admin/<token>/events reads them back newest-first.
+/;  event to /track, and /admin/<token>/events reads them back newest first.
 /;
-/;  Both are OPTIONAL. Without a Mongo URI the server runs exactly as before —
-/;  /track answers 204 and discards, /admin answers 404. A landing page must
-/;  not refuse to boot because an analytics database is unreachable.
+/;  Both are OPTIONAL. Without a Mongo URI the server runs exactly as before:
+/;  /track answers 204 and discards, /admin answers 404. A landing page must not
+/;  refuse to boot because an analytics database is unreachable.
 /; =========================================================
 fun fg_main() -> nthg {
+    gCurrentDir = file::__DIR__ == "" ? "." : file::__DIR__
     var mongoUri: str = sys::getArg(1)
     var adminToken: str = sys::getArg(2)
-
-    var events: mongo::Collection = null
-    var trackingOn: bool = false
     if mongoUri != "" {
         var mc: mongo::Client = new mongo::Client(mongoUri)
         if mc.isOk() {
-            events = mc.getCollection("flowwing", "events")
-            trackingOn = true
-            /; Never log mongoUri itself — an Atlas URI carries the password in
+            gEvents = mc.getCollection("flowwing", "events")
+            gTrackingOn = true
+            /; Never log mongoUri itself. An Atlas URI carries the password in
             /; plain text and this line would put it in `docker logs` on every
             /; start, where it persists on disk.
             io::printLogln("analytics on (db flowwing)", "green")
@@ -38,193 +317,31 @@ fun fg_main() -> nthg {
     } else {
         io::printLogln("analytics off (no MONGO_URI given)", "yellow")
     }
-
-    var adminPath: str = ""
-    var adminEventsPath: str = ""
     if adminToken != "" {
-        adminPath = "/admin/" + adminToken
-        adminEventsPath = adminPath + "/events"
+        gAdminPath = "/admin/" + adminToken
+        gAdminEventsPath = gAdminPath + "/events"
     }
-
     var app: vortex::Server = new vortex::Server()
     var err: Err::Result = app.listen(8080)
     if Err::isErr(err) {
         io::printErrorLogln("Failed to start server", "red")
         return :
     }
-    const CURRENT_DIR: str = file::__DIR__ == "" ? "." : file::__DIR__
     /; Pre-warm the sandbox image.
     /;
     /; The first `docker run` of a cold image faults its layers in from disk,
     /; creates the container and starts the process. On a small VM that can
     /; exceed the whole timeout budget, so the FIRST person to press Run got a
-    /; killed container and a blank console, while a second press worked
-    /; because the image was warm by then.
+    /; killed container and a blank console, while a second press worked because
+    /; the image was warm by then.
     /;
     /; Backgrounded with `&`: sys::exec returns at once, so the accept loop
     /; starts serving immediately instead of waiting for the warm-up.
     sys::exec("docker run --rm --network none flowwing-sandbox true >/dev/null 2>&1 &")
     io::printLogln("warming the sandbox image in the background", "yellow")
-
     io::printLogln("Flow-Wing Live Environment running at http://127.0.0.1:8080", "cyan")
-    while true {
-        var req: vortex::Request, res: vortex::Response = app.accept()
-        if req == null {
-            continue
-        }
-        var method: str = req.getMethod()
-        var path: str = req.getPath()
-        var pathAsText: text::Text = new text::Text(path)
-        if method == "GET" && path == "/" {
-            var tplPath: str = CURRENT_DIR + "/template.html"
-            var content: str, rerr: Err::Result = file::readText(tplPath)
-            if Err::isErr(rerr) {
-                res.status(500).header("Content-Type", "text/html").send("<h1>Missing template.html</h1>")
-            } else {
-                content = text::replace(content, "{{TITLE}}", "Flow-Wing")
-                content = text::replace(content, "{{VERSION}}", "Build v1.0.0-rc.1")
-                /; Exact Tagline Match
-                content = text::replace(content, "{{TAGLINE}}", "Built on LLVM. Flow-Wing combines a strict static core with supported dynamic primitives.")
-                content = text::replace(content, "{{DOCS_URL}}", "https://flow-wing-docs.vercel.app/")
-                content = text::replace(content, "{{GITHUB_URL}}", "https://github.com/kushagra1212/Flow-Wing")
-                content = text::replace(content, "{{RELEASE_URL}}", "https://github.com/kushagra1212/Flow-Wing/releases")
-                content = text::replace(content, "{{CARD_1_TITLE}}", "Hybrid Type System")
-                content = text::replace(content, "{{CARD_1_DESC}}", "Use strict type and class definitions for core architecture, or utilize supported dyn primitives for flexible variable assignments and scripting.")
-                content = text::replace(content, "{{CARD_2_TITLE}}", "LLVM Backend")
-                content = text::replace(content, "{{CARD_2_DESC}}", "Compiles directly to optimized machine code using the LLVM infrastructure. The toolchain produces native binaries for macOS, Windows, and Linux without requiring a heavy runtime or interpreter.")
-                content = text::replace(content, "{{CARD_3_TITLE}}", "Standard Library")
-                content = text::replace(content, "{{CARD_3_DESC}}", "Built-in modules cover core requirements including file I/O, JSON serialization, and system utilities. The SDK also includes integrated bindings for Raylib graphics and the Vortex HTTP framework.")
-
-                /; Cards 4 and 5 cover what the first three left out: the runtime.
-                /;
-                /; Concurrency and async I/O were briefly two cards, which was
-                /; wrong — they are one feature described from two ends. Waiting
-                /; on a socket IS what a task does, so splitting them implied the
-                /; language had two unrelated systems.
-                /;
-                /; Kept at the same level as the cards above: what it does for the
-                /; reader, not how it is built. The internals belong in the docs,
-                /; where they can be stated precisely instead of compressed into
-                /; three lines.
-                content = text::replace(content, "{{CARD_4_TITLE}}", "Concurrency")
-                content = text::replace(content, "{{CARD_4_DESC}}", "Run thousands of tasks on a single thread with no callbacks, no async keywords, and no locks. Each task keeps its own stack, so code that waits on a timer, a file, or a network socket still reads straight down the page. Waiting tasks step aside and let the others run.")
-                content = text::replace(content, "{{CARD_5_TITLE}}", "Automatic Memory")
-                content = text::replace(content, "{{CARD_5_DESC}}", "Memory is managed for you. There is no manual free, no ownership model to learn, and no lifetime annotations to satisfy. A precise collector tracks exactly what is still reachable and reclaims everything else.")
-                res.status(200).header("Content-Type", "text/html; charset=utf-8").send(content)
-            }
-        } /; === THE REAL EXECUTION ENGINE ===
-        else if method == "POST" && path == "/run" {
-            var body: str = req.getBody()
-            var parsed: json::JsonNode = json::parse(body)
-            var userCode: str = parsed.get("code").strVal
-            var stdInput: str = parsed.get("input").strVal
-            /; Generate a unique identifier using the system timestamp to prevent race conditions
-            var uniqueId: str = text::replace(sys::exec("date +%s%N"), "\n", "")
-            var subDir: str = "/tmp/submissions/" + uniqueId
-            sys::exec("mkdir -p " + subDir)
-            var tempFile: str = subDir + "/code.fg"
-            var inFile: str = subDir + "/input.txt"
-            file::writeText(tempFile, userCode)
-            file::writeText(inFile, stdInput)
-            /; 20s, not 5s. This budget covers the container STARTING and the
-            /; user program running. Five seconds left almost nothing for the
-            /; program once a cold container had eaten the rest. A runaway loop
-            /; is still killed, just later.
-            var cmd: str = "timeout 20s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
-            var output: str = sys::exec(cmd)
-            /; Clean up the unique submission files immediately after execution
-            sys::exec("rm -rf " + subDir)
-            /; An empty result is indistinguishable from success in the UI: the
-            /; console simply stays blank, which is what a cold start looked like.
-            /; Empty means the container was killed by `timeout`, failed to start,
-            /; or the program genuinely printed nothing. Say which.
-            if output == "" {
-                output = "[no output]\n\nThe program printed nothing, or the sandbox timed out.\nIf this was the first run after a deploy, press Run again: the container image was still warming up."
-            }
-            /; Safely escape JSON strings to prevent frontend crashes on compilation errors
-            output = text::replace(output, "\\", "\\\\")
-            output = text::replace(output, "\"", "\\\"")
-            output = text::replace(output, "\n", "\\n")
-            output = text::replace(output, "\r", "")
-            var responseObj: json::JsonNode = json::newObject()
-            responseObj.put("output", json::newString(output))
-            res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
-        }
-        /; === POST /track -> store one event ===
-        /;
-        /; Answers 204 even when tracking is off or the insert fails. The tracker
-        /; uses sendBeacon and cannot act on an error anyway, and a visitor must
-        /; never see the page degrade because analytics is down. Failures go to
-        /; the server log, which is where someone can actually act on them.
-        else if method == "POST" && path == "/track" {
-            var body: str = req.getBody()
-            if trackingOn && body != "" {
-                if !events.insertOne(body) {
-                    io::printErrorLogln("track insert failed: " + mongo::lastError(), "red")
-                }
-            }
-            res.status(204).send("")
-        }
-        /; === GET /admin/<token>/events -> newest events as JSON ===
-        /;
-        /; findSorted, not find. find() cannot express an order, so the server
-        /; answers in natural order — oldest first — and a limit would then
-        /; return the OLDEST 2000 documents. That stays invisible until the
-        /; collection outgrows the limit, at which point the dashboard silently
-        /; freezes on old data. Requires the mongo module's findSorted.
-        else if adminEventsPath != "" && method == "GET" && path == adminEventsPath {
-            if !trackingOn {
-                res.status(503).header("Content-Type", "application/json").send("[]")
-            } else {
-                var cur: mongo::Cursor = events.findSorted("{}", 2000, "{\"ts\": -1}")
-                res.status(200).streamBegin("application/json")
-                res.streamWrite("[")
-                var s: str = cur.next()
-                var first: bool = true
-                while s != "" {
-                    if first {
-                        first = false
-                    } else {
-                        res.streamWrite(",")
-                    }
-                    res.streamWrite(s)
-                    s = cur.next()
-                }
-                res.streamWrite("]")
-                res.streamEnd()
-                cur.close()
-            }
-        }
-        /; === GET /admin/<token> -> the dashboard ===
-        else if adminPath != "" && method == "GET" && path == adminPath {
-            res.status(200).sendStaticFile(CURRENT_DIR + "/assets/admin.html", "text/html; charset=utf-8")
-        } else if method == "GET" && pathAsText.startsWith("/assets/") {
-            var assetPath: str = CURRENT_DIR + pathAsText.get()
-            /; Default to icon
-            var contentType: str = "image/x-icon"
-            /; Dynamically assign the correct MIME type.
-            /;
-            /; .js and .css were missing and fell through to image/x-icon. A
-            /; browser will not execute a script served as an image, so any
-            /; asset added here — the tracker below, for one — would silently
-            /; never run. The failure is invisible in the server log.
-            if pathAsText.endsWith(".png") {
-                contentType = "image/png"
-            } else if pathAsText.endsWith(".js") {
-                contentType = "text/javascript; charset=utf-8"
-            } else if pathAsText.endsWith(".css") {
-                contentType = "text/css; charset=utf-8"
-            } else if pathAsText.endsWith(".svg") {
-                contentType = "image/svg+xml"
-            } else if pathAsText.endsWith(".html") {
-                contentType = "text/html; charset=utf-8"
-            } else if pathAsText.endsWith(".webmanifest") {
-                contentType = "application/manifest+json"
-            }
-            res.status(200).sendStaticFile(assetPath, contentType)
-        } else {
-            res.status(404).header("Content-Type", "text/html").send("<h1>404</h1>")
-        }
-    }
+    /; Queues the loop. It starts when fg_main returns and the top-level body
+    /; finishes, which is exactly why the loop is not written inline here.
+    spawn serverLoop(app)
 }
 fg_main()
