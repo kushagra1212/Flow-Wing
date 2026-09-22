@@ -1,0 +1,53 @@
+bring vec
+bring sys
+
+fun quicksort(v: vec::Vec, lo: int, hi: int) -> nthg {
+  if (lo < hi) {
+    var pivot: int = Int32(v.get(hi))
+    var i: int = lo - 1
+    var j: int = lo
+
+    while (j < hi) {
+      if (Int32(v.get(j)) <= pivot) {
+        i = i + 1
+        var tmp: int = Int32(v.get(i))
+        v.set(i, v.get(j))
+        v.set(j, tmp)
+      }
+      j = j + 1
+    }
+
+    var tmp2: int = Int32(v.get(i + 1))
+    v.set(i + 1, v.get(hi))
+    v.set(hi, tmp2)
+
+    quicksort(v, lo, i)
+    quicksort(v, i + 2, hi)
+  }
+}
+
+var n: int = Int32(sys::getArg(1))
+var data: vec::Vec = new vec::Vec()
+
+/; MINSTD generator: the product stays well inside int64, so both languages
+/; produce the identical sequence without relying on a shared library RNG.
+var seed: int64 = 42
+var i: int = 0
+while (i < n) {
+  seed = (seed * 48271) % 2147483647
+  data.push(Int32(seed % 100000))
+  i = i + 1
+}
+
+quicksort(data, 0, n - 1)
+
+var checksum: int64 = 0
+var k: int = 0
+while (k < n) {
+  checksum = (checksum + (Int64(k) * Int64(Int32(data.get(k))))) % 1000000007
+  k = k + 1
+}
+
+println(Int32(data.get(0)))
+println(Int32(data.get(n - 1)))
+println(checksum)

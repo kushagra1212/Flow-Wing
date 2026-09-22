@@ -1,0 +1,13 @@
+bring text
+bring sys
+
+var n: int = Int32(sys::getArg(1))
+var s: str = ""
+var i: int = 0
+
+while (i < n) {
+  s = s + "x"
+  i = i + 1
+}
+
+println(text::getLength(s))
