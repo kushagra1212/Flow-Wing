@@ -94,6 +94,17 @@ jobs:
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      # The step above passes no -O flag, so it exercises the compiler at its
+      # default -O0 and says nothing about the optimizer. This repeats the same
+      # fixtures at -O2, where LLVM inlines, folds and deletes code. A program
+      # whose output changes between the two levels is an optimizer bug.
+      #
+      # -O2 only, not -O3: the two produce near-identical code on this corpus,
+      # so a third full pass would roughly double the job for little signal.
+      - name: Build and Test AOT (-O2)
+        if: success() || failure()
+        run: make test-aot-O2 ARGS="--filter=LatestTests --keep-going"
+
       # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
       # above already produced the binary, so this only runs it.
       - name: GC runtime unit tests
@@ -122,6 +133,13 @@ jobs:
       - name: Build and Test JIT
         if: success() || failure()
         run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
+
+      # JIT at -O2. Today the JIT path does not read the optimization level, so
+      # this is expected to match the run above. It is here so that the day the
+      # JIT starts optimizing, the corpus already covers it.
+      - name: Build and Test JIT (-O2)
+        if: success() || failure()
+        run: make test-jit-O2 ARGS="--filter=LatestTests --keep-going --parallel"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -220,6 +238,17 @@ jobs:
       # Removed --parallel from AOT
       - name: Build and Test AOT
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
+
+      # The step above passes no -O flag, so it exercises the compiler at its
+      # default -O0 and says nothing about the optimizer. This repeats the same
+      # fixtures at -O2, where LLVM inlines, folds and deletes code. A program
+      # whose output changes between the two levels is an optimizer bug.
+      #
+      # -O2 only, not -O3: the two produce near-identical code on this corpus,
+      # so a third full pass would roughly double the job for little signal.
+      - name: Build and Test AOT (-O2)
+        if: success() || failure()
+        run: make test-aot-O2 ARGS="--filter=LatestTests --keep-going"
 
       # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
       # above already produced the binary, so this only runs it.
@@ -342,6 +371,18 @@ jobs:
           LDFLAGS: -fuse-ld=lld
         run: make test-aot ARGS="--filter=LatestTests --keep-going"
 
+      # The step above passes no -O flag, so it exercises the compiler at its
+      # default -O0 and says nothing about the optimizer. This repeats the same
+      # fixtures at -O2, where LLVM inlines, folds and deletes code. A program
+      # whose output changes between the two levels is an optimizer bug.
+      - name: Build and Test AOT (-O2)
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-aot-O2 ARGS="--filter=LatestTests --keep-going"
+
       # GC runtime unit tests (fw-modules/gc/tests/test_gc.c). The AOT build
       # above already produced the binary, so this only runs it.
       - name: GC runtime unit tests
@@ -388,6 +429,17 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-jit ARGS="--filter=LatestTests --keep-going --parallel"
+
+      # JIT at -O2. Today the JIT path does not read the optimization level, so
+      # this is expected to match the run above. It is here so that the day the
+      # JIT starts optimizing, the corpus already covers it.
+      - name: Build and Test JIT (-O2)
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-jit-O2 ARGS="--filter=LatestTests --keep-going --parallel"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
