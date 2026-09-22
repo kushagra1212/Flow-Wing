@@ -7,6 +7,8 @@ bring "../framework/cli-module.fg"
 module [abi]
 
 var MULTI_PRINT: str = "var a: int = 1\nprint(a, \" \", a, \"\\n\")\n"
+var ALLOCATES: str = "var s: str[3]\nprintln(s[0])\n"
+var TIMESTAMP: str = "bring sys\nprintln(sys::timestamp() > 0)\n"
 
 fun run(h: cli::Harness) -> nthg {
   h.suite("abi")
@@ -27,5 +29,39 @@ fun run(h: cli::Harness) -> nthg {
     .withArgs("--target=wasm32 --emit=ir")
     .expectOk()
     .expectNotVariadic("fg_pf")
+    .done()
+
+  /; fw_gc_alloc takes a size_t, which is as wide as a pointer. It used to be
+  /; declared with a fixed i64, which wasm-ld rejected on wasm32:
+  /;   function signature mismatch: fw_gc_alloc
+  h.test("fw_gc_alloc takes a pointer-sized size (wasm32)")
+    .withSource(ALLOCATES)
+    .withArgs("--target=wasm32 --emit=ir")
+    .expectOk()
+    .expectIrContains("declare ptr @fw_gc_alloc(i32, ptr)")
+    .done()
+
+  h.test("fw_gc_alloc takes a pointer-sized size (native, 64-bit)")
+    .withSource(ALLOCATES)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectIrContains("declare ptr @fw_gc_alloc(i64, ptr)")
+    .done()
+
+  /; fg_timestamp is `long long` in C but was declared returning a 32-bit int.
+  /; Natively that truncates silently, and goes negative after 19 January
+  /; 2038; wasm-ld rejects it outright. sys::timestamp now returns int64.
+  h.test("fg_timestamp is declared returning i64")
+    .withSource(TIMESTAMP)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectIrContains("declare i64 @fg_timestamp()")
+    .done()
+
+  h.test("sys::timestamp is positive at run time")
+    .withSource(TIMESTAMP)
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectBinaryPrints("true")
     .done()
 }

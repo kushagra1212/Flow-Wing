@@ -43,23 +43,26 @@ fun declarationOf(path: str, symbol: str) -> str {
   return firstLineStartingWith(path, "declare", "@" + symbol + "(")
 }
 
-/; Bytes requested by the first `call ptr @fw_gc_alloc(i64 N, ...)`, or -1
-/; when the module makes no such call.
+/; Bytes requested by the first `call ptr @fw_gc_alloc(iW N, ...)`, or -1
+/; when the module makes no such call. W is the target's pointer width (64
+/; natively, 32 on wasm32), because the size is a size_t.
 /;
 /; Allocation sizes come from the module's data layout, which is what makes
 /; this the check that catches a wrong-target layout: sizes go wrong while
 /; everything else still looks right.
 fun firstGcAllocSize(path: str) -> int {
-  var marker: str = "call ptr @fw_gc_alloc(i64 "
+  var marker: str = "call ptr @fw_gc_alloc(i"
   var line: str = firstLineWith(path, marker)
   if line == "" {
     return -1
   }
   var start: int = text::indexOf(line, marker) + text::length(marker)
+  /; What follows is "<width> <size>, ptr ...".
   var rest: str = text::substring(line, start, text::length(line))
+  var space: int = text::indexOf(rest, " ")
   var comma: int = text::indexOf(rest, ",")
-  if comma <= 0 {
+  if space <= 0 || comma <= space + 1 {
     return -1
   }
-  return Int32(text::substring(rest, 0, comma))
+  return Int32(text::substring(rest, space + 1, comma))
 }

@@ -18,6 +18,7 @@
  */
 
 #include "IRGenContext.hpp"
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/GCDescriptor/GCDescriptorEmitter.hpp"
 #include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/IRGen/LLVMTypeBuilder/LLVMTypeBuilder.hpp"
@@ -257,6 +258,27 @@ llvm::BasicBlock *IRGenContext::getCurrentLoopAfter() const {
   if (m_loop_stack.empty())
     return nullptr;
   return m_loop_stack.back().after_block;
+}
+
+llvm::CallInst *IRGenContext::createGcAlloc(uint64_t size_bytes,
+                                           llvm::Value *descriptor,
+                                           const llvm::Twine &name) {
+  llvm::Module *module = getLLVMModule();
+  llvm::LLVMContext &ctx = *getLLVMContext();
+  llvm::IntegerType *size_ty = module->getDataLayout().getIntPtrType(ctx);
+  llvm::PointerType *ptr_ty = llvm::PointerType::getUnqual(ctx);
+
+  llvm::FunctionCallee gc_alloc = module->getOrInsertFunction(
+      std::string(constants::functions::kGC_malloc_fn),
+      llvm::FunctionType::get(ptr_ty, {size_ty, ptr_ty}, false));
+
+  llvm::CallInst *call = getLLVMBuilder()->CreateCall(
+      gc_alloc, {llvm::ConstantInt::get(size_ty, size_bytes), descriptor},
+      name);
+  // Never a tail call: the collector reads this frame's GC roots while the
+  // call runs, and `tail` would promise that it does not touch them.
+  call->setTailCall(false);
+  return call;
 }
 
 llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,

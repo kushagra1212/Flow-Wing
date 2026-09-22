@@ -388,10 +388,9 @@ void Builtins::initializeInternalFunctions() {
                          {Builtins::m_int64_type_instance},
                          {Builtins::m_str_type_instance});
 
-  createInternalFunction(
-      std::string(ir_gen::constants::functions::kGC_malloc_fn),
-      {Builtins::m_int64_type_instance, Builtins::m_str_type_instance},
-      {Builtins::m_str_type_instance});
+  // fw_gc_alloc is not registered here: its size parameter is size_t, whose
+  // width depends on the target, so IRGenContext::createGcAlloc declares it
+  // from the module's data layout instead.
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kGC_init_fn), {},

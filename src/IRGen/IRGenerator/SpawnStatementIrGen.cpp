@@ -149,15 +149,8 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
   const uint64_t args_size = data_layout.getTypeAllocSize(args_struct_ty);
 
   // GC memory, not an alloca: it has to outlive this stack frame.
-  auto gc_alloc = module->getOrInsertFunction(
-      std::string(constants::functions::kGC_malloc_fn),
-      llvm::FunctionType::get(i8ptr_ty,
-                              {llvm::Type::getInt64Ty(ctx), i8ptr_ty}, false));
-
-  llvm::Value *args_raw = builder->CreateCall(
-      gc_alloc, {llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx), args_size),
-                 builder->CreateBitCast(descriptor, i8ptr_ty)},
-      "spawn_args");
+  llvm::Value *args_raw =
+      m_ir_gen_context.createGcAlloc(args_size, descriptor, "spawn_args");
 
   // Root the block while the remaining arguments are evaluated: each of those
   // can allocate, and under FW_GC_STRESS every allocation collects.

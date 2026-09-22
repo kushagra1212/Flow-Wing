@@ -9,7 +9,7 @@ fun fg_get_script_dir() -> as str decl
 
 fun fg_exit(code: as int) -> as nthg decl
 
-fun fg_timestamp() -> as int decl
+fun fg_timestamp() -> as int64 decl
 
 fun fg_monotonic_nanos() -> as int64 decl
 
@@ -47,8 +47,10 @@ fun exit(code: int) -> nthg {
     fg_exit(code)
 }
 
-/; Current Unix timestamp (seconds since epoch)
-fun timestamp() -> int {
+/; Current Unix timestamp (seconds since epoch).
+/; int64 because the C side returns long long, and because seconds since
+/; 1970 no longer fit in a 32-bit int after 19 January 2038.
+fun timestamp() -> int64 {
     return fg_timestamp()
 }
 

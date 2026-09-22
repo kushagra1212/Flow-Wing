@@ -758,10 +758,6 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
   llvm::Type *dest_llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type);
 
-  auto fun = m_ir_gen_context.getLLVMModule()->getFunction(
-      std::string(constants::functions::kGC_malloc_fn));
-
-  assert(fun && "GC_malloc function not found");
 
   const llvm::DataLayout &dl =
       m_ir_gen_context.getLLVMModule()->getDataLayout();
@@ -773,13 +769,8 @@ llvm::Value *IRGenerator::getTempObject(types::Type *dest_type,
           ? m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(
                 llvm::cast<llvm::StructType>(dest_llvm_type))
           : m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
-  llvm::CallInst *malloc_call = builder->CreateCall(
-      fun,
-      {llvm::ConstantInt::get(
-           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-           type_size_bytes),
-       desc});
-  malloc_call->setTailCall(false);
+  llvm::CallInst *malloc_call =
+      m_ir_gen_context.createGcAlloc(type_size_bytes, desc);
 
   // Cast the result of 'malloc' to a pointer to int
   auto new_struct_alloc =
@@ -820,9 +811,6 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
   llvm::Type *dest_llvm_type =
       m_ir_gen_context.getTypeBuilder()->getLLVMType(dest_type);
 
-  auto fun = m_ir_gen_context.getLLVMModule()->getFunction(
-      std::string(constants::functions::kGC_malloc_fn));
-  assert(fun && "GC_malloc function not found");
 
   const llvm::DataLayout &dl =
       m_ir_gen_context.getLLVMModule()->getDataLayout();
@@ -850,13 +838,8 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
       desc = m_ir_gen_context.getGCDescriptorEmitter()->getBlob();
     }
   }
-  llvm::CallInst *malloc_call = builder->CreateCall(
-      fun,
-      {llvm::ConstantInt::get(
-           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-           type_size_bytes),
-       desc});
-  malloc_call->setTailCall(false);
+  llvm::CallInst *malloc_call =
+      m_ir_gen_context.createGcAlloc(type_size_bytes, desc);
 
   auto new_array_ptr = builder->CreateBitCast(
       malloc_call, dest_llvm_type->getPointerTo(), "new_array");

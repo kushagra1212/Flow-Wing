@@ -92,6 +92,16 @@ public:
   bool isGlobalScope() const;
   llvm::Constant *getDefaultValue(types::Type *type, bool is_global = false);
 
+  // Emits fw_gc_alloc(size, descriptor): every allocation the precise GC makes.
+  //
+  // The C runtime takes the size as size_t, which is as wide as a pointer: 64
+  // bits on native targets, 32 on wasm32. So the declaration is built here from
+  // the module's data layout, not registered as a builtin with a fixed int64
+  // parameter. A fixed width links natively, where linkers never compare
+  // types, and is rejected by wasm-ld ("function signature mismatch").
+  llvm::CallInst *createGcAlloc(uint64_t size_bytes, llvm::Value *descriptor,
+                                const llvm::Twine &name = "");
+
   // --- Loop targets for break/continue ---
   void pushLoop(llvm::BasicBlock *cond_block, llvm::BasicBlock *after_block);
   void popLoop();

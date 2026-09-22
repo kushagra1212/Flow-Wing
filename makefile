@@ -488,6 +488,15 @@ test-cli: build-aot-release
 	$(ECHO_MSG) "--> Running CLI contract tests..."
 	@$(call NATIVE_PATH, build/cli-fg/cli_test$(EXE_EXT)) --bin=$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
 
+#? wasm32 ABI audit (scripts/wasm/abi_audit.py). Needs emcc on PATH:
+#?   source ~/emsdk/emsdk_env.sh && make wasm-abi-audit
+#? Compares every runtime function Flow-Wing calls with its C definition as
+#? wasm32 types. Native linkers never compare types; wasm-ld does.
+.PHONY: wasm-abi-audit
+wasm-abi-audit: build-aot-release
+	$(ECHO_MSG) "--> Auditing wasm32 runtime signatures..."
+	@python3 scripts/wasm/abi_audit.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
 #? Golden tests for `FlowWing --format-print` (tests/fixtures/FormatterTests)
 .PHONY: test-format
 test-format: build-aot-release

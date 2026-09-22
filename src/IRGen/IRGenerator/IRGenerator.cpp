@@ -458,9 +458,6 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
   decl_helper.ensureImportedClassExterns(ct);
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
-  auto *gc_malloc = m_ir_gen_context.getLLVMModule()->getFunction(
-      std::string(constants::functions::kGC_malloc_fn));
-  assert(gc_malloc && "GC_malloc function not found");
   const llvm::DataLayout &dl =
       m_ir_gen_context.getLLVMModule()->getDataLayout();
   uint64_t type_size_bytes = dl.getTypeAllocSize(struct_type);
@@ -495,13 +492,8 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
 
   auto *desc =
       m_ir_gen_context.getGCDescriptorEmitter()->getOrEmitPlain(struct_type);
-  llvm::CallInst *malloc_call = builder->CreateCall(
-      gc_malloc,
-      {llvm::ConstantInt::get(
-           llvm::Type::getInt64Ty(*m_ir_gen_context.getLLVMContext()),
-           type_size_bytes),
-       desc});
-  malloc_call->setTailCall(false);
+  llvm::CallInst *malloc_call =
+      m_ir_gen_context.createGcAlloc(type_size_bytes, desc);
   auto *heap_ptr = builder->CreateBitCast(
       malloc_call, struct_type->getPointerTo(), "new." + class_type->getName());
   builder->CreateStore(llvm::ConstantAggregateZero::get(struct_type), heap_ptr);
