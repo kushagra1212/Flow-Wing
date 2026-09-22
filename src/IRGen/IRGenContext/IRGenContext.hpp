@@ -137,6 +137,31 @@ private:
   std::unique_ptr<GCDescriptorEmitter> m_gc_descriptor_emitter;
   void initializeLLVM();
   void initializeTargetMachine();
+
+  // wasm32 path: sets the module's triple and data layout directly, leaving
+  // m_target_machine null. See the definition for why no TargetMachine exists.
+  void initializeWasmTarget();
+
+  // Triple and data layout for wasm32-unknown-emscripten.
+  //
+  // These must match the clang inside emcc exactly. LLVM refuses to run code
+  // generation when the module's data layout differs from the target's by even
+  // one field:
+  //
+  //   fatal error: Can't create a MachineFunction using a Module with a
+  //   Target-incompatible DataLayout attached
+  //
+  // The value below is what `emcc -S -emit-llvm` prints for emscripten 6.0.10
+  // (clang 24). Older LLVM, including the 17 this compiler links against, omit
+  // `i128:128`, so copying the string out of the host LLVM produces exactly
+  // that error. Re-read it from emcc after an emsdk upgrade:
+  //
+  //   echo 'int main(void){}' > t.c && emcc -S -emit-llvm t.c -o - | grep datalayout
+  static constexpr const char *kWasm32Triple = "wasm32-unknown-emscripten";
+  static constexpr const char *kWasm32DataLayout =
+      "e-m:e-p:32:32-p10:8:8-p20:8:8-i64:64-i128:128-f128:64-n32:64-S128-ni:1:"
+      "10:20";
+
   llvm::TargetMachine *m_target_machine = nullptr;
 };
 } // namespace ir_gen

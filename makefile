@@ -468,6 +468,17 @@ test-jit-O2:
 test-jit-O3:
 	@$(MAKE) test-jit ARGS="--opt=-O3 $(ARGS)"
 
+#? Flag-combination and emitted-ABI checks (tests/cli_contract_test.py).
+#?
+#? Covers what the fixture runner cannot: it compiles one .fg per test with a
+#? fixed flag set, so it can neither assert that a COMBINATION of flags is
+#? refused (--target=wasm32 with --emit=exe) nor inspect the shape of a
+#? declaration in the emitted IR (fg_pf must not be variadic).
+.PHONY: test-cli
+test-cli: build-aot-release
+	$(ECHO_MSG) "--> Running CLI contract tests..."
+	@python3 tests/cli_contract_test.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
 #? Golden tests for `FlowWing --format-print` (tests/fixtures/FormatterTests)
 .PHONY: test-format
 test-format: build-aot-release

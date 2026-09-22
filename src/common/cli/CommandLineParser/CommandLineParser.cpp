@@ -63,6 +63,10 @@ public:
       {"-e", "--entry-point"},
       "Specify the entry point function (default: main)",
       "-e, --entry-point=<name>"};
+  const CliOption kOptTarget = {
+      {"-T", "--target"},
+      "Machine to generate code for: native (default) or wasm32",
+      "-T, --target=<native|wasm32>"};
   const CliOption kOptLibPath = {
       {"-L"}, "Add a directory to the library search path", "-L <path>"};
   const CliOption kOptLinkLib = {
@@ -98,7 +102,8 @@ public:
       kOptHelp,     kOptVersion,     kOptFile,      kOptCode,
       kOptFormat,   kOptFormatPrint, kOptOptLevels, kOptEntry,
       kOptLibPath,  kOptLinkLib,     kOptFramework, kOptServer,
-      kOptLinkWarn, kOptEmit,        kOutDir,       kOptOutputExe};
+      kOptLinkWarn, kOptEmit,        kOutDir,       kOptOutputExe,
+      kOptTarget};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
@@ -177,6 +182,20 @@ public:
 
     opts.entry_point = parseParam(cmdl, kOptEntry);
 
+    // Target machine. Rejected rather than ignored when unknown: silently
+    // falling back to native would produce a host binary for someone who asked
+    // for wasm, and they would only find out at run time.
+    const std::string target_name = parseParam(cmdl, kOptTarget, "native");
+    if (target_name == "native") {
+      opts.target_platform = TargetPlatform::kNative;
+    } else if (target_name == "wasm32") {
+      opts.target_platform = TargetPlatform::kWasm32;
+    } else {
+      return {ParseStatus::kFailure, opts,
+              "Unknown target '" + target_name +
+                  "'. Supported targets: native, wasm32.\n"};
+    }
+
     // Boolean flags
     if (cmdl[{kOptFormat.names[0], kOptFormat.names[1]}])
       opts.format_source = 1;
@@ -216,6 +235,27 @@ public:
 
     if (!emit_value.empty()) {
       opts.output_type = getOutputType(emit_value, opts.output_type);
+    }
+
+    // wasm32 can only produce LLVM IR today.
+    //
+    // Object emission and the JIT both build a TargetMachine from the HOST
+    // triple and overwrite the module's triple and data layout with the
+    // host's. The module has already been laid out for wasm32 by then, so the
+    // result is native machine code carrying 32-bit pointer sizes: `str[3]`
+    // allocates 12 bytes and then stores three 8-byte pointers into it. That
+    // binary runs, and quietly corrupts the heap.
+    //
+    // Refusing the combination is the only safe answer until a wasm emission
+    // pass exists. Silently producing a host binary for someone who asked for
+    // wasm is worse than an error.
+    if (opts.target_platform == TargetPlatform::kWasm32 &&
+        opts.output_type != CompilerOptions::OutputType::kLLVM_IR) {
+      return {ParseStatus::kFailure, opts,
+              "--target=wasm32 currently supports only --emit=ir.\n"
+              "Object, executable and JIT output would silently produce a "
+              "native binary laid out for 32-bit pointers.\n"
+              "Use: FlowWing <file> --target=wasm32 --emit=ir\n"};
     }
 
     // Handle output directory

@@ -64,11 +64,40 @@ void IRGenContext::initializeLLVM() {
   m_llvm_builder = std::make_unique<llvm::IRBuilder<>>(*m_llvm_context);
   m_type_builder = std::make_unique<LLVMTypeBuilder>(*m_llvm_context);
 
+  if (m_context.getOptions().target_platform == TargetPlatform::kWasm32) {
+    initializeWasmTarget();
+    return;
+  }
+
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
   initializeTargetMachine();
   m_llvm_module->setDataLayout(m_target_machine->createDataLayout());
+}
+
+// Points the module at wasm32 without building a TargetMachine.
+//
+// The bundled LLVM is configured with LLVM_TARGETS_TO_BUILD=Native, so it has
+// no WebAssembly backend and TargetRegistry::lookupTarget("wasm32-...") fails.
+// That only blocks machine code generation, not IR: the data layout is a
+// string, and the verifier accepts a wasm32 module on a host-only build. So
+// Flow-Wing produces IR here and lets emcc, which ships its own clang with the
+// WebAssembly backend, turn it into a .wasm.
+//
+// m_target_machine stays null. Everything downstream that needs one, meaning
+// object emission and the JIT, is not part of the wasm pipeline. The
+// optimization pass accepts a null TargetMachine and simply optimizes without
+// target-specific cost information.
+void IRGenContext::initializeWasmTarget() {
+  m_llvm_module->setTargetTriple(kWasm32Triple);
+
+  // Matches what clang emits for wasm32-unknown-emscripten on LLVM 17. It has
+  // to be set before any type is lowered: the type builder asks the data
+  // layout for allocation sizes, and wasm32 pointers are 4 bytes where the
+  // host's are 8. Relabelling the module afterwards would leave every
+  // pointer-bearing struct sized for the wrong machine.
+  m_llvm_module->setDataLayout(kWasm32DataLayout);
 }
 
 const std::unique_ptr<LLVMTypeBuilder> &IRGenContext::getTypeBuilder() const {

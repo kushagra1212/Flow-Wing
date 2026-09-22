@@ -277,9 +277,24 @@ void Builtins::initializeUnboxingTypesMap() {
 
 void Builtins::initializeInternalFunctions() {
 
+  // Not variadic, despite the printf-like name. The C runtime defines it as
+  // `void fg_pf(const char *)`, and every call site emits one argument:
+  // `print(a, " ", b)` lowers to three separate one-argument calls, not one
+  // variadic call.
+  //
+  // Declaring it variadic produced `declare void @fg_pf(ptr, ...)`, which does
+  // not match the definition. Native linkers never check, because a variadic
+  // call passes its first argument in the same register either way. wasm-ld
+  // does check, and reported:
+  //
+  //   function signature mismatch: fg_pf
+  //   defined as (i32, i32) -> void in llvm_ir.o
+  //   defined as (i32)      -> void in built_in_module.o
+  //
+  // The extra i32 is the hidden varargs buffer pointer.
   createInternalFunction(std::string(ir_gen::constants::functions::kPrintf_fn),
                          {Builtins::m_str_type_instance},
-                         {Builtins::m_nthg_type_instance}, true);
+                         {Builtins::m_nthg_type_instance});
 
   createInternalFunction(
       std::string(ir_gen::constants::functions::kConcat_strings_fn),

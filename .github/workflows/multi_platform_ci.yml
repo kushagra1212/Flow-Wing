@@ -131,6 +131,14 @@ jobs:
         if: success() || failure()
         run: make test-uv
 
+
+      # Flag combinations and emitted-ABI shape. The fixture runner compiles one
+      # .fg per test with fixed flags, so it cannot assert that --target=wasm32
+      # refuses --emit=exe, nor that fg_pf is declared non-variadic.
+      - name: CLI contract tests
+        if: success() || failure()
+        run: make test-cli
+
       - name: Formatter golden tests
         if: success()
         run: make test-format
@@ -285,6 +293,14 @@ jobs:
       - name: Event loop unit tests
         if: success() || failure()
         run: make test-uv
+
+
+      # Flag combinations and emitted-ABI shape. The fixture runner compiles one
+      # .fg per test with fixed flags, so it cannot assert that --target=wasm32
+      # refuses --emit=exe, nor that fg_pf is declared non-variadic.
+      - name: CLI contract tests
+        if: success() || failure()
+        run: make test-cli
 
       - name: Formatter golden tests
         if: success()
@@ -441,6 +457,14 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-uv
+
+
+      # Flag combinations and emitted-ABI shape. The fixture runner compiles one
+      # .fg per test with fixed flags, so it cannot assert that --target=wasm32
+      # refuses --emit=exe, nor that fg_pf is declared non-variadic.
+      - name: CLI contract tests
+        if: success() || failure()
+        run: make test-cli
 
       - name: Formatter golden tests
         if: success()

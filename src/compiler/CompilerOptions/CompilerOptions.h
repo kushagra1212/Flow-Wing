@@ -34,6 +34,24 @@ enum class OptimizationLevel {
   O3 = 3  // Full optimization
 };
 
+// Machine the generated code is for.
+//
+// kNative asks LLVM for the host triple and builds a TargetMachine from it.
+// kWasm32 cannot: the bundled LLVM is configured with
+// LLVM_TARGETS_TO_BUILD=Native, so it has no WebAssembly backend and
+// TargetRegistry::lookupTarget would fail. Flow-Wing therefore stops at LLVM
+// IR for wasm and hands that IR to emcc, which carries its own clang with the
+// WebAssembly backend built in.
+//
+// The triple and data layout still have to be set before IR generation, not
+// after. Type lowering asks the module's data layout for allocation sizes, so
+// a module built for 64-bit pointers and relabelled afterwards would carry the
+// wrong sizes for every pointer-bearing struct.
+enum class TargetPlatform {
+  kNative,
+  kWasm32,
+};
+
 struct CompilerOptions {
   // Input sources
   std::string input_file_path;
@@ -58,6 +76,8 @@ struct CompilerOptions {
     kSemJson,
     kJIT
   };
+
+  TargetPlatform target_platform = TargetPlatform::kNative;
 
 #if defined(AOT_MODE)
   OutputType output_type = OutputType::kExe;
