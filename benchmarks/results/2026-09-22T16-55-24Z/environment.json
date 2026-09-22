@@ -1,0 +1,17 @@
+{
+  "fingerprint": "14351c92219e",
+  "cpu_model": "Apple M4 Pro",
+  "physical_cores": 12,
+  "logical_cores": 12,
+  "ram_gib": 24,
+  "os": "Darwin 24.6.0",
+  "arch": "arm64",
+  "power_source": "AC Power",
+  "load_average_1m": 3.16211,
+  "flowwing_version": "1.0.16",
+  "cxx_baseline": "clang version 17.0.6 (https://github.com/llvm/llvm-project.git 6009708b4367171ccdbf4b5905cb6a803753fe18)",
+  "optimization": "-O2",
+  "iterations": 7,
+  "repetitions": 15,
+  "compile_repetitions": 5
+}
