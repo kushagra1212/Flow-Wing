@@ -5,10 +5,11 @@ module [info]
 /; Every option the parser registers in `cli_options`, which also generates
 /; --help. A flag parsed but missing from that list works and is invisible
 /; to users; this is how -D/--dump was found undocumented.
-var DOCUMENTED_FLAGS: str[18] = [
+var DOCUMENTED_FLAGS: str[19] = [
   "--help", "--version", "--file", "--code", "--format", "--format-print",
   "-O0", "--entry-point", "--target", "-L", "-l", "--framework", "--server",
-  "--linker-warnings", "--emit", "--dump", "--output-dir", "--output"
+  "--linker-warnings", "--emit", "--dump", "--output-dir", "--output",
+  "--progress"
 ]
 
 fun run(h: cli::Harness) -> nthg {
@@ -56,7 +57,7 @@ fun run(h: cli::Harness) -> nthg {
     .expectSays("Flowwing Compiler")
     .done()
 
-  for (var i: int = 0 to 17) {
+  for (var i: int = 0 to 18) {
     h.test("--help documents " + DOCUMENTED_FLAGS[i])
       .withoutOutputDir()
       .withArgs("--help")

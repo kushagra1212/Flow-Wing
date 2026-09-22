@@ -278,6 +278,7 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
 
   CompilerOptions nested_opts;
   nested_opts.input_file_path = absolute_file_path;
+  nested_opts.progress = ProgressMode::kNever;
   std::string entry_file_path = m_binder_context.getCompilationContext().getEntryFilePath();
 
   flow_wing::CompilationContext nested_ctx(nested_opts, entry_file_path);

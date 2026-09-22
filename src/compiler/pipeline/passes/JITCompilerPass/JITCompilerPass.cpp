@@ -80,6 +80,9 @@ ReturnStatus compileBroughtSourcesToIRForJIT(CompilationContext &context) {
     dep_opts.enable_server = parent_opts.enable_server;
     dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
     dep_opts.emit_brought_dependency_object = 1;
+    dep_opts.progress = ProgressMode::kNever;
+
+    context.getBuildProgress().unit(src_path);
 
     std::string entry_file_path = parent_opts.input_file_path;
     CompilationContext dep_ctx(dep_opts, entry_file_path);
@@ -233,6 +236,7 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
   if (compileBroughtSourcesToIRForJIT(context) != ReturnStatus::kSuccess) {
     return ReturnStatus::kFailure;
   }
+  context.getBuildProgress().unit(context.getAbsoluteSourceFilePath());
 
   // Save the Source IR to a file
   const std::string &ir_directory_path = context.getTempDirectoryPath();
@@ -367,6 +371,10 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
     }
     argv_vec.push_back(nullptr);
     int argc = static_cast<int>(argv_vec.size()) - 1;
+
+    // Compilation ends here: the Finished time must not include run time.
+    context.getBuildProgress().finished();
+    context.getBuildProgress().running();
 
     DEBUG_LOG(" [INFO]: Running JIT Code...", "");
 

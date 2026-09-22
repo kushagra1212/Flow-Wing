@@ -89,6 +89,31 @@ fun run(h: cli::Harness) -> nthg {
     .mustFailWith("byte-identical")
     .done()
 
+  h.test("expectSaysTimes fails on the wrong count")
+    .withArgs("--emit=ir")
+    .expectSaysTimes("LLVM IR dumped", 1)
+    .expectSaysTimes("LLVM IR dumped", 2)
+    .mustFailWith("expected 'LLVM IR dumped' 2 time(s), found 1")
+    .done()
+
+  h.test("expectRerunSays fails on text the second run never printed")
+    .withArgs("--emit=ir")
+    .expectRerunSays("LLVM IR dumped")
+    .expectRerunSays(ABSENT)
+    .mustFailWith("the second run did not print '" + ABSENT + "'")
+    .done()
+
+  /; Positive on purpose: a withFile that wrote nothing makes the bring fail,
+  /; so this case passing is the proof the file landed where the program
+  /; looks for it, parent directories included.
+  h.test("withFile writes files the program can bring")
+    .withFile("lib/extra-module.fg", "module [extra]\nfun seven() -> int {\n  return 7\n}\n")
+    .withSource("bring \"lib/extra-module.fg\"\nprintln(extra::seven())\n")
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectBinaryPrints("7")
+    .done()
+
   h.test("a case with no expectations fails")
     .mustFailWith("no expectations")
     .done()

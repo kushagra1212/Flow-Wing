@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
 
     if (pipeline_status ==
         flow_wing::compiler::pipeline::ReturnStatus::kFailure) {
+      context.getBuildProgress().failed();
       auto reporter = flow_wing::diagnostic::DiagnosticReporter(
           std::cerr,
           std::make_unique<flow_wing::diagnostic::ConsoleFormatter>());
@@ -59,6 +60,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
+    // A no-op for JIT builds, which print it before running the program.
+    context.getBuildProgress().finished();
     return EXIT_SUCCESS;
   }
 

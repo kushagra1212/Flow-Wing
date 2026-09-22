@@ -1,0 +1,152 @@
+/; --progress: the Cargo-style build lines, the delta against the last build,
+/; and the one-compile-per-file guarantee behind them.
+/;
+/; Every case here pipes the compiler's output, so the default mode, auto,
+/; shows nothing. Cases that need the lines pass --progress=always.
+bring "../framework/cli-module.fg"
+module [progress]
+
+var BROKEN: str = "var x int = \n"
+var HISTORY: str = ".flowwing/build-times"
+
+var SHARED: str = "module [shared]\nfun one() -> int {\n  return 1\n}\n"
+var LEFT: str = "bring \"shared-module.fg\"\nmodule [left]\nfun two() -> int {\n  return shared::one() + 1\n}\n"
+var RIGHT: str = "bring \"shared-module.fg\"\nmodule [right]\nfun three() -> int {\n  return shared::one() + 2\n}\n"
+var DIAMOND: str = "bring \"left-module.fg\"\nbring \"right-module.fg\"\nprintln(left::two() + right::three())\n"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("progress")
+
+  h.test("an executable build shows Compiling, Linking and Finished")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSays("Compiling case.fg")
+    .expectSays("Linking")
+    .expectSays("Finished case in")
+    .done()
+
+  h.test("the first build in an output directory says so")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSays("first build")
+    .done()
+
+  /; "vs last build" or "same as last build": both mean a comparison was made.
+  h.test("a second build is compared with the first")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectRerunSays("last build")
+    .done()
+
+  h.test("a corrupt history file counts as a first build, and the build still works")
+    .withFile("out/" + HISTORY, "not\ta\tnumber\n\n\tgarbage")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSays("first build")
+    .expectBinaryPrints("ok")
+    .done()
+
+  /; The regression guard for the recompilation fix. Before it, every file
+  /; that brought shared-module.fg compiled it again.
+  h.test("a module brought by two files is compiled once")
+    .withFile("shared-module.fg", SHARED)
+    .withFile("left-module.fg", LEFT)
+    .withFile("right-module.fg", RIGHT)
+    .withSource(DIAMOND)
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSaysTimes("Compiling shared-module.fg", 1)
+    .expectBinaryPrints("5")
+    .done()
+
+  /; The same file spelled two ways: "lib/shared-module.fg" from the entry and
+  /; "../lib/shared-module.fg" from sub/. Compared as raw strings they missed
+  /; each other: the file was compiled twice and its top-level code ran twice
+  /; (BringTests/init_runs_once covers the second half).
+  h.test("a module reached by two spellings of its path is compiled once")
+    .withFile("lib/shared-module.fg", SHARED)
+    .withFile("sub/left-module.fg", "bring \"../lib/shared-module.fg\"\nmodule [left]\nfun two() -> int {\n  return shared::one() + 1\n}\n")
+    .withSource("bring \"lib/shared-module.fg\"\nbring \"sub/left-module.fg\"\nprintln(shared::one() + left::two())\n")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSaysTimes("Compiling lib/shared-module.fg", 1)
+    .expectBinaryPrints("3")
+    .done()
+
+  h.test("the Finished line counts every file once")
+    .withFile("shared-module.fg", SHARED)
+    .withFile("left-module.fg", LEFT)
+    .withFile("right-module.fg", RIGHT)
+    .withSource(DIAMOND)
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSays("(4 files,")
+    .done()
+
+  h.test("a standard-library module is labelled (std)")
+    .withSource("bring text\nprintln(text::toUpper(\"ok\"))\n")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectSays("Compiling text (std)")
+    .done()
+
+  h.test("an object build has no Linking line")
+    .withArgs("--progress=always --emit=obj")
+    .expectOk()
+    .expectSays("Finished")
+    .expectLacks("Linking")
+    .done()
+
+  /; The guarantee every other suite relies on: piped output is untouched.
+  h.test("the default mode shows nothing when output is piped")
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectLacks("Compiling")
+    .expectLacks("Finished")
+    .done()
+
+  h.test("a piped build does not touch the history file")
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectWritesNo(HISTORY)
+    .done()
+
+  h.test("a shown build records its time")
+    .withArgs("--progress=always --emit=exe")
+    .expectOk()
+    .expectWrites(HISTORY)
+    .done()
+
+  h.test("--progress=never shows nothing")
+    .withArgs("--progress=never --emit=exe")
+    .expectOk()
+    .expectLacks("Compiling")
+    .done()
+
+  h.test("--emit=ir shows no progress, even when forced")
+    .withArgs("--progress=always --emit=ir")
+    .expectOk()
+    .expectLacks("Compiling")
+    .expectSays("LLVM IR dumped")
+    .done()
+
+  h.test("an unknown progress mode is rejected")
+    .withArgs("--progress=bogus --emit=exe")
+    .expectFailsWith("Unknown progress mode 'bogus'")
+    .done()
+
+  h.test("a failed build names the unit but prints no Finished line")
+    .withSource(BROKEN)
+    .withArgs("--progress=always --emit=exe")
+    .expectFails()
+    .expectSays("Compiling case.fg")
+    .expectLacks("Finished")
+    .done()
+
+  h.test("a failed build is not recorded")
+    .withSource(BROKEN)
+    .withArgs("--progress=always --emit=exe")
+    .expectFails()
+    .expectWritesNo(HISTORY)
+    .done()
+}

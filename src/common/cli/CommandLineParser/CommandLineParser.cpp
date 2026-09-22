@@ -67,6 +67,10 @@ public:
       {"-T", "--target"},
       "Machine to generate code for: native (default) or wasm32",
       "-T, --target=<native|wasm32>"};
+  const CliOption kOptProgress = {
+      {"--progress"},
+      "Show build progress: auto (default, only on a terminal), always, never",
+      "--progress=<auto|always|never>"};
   const CliOption kOptLibPath = {
       {"-L"}, "Add a directory to the library search path", "-L <path>"};
   const CliOption kOptLinkLib = {
@@ -105,7 +109,7 @@ public:
       kOptFormat,    kOptFormatPrint, kOptOptLevels, kOptEntry,
       kOptLibPath,   kOptLinkLib,     kOptFramework, kOptServer,
       kOptLinkWarn,  kOptEmit,        kDump,         kOutDir,
-      kOptOutputExe, kOptTarget};
+      kOptOutputExe, kOptTarget,      kOptProgress};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");
@@ -196,6 +200,22 @@ public:
       return {ParseStatus::kFailure, opts,
               "Unknown target '" + target_name +
                   "'. Supported targets: native, wasm32.\n"};
+    }
+
+    // Build progress lines. Rejected when unknown, like --target: a typo in a
+    // CI script should fail loudly rather than silently mean "auto".
+    std::string progress_name;
+    cmdl(kOptProgress.names[0], "auto") >> progress_name;
+    if (progress_name == "auto") {
+      opts.progress = ProgressMode::kAuto;
+    } else if (progress_name == "always") {
+      opts.progress = ProgressMode::kAlways;
+    } else if (progress_name == "never") {
+      opts.progress = ProgressMode::kNever;
+    } else {
+      return {ParseStatus::kFailure, opts,
+              "Unknown progress mode '" + progress_name +
+                  "'. Supported modes: auto, always, never.\n"};
     }
 
     // Boolean flags

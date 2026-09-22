@@ -1,0 +1,8 @@
+/; Brings the counted module by a DIFFERENT spelling than ../main.fg does:
+/; "../lib/counted-module.fg" here, "lib/counted-module.fg" there.
+bring "../lib/counted-module.fg"
+module [user]
+
+fun two() -> int {
+  return counted::one() + 1
+}

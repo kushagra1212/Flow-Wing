@@ -46,6 +46,33 @@ fun plainText(raw: str) -> str {
   return s
 }
 
+/; Non-overlapping occurrences of `needle` in `haystack`. Measured by how much
+/; shorter one C-backed replace makes the string, rather than by walking it.
+fun occurrences(haystack: str, needle: str) -> int {
+  if needle == "" {
+    return 0
+  }
+  var removed: int = text::length(haystack) - text::length(text::replace(haystack, needle, ""))
+  return removed // text::length(needle)
+}
+
+/; Everything before the last "/", or "" when there is none.
+fun parentOf(path: str) -> str {
+  var last: int = -1
+  var i: int = 0
+  var n: int = text::length(path)
+  while i < n {
+    if text::charAt(path, i) == '/' {
+      last = i
+    }
+    i = i + 1
+  }
+  if last <= 0 {
+    return ""
+  }
+  return text::substring(path, 0, last)
+}
+
 /; ===========================================================================
 /; Options
 /; ===========================================================================
@@ -289,6 +316,25 @@ class Case {
     return self
   }
 
+  /; Writes {dir}/<name> before the compiler runs, creating parent
+  /; directories. For multi-file programs, and for seeding files the compiler
+  /; reads, such as out/.flowwing/build-times.
+  /;
+  /; Written at once rather than queued: the case directory is private, and
+  /; Flow-Wing has no typed growable list to queue into.
+  withFile(name: str, content: str) -> cli::Case {
+    self.guardBuilding("withFile")
+    if self.active && !self.options.listOnly {
+      var path: str = self.dir + "/" + name
+      shell::makeDir(parentOf(path))
+      var written: bool, err: Err::Result = file::writeText(path, content)
+      if err.isErr() {
+        self.fail("could not write " + path + ": " + err.getMessage())
+      }
+    }
+    return self
+  }
+
   /; The case passes only if it FAILS, with a reason containing `reason`.
   /;
   /; The harness suite uses this to prove each kind of check can fail at all:
@@ -343,6 +389,30 @@ class Case {
     if self.ready() {
       if text::indexOf(self.output, needle) >= 0 {
         self.fail("did not expect '" + needle + "' in the output. Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  /; `needle` occurs exactly `times` times, for "compiled once, not twice".
+  expectSaysTimes(needle: str, times: int) -> cli::Case {
+    if self.ready() {
+      var found: int = occurrences(self.output, needle)
+      if found != times {
+        self.fail("expected '" + needle + "' " + times + " time(s), found " + found + ". Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  /; Runs the same command a second time, into the same output directory,
+  /; and checks that second run's output. For behaviour that depends on an
+  /; earlier build, such as the build-time delta.
+  expectRerunSays(needle: str) -> cli::Case {
+    if self.ready() {
+      var code: int, out: str = self.invoke(self.outDir(), self.flags)
+      if text::indexOf(out, needle) < 0 {
+        self.fail("the second run did not print '" + needle + "'. Output:\n" + out)
       }
     }
     return self

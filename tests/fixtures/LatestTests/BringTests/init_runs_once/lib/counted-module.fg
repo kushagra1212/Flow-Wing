@@ -1,0 +1,9 @@
+/; Top-level code in a module runs once, when the program starts. The line
+/; below is how the test in ../main.fg counts how many times that happens.
+module [counted]
+
+println("counted init")
+
+fun one() -> int {
+  return 1
+}

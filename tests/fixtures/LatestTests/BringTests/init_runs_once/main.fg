@@ -1,0 +1,11 @@
+/; One module, brought by two spellings of the same path.
+/;
+/; The root compiled its brought files from a list deduplicated by exact
+/; string, and "lib/counted-module.fg" and "sub/../lib/counted-module.fg"
+/; differ as strings. The module was listed twice, so main called its init
+/; function twice and its top-level code ran twice: "counted init" printed
+/; two times. It must print once.
+bring "lib/counted-module.fg"
+bring "sub/user-module.fg"
+
+println(counted::one() + user::two())

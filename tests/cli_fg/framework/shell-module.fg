@@ -120,12 +120,15 @@ fun absolute(path: str) -> str {
   return currentDir() + "/" + path
 }
 
-/; Creates `path` and any missing parents. cmd.exe's mkdir creates parents
-/; by default; it has no -p and would make a directory named "-p".
+/; Creates `path` and any missing parents; succeeds if it already exists.
+/; cmd.exe's mkdir creates parents by default, but has no -p (it would make a
+/; directory named "-p") and fails on an existing directory, hence the guard,
+/; the same one the makefile's MKDIR_P uses.
 fun makeDir(path: str) -> bool {
   var command: str = "mkdir -p " + quote(path)
   if isWindows() {
-    command = "mkdir " + quote(nativePath(path))
+    var native: str = quote(nativePath(path))
+    command = "if not exist " + native + " mkdir " + native
   }
   var code: int, out: str = run(command)
   return code == 0

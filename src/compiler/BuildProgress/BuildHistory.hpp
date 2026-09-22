@@ -17,34 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "LinkerPass.hpp"
-#include "src/compiler/CompilationContext/CompilationContext.h"
-#include "src/compiler/Linker/LinkerCommandBuilder.hpp"
-#include <cstdlib>
+#pragma once
+
+#include <filesystem>
+#include <map>
+#include <optional>
+#include <string>
 
 namespace flow_wing {
-
 namespace compiler {
-namespace pipeline {
 
-std::string LinkerPass::getName() const { return "Linker"; }
+// How long the last successful build took, per build key, kept in one small
+// text file with one "<key>\t<milliseconds>" line per key.
+//
+// Advisory only. A missing, unreadable or corrupt file reads as "no earlier
+// build", and a failed write is ignored: the build-time delta must never be
+// the reason a build fails.
+class BuildHistory {
+public:
+  explicit BuildHistory(std::filesystem::path file);
 
-ReturnStatus LinkerPass::run([[maybe_unused]] CompilationContext &context) {
+  std::optional<long long> last(const std::string &key) const;
+  void record(const std::string &key, long long milliseconds) const;
 
-  linker::LinkerCommandBuilder linker_command_builder(context);
-  std::string link_command = linker_command_builder.generateLinkCommand();
+private:
+  std::map<std::string, long long> load() const;
 
-  context.getBuildProgress().linking(linker_command_builder.getBinaryFilePath());
+  std::filesystem::path m_file;
+};
 
-  LINKING_DEBUG_LOG("link_command", link_command);
-  int result = system(link_command.c_str());
-
-  if (result != 0) {
-    return ReturnStatus::kFailure;
-  }
-
-  return ReturnStatus::kSuccess;
-}
-} // namespace pipeline
 } // namespace compiler
 } // namespace flow_wing

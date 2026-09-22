@@ -54,6 +54,9 @@ ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
     dep_opts.enable_server = parent_opts.enable_server;
     dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
     dep_opts.emit_brought_dependency_object = 1;
+    dep_opts.progress = ProgressMode::kNever;
+
+    context.getBuildProgress().unit(src_path);
 
     std::string entry_file_path = parent_opts.input_file_path;
     CompilationContext dep_ctx(dep_opts, entry_file_path);
@@ -62,9 +65,6 @@ ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
     CompilationPipeline pipeline = factory.build(dep_opts);
     if (pipeline.run(dep_ctx) != ReturnStatus::kSuccess) {
       return ReturnStatus::kFailure;
-    }
-    for (const auto &obj : dep_ctx.getBroughtObjectFiles()) {
-      context.addBroughtObjectFile(obj);
     }
     context.addBroughtObjectFile(
         ir_gen::ObjectUtils::getObjectFilePath(
@@ -88,12 +88,23 @@ ReturnStatus IRGenerationPass::run(CompilationContext &context) {
     return ReturnStatus::kFailure;
   }
 
-  const auto out_ty = context.getOptions().output_type;
-  if (out_ty == CompilerOptions::OutputType::kObj ||
-      out_ty == CompilerOptions::OutputType::kExe) {
+  // Only the root compiles brought files. A dependency's own pipeline also
+  // produces kObj, and used to compile ITS brought files again, recursively:
+  // a module brought by 14 files was compiled 15 times. Every repeat produced
+  // an identical object, so this was wasted time, not wrong output. The
+  // root's list already holds every transitive dependency once,
+  // dependency-first, so its loop is complete on its own.
+  const auto &opts = context.getOptions();
+  const bool builds_object =
+      opts.output_type == CompilerOptions::OutputType::kObj ||
+      opts.output_type == CompilerOptions::OutputType::kExe;
+  if (builds_object && !opts.emit_brought_dependency_object) {
     if (compileBroughtSourcesToObjects(context) != ReturnStatus::kSuccess) {
       return ReturnStatus::kFailure;
     }
+    // After the dependencies, as Cargo prints it: the entry is the last unit
+    // compiled before the link.
+    context.getBuildProgress().unit(context.getAbsoluteSourceFilePath());
   }
 
   ir_gen::IRGenContext ir_gen_context(context);

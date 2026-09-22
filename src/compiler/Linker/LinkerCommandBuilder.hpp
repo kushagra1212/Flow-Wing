@@ -19,6 +19,10 @@ public:
 
   std::string generateLinkCommand();
 
+  // Where the executable will be written: -o when given, otherwise
+  // <output-dir>/bin/<hash>. With .exe appended on Windows.
+  std::string getBinaryFilePath() const;
+
 private:
   CompilationContext &m_context;
   std::vector<std::string> m_object_files;
@@ -35,7 +39,6 @@ private:
   std::string getLibLinkFlag(const std::string &libName) const;
   std::string getOutputFlag() const;
   std::string getEntryPointFlag(const std::string &entry) const;
-  std::string getBinaryFilePath() const;
 };
 } // namespace linker
 } // namespace flow_wing

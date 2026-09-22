@@ -52,6 +52,16 @@ enum class TargetPlatform {
   kWasm32,
 };
 
+// Whether a build prints its Compiling / Linking / Finished lines.
+//
+// kAuto shows them only when stderr is a terminal. Test runners merge stderr
+// into the output they compare, so a piped build has to stay silent.
+enum class ProgressMode {
+  kAuto,
+  kAlways,
+  kNever,
+};
+
 struct CompilerOptions {
   // Input sources
   std::string input_file_path;
@@ -78,6 +88,9 @@ struct CompilerOptions {
   };
 
   TargetPlatform target_platform = TargetPlatform::kNative;
+
+  // Dependency pipelines set this to kNever so only the root build prints.
+  ProgressMode progress = ProgressMode::kAuto;
 
 #if defined(AOT_MODE)
   OutputType output_type = OutputType::kExe;

@@ -24,6 +24,7 @@
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
 #include "src/common/io/FileUtils.h"
 #include "src/common/utils/PathUtils/PathUtils.h"
+#include "src/compiler/BuildProgress/BuildProgress.hpp"
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
 #include "src/compiler/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/CompilationUnitSyntax.h"
@@ -44,7 +45,8 @@ public:
       : m_options(options),
         m_diagnostics(std::make_unique<diagnostic::DiagnosticHandler>()),
         m_absolute_source_file_path(
-            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)), m_entry_file_path(entry_file_path) {
+            utils::PathUtils::getAbsoluteFilePath(options.input_file_path)), m_entry_file_path(entry_file_path),
+        m_build_progress(options, m_absolute_source_file_path) {
 
 
     std::filesystem::path temp_root(flow_wing::io::getTempDirectoryPath());
@@ -55,6 +57,11 @@ public:
 
   // Getters
   const CompilerOptions &getOptions() const { return m_options; }
+
+  // The Compiling / Linking / Finished lines. Silent unless this is the root
+  // build and progress is shown; dependency contexts are built with
+  // ProgressMode::kNever.
+  compiler::BuildProgress &getBuildProgress() { return m_build_progress; }
   const std::string &getAbsoluteSourceFilePath() const {
     return m_absolute_source_file_path;
   }
@@ -124,9 +131,10 @@ public:
   }
 
   /// For `emit_brought_dependency_object` TUs only: index in
-  /// `getBroughtSourcePaths()` order, used as `llvm.global_ctors` priority
-  /// (lower runs first). JIT/AOT rely on this so top-level init order matches
-  /// bring order when multiple modules share priority 65535 otherwise.
+  /// `getBroughtSourcePaths()` order. Currently it has no effect:
+  /// broughtInitFunctionName ignores it, and module init order comes only
+  /// from the order in which the root's `main` calls each init function,
+  /// which is that same list order.
   void setBroughtCtorPriority(int priority) { m_brought_ctor_priority = priority; }
   int getBroughtCtorPriority() const { return m_brought_ctor_priority; }
 
@@ -145,11 +153,25 @@ private:
   std::vector<std::string> m_brought_object_files;
   int m_brought_ctor_priority = -1;
   std::string m_entry_file_path;
+  compiler::BuildProgress m_build_progress;
 };
 
 inline void
 CompilationContext::addBroughtSourceFile(std::string absolute_path) {
-  absolute_path = utils::PathUtils::getAbsoluteFilePath(absolute_path);
+  // Normalised, because the same file arrives spelled differently:
+  // `bring "framework/x.fg"` from main.fg and `bring "../framework/x.fg"` from
+  // suites/a.fg. Compared raw, the two spellings missed each other and the
+  // file was listed twice: compiled twice, and main called its init function
+  // twice, so the module's top-level code ran twice.
+  // BringTests/init_runs_once guards this.
+  //
+  // lexically_normal, not weakly_canonical: resolving symlinks (macOS /tmp is
+  // /private/tmp) would stop brought paths from sharing a prefix with an entry
+  // path that was not resolved.
+  absolute_path = std::filesystem::path(
+                      utils::PathUtils::getAbsoluteFilePath(absolute_path))
+                      .lexically_normal()
+                      .string();
   if (std::find(m_brought_source_paths.begin(), m_brought_source_paths.end(),
                 absolute_path) != m_brought_source_paths.end()) {
     return;

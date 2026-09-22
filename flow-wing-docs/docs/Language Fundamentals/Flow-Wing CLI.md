@@ -45,8 +45,38 @@ Arguments after a **`--`** token are not parsed as compiler options; they are pa
 | `-D`, `--dump` | With JSON/IR emit: also print to **stdout** when a pass runs. |
 | `-OD`, `--output-dir=<path>` | Directory for generated files; default is often a **`build/`**-style directory under the project. |
 | `-o`, `--output=<path>` | **AOT:** output path of the final executable. |
+| `--progress=<mode>` | Build progress lines: **`auto`** (default) shows them only when the output is a terminal, **`always`** shows them everywhere (for example in CI logs), **`never`** hides them. See [Build progress](#build-progress). |
 
 **AOT vs JIT:** For **AOT**, use **`flowwing`**, pass **`-o path`** when you want a named executable, then run that path. For **run without creating an app binary**, use **`flowwing-jit myapp.fg`** — the JIT program executes your `.fg` in one go (handy for quick iteration, similar to a script). If you only have **one** compiler binary (for example a **from-source** build that stages a single `build/sdk/bin/FlowWing`), that file is **either** AOT **or** JIT depending on which preset you built last, not both at once. Prefer a **packaged SDK** to get **`flowwing`** and **`flowwing-jit`** on `PATH` together.
+
+## Build progress
+
+When you build in a terminal, the compiler prints one line for each file it
+compiles, then the link, then a summary:
+
+```
+   Compiling sys (std)
+   Compiling lib/math-module.fg
+   Compiling main.fg
+     Linking build/bin/main
+    Finished main in 0.57s (3 files, -0.11s vs last build ▼)
+```
+
+- Each file appears **once**, even when several files bring it.
+- **`(std)`** marks a standard-library module.
+- The last part compares this build with the **last successful build** of the
+  same file, with the same `-O` level, target and output kind. It says
+  `first build`, `same as last build` (a change under 50 ms or 5%), or how
+  much slower (▲) or faster (▼) this build was. A compile-time regression is
+  therefore visible in the build where it appears.
+- The times are kept in `<output-dir>/.flowwing/build-times`. Deleting the
+  file only resets the comparison.
+- **JIT** builds print `Running main.fg` after `Finished`, and then your
+  program's output. The `Finished` time does not include run time.
+
+When the output is not a terminal (a pipe, a file, or a test runner), nothing
+is printed, so scripts that read the compiler's output see no change. Use
+`--progress=always` to keep the lines in a CI log.
 
 ## Examples
 

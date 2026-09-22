@@ -35,6 +35,7 @@ bring "suites/link.fg"
 bring "suites/optlevel.fg"
 bring "suites/output.fg"
 bring "suites/parse.fg"
+bring "suites/progress.fg"
 bring "suites/source.fg"
 bring "suites/target.fg"
 
@@ -61,6 +62,7 @@ link::run(h)
 optlevel::run(h)
 output::run(h)
 parse::run(h)
+progress::run(h)
 source::run(h)
 target::run(h)
 
