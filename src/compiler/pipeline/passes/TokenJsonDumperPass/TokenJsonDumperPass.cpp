@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "TokenJsonDumperPass.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/pipeline/passes/ArtifactWriter.hpp"
 #include "src/compiler/Serialization/Tokens/TokenJson.hpp"
 #include "src/external/include/json.hpp"
 #include <cstdlib>
@@ -45,18 +46,8 @@ ReturnStatus TokenJsonDumperPass::run(CompilationContext &context) {
 
   const int8_t kDumpIndent = 1;
 
-  if (context.getOptions().dump) {
-    flow_wing::cli::Reporter::message(tokens_json.dump(kDumpIndent));
-  } else {
-    std::ofstream tokens_json_file(context.getOptions().output_dir +
-                                   "/tokens.json");
-    tokens_json_file << tokens_json.dump(kDumpIndent);
-    tokens_json_file.close();
-    flow_wing::cli::Reporter::message(
-        "Tokens dumped to " + context.getOptions().output_dir + "/tokens.json");
-  }
-
-  return ReturnStatus::kSuccess;
+  return emitArtifact(context, "Tokens", "tokens.json",
+                      tokens_json.dump(kDumpIndent));
 }
 } // namespace pipeline
 } // namespace compiler

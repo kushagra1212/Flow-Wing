@@ -1,0 +1,776 @@
+/; Core of the CLI contract suite.
+/;
+/;   Options   what the runner was asked to do, parsed from argv
+/;   Reporter  PASS / FAIL lines, suite headers and the summary
+/;   Case      one compiler invocation: a fluent builder plus expectations
+/;   Harness   creates cases, applies --suite and --filter, owns the run dir
+/;
+/; A case reads top to bottom as "run this, expect that":
+/;
+/;   h.test("wasm32 refuses --emit=exe")
+/;     .withArgs("--target=wasm32 --emit=exe")
+/;     .expectFailsWith("--target=wasm32 currently supports only --emit=ir")
+/;     .done()
+/;
+/; The compiler runs on the first expectation, and only once. After the first
+/; failed expectation the rest are skipped, so a case always reports the
+/; earliest thing that went wrong.
+bring sys
+bring text
+bring file
+bring Err
+bring "shell-module.fg"
+bring "ir-module.fg"
+module [cli]
+
+/; The first byte of every ANSI colour sequence.
+var ESC: str = "" + Char(27)
+
+/; What the compiler printed, with its colour codes removed.
+/;
+/; The compiler colours its output unconditionally: CliColors.h has no
+/; NO_COLOR switch. The codes are listed rather than parsed because listing
+/; costs one C-backed replace per code, while parsing would walk the string
+/; byte by byte. The harness suite has a case that fails if CliColors.h ever
+/; gains a code that is missing here.
+fun plainText(raw: str) -> str {
+  var s: str = raw
+  s = text::replace(s, ESC + "[0m", "")
+  s = text::replace(s, ESC + "[1m", "")
+  s = text::replace(s, ESC + "[0;37m", "")
+  s = text::replace(s, ESC + "[1;31m", "")
+  s = text::replace(s, ESC + "[1;32m", "")
+  s = text::replace(s, ESC + "[1;33m", "")
+  s = text::replace(s, ESC + "[1;34m", "")
+  s = text::replace(s, ESC + "[1;37m", "")
+  return s
+}
+
+/; ===========================================================================
+/; Options
+/; ===========================================================================
+
+var USAGE: str = "usage: cli_test --bin=<FlowWing> [--suite=<name>] [--filter=<text>] [--list] [--keep] [--work=<dir>]"
+
+class Options {
+  var compiler: str
+  var workRoot: str
+  var onlySuite: str
+  var nameFilter: str
+  var listOnly: bool
+  var keepFiles: bool
+  /; Empty when argv made sense; otherwise what was wrong with it.
+  var problem: str
+
+  init() -> nthg {
+    self.compiler = ""
+    self.workRoot = "build/cli-fg"
+    self.onlySuite = ""
+    self.nameFilter = ""
+    self.listOnly = false
+    self.keepFiles = false
+    self.problem = ""
+  }
+}
+
+/; The part of `--name=value` after the first "=".
+fun valueOf(arg: str) -> str {
+  return text::substring(arg, text::indexOf(arg, "=") + 1, text::length(arg))
+}
+
+/; Reads argv. An unknown option is an error rather than something to skip:
+/; this suite exists partly to catch a compiler that silently ignores flags
+/; it does not know, and it should not do the same thing itself.
+fun parseOptions() -> cli::Options {
+  var o: cli::Options = new cli::Options()
+  var i: int = 1
+  while i < sys::getArgCount() {
+    var arg: str = sys::getArg(i)
+    i = i + 1
+    if text::startsWith(arg, "--bin=") {
+      o.compiler = valueOf(arg)
+    } or if text::startsWith(arg, "--work=") {
+      o.workRoot = valueOf(arg)
+    } or if text::startsWith(arg, "--suite=") {
+      o.onlySuite = valueOf(arg)
+    } or if text::startsWith(arg, "--filter=") {
+      o.nameFilter = valueOf(arg)
+    } or if arg == "--list" {
+      o.listOnly = true
+    } or if arg == "--keep" {
+      o.keepFiles = true
+    } else {
+      o.problem = "unknown option: " + arg
+    }
+  }
+  if o.problem == "" {
+    if o.compiler == "" {
+      o.problem = "--bin=<path to FlowWing> is required"
+    } else {
+      /; Absolute, because every case runs from its own directory.
+      o.compiler = shell::absolute(o.compiler)
+      o.workRoot = shell::absolute(o.workRoot)
+      if !file::exists(o.compiler) {
+        o.problem = "compiler not found at " + o.compiler + "\nbuild it first: make build-aot-release"
+      }
+    }
+  }
+  return o
+}
+
+/; ===========================================================================
+/; Reporter
+/; ===========================================================================
+
+class Reporter {
+  var passed: int
+  var failed: int
+  var listed: int
+  var suitesShown: int
+  var suite: str
+  var headerShown: bool
+  /; One "  x suite: name" line per failure, repeated in the summary.
+  var failures: str
+
+  init() -> nthg {
+    self.passed = 0
+    self.failed = 0
+    self.listed = 0
+    self.suitesShown = 0
+    self.suite = ""
+    self.headerShown = false
+    self.failures = ""
+  }
+
+  startSuite(name: str) -> nthg {
+    self.suite = name
+    self.headerShown = false
+  }
+
+  /; Printed on the first result, so a suite that --filter empties prints
+  /; nothing at all.
+  showHeader() -> nthg {
+    if !self.headerShown {
+      println(self.suite)
+      self.headerShown = true
+      self.suitesShown = self.suitesShown + 1
+    }
+  }
+
+  pass(name: str) -> nthg {
+    self.showHeader()
+    self.passed = self.passed + 1
+    println("  [PASS] " + name)
+  }
+
+  fail(name: str, reason: str) -> nthg {
+    self.showHeader()
+    self.failed = self.failed + 1
+    println("  [FAIL] " + name)
+    println("         " + text::replace(text::trim(reason), "\n", "\n         "))
+    self.failures = self.failures + "  x " + self.suite + ": " + name + "\n"
+  }
+
+  list(name: str) -> nthg {
+    self.showHeader()
+    self.listed = self.listed + 1
+    println("  " + name)
+  }
+
+  /; Prints the totals and returns the process exit code.
+  summary() -> int {
+    println("------------------------------------------------------------")
+    if self.listed > 0 {
+      println(self.listed + " case(s) across " + self.suitesShown + " suite(s).")
+      return 0
+    }
+    var total: int = self.passed + self.failed
+    if total == 0 {
+      println("No cases matched.")
+      return 1
+    }
+    if self.failed > 0 {
+      println(self.failed + " of " + total + " CLI contract test(s) failed:")
+      print(self.failures)
+      return 1
+    }
+    println("All " + total + " CLI contract test(s) passed across " + self.suitesShown + " suite(s).")
+    return 0
+  }
+}
+
+/; ===========================================================================
+/; Case
+/; ===========================================================================
+
+class Case {
+  var options: cli::Options
+  var reporter: cli::Reporter
+  var name: str
+  /; Private to this case: holds case.fg, and out/ for the compiler.
+  var dir: str
+  /; False when --suite or --filter excluded the case.
+  var active: bool
+
+  /; What to run.
+  var source: str
+  var flags: str
+  var passSource: bool
+  var passOutputDir: bool
+  /; Non-empty for a case that must fail, naming the reason it must give.
+  var requiredFailure: str
+
+  /; What happened.
+  var ran: bool
+  var code: int
+  var output: str
+  var checks: int
+  var failure: str
+  var finished: bool
+
+  init(options: cli::Options, reporter: cli::Reporter, name: str, dir: str, active: bool) -> nthg {
+    self.options = options
+    self.reporter = reporter
+    self.name = name
+    self.dir = dir
+    self.active = active
+    self.source = "println(\"ok\")\n"
+    self.flags = ""
+    self.passSource = true
+    self.passOutputDir = true
+    self.requiredFailure = ""
+    self.ran = false
+    self.code = 0
+    self.output = ""
+    self.checks = 0
+    self.failure = ""
+    self.finished = false
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Building. Paths may use {dir} (this case's directory) and {out} (the
+  /; output directory). Use withArg for anything holding a path or a quote;
+  /; withArgs passes its text to the shell as written.
+  /; -------------------------------------------------------------------------
+
+  /; The program written to {dir}/case.fg. Defaults to println("ok").
+  withSource(program: str) -> cli::Case {
+    self.guardBuilding("withSource")
+    self.source = program
+    return self
+  }
+
+  /; Do not pass case.fg to the compiler. The file is still written, so
+  /; --file={dir}/case.fg can name it explicitly.
+  withoutSource() -> cli::Case {
+    self.guardBuilding("withoutSource")
+    self.passSource = false
+    return self
+  }
+
+  /; Do not pass --output-dir, for flags such as --help that take none.
+  withoutOutputDir() -> cli::Case {
+    self.guardBuilding("withoutOutputDir")
+    self.passOutputDir = false
+    return self
+  }
+
+  /; Space-separated flags, passed to the shell exactly as written.
+  withArgs(flags: str) -> cli::Case {
+    self.guardBuilding("withArgs")
+    self.flags = self.flags + " " + self.expand(flags)
+    return self
+  }
+
+  /; One argument, quoted so the shell passes it through intact.
+  withArg(value: str) -> cli::Case {
+    self.guardBuilding("withArg")
+    self.flags = self.flags + " " + shell::quote(self.expand(value))
+    return self
+  }
+
+  /; The case passes only if it FAILS, with a reason containing `reason`.
+  /;
+  /; The harness suite uses this to prove each kind of check can fail at all:
+  /; a checker that always passes would otherwise go unnoticed. The reason is
+  /; pinned so that a case failing for some other cause, such as the
+  /; compiler not running, cannot count as the check working.
+  mustFailWith(reason: str) -> cli::Case {
+    self.requiredFailure = reason
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Exit code
+  /; -------------------------------------------------------------------------
+
+  expectOk() -> cli::Case {
+    if self.ready() {
+      if self.code != 0 {
+        self.fail("expected exit 0, got " + self.code + ". Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  expectFails() -> cli::Case {
+    if self.ready() {
+      if self.code == 0 {
+        self.fail("expected a non-zero exit, got 0. Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  expectFailsWith(needle: str) -> cli::Case {
+    return self.expectFails().expectSays(needle)
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Console output (stdout and stderr together, colour removed)
+  /; -------------------------------------------------------------------------
+
+  expectSays(needle: str) -> cli::Case {
+    if self.ready() {
+      if text::indexOf(self.output, needle) < 0 {
+        self.fail("expected '" + needle + "' in the output. Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  expectLacks(needle: str) -> cli::Case {
+    if self.ready() {
+      if text::indexOf(self.output, needle) >= 0 {
+        self.fail("did not expect '" + needle + "' in the output. Output:\n" + self.output)
+      }
+    }
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Files
+  /; -------------------------------------------------------------------------
+
+  /; `name` exists in the output directory. May include subdirectories.
+  expectWrites(name: str) -> cli::Case {
+    if self.ready() {
+      if !file::exists(self.outDir() + "/" + name) {
+        self.fail("expected " + name + " in the output directory, found: " + self.outDirListing())
+      }
+    }
+    return self
+  }
+
+  expectWritesNo(name: str) -> cli::Case {
+    if self.ready() {
+      if file::exists(self.outDir() + "/" + name) {
+        self.fail("did not expect " + name + " in the output directory")
+      }
+    }
+    return self
+  }
+
+  /; The run left exactly one file in {out}/objects.
+  expectOneObject() -> cli::Case {
+    if self.ready() {
+      if self.objectIn(self.outDir()) == "" {
+        self.fail("expected exactly one object file in objects/, found: " + shell::listDir(self.outDir() + "/objects"))
+      }
+    }
+    return self
+  }
+
+  /; case.fg contains `needle` after the run. The only way to tell --format,
+  /; which rewrites the file, from --format-print, which leaves it alone.
+  expectSourceContains(needle: str) -> cli::Case {
+    if self.ready() {
+      if text::indexOf(self.sourceNow(), needle) < 0 {
+        self.fail("expected '" + needle + "' in the source file, which holds:\n" + self.sourceNow())
+      }
+    }
+    return self
+  }
+
+  expectSourceLacks(needle: str) -> cli::Case {
+    if self.ready() {
+      if text::indexOf(self.sourceNow(), needle) >= 0 {
+        self.fail("did not expect '" + needle + "' in the source file:\n" + self.sourceNow())
+      }
+    }
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Executables
+  /;
+  /; Exit 0 alone cannot tell a compiler that linked a program from one that
+  /; linked nothing: both succeed. These run what was built.
+  /; -------------------------------------------------------------------------
+
+  /; The one executable in {out}/bin, where a build without -o puts it, runs,
+  /; exits 0, and prints `expected`.
+  expectBinaryPrints(expected: str) -> cli::Case {
+    if self.ready() {
+      var binary: str = self.singleFileIn(self.outDir() + "/bin")
+      if binary == "" {
+        self.fail("expected exactly one executable in bin/, found: " + shell::listDir(self.outDir() + "/bin"))
+      } else {
+        self.checkBinary(binary, expected)
+      }
+    }
+    return self
+  }
+
+  /; The executable at {out}/<relPath>, as named with -o, runs, exits 0, and
+  /; prints `expected`. The platform's executable suffix is added here.
+  expectBinaryAtPrints(relPath: str, expected: str) -> cli::Case {
+    if self.ready() {
+      var binary: str = self.outDir() + "/" + shell::executable(relPath)
+      if !file::exists(binary) {
+        self.fail("expected an executable at " + binary + ", found: " + self.outDirListing())
+      } else {
+        self.checkBinary(binary, expected)
+      }
+    }
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Emitted IR ({out}/llvm_ir.ll)
+  /; -------------------------------------------------------------------------
+
+  expectIrContains(needle: str) -> cli::Case {
+    if self.readyWithIr() {
+      if text::indexOf(self.irText(), needle) < 0 {
+        self.fail("expected '" + needle + "' in the emitted IR")
+      }
+    }
+    return self
+  }
+
+  expectIrLacks(needle: str) -> cli::Case {
+    if self.readyWithIr() {
+      if text::indexOf(self.irText(), needle) >= 0 {
+        self.fail("did not expect '" + needle + "' in the emitted IR")
+      }
+    }
+    return self
+  }
+
+  /; The first fw_gc_alloc call requests exactly `bytes`.
+  expectGcAllocSize(bytes: int) -> cli::Case {
+    if self.readyWithIr() {
+      var actual: int = ir::firstGcAllocSize(self.irPath())
+      if actual == -1 {
+        self.fail("no fw_gc_alloc call found in the emitted IR")
+      } or if actual != bytes {
+        self.fail("allocated " + actual + " bytes, expected " + bytes)
+      }
+    }
+    return self
+  }
+
+  /; `declare ... @symbol(...)` does not end in "...". A variadic declaration
+  /; of a fixed C function links natively and is rejected by wasm-ld, which
+  /; compares full function types.
+  expectNotVariadic(symbol: str) -> cli::Case {
+    if self.readyWithIr() {
+      var line: str = ir::declarationOf(self.irPath(), symbol)
+      if line == "" {
+        self.fail("no declaration of " + symbol + " found in the emitted IR")
+      } or if text::indexOf(line, "...") >= 0 {
+        self.fail(symbol + " is declared variadic: " + line)
+      }
+    }
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Comparing two builds
+  /; -------------------------------------------------------------------------
+
+  /; This run's object file differs from one built with `otherFlags`.
+  /;
+  /; The only way to prove a flag reached code generation rather than merely
+  /; being accepted: -O2 used to be parsed, stored and never read, so every
+  /; level produced byte-identical objects while still exiting 0.
+  expectObjectDiffersFrom(otherFlags: str) -> cli::Case {
+    if self.ready() {
+      var mine: str = self.objectIn(self.outDir())
+      var otherDir: str = self.dir + "/out_other"
+      var code: int, out: str = self.invoke(otherDir, " " + otherFlags)
+      var theirs: str = self.objectIn(otherDir)
+      if mine == "" {
+        self.fail("this run did not produce exactly one object file")
+      } or if code != 0 {
+        self.fail("the comparison build (" + otherFlags + ") failed:\n" + out)
+      } or if theirs == "" {
+        self.fail("the comparison build (" + otherFlags + ") produced no single object file")
+      } else {
+        var same: int = shell::compareFiles(mine, theirs)
+        if same == 0 {
+          self.fail("object is byte-identical to the " + otherFlags + " build, so the flags changed nothing")
+        } or if same != 1 {
+          self.fail("could not compare " + mine + " with " + theirs)
+        }
+      }
+    }
+    return self
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Reporting
+  /; -------------------------------------------------------------------------
+
+  /; Ends the chain and reports the result. Required: the harness reports a
+  /; chain that never reaches done() as a failure rather than dropping it.
+  done() -> nthg {
+    self.finished = true
+    if self.active {
+      if self.options.listOnly {
+        self.reporter.list(self.name)
+      } else {
+        self.report(self.verdict())
+      }
+    }
+  }
+
+  /; Why the case failed, or "" when it passed, before mustFailWith applies.
+  verdict() -> str {
+    if self.failure != "" {
+      return self.failure
+    }
+    if self.checks == 0 {
+      return "no expectations: a case must assert something"
+    }
+    return ""
+  }
+
+  report(reason: str) -> nthg {
+    if self.requiredFailure != "" {
+      self.reportRequiredFailure(reason)
+    } or if reason == "" {
+      self.reporter.pass(self.name)
+    } else {
+      self.reporter.fail(self.name, reason)
+    }
+  }
+
+  reportRequiredFailure(reason: str) -> nthg {
+    if reason == "" {
+      self.reporter.fail(self.name, "every expectation passed, but this case must fail with: " + self.requiredFailure)
+    } or if text::indexOf(reason, self.requiredFailure) < 0 {
+      self.reporter.fail(self.name, "failed for the wrong reason.\nwanted: " + self.requiredFailure + "\ngot:    " + reason)
+    } else {
+      self.reporter.pass(self.name)
+    }
+  }
+
+  /; Called by the harness when the next case starts before this one ended.
+  abandon() -> nthg {
+    self.finished = true
+    if self.active && !self.options.listOnly {
+      self.reporter.fail(self.name, "the chain never reached .done()")
+    }
+  }
+
+  /; -------------------------------------------------------------------------
+  /; Internals
+  /; -------------------------------------------------------------------------
+
+  /; Gate at the top of every expectation. False when the expectation should
+  /; be skipped: the case is filtered out, only being listed, or has already
+  /; failed. Otherwise runs the compiler on first use and counts the check.
+  ready() -> bool {
+    if !self.active || self.options.listOnly || self.failure != "" {
+      return false
+    }
+    if !self.ran {
+      self.execute()
+    }
+    self.checks = self.checks + 1
+    return self.failure == ""
+  }
+
+  readyWithIr() -> bool {
+    if !self.ready() {
+      return false
+    }
+    if !file::exists(self.irPath()) {
+      self.fail("no llvm_ir.ll was written. Output:\n" + self.output)
+      return false
+    }
+    return true
+  }
+
+  execute() -> nthg {
+    self.ran = true
+    if !shell::makeDir(self.dir) {
+      self.fail("could not create the case directory " + self.dir)
+    } else {
+      var written: bool, err: Err::Result = file::writeText(self.sourcePath(), self.source)
+      if err.isErr() {
+        self.fail("could not write " + self.sourcePath() + ": " + err.getMessage())
+      } else {
+        var code: int, out: str = self.invoke(self.outDir(), self.flags)
+        self.code = code
+        self.output = out
+      }
+    }
+  }
+
+  /; Runs the compiler from this case's directory and returns its exit code
+  /; and decoloured output.
+  invoke(outDir: str, flags: str) -> int, str {
+    var line: str = shell::program(self.options.compiler)
+    if self.passSource {
+      line = line + " " + shell::quote(self.sourcePath())
+    }
+    if self.passOutputDir {
+      line = line + " " + shell::quote("--output-dir=" + outDir)
+    }
+    var code: int, raw: str = shell::runIn(self.dir, line + flags)
+    return code, cli::plainText(raw)
+  }
+
+  /; Keeps the first failure; later ones are consequences of it.
+  fail(reason: str) -> nthg {
+    if self.failure == "" {
+      self.failure = reason
+    }
+  }
+
+  /; A builder call after the compiler ran would be silently ignored, so it
+  /; fails the case instead.
+  guardBuilding(method: str) -> nthg {
+    if self.ran {
+      self.fail(method + "() was called after an expectation had already run the compiler")
+    }
+  }
+
+  expand(value: str) -> str {
+    return text::replace(text::replace(value, "{out}", self.outDir()), "{dir}", self.dir)
+  }
+
+  sourcePath() -> str {
+    return self.dir + "/case.fg"
+  }
+
+  outDir() -> str {
+    return self.dir + "/out"
+  }
+
+  irPath() -> str {
+    return self.outDir() + "/llvm_ir.ll"
+  }
+
+  irText() -> str {
+    var content: str, err: Err::Result = file::readText(self.irPath())
+    return content
+  }
+
+  sourceNow() -> str {
+    var content: str, err: Err::Result = file::readText(self.sourcePath())
+    return content
+  }
+
+  outDirListing() -> str {
+    var listing: str = shell::listDir(self.outDir())
+    if listing == "" {
+      return "nothing"
+    }
+    return text::replace(listing, "\n", ", ")
+  }
+
+  /; The one file in {outDir}/objects, or "" when there are none or several.
+  objectIn(outDir: str) -> str {
+    return self.singleFileIn(outDir + "/objects")
+  }
+
+  /; The path of the only entry in `dir`, or "" when it holds none or several.
+  singleFileIn(dir: str) -> str {
+    var listing: str = shell::listDir(dir)
+    if listing == "" || text::indexOf(listing, "\n") >= 0 {
+      return ""
+    }
+    return dir + "/" + listing
+  }
+
+  checkBinary(binary: str, expected: str) -> nthg {
+    var code: int, out: str = shell::run(shell::program(binary))
+    if code != 0 {
+      self.fail("the executable exited " + code + ". Output:\n" + out)
+    } or if text::indexOf(out, expected) < 0 {
+      self.fail("the executable did not print '" + expected + "'. Output:\n" + out)
+    }
+  }
+}
+
+/; ===========================================================================
+/; Harness
+/; ===========================================================================
+
+class Harness {
+  var options: cli::Options
+  var reporter: cli::Reporter
+  /; Unique per invocation, so no file from an earlier run can satisfy an
+  /; expectWrites in this one.
+  var runDir: str
+  var caseCount: int
+  var suiteActive: bool
+  var open: cli::Case
+  var hasOpen: bool
+
+  init(options: cli::Options) -> nthg {
+    self.options = options
+    self.reporter = new cli::Reporter()
+    self.runDir = options.workRoot + "/run-" + sys::nanos()
+    self.caseCount = 0
+    self.suiteActive = true
+    self.hasOpen = false
+  }
+
+  /; Starts a suite. Every test() until the next suite() belongs to it.
+  suite(name: str) -> nthg {
+    self.closeOpenCase()
+    self.suiteActive = self.options.onlySuite == "" || self.options.onlySuite == name
+    self.reporter.startSuite(name)
+  }
+
+  /; A new case in the current suite.
+  test(name: str) -> cli::Case {
+    self.closeOpenCase()
+    self.caseCount = self.caseCount + 1
+    var active: bool = self.suiteActive
+    if self.options.nameFilter != "" {
+      if text::indexOf(name, self.options.nameFilter) < 0 {
+        active = false
+      }
+    }
+    var c: cli::Case = new cli::Case(self.options, self.reporter, name, self.runDir + "/c" + self.caseCount, active)
+    self.open = c
+    self.hasOpen = true
+    return c
+  }
+
+  /; Removes the run directory, prints the summary, returns the exit code.
+  finish() -> int {
+    self.closeOpenCase()
+    if !self.options.keepFiles {
+      shell::removeDir(self.runDir)
+    }
+    return self.reporter.summary()
+  }
+
+  /; A chain that never reached .done() would otherwise vanish from the
+  /; report without a trace.
+  closeOpenCase() -> nthg {
+    if self.hasOpen {
+      if !self.open.finished {
+        self.open.abandon()
+      }
+    }
+    self.hasOpen = false
+  }
+}

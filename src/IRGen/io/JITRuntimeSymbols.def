@@ -69,6 +69,8 @@ FW_JIT_RUNTIME_SYMBOL(fg_store_args)
 FW_JIT_RUNTIME_SYMBOL(fg_get_arg_count)
 FW_JIT_RUNTIME_SYMBOL(fg_get_arg)
 FW_JIT_RUNTIME_SYMBOL(fg_exit)
+FW_JIT_RUNTIME_SYMBOL(fg_exec)
+FW_JIT_RUNTIME_SYMBOL(fg_exec_status)
 FW_JIT_RUNTIME_SYMBOL(fg_timestamp)
 FW_JIT_RUNTIME_SYMBOL(fg_monotonic_nanos)
 

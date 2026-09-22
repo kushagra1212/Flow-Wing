@@ -158,6 +158,7 @@ help:
 	@echo "    test-aot                 Build and run all tests in AOT mode."
 	@echo "    test-jit                 Build and run all tests in JIT mode."
 	@echo "    test-format              Build AOT and run formatter golden tests (tests/formatter_golden_test.py)."
+	@echo "    test-cli                 Build AOT and run the CLI contract tests (tests/cli_fg, written in Flow-Wing)."
 	@echo "    test-gc                  Build AOT and run the GC runtime unit tests (fw-modules/gc/tests)."
 	@echo "    test-sched               Build AOT and run the scheduler unit tests (spawn/yield/park_io)."
 	@echo "    test-uv                  Build AOT and run the event-loop unit tests (shared libuv loop)."
@@ -468,16 +469,24 @@ test-jit-O2:
 test-jit-O3:
 	@$(MAKE) test-jit ARGS="--opt=-O3 $(ARGS)"
 
-#? Flag-combination and emitted-ABI checks (tests/cli_contract_test.py).
+#? Flag-combination and emitted-ABI checks (tests/cli_fg/, written in Flow-Wing).
 #?
 #? Covers what the fixture runner cannot: it compiles one .fg per test with a
 #? fixed flag set, so it can neither assert that a COMBINATION of flags is
 #? refused (--target=wasm32 with --emit=exe) nor inspect the shape of a
 #? declaration in the emitted IR (fg_pf must not be variadic).
+#?
+#? The runner is compiled by the compiler under test, at -O0 on purpose:
+#? runner speed is noise next to ~120 compiler runs, and -O0 keeps the
+#? optimizer out of the tool that checks the optimizer.
+#?   make test-cli ARGS="--suite=target"
+#?   make test-cli ARGS="--filter=wasm32 --keep"
 .PHONY: test-cli
 test-cli: build-aot-release
+	$(ECHO_MSG) "--> Building the CLI contract test runner..."
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) tests/cli_fg/main.fg --emit=exe -O0 --output-dir=build/cli-fg/runner -o build/cli-fg/cli_test$(EXE_EXT)
 	$(ECHO_MSG) "--> Running CLI contract tests..."
-	@python3 tests/cli_contract_test.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+	@$(call NATIVE_PATH, build/cli-fg/cli_test$(EXE_EXT)) --bin=$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
 
 #? Golden tests for `FlowWing --format-print` (tests/fixtures/FormatterTests)
 .PHONY: test-format

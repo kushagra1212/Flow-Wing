@@ -20,6 +20,8 @@ fun fw_sched_yield() -> as nthg decl
 fun fg_runtime_error(msg: as str) -> as nthg decl
 
 fun fg_exec(cmd: as str) -> as str decl
+
+fun fg_exec_status() -> as int decl
 module [sys] /; Layer 2: namespace
 /; Command-line argument access
 /; Returns the argument at the given index (0 = program name)
@@ -89,7 +91,17 @@ fun yield() -> nthg {
     fw_sched_yield()
 }
 
-/; Executes a shell command and returns the standard output/error
+/; Executes a shell command and returns its standard output.
+/; Standard error is not captured; append " 2>&1" to the command to merge it.
 fun exec(cmd: str) -> str {
     return fg_exec(cmd)
+}
+
+/; Executes a shell command and returns its exit code and standard output.
+/; The exit code is what a shell would report in $?: 128 + N when the
+/; command was killed by signal N, and -1 when it could not be started.
+/; Standard error is not captured; append " 2>&1" to the command to merge it.
+fun run(cmd: str) -> int, str {
+    var out: str = fg_exec(cmd)
+    return fg_exec_status(), out
 }

@@ -1,0 +1,67 @@
+/; What the compiler does with input it cannot compile, and with input that
+/; is valid but empty. The exit code matters as much as the message: a build
+/; system reads the code, not the text.
+bring "../framework/cli-module.fg"
+module [diagnostics]
+
+var BROKEN: str = "var x int = \n"
+var UNDEFINED: str = "println(never_declared_variable)\n"
+/; `/;` is the line comment. `//` is floor division, not a comment.
+var COMMENT_ONLY: str = "/; nothing but a comment\n"
+var BLOCK_COMMENT_ONLY: str = "/#\nnothing but a block comment\n#/\n"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("diagnostics")
+
+  h.test("a syntax error exits non-zero")
+    .withSource(BROKEN)
+    .withArgs("--emit=ir")
+    .expectFails()
+    .done()
+
+  h.test("a syntax error names the offending token")
+    .withSource(BROKEN)
+    .withArgs("--emit=ir")
+    .expectFailsWith("UnexpectedToken")
+    .done()
+
+  h.test("a syntax error names the file")
+    .withSource(BROKEN)
+    .withArgs("--emit=ir")
+    .expectFailsWith("case.fg")
+    .done()
+
+  h.test("an undefined variable is rejected")
+    .withSource(UNDEFINED)
+    .withArgs("--emit=ir")
+    .expectFails()
+    .done()
+
+  h.test("an empty source file compiles to an empty module")
+    .withSource("")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("a line-comment-only source file compiles")
+    .withSource(COMMENT_ONLY)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("a block-comment-only source file compiles")
+    .withSource(BLOCK_COMMENT_ONLY)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("an empty source file links into a program that runs")
+    .withSource("")
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectBinaryPrints("")
+    .done()
+}

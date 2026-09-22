@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "SemanticTreeJsonDumperPass.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/pipeline/passes/ArtifactWriter.hpp"
 #include "src/compiler/Serialization/Ast/AstJson.hpp"
 #include "src/compiler/Serialization/BoundTree/BoundTreeJson.hpp"
 #include "src/compiler/Serialization/Tokens/TokenJson.hpp"
@@ -49,19 +50,8 @@ ReturnStatus SemanticTreeJsonDumperPass::run(CompilationContext &context) {
 
   const int8_t kDumpIndent = 2;
 
-  if (context.getOptions().dump) {
-    flow_wing::cli::Reporter::message(bound_tree_json.dump(kDumpIndent));
-  } else {
-    std::ofstream bound_tree_json_file(context.getOptions().output_dir +
-                                       "/semantic_tree.json");
-    bound_tree_json_file << bound_tree_json.dump(kDumpIndent);
-    bound_tree_json_file.close();
-    flow_wing::cli::Reporter::message("Semantic tree dumped to " +
-                                      context.getOptions().output_dir +
-                                      "/semantic_tree.json");
-  }
-
-  return ReturnStatus::kSuccess;
+  return emitArtifact(context, "Semantic tree", "semantic_tree.json",
+                      bound_tree_json.dump(kDumpIndent));
 }
 } // namespace pipeline
 } // namespace compiler

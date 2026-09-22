@@ -1,0 +1,62 @@
+/; Where output goes: -OD/--output-dir and -o/--output.
+bring "../framework/cli-module.fg"
+module [output]
+
+/; Each dumper pass used to open its own unchecked ofstream, so a missing
+/; --output-dir printed "... dumped to <path>", exited 0, and wrote nothing.
+/; All four now share emitArtifact; one case per pass keeps any of them
+/; from drifting back.
+var DUMP_EMITS: str[4] = ["ir", "tokens", "ast", "sem"]
+var DUMP_FILES: str[4] = ["llvm_ir.ll", "tokens.json", "ast.json", "semantic_tree.json"]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("output")
+
+  h.test("--output-dir receives the IR")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-OD is the short form of --output-dir")
+    .withoutOutputDir()
+    .withArgs("-OD")
+    .withArg("{out}")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-o writes the executable exactly where asked")
+    .withArgs("--emit=exe -o")
+    .withArg("{out}/named_exe")
+    .expectOk()
+    .expectBinaryAtPrints("named_exe", "ok")
+    .done()
+
+  h.test("--output is the long form of -o")
+    .withArgs("--emit=exe")
+    .withArg("--output={out}/named_exe2")
+    .expectOk()
+    .expectBinaryAtPrints("named_exe2", "ok")
+    .done()
+
+  for (var i: int = 0 to 3) {
+    h.test("--emit=" + DUMP_EMITS[i] + " creates a missing --output-dir")
+      .withoutOutputDir()
+      .withArg("--output-dir={out}/missing/nested")
+      .withArgs("--emit=" + DUMP_EMITS[i])
+      .expectOk()
+      .expectWrites("missing/nested/" + DUMP_FILES[i])
+      .done()
+  }
+
+  /; A directory cannot be created under a regular file, on any platform.
+  h.test("an --output-dir that cannot be created fails instead of claiming success")
+    .withoutOutputDir()
+    .withArg("--output-dir={dir}/case.fg/sub")
+    .withArgs("--emit=ir")
+    .expectFailsWith("Could not create output directory")
+    .expectLacks("dumped to")
+    .done()
+}

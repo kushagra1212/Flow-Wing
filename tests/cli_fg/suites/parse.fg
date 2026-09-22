@@ -1,0 +1,75 @@
+/; Argument parsing itself: unknown flags, missing values, flag precedence
+/; and the `--` runtime separator. These are the edges where argh's defaults
+/; decide the behaviour rather than Flow-Wing does.
+bring "../framework/cli-module.fg"
+module [parse]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("parse")
+
+  /; argh ignores anything it was not told about, so a misspelled flag is a
+  /; silent no-op: `--emmit=ir` builds an executable. --target is the one
+  /; flag that rejects what it does not recognise.
+  h.test("an unknown flag is ignored rather than rejected (documents a wart)")
+    .withArgs("--emit=ir --totally-unknown-flag")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("a misspelled --emit is ignored, not rejected (documents a wart)")
+    .withArgs("--emmit=ir")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  /; A trailing flag with no value leaves the parameter empty, which falls
+  /; back to the default rather than erroring.
+  h.test("--emit with no value falls back to the default output type")
+    .withArgs("--emit")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  h.test("--target with no value falls back to native")
+    .withArgs("--target --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  /; The parser tests -O3 first, so the highest level wins whatever order
+  /; the flags appear in.
+  h.test("-O2 -O3 together is accepted")
+    .withArgs("-O2 -O3 --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-O3 -O2 together is accepted")
+    .withArgs("-O3 -O2 --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  /; Everything after `--` is collected into runtime_args for the sys
+  /; module. Only the JIT forwards them, so an AOT build must not choke.
+  h.test("-- separates runtime arguments and does not affect the build")
+    .withArgs("--emit=ir -- alpha beta")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  /; `--` does NOT shield what follows it. runtime_args is filled, but the
+  /; WHOLE argv still goes to argh, which reads `--target=riscv` back out as
+  /; a compiler flag. The fix is to truncate argv at `--` before building
+  /; the argh parser. Until then this records what actually happens.
+  h.test("runtime arguments after -- leak back into the compiler (documents a bug)")
+    .withArgs("--emit=ir -- --target=riscv")
+    .expectFailsWith("Unknown target 'riscv'")
+    .done()
+
+  h.test("harmless runtime arguments after -- do not disturb the build")
+    .withArgs("--emit=ir -- alpha -9")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+}

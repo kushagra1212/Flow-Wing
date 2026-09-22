@@ -1,0 +1,61 @@
+/; -O0 through -O3.
+/;
+/; The levels must reach code generation, not merely parse. Before the
+/; optimization pass existed, -O2 and -O0 produced byte-identical output
+/; because the level was stored and never read.
+/;
+/; --emit=ir cannot catch that, and deliberately so: PipelineFactory runs
+/; OptimizationPass AFTER the IR pipeline is captured, so `-E ir` always
+/; shows what IR generation produced. Identical -O0 and -O3 IR is correct.
+/; Only comparing object files proves the optimizer runs.
+bring "../framework/cli-module.fg"
+module [optlevel]
+
+/; Enough arithmetic in a loop that any real pipeline changes the code.
+var OPTIMIZABLE: str = "fun addup(n: int) -> int {\n  var s: int = 0\n  for (var i = 1 to n) {\n    s = s + i * 2 + 0\n  }\n  return s\n}\nprintln(addup(10))\n"
+
+var LEVELS: str[4] = ["-O0", "-O1", "-O2", "-O3"]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("optlevel")
+
+  for (var i: int = 0 to 3) {
+    h.test(LEVELS[i] + " is accepted and still emits IR")
+      .withArgs(LEVELS[i] + " --emit=ir")
+      .expectOk()
+      .expectWrites("llvm_ir.ll")
+      .done()
+  }
+
+  /; addup(10) is 2 * (1 + ... + 10) = 110. Checking the value, not just the
+  /; exit code, is what catches an optimization that miscompiles the loop.
+  h.test("-O2 builds an executable that computes the right answer")
+    .withSource(OPTIMIZABLE)
+    .withArgs("-O2 --emit=exe")
+    .expectOk()
+    .expectBinaryPrints("110")
+    .done()
+
+  h.test("-O3 builds an executable that computes the right answer")
+    .withSource(OPTIMIZABLE)
+    .withArgs("-O3 --emit=exe")
+    .expectOk()
+    .expectBinaryPrints("110")
+    .done()
+
+  /; The regression guard proper. Each fails if the level stops reaching the
+  /; optimizer, which is exactly how the original bug looked.
+  h.test("-O2 changes the object code relative to -O0")
+    .withSource(OPTIMIZABLE)
+    .withArgs("-O2 --emit=obj")
+    .expectOk()
+    .expectObjectDiffersFrom("-O0 --emit=obj")
+    .done()
+
+  h.test("-O3 changes the object code relative to -O0")
+    .withSource(OPTIMIZABLE)
+    .withArgs("-O3 --emit=obj")
+    .expectOk()
+    .expectObjectDiffersFrom("-O0 --emit=obj")
+    .done()
+}

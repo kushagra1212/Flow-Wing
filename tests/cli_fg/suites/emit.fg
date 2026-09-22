@@ -1,0 +1,67 @@
+/; --emit / -E: every accepted value, plus the unknown-value behaviour.
+bring "../framework/cli-module.fg"
+module [emit]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("emit")
+
+  h.test("--emit=tokens writes tokens.json")
+    .withArgs("--emit=tokens")
+    .expectOk()
+    .expectWrites("tokens.json")
+    .done()
+
+  h.test("--emit=ast writes ast.json")
+    .withArgs("--emit=ast")
+    .expectOk()
+    .expectWrites("ast.json")
+    .done()
+
+  h.test("--emit=sem writes semantic_tree.json")
+    .withArgs("--emit=sem")
+    .expectOk()
+    .expectWrites("semantic_tree.json")
+    .done()
+
+  h.test("--emit=ir writes llvm_ir.ll")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("--emit=obj writes exactly one object file")
+    .withArgs("--emit=obj")
+    .expectOk()
+    .expectOneObject()
+    .done()
+
+  h.test("--emit=exe builds a program that runs")
+    .withArgs("--emit=exe")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  /; This binary is built with AOT_MODE, so no ORC JIT is linked in. The
+  /; value parses and the pipeline runs; materialization is what fails. A
+  /; JIT build of the compiler is covered by `make test-jit`, not here.
+  h.test("--emit=jit is rejected by an AOT-built compiler")
+    .withArgs("--emit=jit")
+    .expectFails()
+    .done()
+
+  h.test("-E is the short form of --emit")
+    .withArgs("-E ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  /; Documents a wart rather than endorsing it: an unrecognised value is
+  /; ignored and the default output type is used, so `--emit=irr` quietly
+  /; builds an executable. --target rejects unknown values; --emit does not.
+  /; If that is ever tightened, this case should fail and be updated.
+  h.test("unknown --emit value silently builds an executable (documents a wart)")
+    .withArgs("--emit=bogus")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+}

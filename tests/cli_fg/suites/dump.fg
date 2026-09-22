@@ -1,0 +1,42 @@
+/; -D / --dump: print the emitted artifact to the console instead of
+/; writing it.
+bring "../framework/cli-module.fg"
+module [dump]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("dump")
+
+  /; --dump REPLACES file output rather than adding to it. Worth pinning
+  /; down, because the flag reads as if it would print as well as write.
+  h.test("--dump prints the module to the console")
+    .withArgs("--emit=ir --dump")
+    .expectOk()
+    .expectSays("target triple =")
+    .expectSays("define i32 @main")
+    .done()
+
+  h.test("--dump writes no file")
+    .withArgs("--emit=ir --dump")
+    .expectOk()
+    .expectWritesNo("llvm_ir.ll")
+    .done()
+
+  h.test("-D is the short form")
+    .withArgs("--emit=ir -D")
+    .expectOk()
+    .expectSays("target triple =")
+    .done()
+
+  h.test("without --dump the module is written but not printed")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .expectLacks("target triple =")
+    .done()
+
+  h.test("--dump does not stop --emit=exe from building")
+    .withArgs("--emit=exe --dump")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+}

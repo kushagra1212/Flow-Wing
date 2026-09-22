@@ -1,0 +1,67 @@
+/; CLI contract suite, written in Flow-Wing.
+/;
+/; Covers what the fixture runner cannot: it compiles one .fg per test with a
+/; fixed flag set, so it can neither assert that a COMBINATION of flags is
+/; refused nor inspect the shape of a declaration in the emitted IR.
+/;
+/;   make test-cli
+/;   make test-cli ARGS="--suite=target"
+/;   make test-cli ARGS="--filter=wasm32 --keep"
+/;
+/; Adding coverage:
+/;
+/;   one more case  -> add an h.test(...) chain to the suite it belongs to,
+/;                     under suites/
+/;   a new area     -> create suites/<area>.fg as `module [<area>]` with
+/;                     `fun run(h: cli::Harness)`, then add its bring and
+/;                     its <area>::run(h) call below
+/;
+/; Each suite is a module so its constants cannot collide with another
+/; suite's: top-level names in brought files otherwise share one scope.
+/;
+/; Flow-Wing has no reflection, so suites are listed here rather than found
+/; by scanning a directory. The list is the only registration there is.
+bring sys
+bring "framework/cli-module.fg"
+bring "suites/harness.fg"
+bring "suites/abi.fg"
+bring "suites/diagnostics.fg"
+bring "suites/dump.fg"
+bring "suites/emit.fg"
+bring "suites/entry.fg"
+bring "suites/format.fg"
+bring "suites/info.fg"
+bring "suites/link.fg"
+bring "suites/optlevel.fg"
+bring "suites/output.fg"
+bring "suites/parse.fg"
+bring "suites/source.fg"
+bring "suites/target.fg"
+
+var options: cli::Options = cli::parseOptions()
+if options.problem != "" {
+  println("error: " + options.problem)
+  println(cli::USAGE)
+  sys::exit(2)
+}
+
+var h: cli::Harness = new cli::Harness(options)
+
+/; The framework proves its own checks can fail before anything relies on
+/; them passing.
+harness::run(h)
+abi::run(h)
+diagnostics::run(h)
+dump::run(h)
+emit::run(h)
+entry::run(h)
+format::run(h)
+info::run(h)
+link::run(h)
+optlevel::run(h)
+output::run(h)
+parse::run(h)
+source::run(h)
+target::run(h)
+
+sys::exit(h.finish())

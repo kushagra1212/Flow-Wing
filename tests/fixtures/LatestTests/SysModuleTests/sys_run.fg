@@ -1,0 +1,16 @@
+/; sys::run returns a command's exit code alongside its standard output.
+/; popen runs through the platform shell, so every command here behaves the
+/; same under /bin/sh and cmd.exe.
+bring sys
+bring text
+
+var okCode: int, okOut: str = sys::run("echo hello")
+println(okCode)
+println(text::trim(okOut))
+
+var failCode: int, failOut: str = sys::run("exit 3")
+println(failCode)
+println(text::isEmpty(failOut))
+
+/; exec keeps its old contract: output only.
+println(text::trim(sys::exec("echo still-works")))

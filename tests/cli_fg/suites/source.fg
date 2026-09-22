@@ -1,0 +1,74 @@
+/; How the compiler is told what to compile: -F/--file, -C/--code and the
+/; positional argument.
+bring "../framework/cli-module.fg"
+module [source]
+
+var INLINE: str = "println(\"INLINE_SOURCE\")"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("source")
+
+  h.test("positional source file is accepted")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("--file= names the source explicitly")
+    .withoutSource()
+    .withArg("--file={dir}/case.fg")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-F is the short form of --file")
+    .withoutSource()
+    .withArgs("-F")
+    .withArg("{dir}/case.fg")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("no source at all is rejected")
+    .withoutSource()
+    .withArgs("--emit=ir")
+    .expectFailsWith("No input file provided")
+    .done()
+
+  h.test("missing source file is reported by path")
+    .withoutSource()
+    .withArg("{dir}/does_not_exist.fg")
+    .withArgs("--emit=ir")
+    .expectFailsWith("Unable to open file")
+    .expectSays("does_not_exist.fg")
+    .done()
+
+  /; --code is documented in --help but cannot be used the way that
+  /; implies. The parser rejects an empty input_file_path before the
+  /; pipeline reaches SourceLoaderPass, the only reader of code_content, so
+  /; --code needs a file argument that it then ignores.
+  h.test("--code alone is rejected, despite being advertised (documents a bug)")
+    .withoutSource()
+    .withArg("--code=" + INLINE)
+    .withArgs("--emit=ir")
+    .expectFailsWith("No input file provided")
+    .done()
+
+  /; ...and when a file IS supplied, --code wins and the file is never read.
+  h.test("--code overrides the source file when both are given")
+    .withArg("--code=" + INLINE)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectIrContains("INLINE_SOURCE")
+    .done()
+
+  h.test("-C is the short form of --code")
+    .withArgs("-C")
+    .withArg(INLINE)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectIrContains("INLINE_SOURCE")
+    .done()
+}

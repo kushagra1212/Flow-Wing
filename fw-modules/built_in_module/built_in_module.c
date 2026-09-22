@@ -600,32 +600,55 @@ void fg_runtime_error(const char* msg) {
 }
 
 
-// Add this near the top with your other includes
 #ifdef _WIN32
 #define POPEN _popen
 #define PCLOSE _pclose
 #else
+#include <sys/wait.h>
 #define POPEN popen
 #define PCLOSE pclose
 #endif
 
-// Add this implementation
+// Exit code of the most recent fg_exec on this thread, read back by
+// fg_exec_status. A side channel rather than a second return value so that
+// fg_exec keeps the signature every existing `sys::exec` caller depends on.
+// sys::run reads it immediately after fg_exec, with no yield point between.
+static FG_THREAD_LOCAL int fg_last_exec_status = 0;
+
+// pclose hands back a wait status on POSIX and the plain exit code on
+// Windows. Normalise both to what a shell would report in $?.
+static int fg_decode_exec_status(int raw) {
+#ifdef _WIN32
+    return raw;
+#else
+    if (raw == -1) return -1;
+    if (WIFEXITED(raw)) return WEXITSTATUS(raw);
+    if (WIFSIGNALED(raw)) return 128 + WTERMSIG(raw);
+    return -1;
+#endif
+}
+
+int fg_exec_status(void) {
+    return fg_last_exec_status;
+}
+
+// Captures standard output only. Standard error goes straight to the
+// terminal unless the command itself redirects it (append " 2>&1").
 char* fg_exec(const char* cmd) {
-    if (!cmd) return fg_cs("", ""); 
+    fg_last_exec_status = -1;
+    if (!cmd) return fg_cs("", "");
 
     char buffer[128];
     size_t size = 1024;
     size_t len = 0;
-    
+
     char* result = (char*)fw_gc_alloc(size, &fw_blob_desc);
     if (!result) fg_re("Memory allocation failed in fg_exec");
     result[0] = '\0';
 
-    // Open a pipe to the command
     FILE* pipe = POPEN(cmd, "r");
     if (!pipe) return fg_cs("Error: Failed to execute command.", "");
 
-    // Read the STDOUT/STDERR chunk by chunk
     while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         size_t chunk_len = strlen(buffer);
         if (len + chunk_len + 1 > size) {
@@ -638,6 +661,6 @@ char* fg_exec(const char* cmd) {
         strcpy(result + len, buffer);
         len += chunk_len;
     }
-    PCLOSE(pipe);
+    fg_last_exec_status = fg_decode_exec_status(PCLOSE(pipe));
     return result;
 }

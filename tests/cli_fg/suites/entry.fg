@@ -1,0 +1,47 @@
+/; -e / --entry-point.
+bring "../framework/cli-module.fg"
+module [entry]
+
+var TWO_FNS: str = "fun greet() -> nthg {\n  println(\"greet ran\")\n}\ngreet()\n"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("entry")
+
+  h.test("--entry-point is accepted")
+    .withSource(TWO_FNS)
+    .withArgs("--entry-point=greet --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-e is the short form")
+    .withSource(TWO_FNS)
+    .withArgs("-e greet --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  /; The flag does not do what its help text says.
+  /;
+  /; LinkerCommandBuilder.cpp checks `entry_point` for emptiness and then
+  /; passes the hardcoded kMain_fn to the linker, so the VALUE is discarded.
+  /; IR generation never reads it: the module defines @main whatever is
+  /; asked for.
+  /;
+  /; Both cases below pass today for the wrong reason. If --entry-point is
+  /; ever implemented, the second should start failing and both should be
+  /; rewritten to assert the real entry symbol.
+  h.test("--entry-point does not change the emitted entry symbol (documents a bug)")
+    .withSource(TWO_FNS)
+    .withArgs("--entry-point=greet --emit=ir")
+    .expectOk()
+    .expectIrContains("@main")
+    .done()
+
+  h.test("an entry point that does not exist is accepted silently (documents a bug)")
+    .withSource(TWO_FNS)
+    .withArgs("--entry-point=no_such_function --emit=exe")
+    .expectOk()
+    .expectBinaryPrints("greet ran")
+    .done()
+}

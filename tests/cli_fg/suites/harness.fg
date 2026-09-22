@@ -1,0 +1,111 @@
+/; Tests of the test framework itself.
+/;
+/; The runner is compiled by the compiler it is testing. A miscompiled check
+/; that always passes would turn every case using it into a silent pass, so
+/; each kind of check is shown failing where it must fail, for the reason it
+/; must give. Pinning the reason matters: a case that failed because the
+/; compiler never ran would otherwise count as the check working.
+bring "../framework/cli-module.fg"
+module [harness]
+
+var BROKEN: str = "var x int = \n"
+var ABSENT: str = "text that is never printed"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("harness")
+
+  h.test("expectOk fails on a non-zero exit")
+    .withArgs("--target=riscv --emit=ir")
+    .expectOk()
+    .mustFailWith("expected exit 0, got 1")
+    .done()
+
+  h.test("expectFails fails on a clean exit")
+    .withArgs("--emit=ir")
+    .expectFails()
+    .mustFailWith("expected a non-zero exit, got 0")
+    .done()
+
+  h.test("expectSays fails on text that was never printed")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectSays(ABSENT)
+    .mustFailWith("expected '" + ABSENT + "' in the output")
+    .done()
+
+  h.test("expectLacks fails on text that was printed")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectLacks("LLVM IR dumped")
+    .mustFailWith("did not expect 'LLVM IR dumped' in the output")
+    .done()
+
+  h.test("expectWrites fails on a file that was not written")
+    .withArgs("--emit=ir")
+    .expectWrites("llvm_ir.ll")
+    .expectWrites("never_written.txt")
+    .mustFailWith("expected never_written.txt in the output directory")
+    .done()
+
+  h.test("expectIrContains fails on text absent from the IR")
+    .withArgs("--emit=ir")
+    .expectIrContains("target triple")
+    .expectIrContains(ABSENT)
+    .mustFailWith("expected '" + ABSENT + "' in the emitted IR")
+    .done()
+
+  h.test("expectGcAllocSize fails on the wrong size")
+    .withSource("var s: str[3]\nprintln(s[0])\n")
+    .withArgs("--emit=ir")
+    .expectGcAllocSize(999)
+    .mustFailWith("expected 999")
+    .done()
+
+  h.test("expectBinaryPrints fails on output the program never printed")
+    .withArgs("--emit=exe")
+    .expectBinaryPrints("ok")
+    .expectBinaryPrints(ABSENT)
+    .mustFailWith("the executable did not print '" + ABSENT + "'")
+    .done()
+
+  h.test("expectBinaryPrints fails when nothing was linked")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .mustFailWith("expected exactly one executable in bin/")
+    .done()
+
+  h.test("expectNotVariadic fails on a symbol the module does not declare")
+    .withArgs("--emit=ir")
+    .expectNotVariadic("fg_pf")
+    .expectNotVariadic("no_such_runtime_symbol")
+    .mustFailWith("no declaration of no_such_runtime_symbol")
+    .done()
+
+  h.test("expectObjectDiffersFrom fails on two identical builds")
+    .withArgs("-O0 --emit=obj")
+    .expectOk()
+    .expectObjectDiffersFrom("-O0 --emit=obj")
+    .mustFailWith("byte-identical")
+    .done()
+
+  h.test("a case with no expectations fails")
+    .mustFailWith("no expectations")
+    .done()
+
+  h.test("a builder call after the compiler ran fails the case")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .withArgs("-O3")
+    .mustFailWith("withArgs() was called after an expectation")
+    .done()
+
+  /; Tripwire for plainText: if CliColors.h gains a colour code that
+  /; cli::plainText does not remove, this fails and says where to add it.
+  h.test("compiler output is fully decoloured (else update cli::plainText)")
+    .withSource(BROKEN)
+    .withArgs("--emit=ir")
+    .expectFails()
+    .expectLacks(cli::ESC)
+    .done()
+}

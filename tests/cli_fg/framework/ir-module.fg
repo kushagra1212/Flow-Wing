@@ -1,0 +1,65 @@
+/; Questions about emitted LLVM IR.
+/;
+/; Each question is about a single line, so the file is streamed one line at
+/; a time through the C runtime. Slicing one big string instead would index
+/; it byte by byte, and every index costs a strlen here, which makes a scan
+/; quadratic in the size of the module.
+bring text
+bring file
+bring Err
+module [ir]
+
+/; The first line of the file at `path` that contains `needle`, or "" when
+/; no line does or the file cannot be read.
+fun firstLineWith(path: str, needle: str) -> str {
+  return firstLineStartingWith(path, "", needle)
+}
+
+/; The first line that starts with `prefix` and contains `needle`, or "".
+fun firstLineStartingWith(path: str, prefix: str, needle: str) -> str {
+  var found: str = ""
+  var f: file::File = new file::File(path)
+  var opened: Err::Result = f.open("r")
+  if opened.isOk() {
+    var scanning: bool = true
+    while scanning {
+      var line: str, err: Err::Result = f.readLine()
+      if err.isErr() {
+        scanning = false
+      } or if text::startsWith(line, prefix) {
+        if text::indexOf(line, needle) >= 0 {
+          found = line
+          scanning = false
+        }
+      }
+    }
+    f.close()
+  }
+  return found
+}
+
+/; The `declare` line for @symbol, or "" when the module does not declare it.
+fun declarationOf(path: str, symbol: str) -> str {
+  return firstLineStartingWith(path, "declare", "@" + symbol + "(")
+}
+
+/; Bytes requested by the first `call ptr @fw_gc_alloc(i64 N, ...)`, or -1
+/; when the module makes no such call.
+/;
+/; Allocation sizes come from the module's data layout, which is what makes
+/; this the check that catches a wrong-target layout: sizes go wrong while
+/; everything else still looks right.
+fun firstGcAllocSize(path: str) -> int {
+  var marker: str = "call ptr @fw_gc_alloc(i64 "
+  var line: str = firstLineWith(path, marker)
+  if line == "" {
+    return -1
+  }
+  var start: int = text::indexOf(line, marker) + text::length(marker)
+  var rest: str = text::substring(line, start, text::length(line))
+  var comma: int = text::indexOf(rest, ",")
+  if comma <= 0 {
+    return -1
+  }
+  return Int32(text::substring(rest, 0, comma))
+}

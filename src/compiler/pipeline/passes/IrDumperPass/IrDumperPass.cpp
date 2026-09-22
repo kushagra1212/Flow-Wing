@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "IrDumperPass.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+#include "src/compiler/pipeline/passes/ArtifactWriter.hpp"
 #include <cstdlib>
 #include <fstream>
 
@@ -32,18 +33,7 @@ std::string IrDumperPass::getName() const { return "IR Dumper"; }
 
 ReturnStatus IrDumperPass::run(CompilationContext &context) {
 
-  if (context.getOptions().dump) {
-    flow_wing::cli::Reporter::message(context.getLLVMIr());
-  } else {
-    std::ofstream llvm_ir_file(context.getOptions().output_dir + "/llvm_ir.ll");
-    std::string llvm_ir = context.getLLVMIr();
-    llvm_ir_file << llvm_ir;
-    llvm_ir_file.close();
-    flow_wing::cli::Reporter::message(
-        "LLVM IR dumped to " + context.getOptions().output_dir + "/llvm_ir.ll");
-  }
-
-  return ReturnStatus::kSuccess;
+  return emitArtifact(context, "LLVM IR", "llvm_ir.ll", context.getLLVMIr());
 }
 } // namespace pipeline
 } // namespace compiler

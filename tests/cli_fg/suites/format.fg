@@ -1,0 +1,65 @@
+/; --format and --format-print.
+/;
+/; The pair differ only in where the formatted text goes, so each case
+/; asserts both halves: what reached the console AND what happened to the
+/; file.
+bring "../framework/cli-module.fg"
+module [format]
+
+var UGLY: str = "var   x:int=1\nprintln( x )\n"
+var UGLY_LINE: str = "var   x:int=1"
+var TIDY_LINE: str = "var x: int = 1"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("format")
+
+  h.test("--format-print normalises spacing on stdout")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("--format-print")
+    .expectOk()
+    .expectSays(TIDY_LINE)
+    .expectSays("println(x)")
+    .done()
+
+  h.test("--format-print leaves the file untouched")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("--format-print")
+    .expectOk()
+    .expectSourceContains(UGLY_LINE)
+    .done()
+
+  h.test("-FMP is the short form")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("-FMP")
+    .expectOk()
+    .expectSays(TIDY_LINE)
+    .done()
+
+  h.test("--format rewrites the file in place")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("--format")
+    .expectOk()
+    .expectSourceContains(TIDY_LINE)
+    .expectSourceLacks(UGLY_LINE)
+    .done()
+
+  h.test("-FM is the short form of --format")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("-FM")
+    .expectOk()
+    .expectSourceContains(TIDY_LINE)
+    .done()
+
+  /; Mutually exclusive: one rewrites the file, the other prints.
+  h.test("--format and --format-print together are rejected")
+    .withSource(UGLY)
+    .withoutOutputDir()
+    .withArgs("--format --format-print")
+    .expectFailsWith("Only one of --format")
+    .done()
+}

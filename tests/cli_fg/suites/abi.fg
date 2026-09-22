@@ -1,0 +1,31 @@
+/; Shape of the runtime declarations Flow-Wing emits.
+/;
+/; Native linkers do not compare function types, so a declaration that
+/; disagrees with its C definition links happily and only shows up on wasm,
+/; where wasm-ld checks full signatures.
+bring "../framework/cli-module.fg"
+module [abi]
+
+var MULTI_PRINT: str = "var a: int = 1\nprint(a, \" \", a, \"\\n\")\n"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("abi")
+
+  /; fg_pf is `void fg_pf(const char *)` in C, and print(a, " ", b) lowers
+  /; to one single-argument call per item. Declaring it variadic added a
+  /; hidden varargs pointer and produced:
+  /;   function signature mismatch: fg_pf
+  h.test("fg_pf is not declared variadic (native)")
+    .withSource(MULTI_PRINT)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectNotVariadic("fg_pf")
+    .done()
+
+  h.test("fg_pf is not declared variadic (wasm32)")
+    .withSource(MULTI_PRINT)
+    .withArgs("--target=wasm32 --emit=ir")
+    .expectOk()
+    .expectNotVariadic("fg_pf")
+    .done()
+}

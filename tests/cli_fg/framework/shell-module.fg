@@ -1,0 +1,165 @@
+/; Everything in the CLI suite that depends on the host operating system.
+/;
+/; sys::run goes through the platform shell: /bin/sh on macOS and Linux,
+/; cmd.exe on Windows. The two disagree on quoting, on directory commands and
+/; on how to compare files, so every command line the suite builds is
+/; assembled in this file and nowhere else.
+bring sys
+bring text
+module [shell]
+
+/; -1 until probed, then 0 for a POSIX shell and 1 for cmd.exe.
+var platform: int = -1
+
+/; cmd.exe expands %OS% to "Windows_NT"; /bin/sh prints it unchanged.
+fun isWindows() -> bool {
+  if platform == -1 {
+    if text::trim(sys::exec("echo %OS%")) == "Windows_NT" {
+      platform = 1
+    } else {
+      platform = 0
+    }
+  }
+  return platform == 1
+}
+
+/; Wraps one argument in double quotes so the shell passes it through as a
+/; single, literal argument.
+/;
+/; Both shells, and the Windows C runtime that splits the command line
+/; again, read \" as a literal quote. /bin/sh also expands \, $ and ` inside
+/; double quotes, so those are escaped on POSIX only; escaping \ on Windows
+/; would double every path separator.
+fun quote(arg: str) -> str {
+  var s: str = arg
+  if !isWindows() {
+    s = text::replace(s, "\\", "\\\\")
+    s = text::replace(s, "$", "\\$")
+    s = text::replace(s, "`", "\\`")
+  }
+  s = text::replace(s, "\"", "\\\"")
+  return "\"" + s + "\""
+}
+
+/; An executable path in the form the shell runs it: quoted, and with native
+/; separators. Absolute paths are built by joining "/" onto the output of
+/; `cd`, so on Windows they arrive mixed, as in D:\a\repo/build/x.exe.
+fun program(path: str) -> str {
+  return quote(nativePath(path))
+}
+
+/; The file name the linker gives an executable called `base`: it appends
+/; .exe on Windows, to the default path and to an explicit -o alike.
+fun executable(base: str) -> str {
+  if isWindows() {
+    return base + ".exe"
+  }
+  return base
+}
+
+/; cmd.exe built-ins read "/" as the start of a switch, so paths handed to
+/; them need "\". The compiler itself accepts either separator.
+fun nativePath(path: str) -> str {
+  if isWindows() {
+    return text::replace(path, "/", "\\")
+  }
+  return path
+}
+
+/; Runs a command line with standard error merged into standard output.
+/;
+/; cmd.exe /c strips the first and last quote of a line that starts with
+/; one, which would break a quoted executable path, so on Windows the whole
+/; line is wrapped in one more pair of quotes for it to strip instead.
+fun run(commandLine: str) -> int, str {
+  var line: str = commandLine + " 2>&1"
+  if isWindows() {
+    line = "\"" + line + "\""
+  }
+  var code: int, out: str = sys::run(line)
+  return code, out
+}
+
+/; As run, but with `dir` as the working directory, so a command that writes
+/; to a default location cannot write outside the directory it was given.
+fun runIn(dir: str, commandLine: str) -> int, str {
+  var cd: str = "cd " + quote(dir)
+  if isWindows() {
+    cd = "cd /d " + quote(nativePath(dir))
+  }
+  var code: int, out: str = run(cd + " && " + commandLine)
+  return code, out
+}
+
+fun currentDir() -> str {
+  var command: str = "pwd"
+  if isWindows() {
+    command = "cd"
+  }
+  return text::trim(sys::exec(command))
+}
+
+fun isAbsolute(path: str) -> bool {
+  if text::startsWith(path, "/") || text::startsWith(path, "\\") {
+    return true
+  }
+  /; A Windows drive letter, as in C:\ or C:/. Nested rather than joined
+  /; with && so charAt is never reached on a one-character path.
+  if text::length(path) > 1 {
+    return text::charAt(path, 1) == ':'
+  }
+  return false
+}
+
+/; Resolves `path` against the current directory. Every path the suite hands
+/; to a command must be absolute, because cases run from their own directory.
+fun absolute(path: str) -> str {
+  if isAbsolute(path) {
+    return path
+  }
+  return currentDir() + "/" + path
+}
+
+/; Creates `path` and any missing parents. cmd.exe's mkdir creates parents
+/; by default; it has no -p and would make a directory named "-p".
+fun makeDir(path: str) -> bool {
+  var command: str = "mkdir -p " + quote(path)
+  if isWindows() {
+    command = "mkdir " + quote(nativePath(path))
+  }
+  var code: int, out: str = run(command)
+  return code == 0
+}
+
+fun removeDir(path: str) -> bool {
+  var command: str = "rm -rf " + quote(path)
+  if isWindows() {
+    command = "rmdir /s /q " + quote(nativePath(path))
+  }
+  var code: int, out: str = run(command)
+  return code == 0
+}
+
+/; 0 when the two files are byte-identical, 1 when they differ, anything
+/; else when they could not be compared. cmp and fc agree on these codes.
+fun compareFiles(a: str, b: str) -> int {
+  var command: str = "cmp -s " + quote(a) + " " + quote(b)
+  if isWindows() {
+    command = "fc /b " + quote(nativePath(a)) + " " + quote(nativePath(b))
+  }
+  var code: int, out: str = run(command)
+  return code
+}
+
+/; The names in `dir`, one per line, or "" when it is missing or empty.
+fun listDir(dir: str) -> str {
+  var command: str = "ls -1 " + quote(dir)
+  if isWindows() {
+    command = "dir /b " + quote(nativePath(dir))
+  }
+  var code: int, out: str = run(command)
+  if code != 0 {
+    return ""
+  }
+  return text::trim(out)
+}

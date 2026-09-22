@@ -1,0 +1,67 @@
+/; Informational flags that do not compile anything.
+bring "../framework/cli-module.fg"
+module [info]
+
+/; Every option the parser registers in `cli_options`, which also generates
+/; --help. A flag parsed but missing from that list works and is invisible
+/; to users; this is how -D/--dump was found undocumented.
+var DOCUMENTED_FLAGS: str[18] = [
+  "--help", "--version", "--file", "--code", "--format", "--format-print",
+  "-O0", "--entry-point", "--target", "-L", "-l", "--framework", "--server",
+  "--linker-warnings", "--emit", "--dump", "--output-dir", "--output"
+]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("info")
+
+  h.test("--help prints usage")
+    .withoutOutputDir()
+    .withArgs("--help")
+    .expectOk()
+    .expectSays("FlowWing Compiler Help")
+    .done()
+
+  h.test("-h is the short form of --help")
+    .withoutOutputDir()
+    .withArgs("-h")
+    .expectOk()
+    .expectSays("FlowWing Compiler Help")
+    .done()
+
+  h.test("--help prints the usage line")
+    .withoutOutputDir()
+    .withArgs("--help")
+    .expectOk()
+    .expectSays("Usage: flowwing")
+    .done()
+
+  h.test("--version prints the compiler banner")
+    .withoutOutputDir()
+    .withArgs("--version")
+    .expectOk()
+    .expectSays("Flowwing Compiler")
+    .done()
+
+  h.test("--version prints a version number")
+    .withoutOutputDir()
+    .withArgs("--version")
+    .expectOk()
+    .expectSays("Version:")
+    .done()
+
+  h.test("-V is the short form of --version")
+    .withoutOutputDir()
+    .withArgs("-V")
+    .expectOk()
+    .expectSays("Flowwing Compiler")
+    .done()
+
+  for (var i: int = 0 to 17) {
+    h.test("--help documents " + DOCUMENTED_FLAGS[i])
+      .withoutOutputDir()
+      .withArgs("--help")
+      .expectOk()
+      .expectSays(DOCUMENTED_FLAGS[i])
+      .done()
+  }
+}

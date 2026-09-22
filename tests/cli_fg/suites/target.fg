@@ -1,0 +1,75 @@
+/; --target / -T, and the wasm32 layout contract.
+bring "../framework/cli-module.fg"
+module [target]
+
+/; str[3] is three pointers, so its size shows which data layout drove type
+/; lowering, rather than which triple the module is merely labelled with.
+var STR_ARRAY: str = "var s: str[3]\nprintln(\"[\"+s[0]+\"]\")\n"
+var WASM_TRIPLE: str = "target triple = \"wasm32-unknown-emscripten\""
+var WASM_ONLY_IR: str = "--target=wasm32 currently supports only --emit=ir"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("target")
+
+  h.test("wasm32 emits a wasm32-targeted module")
+    .withArgs("--target=wasm32 --emit=ir")
+    .expectOk()
+    .expectIrContains(WASM_TRIPLE)
+    .expectIrContains("p:32:32")
+    .done()
+
+  h.test("-T is the short form of --target")
+    .withArgs("-T wasm32 --emit=ir")
+    .expectOk()
+    .expectIrContains(WASM_TRIPLE)
+    .done()
+
+  h.test("native is the default target")
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectIrContains("target triple =")
+    .done()
+
+  h.test("--target=native is accepted explicitly")
+    .withArgs("--target=native --emit=ir")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("unknown target is rejected")
+    .withArgs("--target=riscv --emit=ir")
+    .expectFailsWith("Unknown target")
+    .done()
+
+  /; The guard that matters. Object, exe and JIT all rebuild a TargetMachine
+  /; from the host triple and overwrite the module's layout, so the result
+  /; would be native code carrying wasm32 pointer sizes.
+  h.test("wasm32 refuses --emit=exe")
+    .withArgs("--target=wasm32 --emit=exe")
+    .expectFailsWith(WASM_ONLY_IR)
+    .done()
+
+  h.test("wasm32 refuses --emit=obj")
+    .withArgs("--target=wasm32 --emit=obj")
+    .expectFailsWith(WASM_ONLY_IR)
+    .done()
+
+  h.test("wasm32 refuses --emit=jit")
+    .withArgs("--target=wasm32 --emit=jit")
+    .expectFailsWith(WASM_ONLY_IR)
+    .done()
+
+  h.test("wasm32 lays out 32-bit pointers")
+    .withSource(STR_ARRAY)
+    .withArgs("--target=wasm32 --emit=ir")
+    .expectOk()
+    .expectGcAllocSize(12)
+    .done()
+
+  h.test("native lays out 64-bit pointers")
+    .withSource(STR_ARRAY)
+    .withArgs("--emit=ir")
+    .expectOk()
+    .expectGcAllocSize(24)
+    .done()
+}

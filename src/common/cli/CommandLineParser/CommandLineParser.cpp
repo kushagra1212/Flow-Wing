@@ -98,12 +98,14 @@ public:
       "runner)",
       "-o, --output=<path>"};
 
+  // Drives --help. A flag parsed below but left out here works and is
+  // invisible, which is how -D/--dump went undocumented.
   const std::vector<CliOption> cli_options = {
-      kOptHelp,     kOptVersion,     kOptFile,      kOptCode,
-      kOptFormat,   kOptFormatPrint, kOptOptLevels, kOptEntry,
-      kOptLibPath,  kOptLinkLib,     kOptFramework, kOptServer,
-      kOptLinkWarn, kOptEmit,        kOutDir,       kOptOutputExe,
-      kOptTarget};
+      kOptHelp,      kOptVersion,     kOptFile,      kOptCode,
+      kOptFormat,    kOptFormatPrint, kOptOptLevels, kOptEntry,
+      kOptLibPath,   kOptLinkLib,     kOptFramework, kOptServer,
+      kOptLinkWarn,  kOptEmit,        kDump,         kOutDir,
+      kOptOutputExe, kOptTarget};
 
   void printHelp() {
     flow_wing::cli::Reporter::message("FlowWing Compiler Help");

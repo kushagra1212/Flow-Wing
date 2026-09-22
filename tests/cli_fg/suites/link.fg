@@ -1,0 +1,62 @@
+/; Flags that only matter once the linker runs: -L, -l, --framework, -S and
+/; --linker-warnings.
+/;
+/; Cases that would depend on a host linker's wording, or on a Darwin-only
+/; concept, stop at --emit=ir, which still exercises parsing and storage.
+/; Everything that behaves the same on every platform goes to --emit=exe.
+bring "../framework/cli-module.fg"
+module [link]
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("link")
+
+  h.test("-L adds a library search path")
+    .withArgs("--emit=exe -L")
+    .withArg("{dir}")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  h.test("-L is accepted more than once")
+    .withArgs("--emit=exe -L")
+    .withArg("{dir}")
+    .withArgs("-L")
+    .withArg("{out}")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  /; Every supported linker fails on a library it cannot find; only the
+  /; wording differs, so this asserts the exit code alone.
+  h.test("-l on a library that does not exist fails the link")
+    .withArgs("--emit=exe -l no_such_library_xyz")
+    .expectFails()
+    .done()
+
+  /; -framework is a Darwin concept and is emitted unconditionally
+  /; (LinkerCommandBuilder.cpp). Linking it elsewhere would fail for reasons
+  /; that say nothing about Flow-Wing, so this stops at IR.
+  h.test("--framework is parsed and stored")
+    .withArgs("--emit=ir --framework Foundation")
+    .expectOk()
+    .expectWrites("llvm_ir.ll")
+    .done()
+
+  h.test("-S links the Vortex server library")
+    .withArgs("--emit=exe -S")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  h.test("--server is the long form")
+    .withArgs("--emit=exe --server")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+
+  h.test("--linker-warnings does not break the link")
+    .withArgs("--emit=exe --linker-warnings")
+    .expectOk()
+    .expectBinaryPrints("ok")
+    .done()
+}
