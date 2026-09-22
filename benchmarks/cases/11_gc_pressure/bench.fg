@@ -1,0 +1,25 @@
+bring sys
+
+class Node {
+  var value: int
+
+  fun init(v: int) -> nthg {
+    self.value = v
+  }
+
+  fun get() -> int {
+    return self.value
+  }
+}
+
+var n: int = Int32(sys::getArg(1))
+var total: int64 = 0
+var i: int = 0
+
+while (i < n) {
+  var node: Node = new Node(i % 1000)
+  total = (total + Int64(node.get())) % 1000000007
+  i = i + 1
+}
+
+println(total)

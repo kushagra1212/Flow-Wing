@@ -1,0 +1,12 @@
+bring sys
+
+var n: int = Int32(sys::getArg(1))
+var acc: int = 0
+var i: int = 0
+
+while (i < n) {
+  acc = (acc + ((i % 7) * 3) + 1) % 1000003
+  i = i + 1
+}
+
+println(acc)

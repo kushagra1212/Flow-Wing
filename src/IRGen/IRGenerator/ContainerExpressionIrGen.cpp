@@ -44,6 +44,28 @@ void IRGenerator::visit(
   // from `array_ptr` stay valid, so no reload is needed.
   spillToRoot(array_ptr, "arrlit.slot");
 
+  // A default-value container is already fully initialised at this point.
+  // getTempArray() emits ONE aggregate store of the type-correct default
+  // constant for the whole array: `zeroinitializer` for numeric and bool
+  // leaves, and `[ptr @.str.empty, ...]` for `str`, so empty strings stay
+  // empty strings rather than becoming null pointers.
+  //
+  // Walking the elements here would write those same defaults a second time,
+  // one slot at a time, at a cost of one GEP and one store per element.
+  // `var m: int[64][64]` alone produced 4096 of each. LLVM selects
+  // instructions per basic block with superlinear cost, so the redundant
+  // instructions dominated compile time and, past roughly 100,000 elements,
+  // overflowed the selector's stack and crashed the compiler.
+  //
+  // Only the binder's synthesised all-defaults fill sets this flag. Array
+  // literals and `fill` expressions pass false and still take the loop below.
+  if (container_expression->isDefaultValue()) {
+    clearLast();
+    m_last_value = array_ptr;
+    m_last_type = flow_type.get();
+    return;
+  }
+
   auto elements_size = container_expression->getElements().size();
 
   for (size_t i = 0; i < elements_size; i++) {

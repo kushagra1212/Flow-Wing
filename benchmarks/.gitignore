@@ -1,0 +1,4 @@
+# Driver build tree, fetched Google Benchmark, and the per-case binaries the
+# driver compiles. Reports under results/ are deliberately NOT ignored — a
+# committed history of them is how regressions become visible.
+build/

@@ -3,6 +3,6 @@
   "position": 8,
   "link": {
     "type": "generated-index",
-    "description": "How Flow-Wing works underneath: the garbage collector, the task scheduler behind `spawn`, and the libuv event loop that lets a task wait on a socket. Each page has an interactive, step-through visualisation."
+    "description": "How Flow-Wing works underneath: the garbage collector, the task scheduler behind `spawn`, the libuv event loop that lets a task wait on a socket, and how the language measures up against C++. The first three pages have an interactive, step-through visualisation."
   }
 }

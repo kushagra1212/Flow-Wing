@@ -429,10 +429,17 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
   llvm::Constant *init = elems.empty()
                              ? llvm::ConstantAggregateZero::get(arr_ty)
                              : llvm::ConstantArray::get(arr_ty, elems);
-  // Link-once so a single strong definition is visible across object files when
-  // needed; other TUs may reference the same symbol as extern.
+  // weak_odr, not linkonce_odr: one definition is merged across object files,
+  // and the definition is NOT discardable when it looks unused.
+  //
+  // A vtable is usually referenced only from the object that constructs the
+  // class, never from the module that defines it. linkonce_odr marks a global
+  // as droppable when nothing in its own module uses it, so LLVM's GlobalDCE
+  // is entitled to delete it, and it did: `bring vec` failed to link with
+  // "Undefined symbols: ___vt_vec.Vec, referenced from _main". weak_odr keeps
+  // the same merge behaviour without the licence to drop it.
   new llvm::GlobalVariable(*module, arr_ty, true,
-                           llvm::GlobalValue::LinkOnceODRLinkage, init,
+                           llvm::GlobalValue::WeakODRLinkage, init,
                            vt_global_name);
 }
 

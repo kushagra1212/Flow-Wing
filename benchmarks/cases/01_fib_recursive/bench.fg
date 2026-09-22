@@ -1,0 +1,11 @@
+bring sys
+
+fun fib(x: int) -> int {
+  if (x < 2) {
+    return x
+  }
+  return fib(x - 1) + fib(x - 2)
+}
+
+var n: int = Int32(sys::getArg(1))
+println(fib(n))

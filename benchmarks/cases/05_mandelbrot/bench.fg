@@ -1,0 +1,38 @@
+bring sys
+
+var size: int = Int32(sys::getArg(1))
+var inside: int = 0
+var y: int = 0
+
+while (y < size) {
+  var x: int = 0
+  while (x < size) {
+    var cr: deci = ((Decimal(x) * 3.0) / Decimal(size)) - 2.0
+    var ci: deci = ((Decimal(y) * 3.0) / Decimal(size)) - 1.5
+    var zr: deci = 0.0
+    var zi: deci = 0.0
+    var it: int = 0
+    var escaped: int = 0
+
+    while (it < 50) {
+      var zr2: deci = zr * zr
+      var zi2: deci = zi * zi
+      if ((zr2 + zi2) > 4.0) {
+        escaped = 1
+        it = 50
+      } else {
+        zi = ((2.0 * zr) * zi) + ci
+        zr = (zr2 - zi2) + cr
+        it = it + 1
+      }
+    }
+
+    if (escaped == 0) {
+      inside = inside + 1
+    }
+    x = x + 1
+  }
+  y = y + 1
+}
+
+println(inside)

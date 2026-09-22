@@ -1,0 +1,21 @@
+bring map
+bring sys
+
+var n: int = Int32(sys::getArg(1))
+var m: map::Map = new map::Map()
+
+var i: int = 0
+while (i < n) {
+  m.set(String(i % 10000), i % 10000)
+  i = i + 1
+}
+
+var total: int64 = 0
+var j: int = 0
+while (j < n) {
+  total = (total + Int64(Int32(m.getOr(String(j % 10000), 0)))) % 1000000007
+  j = j + 1
+}
+
+println(m.size())
+println(total)

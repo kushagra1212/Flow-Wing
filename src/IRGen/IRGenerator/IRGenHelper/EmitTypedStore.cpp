@@ -25,6 +25,7 @@
 #include "src/common/types/ClassType/ClassType.hpp"
 #include "src/common/types/CustomObjectType/CustomObjectType.hpp"
 #include "src/utils/LogConfig.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Value.h"
 
 namespace flow_wing {
@@ -860,8 +861,39 @@ llvm::Value *IRGenerator::getTempArray(types::Type *dest_type,
   auto new_array_ptr = builder->CreateBitCast(
       malloc_call, dest_llvm_type->getPointerTo(), "new_array");
 
-  llvm::Value *default_val = m_ir_gen_context.getDefaultValue(dest_type);
-  builder->CreateStore(default_val, new_array_ptr);
+  // Initialise the whole array with one instruction whose cost does not grow
+  // with the element count.
+  //
+  // `store [N x T] <default>, ptr %arr` reads as a single instruction, but
+  // SelectionDAG expands an aggregate store one element at a time while it
+  // selects machine instructions. That made compile time grow with N, and at
+  // N = 100000 the resulting DAG overflowed the stack and killed the compiler
+  // inside AArch64 instruction selection. A memset or memcpy stays one call
+  // at every size.
+  //
+  // Nothing is lost by not using a plain store: the array lives in GC heap
+  // memory returned by an opaque call, so SROA could never have promoted it.
+  llvm::Constant *default_const = m_ir_gen_context.getDefaultValue(dest_type);
+  const llvm::Align array_align = dl.getABITypeAlign(dest_llvm_type);
+
+  if (default_const->isNullValue()) {
+    builder->CreateMemSet(new_array_ptr, builder->getInt8(0), type_size_bytes,
+                          array_align);
+  } else {
+    // A non-zero default, which is what `str[N]` produces: every slot holds a
+    // pointer to the shared empty string, not a null pointer. Park the
+    // constant in a private global and copy it in, so the instruction count
+    // stays fixed however large N is.
+    auto *default_global = new llvm::GlobalVariable(
+        *m_ir_gen_context.getLLVMModule(), dest_llvm_type,
+        /*isConstant=*/true, llvm::GlobalValue::PrivateLinkage, default_const,
+        "arr.default");
+    default_global->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+    default_global->setAlignment(array_align);
+
+    builder->CreateMemCpy(new_array_ptr, array_align, default_global,
+                          array_align, type_size_bytes);
+  }
 
   if (src_val != nullptr) {
     // Temp-safety: the element conversion loop below hits `fw_gc_alloc`

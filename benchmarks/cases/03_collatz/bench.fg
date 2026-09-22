@@ -1,0 +1,29 @@
+bring sys
+
+var limit: int = Int32(sys::getArg(1))
+var best: int = 0
+var bestStart: int = 0
+var i: int = 1
+
+while (i < limit) {
+  var cur: int64 = Int64(i)
+  var steps: int = 0
+
+  while (cur != 1) {
+    if (cur % 2 == 0) {
+      cur = Int64(cur / 2)
+    } else {
+      cur = cur * 3 + 1
+    }
+    steps = steps + 1
+  }
+
+  if (steps > best) {
+    best = steps
+    bestStart = i
+  }
+  i = i + 1
+}
+
+println(bestStart)
+println(best)
