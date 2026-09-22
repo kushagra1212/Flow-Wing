@@ -18,6 +18,7 @@
  */
 
 #include "JITCompilerPass.hpp"
+#include "src/compiler/pipeline/passes/OptimizationPass/OptimizationPass.hpp"
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/io/JITRuntimeSymbols.hpp"
 #include "src/IRGen/io/JITUtils.hpp"
@@ -300,6 +301,14 @@ ReturnStatus JITCompilerPass::run(CompilationContext &context) {
       return ReturnStatus::kFailure;
     }
   }
+
+  // Optimize here rather than in OptimizationPass. That pass works on the
+  // module held in the backend context, but this pass does not use it: it
+  // re-reads the generated `.ll` files above and links them, so anything done
+  // to the in-memory module never reaches ORC. Optimizing the linked result
+  // also lets the inliner work across translation units.
+  optimizeModule(*combined, context.getBackendContext()->getTargetMachine(),
+                 context.getOptions().optimization_level);
 
   llvm::Error addErr = JIT->addIRModule(
       llvm::orc::ThreadSafeModule(std::move(combined), *TSCtx));

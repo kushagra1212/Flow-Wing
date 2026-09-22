@@ -29,6 +29,8 @@ namespace flow_wing {
 namespace compiler {
 namespace pipeline {
 
+
+
 std::string ObjectEmissionPass::getName() const { return "Object Emission"; }
 
 ReturnStatus ObjectEmissionPass::run(CompilationContext &context) {

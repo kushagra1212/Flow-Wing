@@ -26,6 +26,7 @@
 #include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
 #include "src/compiler/pipeline/passes/LinkerPass/LinkerPass.hpp"
 #include "src/compiler/pipeline/passes/ObjectEmissionPass/ObjectEmissionPass.hpp"
+#include "src/compiler/pipeline/passes/OptimizationPass/OptimizationPass.hpp"
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SemanticTreeJsonDumperPass/SemanticTreeJsonDumperPass.hpp"
@@ -97,9 +98,17 @@ void PipelineFactory::registerPipelines() {
   m_pipeline_definitions[CompilerOptions::OutputType::kLLVM_IR].push_back(
       [] { return std::make_unique<IrDumperPass>(); });
 
-  // TODO(kushagra): Add optimization pass
-  // Add optimization passes here as needed:
-  // pipeline.addPass(std::make_unique<SimpleConstantFoldingPass>());
+  // Stage 5: Optimization
+  //
+  // Pushed onto current_passes AFTER kLLVM_IR is captured above, so `-E ir`
+  // keeps showing exactly what IR generation produced, and BEFORE the JIT,
+  // object and executable pipelines below, so all three optimize.
+  //
+  // Neither back end optimizes on its own: object emission goes through
+  // LLVMTargetMachineEmitToFile and the JIT hands the module straight to ORC.
+  // Without this pass `-O2` reached code generation with the same IR as `-O0`
+  // and produced byte-identical binaries.
+  current_passes.push_back([] { return std::make_unique<OptimizationPass>(); });
 
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT] = current_passes;
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(

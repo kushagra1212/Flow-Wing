@@ -187,32 +187,93 @@ yourself if a number affects a decision.
 
 ## Method
 
-The suite is in `benchmarks/` in the compiler repository. Each benchmark is a
-**pair** of programs, one `.fg` and one `.cpp`, that use the same algorithm.
+The suite is in `benchmarks/` in the compiler repository.
 
-**One tool measures both sides.** Each side is a Google Benchmark benchmark
-that starts a process and times it from start to end. Neither language gets
-measurement support that the other does not have. Every time includes process
-creation, which is what the empty-program row measures.
+### What is compared
 
-**The suite checks the output before it measures.** The two programs must
-print the same bytes to stdout, or the suite stops with an error. This proves
-that they do the same work. It also stops either optimizer from deleting the
-computation, because both programs must print a result.
+Each benchmark is a **pair** of programs: one `.fg` file and one `.cpp` file.
+Both use the same algorithm, the same data and the same output format. A
+benchmark is one directory holding `bench.fg`, `bench.cpp` and a `case.conf`
+that gives the runtime arguments and a one-line description.
 
-**The command line supplies the workload size.** A value such as `fib(32)` is
-therefore not a compile-time constant, and clang cannot compute it in advance.
+### The twelve benchmarks
 
-**The suite reports wall-clock time, not CPU time.** The harness waits for the
-child process, so its own CPU time means nothing.
+They are chosen to separate code generation from the runtime library, because
+the two have very different costs.
 
-**The suite warms up every binary before it measures.** The first run of a new
-executable took 506 ms, against 5 ms once warm. The difference is page cache
-behaviour.
+| Group | Benchmarks | What it isolates |
+|---|---|---|
+| Arithmetic | tight integer loop | raw instruction throughput |
+| Control flow | recursive Fibonacci, Collatz chains | call cost, branches |
+| Memory shape | 64x64 matrix multiply | nested loops, 2D array access |
+| Floating point | Mandelbrot, n-body | `deci` math |
+| Runtime library | sieve, quicksort, string building, hash map | `vec`, `text`, `map` |
+| Memory manager | allocation churn | garbage collector against `new` and `delete` |
+| Floor | empty program | process creation cost |
 
-**The suite reports medians with a standard deviation.** It marks any result
-whose deviation is more than 5% of its median. Such a result is too noisy to
-compare.
+### What is held equal
+
+- **The same machine, in the same session.** Both sides run back to back, so
+  the hardware and its thermal state affect both.
+- **The same LLVM version.** The C++ baseline is the clang 17 bundled in
+  `.fw_dependencies`, matching the LLVM release Flow-Wing generates code
+  through. A different clang would measure LLVM's release history.
+- **The same optimization level.** `-O2` for both compilers.
+- **The same measuring method.** Each side is a Google Benchmark benchmark
+  that starts a process and times it from start to end. Neither language gets
+  measurement support inside the process that the other does not have.
+
+### How a result is taken
+
+1. Build both programs.
+2. Run each once and compare stdout. The bytes must match exactly, or the
+   suite stops with an error.
+3. Run each binary three more times, discarding the timings. This warms the
+   page cache. The first run of a newly linked binary took 506 ms against
+   5 ms warm, so measuring it would say nothing about either language.
+4. Measure. Each repetition runs the program 7 times; 15 repetitions are
+   taken.
+5. Report the median of the repetitions, with the standard deviation.
+
+The output check does two jobs. It proves the two programs do the same work.
+It also stops either optimizer from deleting the computation, because both
+programs must print a result that is compared.
+
+Workload sizes come from the command line. A value such as `fib(32)` is
+therefore not a compile-time constant, and clang cannot compute it during
+compilation and report a baseline of almost zero.
+
+### What is reported
+
+Three families, for every benchmark:
+
+- **Execution time**: wall-clock time of the built program, including process
+  creation. CPU time is not used, because the harness is blocked waiting for
+  the child and its own CPU time means nothing.
+- **Compile time**: wall-clock time of the compiler itself. Compiles vary
+  less than program runs, so they use 5 repetitions instead of 15.
+- **Binary size**: bytes of the produced executable.
+
+A result whose standard deviation is more than 5% of its median is marked with
+a warning. The last digits of such a ratio are noise.
+
+### Known deviation
+
+One benchmark does not use identical compiler flags. `06_nbody` builds the C++
+side with `-ffp-contract=off`. Flow-Wing emits no fused multiply-add
+instructions and clang at `-O2` does, and the simulation is chaotic enough
+that the one-bit difference grows into a different answer after about 5000
+steps. Turning contraction off makes both sides compute the same arithmetic.
+It also means that benchmark reports C++ as slower than it really is.
+
+### What these numbers do not tell you
+
+- They are one machine. The reference configuration is listed at the top of
+  this page, and ratios transfer better than absolute times.
+- They are small programs. None of them measures link time, startup of a large
+  program, or behaviour under memory pressure.
+- They measure the compiler at one commit. Re-run the suite after any change
+  to code generation or the runtime library.
 
 ## Reproducing these numbers
 
