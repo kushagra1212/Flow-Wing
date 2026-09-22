@@ -19,11 +19,19 @@
 
 #include "OptimizationPass.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
+
+// LLVM's own headers do not compile clean under this project's
+// -Werror -Wconversion settings. llvm/Passes/PassBuilder.h reaches
+// llvm/ADT/BitVector.h, which alone raises about twenty sign-conversion and
+// 64-to-32 truncation errors. The push/pop pair silences them for these
+// includes only; our own code below keeps every warning.
+#include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include "llvm/Analysis/CGSCCPassManager.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "src/compiler/diagnostics/DiagnosticPop.hpp"
 
 namespace flow_wing {
 namespace compiler {
