@@ -300,8 +300,13 @@ def _aot_output_subdir(file_path: Path) -> str:
     return hashlib.sha256(key.encode("utf-8")).hexdigest()[:20]
 
 
-def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going, emit_ir_on_failure=False):
+def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, failed_dirs, dir_lock, keep_going, emit_ir_on_failure=False, opt_level=""):
     parent_dir = file_path.parent
+
+    # Optimization flag, passed straight through to the compiler. Empty by
+    # default, which leaves the compiler on its own default of -O0. Spread into
+    # every command below so a run at -O2 or -O3 exercises the same fixtures.
+    opt_args = [opt_level] if opt_level else []
 
     if not keep_going:
         with dir_lock:
@@ -347,6 +352,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     compile_cmd = [
                         str(compiler_bin),
                         str(file_path),
+                        *opt_args,
                         f'--output-dir={aot_build_dir}',
                         '--emit=exe',
                     ]
@@ -379,7 +385,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                     return False, f"{Colors.FAIL}[FAIL (DIAG)]{Colors.ENDC} {file_path.name}\nExpected Error: {expected_error_code}\nGot Binary Output:\n{output} ({duration:.1f}ms)"
                 else:
                     # JIT: compiler compiles and runs in process, so one invocation gets both compile and runtime errors.
-                    run_cmd = [str(compiler_bin), str(file_path)]
+                    run_cmd = [str(compiler_bin), str(file_path), *opt_args]
                     result = subprocess.run(run_cmd, capture_output=True, text=True, timeout=5, env=run_env, encoding=SUBPROCESS_ENCODING, errors=SUBPROCESS_ERRORS,stdin=subprocess.DEVNULL)
                     duration = (time.time() - start_time) * 1000
                     output = (result.stderr or '') + (result.stdout or '')
@@ -397,6 +403,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                 compile_cmd = [
                     str(compiler_bin),
                     str(file_path),
+                    *opt_args,
                     f'--output-dir={test_temp_dir}',
                     '--emit=exe',
                 ]
@@ -490,7 +497,7 @@ def run_single_test(compiler_bin, file_path, update_mode, mode, temp_root, faile
                         )
                 run_cmd = [str(binary_path)]
             else:
-                run_cmd = [str(compiler_bin), str(file_path)]
+                run_cmd = [str(compiler_bin), str(file_path), *opt_args]
 
             server_port = get_server_test_port(file_path)
             client_thread = None
@@ -927,6 +934,8 @@ def main():
     parser.add_argument("--update", action="store_true", help="Force update of existing expect files")
     parser.add_argument("--filter", type=str, help="Regex filter")
     parser.add_argument("--mode", choices=["jit", "aot"], default="jit", help="Execution mode")
+    parser.add_argument("--opt", type=str, default="", choices=["", "-O0", "-O1", "-O2", "-O3"],
+                        help="Optimization level passed to the compiler (default: compiler default)")
     parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
     parser.add_argument("--keep-going", action="store_true", help="Run all tests in a directory even if one fails")
     parser.add_argument(
@@ -1050,6 +1059,7 @@ def main():
                     dir_lock,
                     args.keep_going,
                     emit_ir_on_failure,
+                    args.opt,
                 ): t
                 for t in all_tests
             }
@@ -1069,6 +1079,7 @@ def main():
                 dir_lock,
                 args.keep_going,
                 emit_ir_on_failure,
+                args.opt,
             )
             handle_result(success, msg, t)
 

@@ -448,6 +448,26 @@ test-aot: build-aot-release
 		--filter "$(FILTER)" \
 		--mode aot $(ARGS)
 
+#? The same fixtures compiled with optimization on.
+#?
+#? The plain test-aot / test-jit targets pass no -O flag, so they exercise the
+#? compiler at its default -O0 and say nothing about the optimizer. These
+#? targets re-run the whole corpus at -O2 and -O3, where LLVM inlines, folds
+#? and deletes code. A program whose output changes between levels is an
+#? optimizer bug.
+.PHONY: test-aot-O2 test-aot-O3 test-jit-O2 test-jit-O3
+test-aot-O2:
+	@$(MAKE) test-aot ARGS="--opt=-O2 $(ARGS)"
+
+test-aot-O3:
+	@$(MAKE) test-aot ARGS="--opt=-O3 $(ARGS)"
+
+test-jit-O2:
+	@$(MAKE) test-jit ARGS="--opt=-O2 $(ARGS)"
+
+test-jit-O3:
+	@$(MAKE) test-jit ARGS="--opt=-O3 $(ARGS)"
+
 #? Golden tests for `FlowWing --format-print` (tests/fixtures/FormatterTests)
 .PHONY: test-format
 test-format: build-aot-release
