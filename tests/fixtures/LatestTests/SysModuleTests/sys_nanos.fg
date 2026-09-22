@@ -7,14 +7,25 @@
 /; Assertions are deliberately shape-only, never absolute values: wall time is
 /; not reproducible, but "never goes backwards" and "advances across real work"
 /; both are.
+/;
+/; The loop below calls nanos() in its body on purpose. It used to be a plain
+/; counted loop over a constant, which an optimizing build folds away: LLVM
+/; knows the final value without running it, so t0 and t1 ended up read back to
+/; back. On Windows, where the clock is coarser, both landed in the same tick
+/; and "(t1 - t0) > 0" printed false at -O2. nanos() is an external call the
+/; optimizer cannot see through, so the work and the elapsed time both survive.
+/;
+/; The reading is reduced with `% 2` rather than accumulated whole: nanos()
+/; returns time since boot, and summing 20000 of those overflows int64 on a
+/; machine that has been up for a few days.
 /; --------------------------------------------------------------------------
 bring sys
 
 var t0: int64 = sys::nanos()
 
 var sum: int64 = 0
-for var i: int = 0 to 200000 {
-  sum = sum + 1
+for var i: int = 0 to 20000 {
+  sum = sum + (sys::nanos() % 2)
 }
 
 var t1: int64 = sys::nanos()
@@ -22,7 +33,7 @@ var t1: int64 = sys::nanos()
 /; monotonic: a later reading is never smaller than an earlier one
 println(t1 >= t0)
 
-/; the clock actually advanced across 200k iterations of real work
+/; the clock actually advanced across 20k iterations of real work
 println((t1 - t0) > 0)
 
 /; two back-to-back readings stay ordered
