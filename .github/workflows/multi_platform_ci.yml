@@ -163,11 +163,15 @@ jobs:
           ~/emsdk/emsdk activate 6.0.10
           rm -rf ~/emsdk/downloads
 
+      # No `source ~/emsdk/emsdk_env.sh` before make: it puts
+      # emsdk/upstream/emscripten first on PATH, and that folder holds a
+      # directory named `cmake`. GNU Make 4.3 then runs the directory instead of
+      # cmake ("make: cmake: Permission denied"). Nothing here needs it: FlowWing
+      # finds ~/emsdk itself, build-runtime.sh sources emsdk_env.sh in its own
+      # shell, and the runner's Node is newer than emcc's minimum (18.3).
       - name: WebAssembly smoke tests
         if: success() || failure()
-        run: |
-          source ~/emsdk/emsdk_env.sh
-          make test-wasm-smoke
+        run: make test-wasm-smoke
 
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT
@@ -565,17 +569,19 @@ jobs:
           ~/emsdk/emsdk activate 6.0.10
           rm -rf ~/emsdk/downloads
 
-      # emsdk_env.sh puts emcc and emsdk's own Node on PATH; the compiler would
-      # find ~/emsdk by itself, but the parity script needs `node`.
+      # No `source ~/emsdk/emsdk_env.sh` before make: it puts
+      # emsdk/upstream/emscripten first on PATH, and that folder holds a
+      # directory named `cmake`. GNU Make 4.3 then runs the directory instead of
+      # cmake ("make: cmake: Permission denied"). Nothing here needs it: FlowWing
+      # finds ~/emsdk itself, build-runtime.sh sources emsdk_env.sh in its own
+      # shell, and the runner's Node is newer than emcc's minimum (18.3).
       - name: WebAssembly parity tests
         if: success() || failure()
         env:
           CC: clang-17
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
-        run: |
-          source ~/emsdk/emsdk_env.sh
-          make test-wasm
+        run: make test-wasm
 
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT
