@@ -170,3 +170,40 @@ char* strSlice(const char* str, int32_t start, int32_t end) {
     new_str[to - from] = '\0';
     return new_str;
 }
+
+// A JSON string literal for str, quotes included: the quote, the backslash
+// and every control character escaped, so the result is always valid JSON.
+// Bytes from 0x80 up (UTF-8) are copied as they are, which JSON allows.
+// json::stringify writes every string and key with it.
+char* strJsonQuote(const char* str) {
+    static const char hex[] = "0123456789abcdef";
+    if (!str) str = "";
+    size_t len = 2;
+    for (const unsigned char* p = (const unsigned char*)str; *p; p++) {
+        if (*p == '"' || *p == '\\' || *p == '\n' || *p == '\r' || *p == '\t') len += 2;
+        else if (*p < 0x20) len += 6;
+        else len += 1;
+    }
+    char* out = allocate_string(len);
+    char* w = out;
+    *w++ = '"';
+    for (const unsigned char* p = (const unsigned char*)str; *p; p++) {
+        switch (*p) {
+            case '"':  *w++ = '\\'; *w++ = '"';  break;
+            case '\\': *w++ = '\\'; *w++ = '\\'; break;
+            case '\n': *w++ = '\\'; *w++ = 'n';  break;
+            case '\r': *w++ = '\\'; *w++ = 'r';  break;
+            case '\t': *w++ = '\\'; *w++ = 't';  break;
+            default:
+                if (*p < 0x20) {
+                    *w++ = '\\'; *w++ = 'u'; *w++ = '0'; *w++ = '0';
+                    *w++ = hex[*p >> 4]; *w++ = hex[*p & 0xF];
+                } else {
+                    *w++ = (char)*p;
+                }
+        }
+    }
+    *w++ = '"';
+    *w = '\0';
+    return out;
+}

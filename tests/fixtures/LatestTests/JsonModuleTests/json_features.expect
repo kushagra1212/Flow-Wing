@@ -37,8 +37,7 @@ Before Update: {"keyA": "initial", "keyB": 100}
 After Update: {"keyA": "updated_value!", "keyB": 100}
 
 --- Test 8: Escaped Characters in Strings ---
-Parsed Escaped String: {"text": "Line1
-Line2	Tabbed "Quotes""}
+Parsed Escaped String: {"text": "Line1\nLine2\tTabbed \"Quotes\""}
 
 --- Test 9: Empty Structures ---
 Parsed Empty Structures: {"emptyObj": {}, "emptyArr": []}
