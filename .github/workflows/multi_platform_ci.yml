@@ -134,7 +134,7 @@ jobs:
 
       # Flag combinations and emitted-ABI shape (tests/cli_fg/, written in
       # Flow-Wing). The fixture runner compiles one .fg per test with fixed
-      # flags, so it cannot assert that --target=wasm32 refuses --emit=exe,
+      # flags, so it cannot assert that --target=wasm32 refuses --emit=obj,
       # nor that fg_pf is declared non-variadic.
       - name: CLI contract tests
         if: success() || failure()
@@ -298,7 +298,7 @@ jobs:
 
       # Flag combinations and emitted-ABI shape (tests/cli_fg/, written in
       # Flow-Wing). The fixture runner compiles one .fg per test with fixed
-      # flags, so it cannot assert that --target=wasm32 refuses --emit=exe,
+      # flags, so it cannot assert that --target=wasm32 refuses --emit=obj,
       # nor that fg_pf is declared non-variadic.
       - name: CLI contract tests
         if: success() || failure()
@@ -463,7 +463,7 @@ jobs:
 
       # Flag combinations and emitted-ABI shape (tests/cli_fg/, written in
       # Flow-Wing). The fixture runner compiles one .fg per test with fixed
-      # flags, so it cannot assert that --target=wasm32 refuses --emit=exe,
+      # flags, so it cannot assert that --target=wasm32 refuses --emit=obj,
       # nor that fg_pf is declared non-variadic.
       - name: CLI contract tests
         if: success() || failure()
@@ -476,6 +476,48 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-format
+
+      # The LatestTests fixtures again, built with --target=wasm32, run under
+      # Node and compared with the same .expect files (tests/wasm_parity.py).
+      # It catches what only a wasm build can get wrong: 4-byte pointers,
+      # runtime signatures that wasm-ld checks and native linkers never do, and
+      # output that passes through JavaScript. Fixtures that use what wasm
+      # cannot do yet (spawn, the file/mongo/vortex modules) are counted as
+      # unsupported, not failed.
+      #
+      # Linux only: a wasm build targets the same machine whichever host
+      # compiled it, so one platform covers it.
+      #
+      # Pinned to the emsdk version the wasm work was verified with. The cache
+      # holds the whole SDK, including the system libraries emcc builds on
+      # first use, so a warm run skips both the download and those builds.
+      - name: Cache Emscripten SDK
+        id: cache-emsdk
+        if: success() || failure()
+        uses: actions/cache@v4
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-${{ runner.arch }}-emsdk-6.0.10
+
+      - name: Install Emscripten SDK
+        if: (success() || failure()) && steps.cache-emsdk.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install 6.0.10
+          ~/emsdk/emsdk activate 6.0.10
+          rm -rf ~/emsdk/downloads
+
+      # emsdk_env.sh puts emcc and emsdk's own Node on PATH; the compiler would
+      # find ~/emsdk by itself, but the parity script needs `node`.
+      - name: WebAssembly parity tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          make test-wasm
 
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT

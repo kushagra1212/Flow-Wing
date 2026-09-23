@@ -27,7 +27,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from concurrent.futures import ThreadPoolExecutor
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,6 +47,35 @@ ENGINE_STACK_LIMIT = "RangeError: Maximum call stack size exceeded"
 
 def strip_ansi(text):
     return ANSI.sub("", text)
+
+
+class StatusLine:
+    """One line that rewrites itself while fixtures run, on a terminal only.
+
+    Without it a clean run printed nothing for the whole minute it takes,
+    since only failures are printed as they happen. A CI log is not a
+    terminal, so it still gets just the failures and the summary."""
+
+    CLEAR = "\r\033[K"
+
+    def __init__(self, total):
+        self.total = total
+        self.live = sys.stdout.isatty()
+        self.started = time.monotonic()
+
+    def show(self, done, counts):
+        if not self.live:
+            return
+        elapsed = time.monotonic() - self.started
+        sys.stdout.write(f"{self.CLEAR}  {done}/{self.total} · {counts['PASS']} pass"
+                         f" · {counts['FAIL']} fail · {counts['UNSUPPORTED']} unsupported"
+                         f" · {elapsed:.0f}s")
+        sys.stdout.flush()
+
+    def clear(self):
+        if self.live:
+            sys.stdout.write(self.CLEAR)
+            sys.stdout.flush()
 
 
 def classify(fixture, compiler, work, timeout):
@@ -111,6 +141,9 @@ def main():
         return 1
 
     work_root = Path(tempfile.mkdtemp(prefix="fw-wasm-parity-"))
+    print(f"Running {len(fixtures)} fixtures as wasm32 under Node, "
+          f"{args.jobs} at a time", flush=True)
+    status = StatusLine(len(fixtures))
 
     def one(indexed):
         index, fixture = indexed
@@ -123,16 +156,23 @@ def main():
     failures = []
     try:
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-            for fixture, verdict, reason in pool.map(one, enumerate(fixtures)):
+            # as_completed, not pool.map: map yields in submission order, so
+            # one slow fixture held back every result after it.
+            running = [pool.submit(one, item) for item in enumerate(fixtures)]
+            for done, future in enumerate(as_completed(running), start=1):
+                fixture, verdict, reason = future.result()
                 counts[verdict] += 1
-                name = fixture.relative_to(ROOT) if fixture.is_absolute() else fixture
+                name = fixture.relative_to(ROOT) if fixture.is_relative_to(ROOT) else fixture
                 if verdict == "FAIL":
                     failures.append((name, reason))
                 elif verdict == "UNSUPPORTED":
                     unsupported[reason] = unsupported.get(reason, 0) + 1
                 if args.verbose or verdict == "FAIL":
+                    status.clear()
                     print(f"  [{verdict}] {name}" + (f"  {reason}" if reason else ""))
+                status.show(done, counts)
     finally:
+        status.clear()
         shutil.rmtree(work_root, ignore_errors=True)
 
     ran = counts["PASS"] + counts["FAIL"]
