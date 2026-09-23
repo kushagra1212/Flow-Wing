@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Runs fixtures as WebAssembly and checks their output against .expect.
+
+Each fixture is built with `FlowWing --target=wasm32 --emit=exe`, run under
+Node, and compared exactly as tests/runner.py compares native runs: stdout
+then stderr, colour codes stripped, byte for byte against the .expect file.
+
+A fixture lands in one of four buckets:
+
+  PASS         same output as native
+  FAIL         built and ran, but the output differs, or it crashed
+  UNSUPPORTED  uses something wasm builds cannot do (spawn, a module the wasm
+               runtime leaves out, or recursion deeper than the JavaScript
+               engine allows); counted, not failed
+  SKIP         a diagnostic fixture: it exists to fail compilation
+
+    make test-wasm                                  # needs emsdk
+    make test-wasm ARGS="--dir tests/fixtures/LatestTests/ClassTests"
+    python3 tests/wasm_parity.py --bin build/sdk/bin/FlowWing --filter Array
+
+Exits 1 when anything FAILs.
+"""
+import argparse
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+ANSI = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-9;?]*[ -/]*[@-~])")
+
+# Printed by fw-modules/gc/wasm/fw_context_stubs.c at the first task switch.
+SPAWN_UNSUPPORTED = "is not supported on wasm yet"
+# wasm-ld naming a symbol from a module the wasm runtime does not include.
+MISSING_MODULE = re.compile(r"undefined symbol: (\S+)")
+# V8 stopping a wasm call chain. Every wasm call also uses the engine's own
+# stack, which Node limits to about 1 MB and a browser to a similar fixed
+# size, so recursion stops at 10000 to 20000 frames however large the
+# program's -sSTACK_SIZE is. Native main gets 64 MB.
+ENGINE_STACK_LIMIT = "RangeError: Maximum call stack size exceeded"
+
+
+def strip_ansi(text):
+    return ANSI.sub("", text)
+
+
+def classify(fixture, compiler, work, timeout):
+    expect_file = fixture.with_suffix(".expect")
+    expected = expect_file.read_text(encoding="utf-8", errors="replace")
+    out_js = work / "prog.js"
+
+    build = subprocess.run(
+        [str(compiler), str(fixture), "--target=wasm32", "--emit=exe",
+         f"--output-dir={work / 'build'}", "-o", str(out_js), "--progress=never"],
+        capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL)
+    if build.returncode != 0:
+        log = strip_ansi(build.stdout + build.stderr)
+        missing = MISSING_MODULE.findall(log)
+        if missing:
+            return "UNSUPPORTED", "links against a module not in the wasm runtime: " + missing[0]
+        # The compiler rejected the program itself. That is what a diagnostic
+        # fixture is for, and the native runner checks those.
+        return "SKIP", "does not compile (diagnostic fixture)"
+
+    try:
+        run = subprocess.run(["node", str(out_js)], capture_output=True,
+                             text=True, errors="replace", timeout=timeout,
+                             stdin=subprocess.DEVNULL, cwd=str(fixture.parent))
+    except subprocess.TimeoutExpired:
+        return "FAIL", f"timed out after {timeout}s"
+    actual = strip_ansi(run.stdout + run.stderr)
+    if SPAWN_UNSUPPORTED in actual:
+        return "UNSUPPORTED", "uses spawn"
+    if ENGINE_STACK_LIMIT in actual:
+        return "UNSUPPORTED", "recursion deeper than the JavaScript engine's call stack"
+    if actual == expected:
+        return "PASS", ""
+    first = next((i for i, (a, b) in enumerate(zip(actual, expected)) if a != b),
+                 min(len(actual), len(expected)))
+    return "FAIL", (f"output differs at byte {first}: "
+                    f"expected {expected[first:first + 40]!r}, got {actual[first:first + 40]!r}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--bin", required=True, help="Path to FlowWing")
+    parser.add_argument("--dir", action="append",
+                        help="Fixture directory (repeatable). Default: all of LatestTests.")
+    parser.add_argument("--filter", help="Regex on the fixture path")
+    parser.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
+    parser.add_argument("--timeout", type=int, default=20)
+    parser.add_argument("--verbose", action="store_true", help="List every fixture")
+    args = parser.parse_args()
+
+    if not shutil.which("node"):
+        print("error: node not found; wasm builds run under Node.")
+        return 2
+    compiler = Path(args.bin).resolve()
+    dirs = [Path(d) for d in (args.dir or ["tests/fixtures/LatestTests"])]
+    fixtures = sorted(f for d in dirs for f in d.rglob("*.fg")
+                      if f.with_suffix(".expect").exists())
+    if args.filter:
+        pattern = re.compile(args.filter)
+        fixtures = [f for f in fixtures if pattern.search(str(f))]
+    if not fixtures:
+        print("No fixtures matched.")
+        return 1
+
+    work_root = Path(tempfile.mkdtemp(prefix="fw-wasm-parity-"))
+
+    def one(indexed):
+        index, fixture = indexed
+        work = work_root / str(index)
+        work.mkdir()
+        return fixture, *classify(fixture, compiler, work, args.timeout)
+
+    counts = {"PASS": 0, "FAIL": 0, "UNSUPPORTED": 0, "SKIP": 0}
+    unsupported = {}
+    failures = []
+    try:
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            for fixture, verdict, reason in pool.map(one, enumerate(fixtures)):
+                counts[verdict] += 1
+                name = fixture.relative_to(ROOT) if fixture.is_absolute() else fixture
+                if verdict == "FAIL":
+                    failures.append((name, reason))
+                elif verdict == "UNSUPPORTED":
+                    unsupported[reason] = unsupported.get(reason, 0) + 1
+                if args.verbose or verdict == "FAIL":
+                    print(f"  [{verdict}] {name}" + (f"  {reason}" if reason else ""))
+    finally:
+        shutil.rmtree(work_root, ignore_errors=True)
+
+    ran = counts["PASS"] + counts["FAIL"]
+    print("-" * 60)
+    print(f"{len(fixtures)} fixtures: {counts['PASS']} pass, {counts['FAIL']} fail, "
+          f"{counts['UNSUPPORTED']} unsupported, {counts['SKIP']} diagnostic (skipped)")
+    if ran:
+        print(f"Parity with native: {100.0 * counts['PASS'] / ran:.1f}% of the "
+              f"{ran} fixtures that build and run on wasm")
+    for reason, count in sorted(unsupported.items(), key=lambda kv: -kv[1]):
+        print(f"  unsupported x{count}: {reason}")
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

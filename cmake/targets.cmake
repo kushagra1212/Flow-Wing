@@ -114,8 +114,15 @@ add_dependencies(${EXECUTABLE_NAME} version)
 #
 # See that function for why the number is 64 MB rather than 8 MB. Reserve is
 # address space, not committed memory.
+#
+# macOS gets the same 64 MB (see LinkerCommandBuilder::addPlatformPreamble).
+# Its default is the shell's stack limit, which GNU Make 3.81 raises to 64 MB
+# for everything it runs, so deep recursion under --jit passed in
+# `make test-jit` and crashed from a terminal.
 if(MSVC)
     target_link_options(${EXECUTABLE_NAME} PRIVATE "/STACK:67108864")
+elseif(APPLE)
+    target_link_options(${EXECUTABLE_NAME} PRIVATE "LINKER:-stack_size,0x4000000")
 endif()
 
 # =============================================================================
@@ -147,6 +154,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     LLVMInterpreter
 
     # Code Generation and Optimization
+    LLVMBitWriter   # wasm32 builds write bitcode for emcc to compile
     LLVMCodeGen
     LLVMTarget
     LLVMTransformUtils

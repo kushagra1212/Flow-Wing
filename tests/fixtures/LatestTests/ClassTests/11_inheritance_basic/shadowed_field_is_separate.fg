@@ -1,0 +1,38 @@
+/; A subclass field with the same name as a base field is a separate field.
+/; Code in each class reads and writes its own, and a Base-typed reference
+/; sees Base's field.
+
+type Label = {
+  text: str
+}
+
+class Base {
+  var tag: Label
+  var id: int
+  fun init(id: int) -> nthg {
+    self.id = id
+    tag = { text: "base" }
+  }
+  fun baseTag() -> str {
+    return tag.text
+  }
+}
+
+class Derived extends Base {
+  var tag: deci
+  fun init(id: int) -> nthg {
+    super(id)
+    tag = 2.5
+  }
+  fun derivedTag() -> deci {
+    return tag
+  }
+}
+
+var d: Derived = new Derived(7)
+println(d.baseTag())
+println(d.derivedTag())
+println(d.tag)
+var b: Base = d
+println(b.tag.text)
+println(b.id)

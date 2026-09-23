@@ -2,11 +2,8 @@
 
 #include "CompilationPipeline.h"
 #include "src/compiler/CompilerOptions/CompilerOptions.h"
-#include "src/compiler/pipeline/ICompilationPass.h"
-#include <functional>
+#include "src/compiler/pipeline/PassList.hpp"
 #include <map>
-#include <memory>
-#include <vector>
 
 namespace flow_wing {
 namespace compiler {
@@ -19,12 +16,14 @@ public:
   CompilationPipeline build(const CompilerOptions &options);
 
 private:
-  using PassCreator = std::function<std::unique_ptr<ICompilationPass>()>;
-  using PassList = std::vector<PassCreator>;
-
+  // Output types whose passes are the same for every target.
   std::map<CompilerOptions::OutputType, PassList> m_pipeline_definitions;
+  // Source loading through optimization: the start of --emit=obj and
+  // --emit=exe, which the target's TargetBackend finishes.
+  PassList m_optimized_ir_passes;
 
   void registerPipelines();
+  PassList passesFor(const CompilerOptions &options) const;
 };
 } // namespace pipeline
 } // namespace compiler

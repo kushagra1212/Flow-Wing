@@ -18,14 +18,13 @@
  */
 
 #include "PipelineFactory.hpp"
+#include "src/compiler/pipeline/backends/TargetBackend.hpp"
 #include "src/compiler/pipeline/passes/AstJsonDumperPass/AstJsonDumperPass.hpp"
 #include "src/compiler/pipeline/passes/CleanupPass/CleanupPass.hpp"
 #include "src/compiler/pipeline/passes/IRGenerationPass/IRGenerationPass.hpp"
 #include "src/compiler/pipeline/passes/IrDumperPass/IrDumperPass.hpp"
 #include "src/compiler/pipeline/passes/JITCompilerPass/JITCompilerPass.hpp"
 #include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
-#include "src/compiler/pipeline/passes/LinkerPass/LinkerPass.hpp"
-#include "src/compiler/pipeline/passes/ObjectEmissionPass/ObjectEmissionPass.hpp"
 #include "src/compiler/pipeline/passes/OptimizationPass/OptimizationPass.hpp"
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
@@ -38,6 +37,16 @@
 namespace flow_wing {
 namespace compiler {
 namespace pipeline {
+
+namespace {
+
+void append(PassList &passes, PassList more) {
+  for (auto &createPass : more) {
+    passes.push_back(std::move(createPass));
+  }
+}
+
+} // namespace
 
 PipelineFactory::PipelineFactory() { registerPipelines(); }
 
@@ -52,11 +61,29 @@ CompilationPipeline PipelineFactory::build(const CompilerOptions &options) {
     return pipeline;
   }
 
-  const PassList &pass_creators = m_pipeline_definitions[options.output_type];
-  for (const auto &createPass : pass_creators) {
+  for (const auto &createPass : passesFor(options)) {
     pipeline.addPass(createPass());
   }
   return pipeline;
+}
+
+// --emit=obj and --emit=exe are the only output types that depend on the
+// target: the same optimized IR, then the target's back end.
+PassList PipelineFactory::passesFor(const CompilerOptions &options) const {
+  const auto output_type = options.output_type;
+  if (output_type != CompilerOptions::OutputType::kObj &&
+      output_type != CompilerOptions::OutputType::kExe) {
+    return m_pipeline_definitions.at(output_type);
+  }
+
+  const auto &backend = TargetBackend::forPlatform(options.target_platform);
+  PassList passes = m_optimized_ir_passes;
+  append(passes, backend.objectPasses());
+  if (output_type == CompilerOptions::OutputType::kExe) {
+    append(passes, backend.linkPasses());
+    passes.push_back([] { return std::make_unique<CleanupPass>(); });
+  }
+  return passes;
 }
 
 void PipelineFactory::registerPipelines() {
@@ -101,8 +128,9 @@ void PipelineFactory::registerPipelines() {
   // Stage 5: Optimization
   //
   // Pushed onto current_passes AFTER kLLVM_IR is captured above, so `-E ir`
-  // keeps showing exactly what IR generation produced, and BEFORE the JIT,
-  // object and executable pipelines below, so all three optimize.
+  // keeps showing exactly what IR generation produced, and BEFORE the JIT
+  // pipeline below and the object and executable ones in passesFor, so all
+  // three optimize.
   //
   // Neither back end optimizes on its own: object emission goes through
   // LLVMTargetMachineEmitToFile and the JIT hands the module straight to ORC.
@@ -110,25 +138,16 @@ void PipelineFactory::registerPipelines() {
   // and produced byte-identical binaries.
   current_passes.push_back([] { return std::make_unique<OptimizationPass>(); });
 
+  // The object and executable pipelines continue from here in passesFor,
+  // with the target's back end.
+  m_optimized_ir_passes = current_passes;
+
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT] = current_passes;
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
       [] { return std::make_unique<CleanupPass>(); });
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
       [] { return std::make_unique<JITCompilerPass>(); });
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
-      [] { return std::make_unique<CleanupPass>(); });
-
-  m_pipeline_definitions[CompilerOptions::OutputType::kObj] = current_passes;
-  m_pipeline_definitions[CompilerOptions::OutputType::kObj].push_back(
-      [] { return std::make_unique<ObjectEmissionPass>(); });
-
-  m_pipeline_definitions[CompilerOptions::OutputType::kExe] =
-      m_pipeline_definitions[CompilerOptions::OutputType::kObj];
-  m_pipeline_definitions[CompilerOptions::OutputType::kExe].push_back(
-      [] { return std::make_unique<LinkerPass>(); });
-
-  // Cleanup Pass
-  m_pipeline_definitions[CompilerOptions::OutputType::kExe].push_back(
       [] { return std::make_unique<CleanupPass>(); });
 }
 

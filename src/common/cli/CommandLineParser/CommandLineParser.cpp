@@ -259,25 +259,21 @@ public:
       opts.output_type = getOutputType(emit_value, opts.output_type);
     }
 
-    // wasm32 can only produce LLVM IR today.
-    //
-    // Object emission and the JIT both build a TargetMachine from the HOST
-    // triple and overwrite the module's triple and data layout with the
-    // host's. The module has already been laid out for wasm32 by then, so the
-    // result is native machine code carrying 32-bit pointer sizes: `str[3]`
-    // allocates 12 bytes and then stores three 8-byte pointers into it. That
-    // binary runs, and quietly corrupts the heap.
-    //
-    // Refusing the combination is the only safe answer until a wasm emission
-    // pass exists. Silently producing a host binary for someone who asked for
-    // wasm is worse than an error.
+    // wasm32 builds LLVM IR or an executable (<out>.js + <out>.wasm, via
+    // emcc). The native object path and the JIT both build a TargetMachine
+    // from the HOST triple and overwrite the module's triple and data layout
+    // with the host's, so for wasm32 they would produce native machine code
+    // carrying 32-bit pointer sizes: a binary that runs and quietly corrupts
+    // the heap. So they stay refused. (A wasm32 `obj` is bitcode; it exists
+    // only as an internal step of `exe`.)
     if (opts.target_platform == TargetPlatform::kWasm32 &&
-        opts.output_type != CompilerOptions::OutputType::kLLVM_IR) {
+        opts.output_type != CompilerOptions::OutputType::kLLVM_IR &&
+        opts.output_type != CompilerOptions::OutputType::kExe) {
       return {ParseStatus::kFailure, opts,
-              "--target=wasm32 currently supports only --emit=ir.\n"
-              "Object, executable and JIT output would silently produce a "
-              "native binary laid out for 32-bit pointers.\n"
-              "Use: FlowWing <file> --target=wasm32 --emit=ir\n"};
+              "--target=wasm32 supports --emit=ir and --emit=exe.\n"
+              "Object and JIT output would silently produce a native binary "
+              "laid out for 32-bit pointers.\n"
+              "Use: FlowWing <file> --target=wasm32 --emit=exe -o out/prog.js\n"};
     }
 
     // Handle output directory

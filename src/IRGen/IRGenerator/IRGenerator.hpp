@@ -232,8 +232,7 @@ private:
   void emitClassInstanceFieldInitializers(types::ClassType *root_class,
                                           llvm::StructType *struct_type,
                                           llvm::Value *heap_ptr);
-  void emitClassInstanceFieldInitializersImpl(types::ClassType *root_class,
-                                              types::ClassType *level,
+  void emitClassInstanceFieldInitializersImpl(types::ClassType *level,
                                               llvm::StructType *struct_type,
                                               llvm::Value *heap_ptr);
 

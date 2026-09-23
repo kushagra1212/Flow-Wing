@@ -51,6 +51,9 @@ ReturnStatus compileBroughtSourcesToObjects(CompilationContext &context) {
     dep_opts.output_type = CompilerOptions::OutputType::kObj;
     dep_opts.output_dir = parent_opts.output_dir;
     dep_opts.optimization_level = parent_opts.optimization_level;
+    // Brought files are compiled for the same machine as the entry. Without
+    // this a wasm32 build compiled them natively, for 64-bit pointers.
+    dep_opts.target_platform = parent_opts.target_platform;
     dep_opts.enable_server = parent_opts.enable_server;
     dep_opts.enable_linker_warnings = parent_opts.enable_linker_warnings;
     dep_opts.emit_brought_dependency_object = 1;

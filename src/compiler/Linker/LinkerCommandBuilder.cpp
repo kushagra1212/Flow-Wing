@@ -131,6 +131,16 @@ void LinkerCommandBuilder::addPlatformPreamble(std::vector<std::string> &args) {
   if (!m_context.getOptions().enable_linker_warnings) {
     args.push_back("-Wl,-w");
   }
+  // A 64 MB main stack, the same as /STACK in addSystemLibraries.
+  //
+  // Without it macOS gives main the shell's stack limit, 8 MB by default, so
+  // how deep a program can recurse depended on how it was started. GNU Make
+  // 3.81, the make macOS ships, raises the limit to 64 MB for everything it
+  // runs: SchedulerTests/main_stack_deep_recursion.fg (100000 frames of about
+  // 160 bytes at -O0) passed under `make test-aot` and died with SIGSEGV at
+  // about 52000 frames when the same binary ran from a terminal. A size in the
+  // executable's header applies however the program is launched.
+  args.push_back("-Wl,-stack_size,0x4000000");
 #elif defined(__linux__)
   args.push_back("-fuse-ld=lld");
 #elif defined(_WIN32)

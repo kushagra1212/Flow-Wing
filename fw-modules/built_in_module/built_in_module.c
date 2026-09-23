@@ -615,6 +615,7 @@ void fg_runtime_error(const char* msg) {
 // sys::run reads it immediately after fg_exec, with no yield point between.
 static FG_THREAD_LOCAL int fg_last_exec_status = 0;
 
+#if !defined(__EMSCRIPTEN__)
 // pclose hands back a wait status on POSIX and the plain exit code on
 // Windows. Normalise both to what a shell would report in $?.
 static int fg_decode_exec_status(int raw) {
@@ -627,16 +628,77 @@ static int fg_decode_exec_status(int raw) {
     return -1;
 #endif
 }
+#endif
 
 int fg_exec_status(void) {
     return fg_last_exec_status;
 }
+
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+
+// wasm has no processes, so popen always fails there. Node can still run a
+// command: fw_host_run hands it to child_process.spawnSync with a shell, the
+// way popen does natively (/bin/sh -c, or cmd.exe on Windows), and keeps its
+// standard output for fw_host_take_output. Standard error goes to the
+// terminal, as with popen.
+//
+// Returns the exit code as a shell reports it in $?, or -1 when the command
+// could not be started, which includes every browser: a page has no shell.
+EM_JS(int, fw_host_run, (const char* cmd), {
+    Module.fwHostOutput = null;
+    if (typeof process !== "object" || typeof require !== "function") {
+        return -1;
+    }
+    const result = require("child_process").spawnSync(UTF8ToString(cmd), {
+        shell: true,
+        stdio: ["inherit", "pipe", "inherit"],
+    });
+    if (result.error) {
+        return -1;
+    }
+    Module.fwHostOutput = result.stdout;
+    if (result.status !== null) {
+        return result.status;
+    }
+    return 128 + (require("os").constants.signals[result.signal] || 0);
+});
+
+EM_JS(int, fw_host_output_length, (void), {
+    return Module.fwHostOutput ? Module.fwHostOutput.length : 0;
+});
+
+// Copies the output into memory the caller allocated, so the result is a GC
+// blob like the native one rather than a malloc'd buffer.
+EM_JS(void, fw_host_take_output, (char* dest), {
+    if (Module.fwHostOutput) {
+        HEAPU8.set(Module.fwHostOutput, dest);
+    }
+    Module.fwHostOutput = null;
+});
+
+static char* fg_exec_on_host(const char* cmd) {
+    const int status = fw_host_run(cmd);
+    if (status < 0) return fg_cs("Error: Failed to execute command.", "");
+
+    const size_t len = (size_t)fw_host_output_length();
+    char* result = (char*)fw_gc_alloc(len + 1, &fw_blob_desc);
+    if (!result) fg_re("Memory allocation failed in fg_exec");
+    fw_host_take_output(result);
+    result[len] = '\0';
+    fg_last_exec_status = status;
+    return result;
+}
+#endif
 
 // Captures standard output only. Standard error goes straight to the
 // terminal unless the command itself redirects it (append " 2>&1").
 char* fg_exec(const char* cmd) {
     fg_last_exec_status = -1;
     if (!cmd) return fg_cs("", "");
+#if defined(__EMSCRIPTEN__)
+    return fg_exec_on_host(cmd);
+#else
 
     char buffer[128];
     size_t size = 1024;
@@ -663,4 +725,5 @@ char* fg_exec(const char* cmd) {
     }
     fg_last_exec_status = fg_decode_exec_status(PCLOSE(pipe));
     return result;
+#endif
 }

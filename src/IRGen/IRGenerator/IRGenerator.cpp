@@ -402,23 +402,26 @@ void IRGenerator::visit(
 
 namespace {
 
+// Each level's fields are looked up through that level, not the class being
+// created: when a subclass redeclares a base field's name, the root class
+// resolves the name to its own field, not the base's.
 static void emitClassInstanceDefaultStringFieldsImpl(
-    types::ClassType *root_class, types::ClassType *level,
-    llvm::StructType *struct_type, llvm::Value *heap_ptr, IRGenContext &ctx,
+    types::ClassType *level, llvm::StructType *struct_type,
+    llvm::Value *heap_ptr, IRGenContext &ctx,
     llvm::Constant *empty_str_const) {
   auto &builder = ctx.getLLVMBuilder();
   auto *str_ty = analysis::Builtins::m_str_type_instance.get();
   if (level->getBaseClass()) {
-    emitClassInstanceDefaultStringFieldsImpl(
-        root_class, level->getBaseClass().get(), struct_type, heap_ptr, ctx,
-        empty_str_const);
+    emitClassInstanceDefaultStringFieldsImpl(level->getBaseClass().get(),
+                                             struct_type, heap_ptr, ctx,
+                                             empty_str_const);
   }
   for (const auto &[name, sym] : level->getFieldMembers()) {
     if (sym->getKind() != analysis::SymbolKind::kVariable)
       continue;
     types::Type *ft = sym->getType().get();
     if (*ft == *str_ty) {
-      int idx = root_class->getMemberFieldIndex(name);
+      int idx = level->getMemberFieldIndex(name);
       assert(idx >= 0 && "str field must appear in class layout");
       llvm::Value *field_ptr = builder->CreateStructGEP(
           struct_type, heap_ptr, static_cast<unsigned>(idx), "strdef." + name);
@@ -433,7 +436,7 @@ static void emitClassInstanceDefaultStringFields(types::ClassType *ct,
                                                  IRGenContext &ctx) {
   llvm::Constant *empty =
       ctx.getDefaultValue(analysis::Builtins::m_str_type_instance.get(), false);
-  emitClassInstanceDefaultStringFieldsImpl(ct, ct, struct_type, heap_ptr, ctx,
+  emitClassInstanceDefaultStringFieldsImpl(ct, struct_type, heap_ptr, ctx,
                                            empty);
 }
 
@@ -480,7 +483,7 @@ void IRGenerator::visit(binding::BoundNewExpression *new_expr) {
       if (member->getType().get() !=
           analysis::Builtins::m_int64_type_instance.get())
         continue;
-      int llvm_idx = ct->getMemberFieldIndex(field_name);
+      int llvm_idx = cur->getMemberFieldIndex(field_name);
       if (llvm_idx < 0 ||
           static_cast<unsigned>(llvm_idx) >= struct_type->getNumElements())
         continue;
@@ -782,12 +785,14 @@ llvm::Value *IRGenerator::ensurePointer(llvm::Value *value, types::Type *type,
   return alloca_inst;
 }
 
+// Same rule as emitClassInstanceDefaultStringFieldsImpl: each level's fields
+// are looked up through that level.
 void IRGenerator::emitClassInstanceFieldInitializersImpl(
-    types::ClassType *root_class, types::ClassType *level,
-    llvm::StructType *struct_type, llvm::Value *heap_ptr) {
+    types::ClassType *level, llvm::StructType *struct_type,
+    llvm::Value *heap_ptr) {
   if (level->getBaseClass()) {
-    emitClassInstanceFieldInitializersImpl(
-        root_class, level->getBaseClass().get(), struct_type, heap_ptr);
+    emitClassInstanceFieldInitializersImpl(level->getBaseClass().get(),
+                                           struct_type, heap_ptr);
   }
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   for (const auto &[name, sym] : level->getFieldMembers()) {
@@ -801,7 +806,7 @@ void IRGenerator::emitClassInstanceFieldInitializersImpl(
       continue;
 
     types::Type *field_ty = sym->getType().get();
-    int idx = root_class->getMemberFieldIndex(name);
+    int idx = level->getMemberFieldIndex(name);
     assert(idx >= 0 && "class field must have LLVM layout index");
     llvm::Value *field_ptr = builder->CreateStructGEP(
         struct_type, heap_ptr, static_cast<unsigned>(idx), "fldinit." + name);
@@ -816,8 +821,7 @@ void IRGenerator::emitClassInstanceFieldInitializersImpl(
 void IRGenerator::emitClassInstanceFieldInitializers(
     types::ClassType *root_class, llvm::StructType *struct_type,
     llvm::Value *heap_ptr) {
-  emitClassInstanceFieldInitializersImpl(root_class, root_class, struct_type,
-                                         heap_ptr);
+  emitClassInstanceFieldInitializersImpl(root_class, struct_type, heap_ptr);
 }
 
 } // namespace ir_gen

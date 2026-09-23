@@ -6,7 +6,7 @@ module [target]
 /; lowering, rather than which triple the module is merely labelled with.
 var STR_ARRAY: str = "var s: str[3]\nprintln(\"[\"+s[0]+\"]\")\n"
 var WASM_TRIPLE: str = "target triple = \"wasm32-unknown-emscripten\""
-var WASM_ONLY_IR: str = "--target=wasm32 currently supports only --emit=ir"
+var WASM_IR_OR_EXE: str = "--target=wasm32 supports --emit=ir and --emit=exe"
 
 fun run(h: cli::Harness) -> nthg {
   h.suite("target")
@@ -41,22 +41,27 @@ fun run(h: cli::Harness) -> nthg {
     .expectFailsWith("Unknown target")
     .done()
 
-  /; The guard that matters. Object, exe and JIT all rebuild a TargetMachine
-  /; from the host triple and overwrite the module's layout, so the result
-  /; would be native code carrying wasm32 pointer sizes.
-  h.test("wasm32 refuses --emit=exe")
-    .withArgs("--target=wasm32 --emit=exe")
-    .expectFailsWith(WASM_ONLY_IR)
-    .done()
-
+  /; The guard that matters. The native object path and the JIT both build a
+  /; TargetMachine from the host triple and overwrite the module's layout, so
+  /; the result would be native code carrying wasm32 pointer sizes.
   h.test("wasm32 refuses --emit=obj")
     .withArgs("--target=wasm32 --emit=obj")
-    .expectFailsWith(WASM_ONLY_IR)
+    .expectFailsWith(WASM_IR_OR_EXE)
     .done()
 
   h.test("wasm32 refuses --emit=jit")
     .withArgs("--target=wasm32 --emit=jit")
-    .expectFailsWith(WASM_ONLY_IR)
+    .expectFailsWith(WASM_IR_OR_EXE)
+    .done()
+
+  /; --emit=exe is accepted for wasm32 and needs emcc. The full build is
+  /; covered by `make test-wasm`, which needs emsdk; CI has none. What can be
+  /; checked everywhere is that a missing emcc is reported, never guessed at.
+  h.test("wasm32 --emit=exe reports an emcc that does not exist")
+    .withEnv("FLOWWING_EMCC", "{dir}/no-such-emcc")
+    .withArgs("--target=wasm32 --emit=exe")
+    .expectFailsWith("FLOWWING_EMCC points at")
+    .expectWritesNo("bin")
     .done()
 
   h.test("wasm32 lays out 32-bit pointers")

@@ -7,9 +7,9 @@
 /;
 /; A case reads top to bottom as "run this, expect that":
 /;
-/;   h.test("wasm32 refuses --emit=exe")
-/;     .withArgs("--target=wasm32 --emit=exe")
-/;     .expectFailsWith("--target=wasm32 currently supports only --emit=ir")
+/;   h.test("wasm32 refuses --emit=jit")
+/;     .withArgs("--target=wasm32 --emit=jit")
+/;     .expectFailsWith("--target=wasm32 supports --emit=ir and --emit=exe")
 /;     .done()
 /;
 /; The compiler runs on the first expectation, and only once. After the first
@@ -244,6 +244,8 @@ class Case {
   var flags: str
   var passSource: bool
   var passOutputDir: bool
+  /; shell::envAssignment prefixes, placed before the compiler.
+  var environment: str
   /; Non-empty for a case that must fail, naming the reason it must give.
   var requiredFailure: str
 
@@ -265,6 +267,7 @@ class Case {
     self.flags = ""
     self.passSource = true
     self.passOutputDir = true
+    self.environment = ""
     self.requiredFailure = ""
     self.ran = false
     self.code = 0
@@ -306,6 +309,14 @@ class Case {
   withArgs(flags: str) -> cli::Case {
     self.guardBuilding("withArgs")
     self.flags = self.flags + " " + self.expand(flags)
+    return self
+  }
+
+  /; Sets an environment variable for the compiler run only. {dir} and {out}
+  /; are expanded in the value.
+  withEnv(name: str, value: str) -> cli::Case {
+    self.guardBuilding("withEnv")
+    self.environment = self.environment + shell::envAssignment(name, self.expand(value))
     return self
   }
 
@@ -693,7 +704,7 @@ class Case {
   /; Runs the compiler from this case's directory and returns its exit code
   /; and decoloured output.
   invoke(outDir: str, flags: str) -> int, str {
-    var line: str = shell::program(self.options.compiler)
+    var line: str = self.environment + shell::program(self.options.compiler)
     if self.passSource {
       line = line + " " + shell::quote(self.sourcePath())
     }

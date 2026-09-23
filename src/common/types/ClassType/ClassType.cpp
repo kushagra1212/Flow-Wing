@@ -217,15 +217,14 @@ void ClassType::forEachFunctionMember(
   }
 }
 
+// Own fields first, then the base's, the same order lookupField resolves
+// names in. A field that reuses a base field's name gets its own slot after
+// the base's, and code typed as this class must use that slot. Searching the
+// base first gave it the base field's slot instead, so a store of the
+// subclass's type landed in a slot laid out for the base's type.
 int ClassType::getMemberFieldIndex(const std::string &name) const {
-  if (m_base_class) {
-    int base_idx = m_base_class->getMemberFieldIndex(name);
-    if (base_idx >= 0)
-      return base_idx;
-  }
-  const int index_after_base =
+  int index =
       m_base_class ? m_base_class->getLLVMFieldCount() : 1; // vptr at root
-  int index = index_after_base;
   for (const auto &[member_name, symbol] : m_fields) {
     if (symbol->getKind() != analysis::SymbolKind::kVariable)
       continue;
@@ -233,7 +232,7 @@ int ClassType::getMemberFieldIndex(const std::string &name) const {
       return index;
     index++;
   }
-  return -1;
+  return m_base_class ? m_base_class->getMemberFieldIndex(name) : -1;
 }
 
 int ClassType::getTotalFieldCount() const {

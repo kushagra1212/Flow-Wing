@@ -488,6 +488,28 @@ test-cli: build-aot-release
 	$(ECHO_MSG) "--> Running CLI contract tests..."
 	@$(call NATIVE_PATH, build/cli-fg/cli_test$(EXE_EXT)) --bin=$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
 
+#? Compile the Flow-Wing runtime to wasm32 into the SDK, once (needs emsdk).
+#? Required by FlowWing --target=wasm32 --emit=exe.
+.PHONY: build-wasm-runtime
+build-wasm-runtime:
+	@bash scripts/wasm/build-runtime.sh $(SDK_DIR)
+
+#? Run fixtures as WebAssembly and compare with their .expect files
+#? (tests/wasm_parity.py). Needs emsdk and Node.
+#?   make test-wasm ARGS="--dir tests/fixtures/LatestTests/ClassTests"
+.PHONY: test-wasm
+test-wasm: build-aot-release
+	@test -f $(SDK_DIR)/lib/wasm32-emscripten/libflowwing_rt.a || bash scripts/wasm/build-runtime.sh $(SDK_DIR)
+	@python3 tests/wasm_parity.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
+#? Build a .fg to WebAssembly and run it with Node (scripts/wasm/run.sh).
+#? Wraps FlowWing --target=wasm32 --emit=exe. `spawn` is not supported yet.
+#?   make run-wasm FILE=path/to/prog.fg
+#?   make run-wasm FILE=path/to/prog.fg ARGS=--html
+.PHONY: run-wasm
+run-wasm: build-aot-release
+	@bash scripts/wasm/run.sh $(FILE) $(ARGS)
+
 #? wasm32 ABI audit (scripts/wasm/abi_audit.py). Needs emcc on PATH:
 #?   source ~/emsdk/emsdk_env.sh && make wasm-abi-audit
 #? Compares every runtime function Flow-Wing calls with its C definition as

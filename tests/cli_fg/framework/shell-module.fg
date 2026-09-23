@@ -66,6 +66,15 @@ fun nativePath(path: str) -> str {
   return path
 }
 
+/; A prefix that sets one environment variable for the command after it:
+/; `NAME='value' cmd` for /bin/sh, `set "NAME=value" && cmd` for cmd.exe.
+fun envAssignment(name: str, value: str) -> str {
+  if isWindows() {
+    return "set \"" + name + "=" + value + "\" && "
+  }
+  return name + "=" + quote(value) + " "
+}
+
 /; Runs a command line with standard error merged into standard output.
 /;
 /; cmd.exe /c strips the first and last quote of a line that starts with
