@@ -51,6 +51,8 @@ ANSI = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-9;?]*[ -/]*[@-~])")
 
 # wasm-ld naming a symbol from a module the wasm runtime does not include.
 MISSING_MODULE = re.compile(r"undefined symbol: (\S+)")
+# A native-only module (vortex, mongo, raylib), refused at its bring.
+NATIVE_ONLY_MODULE = re.compile(r"\[Error:ModuleNotForTarget\].*'<?(\w+)>?' module works only in native builds")
 # How node-host.js reports running out of stack. Every wasm call also uses
 # the JavaScript engine's own stack, which Node limits to about 1 MB and a
 # browser to a similar fixed size, so recursion stops at 10000 to 20000
@@ -117,6 +119,9 @@ def classify(fixture, compiler, work, timeout, minimal_env=False):
         capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL)
     if build.returncode != 0:
         log = strip_ansi(build.stdout + build.stderr)
+        native_only = NATIVE_ONLY_MODULE.findall(log)
+        if native_only:
+            return "UNSUPPORTED", "brings a native-only module: " + native_only[0]
         missing = MISSING_MODULE.findall(log)
         if missing:
             return "UNSUPPORTED", "links against a module not in the wasm runtime: " + missing[0]

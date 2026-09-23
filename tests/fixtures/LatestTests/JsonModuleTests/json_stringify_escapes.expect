@@ -1,0 +1,6 @@
+{"quote": "say \"hi\"", "path": "C:\\temp", "lines": "one\ntwo\r\n\tthree", "bell": "ding\u0007", "utf8": "é — 日本 😀", "key \"quoted\"": true}
+true
+true
+true
+true
+é — 日本 😀

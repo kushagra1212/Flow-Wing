@@ -1,0 +1,22 @@
+/; json::stringify writes valid JSON whatever a string holds: quotes,
+/; backslashes, newlines, tabs and other control characters, in values and
+/; in keys. Text outside ASCII is kept as it is, which JSON allows.
+bring json
+
+var doc: json::JsonNode = json::newObject()
+doc.put("quote", json::newString("say \"hi\""))
+doc.put("path", json::newString("C:\\temp"))
+doc.put("lines", json::newString("one\ntwo\r\n\tthree"))
+doc.put("bell", json::newString("ding" + String(Char(7))))
+doc.put("utf8", json::newString("é — 日本 😀"))
+doc.put("key \"quoted\"", json::newBool(true))
+var written: str = json::stringify(doc)
+println(written)
+
+/; It reads back to the same values.
+var back: json::JsonNode = json::parse(written)
+println(back.get("quote").strVal == "say \"hi\"")
+println(back.get("path").strVal == "C:\\temp")
+println(back.get("lines").strVal == "one\ntwo\r\n\tthree")
+println(back.get("bell").strVal == "ding" + String(Char(7)))
+println(back.get("utf8").strVal)

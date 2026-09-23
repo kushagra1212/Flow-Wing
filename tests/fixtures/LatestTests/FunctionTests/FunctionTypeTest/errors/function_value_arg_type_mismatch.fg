@@ -1,0 +1,9 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+class Box {
+  var op: [(int) -> int]
+  init() -> nthg {
+  }
+}
+
+var box: Box = new Box()
+println(box.op("one"))

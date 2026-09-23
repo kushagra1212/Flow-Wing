@@ -105,12 +105,13 @@ std::string optimizationFlag(OptimizationLevel level) {
   return "-O0";
 }
 
-// Whether any unit spawns a task, the only way a task switch can happen. Only
-// such a program is linked with Asyncify, which fw_sched.c needs to switch
-// stacks on wasm and which makes every program about 40% bigger and
-// collection-heavy ones up to a third slower. Read from each unit's bitcode,
-// so brought units count as well as the entry.
-bool spawnsTasks(const std::vector<std::string> &units) {
+// Whether the program needs Asyncify: it spawns a task, the only way a task
+// switch can happen (fw_sched.c switches stacks through Asyncify on wasm), or
+// it uses the js module, whose waiter sleeps in JavaScript while the page runs
+// (js_bridge.c). Asyncify makes a program about 40% bigger and
+// collection-heavy ones up to a third slower, so the rest go without. Read
+// from each unit's bitcode, so brought units count as well as the entry.
+bool needsAsyncify(const std::vector<std::string> &units) {
   namespace functions = ir_gen::constants::functions;
   llvm::LLVMContext llvm_context;
   for (const auto &unit : units) {
@@ -128,6 +129,12 @@ bool spawnsTasks(const std::vector<std::string> &units) {
          {functions::kSched_spawn_fn, functions::kSched_spawn_args_fn}) {
       const llvm::Function *fn = (*module)->getFunction(name);
       if (fn != nullptr && !fn->use_empty()) {
+        return true;
+      }
+    }
+    for (const llvm::Function &fn : (*module)->functions()) {
+      if (fn.isDeclaration() && fn.getName().starts_with("fw_js_") &&
+          !fn.use_empty()) {
         return true;
       }
     }
@@ -186,7 +193,7 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
   // The same 8 MB a native main gets, instead of emscripten's 64 KB, so deep
   // recursion behaves the same on both.
   args.push_back("-sSTACK_SIZE=8388608");
-  if (spawnsTasks(units)) {
+  if (needsAsyncify(units)) {
     // Emscripten fibers switch stacks through Asyncify. wasm has no guard
     // pages, so a task's stack overflow is caught instead by a stack-pointer
     // check at every function entry, against the running fiber's limits.
@@ -196,6 +203,10 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
     // once, with its status; see end_program in fw_sched.c.
     args.push_back("-Wl,--wrap=exit");
   }
+  // The js module's JavaScript half. Emscripten takes from it only the
+  // functions a program calls, so a program that does not bring js gets none.
+  args.push_back("--js-library");
+  args.push_back(toolchain.jsLibrary().string());
   if (!browser) {
     // Under Node: byte-exact stdout and the real environment. See
     // node-host.js.

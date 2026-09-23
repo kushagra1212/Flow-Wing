@@ -288,6 +288,20 @@ private:
   llvm::StructType *getOrCreateFWFrameType();
   llvm::GlobalVariable *getOrCreateGcShadowTop(llvm::StructType *frameTy);
   llvm::AllocaInst *spillToRoot(llvm::Value *gcPtr, const std::string &name);
+  // Roots `value` if it is a GC reference held only as a computed value (a
+  // call's result, a conversion), not a variable's storage, so it survives
+  // while further sub-expressions run and allocate.
+  /// The function address an expression of a function type produced: a
+  /// function itself, storage holding one (a variable, a field), or a value
+  /// already loaded (a call's result).
+  llvm::Value *loadFunctionValue(llvm::Value *value);
+
+  /// The function a call through a function value goes to (a variable, a
+  /// field, a parameter of a function type), checked to be set.
+  llvm::Value *emitIndirectCallee(binding::BoundCallExpression *call_expression);
+
+  void rootIfTemporary(llvm::Value *value, types::Type *type,
+                       const std::string &name);
   void emitGcShadowFrame(llvm::Function *fn);
   // Returns N if `ty` is an inline `[N x %fg_dyn_type]` (a by-value array of
   // boxed dynamics, e.g. a dynamic-array parameter copied onto the stack), else

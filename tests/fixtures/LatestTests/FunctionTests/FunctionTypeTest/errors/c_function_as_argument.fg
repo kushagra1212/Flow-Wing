@@ -1,0 +1,10 @@
+/; EXPECT_ERROR: FunctionArgumentTypeMismatch
+/; Passing a C function where a Flow-Wing function is expected is the same
+/; mistake as storing one.
+bring text
+
+fun apply(g: [(str) -> int], s: str) -> int {
+  return g(s)
+}
+
+println(apply(strLength, "abc"))

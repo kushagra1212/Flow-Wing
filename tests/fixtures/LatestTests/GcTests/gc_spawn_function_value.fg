@@ -1,0 +1,38 @@
+/; `spawn f(x)` where `f` holds a function value (a variable, a field, a
+/; parameter) runs the function `f` held when the task was spawned.
+fun work(n: int) -> nthg {
+  println("work " + String(n))
+}
+
+fun other(n: int) -> nthg {
+  println("other " + String(n))
+}
+
+fun idle() -> nthg {
+  println("idle")
+}
+
+var f: [(int) -> nthg] = work
+spawn f(1)
+/; The task above still runs work.
+f = other
+
+var g: [() -> nthg] = idle
+spawn g()
+
+class Job {
+  var run: [(int) -> nthg]
+  init(run: [(int) -> nthg]) -> nthg {
+    self.run = run
+  }
+}
+
+var job: Job = new Job(work)
+spawn job.run(2)
+
+fun launch(h: [(int) -> nthg], n: int) -> nthg {
+  spawn h(n)
+}
+
+launch(other, 3)
+println("main")

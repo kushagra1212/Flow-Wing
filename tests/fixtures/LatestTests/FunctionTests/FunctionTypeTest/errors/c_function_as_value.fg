@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: InitializerExpressionTypeMismatch
+/; A C function (`decl`) takes and returns its values directly, a Flow-Wing
+/; function through slots: it is not a value of a Flow-Wing function type.
+bring text
+
+var f: [(str) -> int] = strLength
+println(f("abc"))

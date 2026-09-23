@@ -18,6 +18,7 @@
  */
 
 #include "ClassStatementParser.h"
+#include "src/syntax/expression/ModuleAccessExpressionSyntax/ModuleAccessExpressionSyntax.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
 #include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
@@ -52,6 +53,18 @@ std::unique_ptr<syntax::StatementSyntax> ClassStatementParser::parse() {
     parent_class_identifier_expression =
         std::make_unique<IdentifierExpressionParser>(m_ctx)
             ->parse(); // parent_class_name
+
+    // extends module::ClassName: a class a brought module declares.
+    if (m_ctx->getCurrentTokenKind() == lexer::TokenKind::kColonColonToken) {
+      auto colon_colon_token =
+          m_ctx->match(lexer::TokenKind::kColonColonToken); // ::
+      auto class_name_expression =
+          std::make_unique<IdentifierExpressionParser>(m_ctx)->parse();
+      parent_class_identifier_expression =
+          std::make_unique<syntax::ModuleAccessExpressionSyntax>(
+              std::move(parent_class_identifier_expression), colon_colon_token,
+              std::move(class_name_expression));
+    }
   }
 
   auto open_brace_token = m_ctx->match(lexer::TokenKind::kOpenBraceToken); // {

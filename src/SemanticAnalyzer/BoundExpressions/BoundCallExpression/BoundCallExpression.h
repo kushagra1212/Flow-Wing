@@ -60,8 +60,20 @@ public:
   void setImplicitReceiverLast(bool v) { m_implicit_receiver_last = v; }
   bool getImplicitReceiverLast() const { return m_implicit_receiver_last; }
 
+  /// A call through a function value (`f(x)` where `f` is a variable,
+  /// `box.op(x)` where `op` is a field): `callee` yields the function to call,
+  /// and `symbol`, which this call then owns, carries only its type.
+  void setCallee(std::unique_ptr<BoundExpression> callee,
+                 std::shared_ptr<analysis::FunctionSymbol> symbol) {
+    m_callee = std::move(callee);
+    m_owned_symbol = std::move(symbol);
+  }
+  BoundExpression *getCallee() const { return m_callee.get(); }
+
 private:
   analysis::FunctionSymbol *m_symbol;
+  std::unique_ptr<BoundExpression> m_callee;
+  std::shared_ptr<analysis::FunctionSymbol> m_owned_symbol;
   std::vector<std::unique_ptr<BoundExpression>> m_arguments;
   bool m_use_virtual_dispatch = false;
   std::size_t m_virtual_slot = 0;

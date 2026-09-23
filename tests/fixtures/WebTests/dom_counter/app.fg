@@ -1,0 +1,31 @@
+/; The smallest interactive page: two buttons change a number. The state lives
+/; in a handler object and in the page.
+bring dom
+
+class Increment extends dom::Handler {
+  var count: int
+  init() -> nthg {
+    self.count = 0
+  }
+  handle(event: dom::Event) -> nthg {
+    self.count = self.count + 1
+    dom::query("#count").setText(String(self.count))
+    println("clicked " + event.kind() + " " + String(self.count))
+  }
+}
+
+class Reset extends dom::Handler {
+  var counter: Increment
+  init(counter: Increment) -> nthg {
+    self.counter = counter
+  }
+  handle(event: dom::Event) -> nthg {
+    self.counter.count = 0
+    dom::query("#count").setText("0")
+  }
+}
+
+var counter: Increment = new Increment()
+dom::query("#add").on("click", counter)
+dom::query("#reset").on("click", new Reset(counter))
+println("ready")

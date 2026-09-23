@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,14 +52,22 @@ bool FunctionType::operator==(const Type &other) const {
     return false;
   }
 
+  // The calling convention is part of the type: a C function (`as str`)
+  // takes and returns values directly, a Flow-Wing function through slots.
+  // Calling one as the other passes the wrong things, so a C function is not
+  // a value of a Flow-Wing function type.
   for (size_t i = 0; i < m_parameters.size(); ++i) {
-    if ((*m_parameters[i]->type != *other_func->m_parameters[i]->type)) {
+    if ((*m_parameters[i]->type != *other_func->m_parameters[i]->type) ||
+        m_parameters[i]->type_convention !=
+            other_func->m_parameters[i]->type_convention) {
       return false;
     }
   }
 
   for (size_t i = 0; i < m_return_types.size(); ++i) {
-    if ((*m_return_types[i]->type != *other_func->m_return_types[i]->type)) {
+    if ((*m_return_types[i]->type != *other_func->m_return_types[i]->type) ||
+        m_return_types[i]->type_convention !=
+            other_func->m_return_types[i]->type_convention) {
       return false;
     }
   }
@@ -72,7 +80,11 @@ std::string FunctionType::buildFunctionName(
     const std::vector<std::shared_ptr<ReturnType>> &ret) {
   std::stringstream ss;
   ss << "Function: <(";
+  // A C convention reads as in the source: `as str`.
   for (size_t i = 0; i < params.size(); ++i) {
+    if (params[i]->type_convention == TypeConvention::kC) {
+      ss << "as ";
+    }
     ss << params[i]->type->getName();
     if (i < params.size() - 1) {
       ss << ", ";
@@ -80,6 +92,9 @@ std::string FunctionType::buildFunctionName(
   }
   ss << ") -> ";
   for (size_t i = 0; i < ret.size(); ++i) {
+    if (ret[i]->type_convention == TypeConvention::kC) {
+      ss << "as ";
+    }
     ss << ret[i]->type->getName();
     if (i < ret.size() - 1) {
       ss << ", ";

@@ -1,0 +1,50 @@
+/; A class field can hold a function value. It is called as a method is:
+/; self.op(x), box.op(x), or op(x) inside the class.
+fun double(x: int) -> int {
+  return x * 2
+}
+
+fun negate(x: int) -> int {
+  return 0 - x
+}
+
+class Box {
+  var op: [(int) -> int]
+  var name: str
+  init(op: [(int) -> int]) -> nthg {
+    self.op = op
+    self.name = "box"
+  }
+  viaSelf(x: int) -> int {
+    return self.op(x)
+  }
+  viaBare(x: int) -> int {
+    return op(x)
+  }
+}
+
+var box: Box = new Box(double)
+println(box.viaSelf(4))
+println(box.viaBare(4))
+println(box.op(4))
+box.op = negate
+println(box.viaSelf(4))
+println(box.op(4))
+println(box.name)
+
+/; A field set from another object's field.
+var other: Box = new Box(double)
+other.op = box.op
+println(other.op(5))
+
+/; A field of an object type.
+type Handlers = {
+  onValue: [(int) -> int],
+  label: str
+}
+
+var handlers: Handlers = { onValue: double, label: "h" }
+println(handlers.onValue(21))
+handlers.onValue = negate
+println(handlers.onValue(21))
+println(handlers.label)

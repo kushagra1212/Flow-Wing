@@ -1,0 +1,44 @@
+/; A list built from Flow-Wing: elements created and appended, and removed by
+/; a handler that remembers which row it belongs to.
+bring dom
+
+fun refreshTotal() -> nthg {
+  var count: int = dom::queryAll("#list li").length()
+  dom::query("#total").setText(String(count) + " items")
+}
+
+class RemoveRow extends dom::Handler {
+  var row: dom::Element
+  var label: str
+  init(row: dom::Element, label: str) -> nthg {
+    self.row = row
+    self.label = label
+  }
+  handle(event: dom::Event) -> nthg {
+    self.row.remove()
+    println("removed " + self.label)
+    refreshTotal()
+  }
+}
+
+class AddRow extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    var input: dom::Element = dom::query("#item")
+    var label: str = input.value()
+    if label == "" {
+      return :
+    }
+    var row: dom::Element = dom::create("li").addClass("row").setAttr("data-label", label)
+    var text: dom::Element = dom::create("span").setText(label)
+    var button: dom::Element = dom::create("button").addClass("remove").setText("x")
+    row.append(text).append(button)
+    button.on("click", new RemoveRow(row, label))
+    dom::query("#list").append(row)
+    input.setValue("")
+    refreshTotal()
+  }
+}
+
+dom::query("#add").on("click", new AddRow())

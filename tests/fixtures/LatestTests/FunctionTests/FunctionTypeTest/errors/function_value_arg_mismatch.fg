@@ -1,0 +1,7 @@
+/; EXPECT_ERROR: FunctionArgumentCountMismatch
+fun double(x: int) -> int {
+  return x * 2
+}
+
+var f: [(int) -> int] = double
+println(f(1, 2))

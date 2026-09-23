@@ -213,6 +213,63 @@ bool defineImportedSymbol(
   return false;
 }
 
+// Some standard modules exist for one kind of build only. Said at the bring,
+// with the reason, rather than as a wall of undefined symbols at link time:
+//
+//   js, dom                 WebAssembly only: they talk to the page
+//   vortex, mongo, raylib   native only: a socket, a database, a window
+bool moduleSuitsTarget(binding::BinderContext &binder_context,
+                       const std::string &absolute_file_path,
+                       const diagnostic::SourceLocation &location) {
+  const std::filesystem::path path(absolute_file_path);
+  const std::string file = path.filename().string();
+  const std::string suffix = "-module.fg";
+  if (file.size() <= suffix.size() ||
+      file.compare(file.size() - suffix.size(), suffix.size(), suffix) != 0) {
+    return true;
+  }
+  // A standard module: from the SDK's lib/modules, or, inside the Flow-Wing
+  // repository, from its fw-modules tree (see tryResolveBringPath).
+  const auto modules_root = flow_wing::io::PathUtils::getModulesPath();
+  std::error_code ec;
+  bool standard = !modules_root.empty() &&
+                  std::filesystem::equivalent(path.parent_path(), modules_root, ec);
+  for (auto dir = path.parent_path(); !standard && dir != dir.root_path() &&
+                                      !dir.empty();
+       dir = dir.parent_path()) {
+    standard = dir.filename() == "fw-modules";
+  }
+  if (!standard) {
+    return true; // a file of the program's own, whatever its name
+  }
+  const std::string module = file.substr(0, file.size() - suffix.size());
+  const bool wasm32 =
+      binder_context.getCompilationContext().getOptions().target_platform ==
+      TargetPlatform::kWasm32;
+
+  if (!wasm32 && (module == "js" || module == "dom")) {
+    binder_context.reportError(
+        diagnostic::DiagnosticCode::kModuleNotForTarget,
+        {module, "WebAssembly builds (--target=wasm32)",
+         "It talks to a web page, and a native program has no page.",
+         "Build with --target=wasm32 -o app.js, and load app.js with a "
+         "<script> tag in your page."},
+        location);
+    return false;
+  }
+  if (wasm32 && (module == "vortex" || module == "mongo" || module == "raylib")) {
+    binder_context.reportError(
+        diagnostic::DiagnosticCode::kModuleNotForTarget,
+        {module, "native builds",
+         "WebAssembly in a browser cannot open a listening socket, a database "
+         "connection or a window.",
+         "Build without --target=wasm32."},
+        location);
+    return false;
+  }
+  return true;
+}
+
 } // namespace
 
 void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
@@ -259,6 +316,11 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
     }
   }
 
+  if (!moduleSuitsTarget(m_binder_context, absolute_file_path,
+                         node->getStringLiteralExpression()->getSourceLocation())) {
+    return;
+  }
+
   if (std::find(g_bring_path_stack.begin(), g_bring_path_stack.end(),
                 absolute_file_path) != g_bring_path_stack.end()) {
     m_binder_context.reportError(
@@ -279,6 +341,10 @@ void analysis::DeclarationAnalyzer::visit(syntax::BringStatementSyntax *node) {
   CompilerOptions nested_opts;
   nested_opts.input_file_path = absolute_file_path;
   nested_opts.progress = ProgressMode::kNever;
+  // A brought file is checked for the same build: the dom module's own
+  // `bring js` is right for wasm32 and refused for native (moduleSuitsTarget).
+  nested_opts.target_platform =
+      m_binder_context.getCompilationContext().getOptions().target_platform;
   std::string entry_file_path = m_binder_context.getCompilationContext().getEntryFilePath();
 
   flow_wing::CompilationContext nested_ctx(nested_opts, entry_file_path);

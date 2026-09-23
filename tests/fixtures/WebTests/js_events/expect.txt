@@ -1,0 +1,9 @@
+main done
+awaited resolved true
+rejected: nope
+ping 1 ping
+ping 2 ping
+after: event is undefined
+tick 1
+tick 2
+tick 3

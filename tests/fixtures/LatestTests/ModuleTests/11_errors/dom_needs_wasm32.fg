@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: ModuleNotForTarget
+/; The dom module talks to a web page; a native build is refused at the
+/; bring, with the reason, rather than failing to link.
+bring dom
+dom::query("#title").setText("hello")

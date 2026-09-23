@@ -173,6 +173,14 @@ jobs:
         if: success() || failure()
         run: make test-wasm-smoke
 
+      # The CLI contract tests that build for wasm32 (tests/cli_fg/suites/
+      # wasm.fg, and the harness's own checks of them). The CLI step above ran
+      # before emsdk was here, so it skipped them; now it is, and --no-skip
+      # makes a skip a failure instead of a silent pass.
+      - name: CLI contract tests (wasm32 builds)
+        if: success() || failure()
+        run: make test-cli ARGS="--suite=wasm,harness --no-skip"
+
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT
         if: success() || failure()
@@ -367,6 +375,17 @@ jobs:
         run: |
           call "%USERPROFILE%\emsdk\emsdk_env.bat" || exit /b 1
           make test-wasm-smoke
+
+      # The CLI contract tests that build for wasm32 (tests/cli_fg/suites/
+      # wasm.fg, and the harness's own checks of them). The CLI step above ran
+      # before emsdk was here, so it skipped them; now it is, and --no-skip
+      # makes a skip a failure instead of a silent pass.
+      - name: CLI contract tests (wasm32 builds)
+        if: success() || failure()
+        shell: cmd
+        run: |
+          call "%USERPROFILE%\emsdk\emsdk_env.bat" || exit /b 1
+          make test-cli ARGS="--suite=wasm,harness --no-skip"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -583,6 +602,18 @@ jobs:
           LDFLAGS: -fuse-ld=lld
         run: make test-wasm
 
+      # The CLI contract tests that build for wasm32 (tests/cli_fg/suites/
+      # wasm.fg, and the harness's own checks of them). The CLI step above ran
+      # before emsdk was here, so it skipped them; now it is, and --no-skip
+      # makes a skip a failure instead of a silent pass.
+      - name: CLI contract tests (wasm32 builds)
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-cli ARGS="--suite=wasm,harness --no-skip"
+
       # The GC and scheduler fixtures again, with almost no environment. Its
       # strings live in the program's heap, so this moves everything after
       # them. Both memory bugs found in the wasm runtime so far (a type
@@ -610,6 +641,17 @@ jobs:
       # The playground's compile step (flowwing-explorer/flow-wing-website/
       # sandbox/compile.mjs), which the website's POST /compile runs in its
       # sandbox: IR, wasm, WAT, errors, and refused options.
+      # Programs that use the js and dom modules (fw-modules/js_module,
+      # fw-modules/dom_module), built for wasm32 and run in a simulated page
+      # (jsdom): events, timers, fetch, forms, and handles being released.
+      - name: Web page tests (js and dom modules)
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-web
+
       - name: Playground compile step tests
         if: success() || failure()
         env:

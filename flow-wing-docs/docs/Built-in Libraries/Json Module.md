@@ -99,8 +99,9 @@ println("y[0] = ", root.get("y").getAt(0).numVal)
 
 | Function | Returns | Description |
 |----------|---------|-------------|
-| `json::stringify(node)` | `str` | Serializes a node to a JSON string |
+| `json::stringify(node)` | `str` | Serializes a node to a JSON string. Strings and keys are escaped, so the result is always valid JSON |
 | `json::parse(str)` | `json::JsonNode` | Parses a JSON string into a node tree |
+| `json::quote(s)` | `str` | `s` as a JSON string literal: in quotes, with `"`, `\` and control characters escaped |
 
 ## Accessing values
 
@@ -119,7 +120,8 @@ println("y[0] = ", root.get("y").getAt(0).numVal)
 - **Nested structures** — objects inside objects, arrays inside arrays
 - **Method chaining** — `.put().put().push()` style
 - **Key overwriting** — calling `.put(key, ...)` on an existing key updates it
-- **Escaped characters** — `\n`, `\t`, `\"` in strings
+- **Escaped characters** — `json::parse` reads every JSON escape (`\n`, `\t`, `\r`, `\b`, `\f`, `\"`, `\\`, `\/`, and `\uXXXX`, including surrogate pairs); `json::stringify` writes them back
+- **UTF-8 text** — kept exactly as it is, in both directions
 - **Malformed JSON** — `json::parse()` on invalid input returns an empty object `{}`
 
 ## Source & tests (if you have the repository)

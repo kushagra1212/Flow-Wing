@@ -137,6 +137,12 @@ void IRGenerator::emitTypedStore(llvm::Value *target_addr,
     return;
   }
 
+  // CASE: a function value is the function's address.
+  if (target_type->getKind() == types::TypeKind::kFunction) {
+    builder->CreateStore(loadFunctionValue(source_raw_value), target_addr);
+    return;
+  }
+
   if (target_type == analysis::Builtins::m_str_type_instance.get() &&
       !source_type->isDynamic()) {
     llvm::Value *source_value = resolveValue(source_raw_value, source_type);

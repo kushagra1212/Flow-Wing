@@ -196,6 +196,7 @@ enum class DiagnosticCode : int16_t {
 
   // Bring Statement Errors
   kFileContainsErrors,
+  kModuleNotForTarget,
 
   // Internal Errors
   kInternalIRGenerationError,

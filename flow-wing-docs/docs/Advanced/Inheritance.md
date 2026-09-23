@@ -109,6 +109,44 @@ fun fg_main() -> nthg {
 fg_main()
 `} language="fg"/>
 
+## A base method that calls an override
+
+Inside a class, **`self.method()`** also goes to the object's own class. So a
+base class can write the steps once and let each subclass fill one in:
+
+<CodeBlock code={
+`class Shape {
+    var name: str
+    init(name: str) -> nthg {
+        self.name = name
+    }
+    corners() -> int {
+        return 0
+    }
+    describe() -> str {
+        return self.name + " has " + String(self.corners()) + " corners"
+    }
+}
+
+class Square extends Shape {
+    init() -> nthg {
+        super("square")
+    }
+    corners() -> int {
+        return 4
+    }
+}
+
+var s: Shape = new Square()
+println(s.describe())
+`} language="fg"/>
+
+Output: `square has 4 corners`
+
+This holds in **`init`** too: the object is a `Square` before `Shape`'s `init`
+runs, so a call there reaches `Square`'s override, before `Square`'s `init`
+has set its own fields.
+
 ## More detail: `super`, overrides, and design
 
 - Call **`super(…)`** in **`init`** so **parent** state is set before you assign **subclass** fields. **`super`** works only inside **`init`** — it's not available in regular methods.

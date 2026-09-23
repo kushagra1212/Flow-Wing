@@ -1,0 +1,28 @@
+/; A js::Value that is collected releases its handle, so a loop that makes
+/; values and drops them does not grow the page's memory for good.
+/;
+/; When that happens is up to the collector, which sees only Flow-Wing's own
+/; allocations, so the check is made after a collection.
+bring js
+fun fw_gc_collect() -> as nthg decl
+
+var doc: js::Value = js::global().get("document")
+var kept: js::Value = js::fromStr("kept")
+var before: int = js::liveHandles()
+for var i: int = 0 to 20000 {
+  var body: js::Value = doc.get("body")
+  var text: js::Value = js::fromStr("item " + String(i))
+}
+fw_gc_collect()
+println(js::liveHandles() - before <= 2)
+
+/; Values still referenced keep theirs.
+println(kept.toStr() + " " + doc.get("body").getStr("tagName"))
+
+/; release() frees one at once, and is safe to repeat.
+var early: js::Value = js::fromStr("early")
+var withEarly: int = js::liveHandles()
+early.release()
+early.release()
+println(js::liveHandles() == withEarly - 1)
+println(early.isUndefined())

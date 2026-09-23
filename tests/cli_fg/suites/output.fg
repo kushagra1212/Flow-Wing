@@ -34,6 +34,15 @@ fun run(h: cli::Harness) -> nthg {
     .expectBinaryAtPrints("named_exe", "ok")
     .done()
 
+  /; The parent of a bare name is "": creating it used to print
+  /; "Failed to create directory ''" on a build that then succeeded.
+  h.test("-o with a bare name builds in the working directory, quietly")
+    .withArgs("--emit=exe -o named_here")
+    .expectOk()
+    .expectLacks("Failed to create directory")
+    .expectBinaryAtPrints("../named_here", "ok")
+    .done()
+
   h.test("--output is the long form of -o")
     .withArgs("--emit=exe")
     .withArg("--output={out}/named_exe2")

@@ -1,0 +1,530 @@
+/; js module: any JavaScript value, from a program built for the browser
+/; (--target=wasm32). The layer the dom module is built on, and the way to
+/; reach any browser API it does not cover.
+/;
+/;   var doc: js::Value = js::global().get("document")
+/;   doc.setStr("title", "Hello")
+/;   var h1: js::Value = doc.callWith("querySelector", js::args().addStr("h1"))
+/;   println(h1.getStr("textContent"))
+/;
+/; How it works: a JavaScript value cannot live in wasm memory, so a js::Value
+/; holds a handle to it (js-bridge.js keeps the values). When the js::Value is
+/; collected, the handle is released, and JavaScript can collect the value.
+/;
+/; A JavaScript exception ends the program with a runtime error that quotes
+/; it, as a Flow-Wing error would. The try* methods return it as an
+/; Err::Result instead.
+/;
+/; Events: js::listen calls a js::Handler for each event. They are handled one
+/; at a time, in order, by a task the module starts; while none is waiting the
+/; program sleeps, and the page stays responsive. The program keeps running
+/; while it listens; js::stop, or removing every listener, lets it end.
+bring Err
+
+/; ---- C half: fw-modules/js_module/js_bridge.c (wasm32 runtime only) ----
+fun fw_js_box(handle: as int) -> as int64 decl
+fun fw_js_unbox(box: as int64) -> as int decl
+fun fw_js_box_release(box: as int64) -> as nthg decl
+fun fw_js_global() -> as int decl
+fun fw_js_null() -> as int decl
+fun fw_js_from_str(s: as str) -> as int decl
+fun fw_js_from_num(n: as deci) -> as int decl
+fun fw_js_from_bool(b: as bool) -> as int decl
+fun fw_js_retain(handle: as int) -> as int decl
+fun fw_js_to_str(handle: as int) -> as str decl
+fun fw_js_to_num(handle: as int) -> as deci decl
+fun fw_js_to_int(handle: as int) -> as int decl
+fun fw_js_to_bool(handle: as int) -> as bool decl
+fun fw_js_type(handle: as int) -> as str decl
+fun fw_js_same(a: as int, b: as int) -> as bool decl
+fun fw_js_get(handle: as int, name: as str) -> as int decl
+fun fw_js_get_str(handle: as int, name: as str) -> as str decl
+fun fw_js_get_num(handle: as int, name: as str) -> as deci decl
+fun fw_js_get_int(handle: as int, name: as str) -> as int decl
+fun fw_js_get_bool(handle: as int, name: as str) -> as bool decl
+fun fw_js_at(handle: as int, index: as int) -> as int decl
+fun fw_js_set(handle: as int, name: as str, value: as int) -> as nthg decl
+fun fw_js_set_str(handle: as int, name: as str, value: as str) -> as nthg decl
+fun fw_js_set_num(handle: as int, name: as str, value: as deci) -> as nthg decl
+fun fw_js_set_bool(handle: as int, name: as str, value: as bool) -> as nthg decl
+fun fw_js_call(handle: as int, method: as str, args: as int) -> as int decl
+fun fw_js_invoke(handle: as int, args: as int) -> as int decl
+fun fw_js_new(handle: as int, args: as int) -> as int decl
+fun fw_js_eval(code: as str) -> as int decl
+fun fw_js_array() -> as int decl
+fun fw_js_push(array: as int, value: as int) -> as nthg decl
+fun fw_js_push_str(array: as int, value: as str) -> as nthg decl
+fun fw_js_push_num(array: as int, value: as deci) -> as nthg decl
+fun fw_js_push_bool(array: as int, value: as bool) -> as nthg decl
+fun fw_js_try_begin() -> as nthg decl
+fun fw_js_try_end() -> as str decl
+fun fw_js_listen(handle: as int, event: as str, flags: as int) -> as int decl
+fun fw_js_unlisten(id: as int) -> as nthg decl
+fun fw_js_timer(ms: as int, repeat: as bool) -> as int decl
+fun fw_js_alive(id: as int) -> as bool decl
+fun fw_js_live_handles() -> as int decl
+fun fw_js_next_event() -> as int decl
+fun fw_js_event() -> as int decl
+fun fw_js_await(handle: as int) -> as int decl
+fun fw_js_await_state(id: as int) -> as int decl
+fun fw_js_await_take(id: as int) -> as int decl
+fun fw_js_start() -> as nthg decl
+fun fw_js_in_task() -> as bool decl
+fun fw_sched_park_io() -> as nthg decl
+fun fw_sched_wake_io() -> as nthg decl
+fun fg_runtime_error(msg: as str) -> as nthg decl
+
+module [js]
+
+/; Flags for js::listen, added together.
+/; The browser acts on an event (follows a link, submits a form) as soon as
+/; its listeners return, before a Flow-Wing handler runs, so these are done
+/; for you, in the listener itself.
+const PREVENT_DEFAULT: int = 1
+const STOP_PROPAGATION: int = 2
+
+/; =========================================================
+/; ArgList: the arguments of a call, as a JavaScript array
+/; =========================================================
+class ArgList {
+  var _handle: int64
+
+  init() -> nthg {
+    self._handle = fw_js_box(fw_js_array())
+  }
+
+  id() -> int {
+    return fw_js_unbox(self._handle)
+  }
+
+  addStr(value: str) -> js::ArgList {
+    fw_js_push_str(self.id(), value)
+    return self
+  }
+
+  addNum(value: deci) -> js::ArgList {
+    fw_js_push_num(self.id(), value)
+    return self
+  }
+
+  addInt(value: int) -> js::ArgList {
+    fw_js_push_num(self.id(), Decimal(value))
+    return self
+  }
+
+  addBool(value: bool) -> js::ArgList {
+    fw_js_push_bool(self.id(), value)
+    return self
+  }
+
+  add(value: js::Value) -> js::ArgList {
+    /; Through a function: a class sees only the classes declared before it,
+    /; and Value comes after this one (it uses ArgList).
+    js::pushValue(self, value)
+    return self
+  }
+}
+
+/; =========================================================
+/; Value: one JavaScript value
+/; =========================================================
+class Value {
+  /; A GC box holding the handle (js_bridge.c). Named _handle so the compiler
+  /; keeps it alive with this value and finalizes it after.
+  var _handle: int64
+
+  init(box: int64) -> nthg {
+    self._handle = box
+  }
+
+  /; The handle, for the C half.
+  id() -> int {
+    return fw_js_unbox(self._handle)
+  }
+
+  /; ---- properties ----
+
+  get(name: str) -> js::Value {
+    return js::wrap(fw_js_get(self.id(), name))
+  }
+
+  getStr(name: str) -> str {
+    return fw_js_get_str(self.id(), name)
+  }
+
+  getNum(name: str) -> deci {
+    return fw_js_get_num(self.id(), name)
+  }
+
+  /; Truncated towards zero; 0 for a value that is not a number or does not
+  /; fit an int.
+  getInt(name: str) -> int {
+    return fw_js_get_int(self.id(), name)
+  }
+
+  getBool(name: str) -> bool {
+    return fw_js_get_bool(self.id(), name)
+  }
+
+  /; Element `index` of an array, or of anything indexable.
+  at(index: int) -> js::Value {
+    return js::wrap(fw_js_at(self.id(), index))
+  }
+
+  length() -> int {
+    return fw_js_get_int(self.id(), "length")
+  }
+
+  set(name: str, value: js::Value) -> js::Value {
+    fw_js_set(self.id(), name, value.id())
+    return self
+  }
+
+  setStr(name: str, value: str) -> js::Value {
+    fw_js_set_str(self.id(), name, value)
+    return self
+  }
+
+  setNum(name: str, value: deci) -> js::Value {
+    fw_js_set_num(self.id(), name, value)
+    return self
+  }
+
+  setInt(name: str, value: int) -> js::Value {
+    fw_js_set_num(self.id(), name, Decimal(value))
+    return self
+  }
+
+  setBool(name: str, value: bool) -> js::Value {
+    fw_js_set_bool(self.id(), name, value)
+    return self
+  }
+
+  /; ---- calls ----
+
+  /; this.method()
+  call(method: str) -> js::Value {
+    return js::wrap(fw_js_call(self.id(), method, 0))
+  }
+
+  /; this.method(...args)
+  callWith(method: str, list: js::ArgList) -> js::Value {
+    return js::wrap(fw_js_call(self.id(), method, list.id()))
+  }
+
+  /; As callWith, but an exception comes back as an error result instead of
+  /; ending the program.
+  tryCall(method: str, list: js::ArgList) -> js::Value, Err::Result {
+    fw_js_try_begin()
+    var result: int = fw_js_call(self.id(), method, list.id())
+    var value: js::Value, outcome: Err::Result = js::finishTry(result)
+  return value, outcome
+  }
+
+  /; The value itself, called as a function: value(...args).
+  invoke(list: js::ArgList) -> js::Value {
+    return js::wrap(fw_js_invoke(self.id(), list.id()))
+  }
+
+  /; new Value(...args), for a constructor such as Date or URL.
+  construct(list: js::ArgList) -> js::Value {
+    return js::wrap(fw_js_new(self.id(), list.id()))
+  }
+
+  /; ---- conversions ----
+
+  /; String(value)
+  toStr() -> str {
+    return fw_js_to_str(self.id())
+  }
+
+  /; Number(value): NaN when it is not a number.
+  toNum() -> deci {
+    return fw_js_to_num(self.id())
+  }
+
+  toInt() -> int {
+    return fw_js_to_int(self.id())
+  }
+
+  /; JavaScript truthiness: false for false, 0, "", null, undefined, NaN.
+  toBool() -> bool {
+    return fw_js_to_bool(self.id())
+  }
+
+  /; typeof value, except "null" for null and "array" for an array.
+  typeOf() -> str {
+    return fw_js_type(self.id())
+  }
+
+  isUndefined() -> bool {
+    return self.id() == 0
+  }
+
+  isNull() -> bool {
+    return fw_js_type(self.id()) == "null"
+  }
+
+  /; The same JavaScript value (===).
+  same(other: js::Value) -> bool {
+    return fw_js_same(self.id(), other.id())
+  }
+
+  /; Let JavaScript collect the value now rather than when this js::Value is
+  /; collected. The js::Value is undefined afterwards.
+  release() -> nthg {
+    fw_js_box_release(self._handle)
+  }
+}
+
+/; =========================================================
+/; Handler: what an event calls
+/; =========================================================
+
+/; Extend it and override handle. A handler is an object, so it can carry
+/; what it needs, such as which row of a list it belongs to.
+/;
+/;   class Clicked extends js::Handler {
+/;     handle(event: js::Value) -> nthg {
+/;       println("clicked " + event.getStr("type"))
+/;     }
+/;   }
+class Handler {
+  init() -> nthg {
+  }
+
+  handle(event: js::Value) -> nthg {
+  }
+}
+
+/; One registered listener, in a list the event loop searches by id.
+class Listener {
+  var id: int
+  var handler: js::Handler
+  var next: js::Listener
+
+  init(id: int, handler: js::Handler, next: js::Listener) -> nthg {
+    self.id = id
+    self.handler = handler
+    self.next = next
+  }
+}
+
+var gListeners: js::Listener = null
+var gListenerCount: int = 0
+var gLoopRunning: bool = false
+var gStopped: bool = false
+var gStarted: bool = false
+
+/; =========================================================
+/; Functions
+/; =========================================================
+
+fun pushValue(list: js::ArgList, value: js::Value) -> nthg {
+  fw_js_push(list.id(), value.id())
+}
+
+/; A js::Value for a handle the C half returned.
+fun wrap(handle: int) -> js::Value {
+  return new js::Value(fw_js_box(handle))
+}
+
+fun finishTry(handle: int) -> js::Value, Err::Result {
+  var message: str = fw_js_try_end()
+  if message != "" {
+    return js::wrap(handle), Err::error(message)
+  }
+  return js::wrap(handle), Err::ok()
+}
+
+/; globalThis: window in a page.
+fun global() -> js::Value {
+  return js::wrap(fw_js_global())
+}
+
+fun undefinedValue() -> js::Value {
+  return js::wrap(0)
+}
+
+fun nullValue() -> js::Value {
+  return js::wrap(fw_js_null())
+}
+
+fun fromStr(value: str) -> js::Value {
+  return js::wrap(fw_js_from_str(value))
+}
+
+fun fromNum(value: deci) -> js::Value {
+  return js::wrap(fw_js_from_num(value))
+}
+
+fun fromInt(value: int) -> js::Value {
+  return js::wrap(fw_js_from_num(Decimal(value)))
+}
+
+fun fromBool(value: bool) -> js::Value {
+  return js::wrap(fw_js_from_bool(value))
+}
+
+/; Arguments for callWith, invoke and construct, added in order:
+/;   js::args().addStr("#title").addInt(2)
+/; (A function rather than `new js::ArgList()` so the adds can follow it.)
+fun args() -> js::ArgList {
+  return new js::ArgList()
+}
+
+/; A new, empty JavaScript array.
+fun array() -> js::Value {
+  return js::wrap(fw_js_array())
+}
+
+/; Runs JavaScript source in the page's global scope and returns its value.
+/; The escape hatch for anything easier to say in JavaScript.
+fun eval(code: str) -> js::Value {
+  return js::wrap(fw_js_eval(code))
+}
+
+fun tryEval(code: str) -> js::Value, Err::Result {
+  fw_js_try_begin()
+  var result: int = fw_js_eval(code)
+  var value: js::Value, outcome: Err::Result = js::finishTry(result)
+  return value, outcome
+}
+
+/; console.log(message)
+fun log(message: str) -> nthg {
+  js::global().get("console").callWith("log", js::args().addStr(message))
+}
+
+/; Starts the machinery for waiting: installs the scheduler's waiter, which
+/; sleeps in JavaScript instead of blocking the page. Idempotent.
+fun start() -> nthg {
+  if !gStarted {
+    gStarted = true
+    fw_js_start()
+  }
+}
+
+/; Waits for a promise to settle, without blocking the page, and returns its
+/; value; a rejection comes back as the error. Must run inside a task (spawn)
+/; or an event handler, which runs in one: only a task can be put aside while
+/; the promise is pending.
+fun await(promise: js::Value) -> js::Value, Err::Result {
+  if !fw_js_in_task() {
+    fg_runtime_error("Runtime Error: js::await must run inside a task.\n  ▶ Call it from a spawned function or an event handler.")
+  }
+  js::start()
+  var id: int = fw_js_await(promise.id())
+  while fw_js_await_state(id) == 0 {
+    fw_sched_park_io()
+  }
+  fw_js_try_begin()
+  var result: int = fw_js_await_take(id)
+  var value: js::Value, outcome: Err::Result = js::finishTry(result)
+  return value, outcome
+}
+
+/; Calls handler.handle(event) for every `event` on `target`, until
+/; js::unlisten(id) with the id returned. flags: js::PREVENT_DEFAULT,
+/; js::STOP_PROPAGATION, or both added.
+fun listen(target: js::Value, event: str, handler: js::Handler, flags: int) -> int {
+  return js::register(fw_js_listen(target.id(), event, flags), handler)
+}
+
+/; Calls handler.handle(undefined) once, after ms milliseconds. The id cancels
+/; it first, with js::unlisten.
+fun after(ms: int, handler: js::Handler) -> int {
+  return js::register(fw_js_timer(ms, false), handler)
+}
+
+/; Calls handler.handle(undefined) every ms milliseconds, until
+/; js::unlisten(id).
+fun every(ms: int, handler: js::Handler) -> int {
+  return js::register(fw_js_timer(ms, true), handler)
+}
+
+/; Adds a listener or timer the bridge created, and starts the event loop if
+/; it is not running.
+fun register(id: int, handler: js::Handler) -> int {
+  gListeners = new js::Listener(id, handler, gListeners)
+  gListenerCount = gListenerCount + 1
+  if !gLoopRunning {
+    gLoopRunning = true
+    gStopped = false
+    js::start()
+    spawn js::eventLoop()
+  }
+  return id
+}
+
+fun unlisten(id: int) -> nthg {
+  fw_js_unlisten(id)
+  js::forget(id)
+  fw_sched_wake_io()
+}
+
+/; Drops a listener from the list, once the bridge no longer has it.
+fun forget(id: int) -> nthg {
+  var previous: js::Listener = null
+  var current: js::Listener = gListeners
+  while current != null {
+    if current.id == id {
+      if previous == null {
+        gListeners = current.next
+      } else {
+        previous.next = current.next
+      }
+      gListenerCount = gListenerCount - 1
+      return :
+    }
+    previous = current
+    current = current.next
+  }
+}
+
+/; Handles JavaScript holds for this program. For tests: one that keeps
+/; growing while nothing new is kept is a leak.
+fun liveHandles() -> int {
+  return fw_js_live_handles()
+}
+
+/; Stops handling events, so the program can end. Listeners stay registered
+/; with the page but are no longer called.
+fun stop() -> nthg {
+  gStopped = true
+  fw_sched_wake_io()
+}
+
+fun handlerFor(id: int) -> js::Handler {
+  var current: js::Listener = gListeners
+  while current != null {
+    if current.id == id {
+      return current.handler
+    }
+    current = current.next
+  }
+  return null
+}
+
+/; The task that delivers events. Parked while there are none; the waiter
+/; wakes it when one arrives. Ends when nothing listens any more.
+fun eventLoop() -> nthg {
+  while !gStopped && gListenerCount > 0 {
+    var id: int = fw_js_next_event()
+    if id == 0 {
+      fw_sched_park_io()
+    } else {
+      var handler: js::Handler = js::handlerFor(id)
+      var event: js::Value = js::wrap(fw_js_event())
+      if handler != null {
+        handler.handle(event)
+      }
+      event.release()
+      /; A one-shot timer is gone once it has fired.
+      if !fw_js_alive(id) {
+        js::forget(id)
+      }
+    }
+  }
+  gLoopRunning = false
+}

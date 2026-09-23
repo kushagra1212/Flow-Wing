@@ -132,7 +132,7 @@ export default function Playground() {
   useEffect(() => {
     const timer = setTimeout(() => {
       const started = performance.now();
-      analyzer.analyse(source).then((result) => {
+      analyzer.analyse(source, mode === "browser" ? "wasm32" : "native").then((result) => {
         if (!result) return; // replaced by a newer edit
         setAnalysis(result);
         // Logged when the outcome changes, not on every keystroke.
@@ -164,7 +164,7 @@ export default function Playground() {
       });
     }, ANALYSIS_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [source, analyzer, log]);
+  }, [source, mode, analyzer, log]);
 
   const current = analysis?.source === source ? analysis : null;
   const map = useMemo(() => new SourceMap(source), [source]);

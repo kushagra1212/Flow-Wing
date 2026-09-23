@@ -1,0 +1,56 @@
+/; A function value can be kept in a variable, like any other value: set it,
+/; change it, call it, and pass it on.
+fun double(x: int) -> int {
+  return x * 2
+}
+
+fun triple(x: int) -> int {
+  return x * 3
+}
+
+fun apply(g: [(int) -> int], x: int) -> int {
+  return g(x)
+}
+
+var op: [(int) -> int] = double
+println(op(5))
+op = triple
+println(op(5))
+println(apply(op, 2))
+
+fun local() -> nthg {
+  var f: [(int) -> int] = double
+  println(f(7))
+  f = op
+  println(f(7))
+}
+
+local()
+
+/; From a parameter into a variable.
+fun keep(g: [(int) -> int]) -> int {
+  var h: [(int) -> int] = g
+  return h(10)
+}
+
+println(keep(double))
+
+/; Several parameters, a str result.
+fun join(a: str, b: str) -> str {
+  return a + "-" + b
+}
+
+var glue: [(str, str) -> str] = join
+println(glue("x", "y"))
+
+/; No result.
+fun shout(s: str) -> nthg {
+  println(s + "!")
+}
+
+var say: [(str) -> nthg] = shout
+say("hey")
+
+/; A value computed in the arguments is passed as usual.
+println(op(op(1)))
+println(glue(glue("a", "b"), String(op(2))))

@@ -1,5 +1,8 @@
 bring text
 
+/; In the text module's C library: a string as a JSON string literal.
+fun strJsonQuote(str1: as str) -> as str decl
+
 module [json]
 
 /; =========================================================
@@ -403,10 +406,18 @@ fun parse(input: str) -> json::JsonNode {
   return parser.parse()
 }
 
+/; A string as a JSON string literal: quotes around it, and the quote, the
+/; backslash and every control character escaped.
+fun quote(value: str) -> str {
+  return strJsonQuote(value)
+}
+
 fun stringify(node: json::JsonNode) -> str {
   if node == null { return "null" }
   if node.json_type == 0 { return "null" }
-  if node.json_type == 3 { return "\"" + node.strVal + "\"" }
+  /; Escaped, so the text is valid JSON whatever the string holds: quotes,
+  /; backslashes, newlines, control characters.
+  if node.json_type == 3 { return json::quote(node.strVal) }
   if node.json_type == 4 { return String(node.numVal) }
   if node.json_type == 5 { return node.boolVal ? "true" : "false" }
 
@@ -427,7 +438,7 @@ fun stringify(node: json::JsonNode) -> str {
     var curr: json::JsonNode = node.firstChild
 
     while curr != null {
-      res = res + "\"" + curr.key + "\": " + json::stringify(curr)
+      res = res + json::quote(curr.key) + ": " + json::stringify(curr)
       if curr.nextSibling != null { res = res + ", " }
       curr = curr.nextSibling
     }

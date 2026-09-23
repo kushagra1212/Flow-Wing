@@ -1,0 +1,6 @@
+/; EXPECT_ERROR: Runtime
+/; Calling a function-typed variable that was never set stops with a runtime
+/; error, as using a null object does.
+var f: [(int) -> int]
+println("before")
+println(f(1))

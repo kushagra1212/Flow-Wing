@@ -564,6 +564,16 @@ test-website: build-aot-release
 	@$(BUILD_WASM_RUNTIME_IF_MISSING)
 	@node --test $(WEBSITE_DIR)/sandbox/compile.test.mjs
 
+#? Programs that use the js and dom modules, run in a simulated page (jsdom):
+#? tests/web/run.mjs over tests/fixtures/WebTests. Needs emsdk and Node; the
+#? first run installs jsdom into tests/web/node_modules.
+#?   make test-web ARGS="--filter dom_"
+.PHONY: test-web
+test-web: build-aot-release
+	@$(BUILD_WASM_RUNTIME_IF_MISSING)
+	@cd tests/web && ( test -d node_modules/jsdom || npm ci --no-audit --no-fund )
+	@node tests/web/run.mjs --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
 #? wasm32 ABI audit (scripts/wasm/abi_audit.py). Needs emcc on PATH:
 #?   source ~/emsdk/emsdk_env.sh && make wasm-abi-audit
 #? Compares every runtime function Flow-Wing calls with its C definition as

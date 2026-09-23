@@ -1,0 +1,34 @@
+/; A function value is not an object: a collection passes over a field or a
+/; variable that holds one, and keeps the object around it.
+fun label(n: int) -> str {
+  return "item " + String(n)
+}
+
+class Item {
+  var render: [(int) -> str]
+  var id: int
+  var tag: str
+  init(render: [(int) -> str], id: int) -> nthg {
+    self.render = render
+    self.id = id
+    self.tag = String(id)
+  }
+  show() -> str {
+    return self.render(self.id) + "/" + self.tag
+  }
+}
+
+var wrong: int = 0
+var i: int = 0
+while i < 100 {
+  var item: Item = new Item(label, i)
+  var f: [(int) -> str] = item.render
+  if item.show() + f(i) != "item " + String(i) + "/" + String(i) + "item " + String(i) {
+    wrong = wrong + 1
+  }
+  i = i + 1
+}
+
+var last: Item = new Item(label, 7)
+println(last.show())
+println("wrong: " + String(wrong))

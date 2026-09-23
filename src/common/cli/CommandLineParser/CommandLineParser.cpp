@@ -260,20 +260,21 @@ public:
       opts.output_type = getOutputType(emit_value, opts.output_type);
     }
 
-    // wasm32 builds LLVM IR or an executable (<out>.js + <out>.wasm, via
-    // emcc). The native object path and the JIT both build a TargetMachine
-    // from the HOST triple and overwrite the module's triple and data layout
-    // with the host's, so for wasm32 they would produce native machine code
-    // carrying 32-bit pointer sizes: a binary that runs and quietly corrupts
-    // the heap. So they stay refused. (A wasm32 `obj` is bitcode; it exists
-    // only as an internal step of `exe`.)
+    // wasm32 builds anything but an object file or a JIT run. The native
+    // object path and the JIT both build a TargetMachine from the HOST triple
+    // and overwrite the module's triple and data layout with the host's, so
+    // for wasm32 they would produce native machine code carrying 32-bit
+    // pointer sizes: a binary that runs and quietly corrupts the heap. (A
+    // wasm32 `obj` is bitcode; it exists only as an internal step of `exe`.)
+    // tokens, ast and sem stay allowed: they check the program for the build
+    // it is meant for, where `bring dom` is right and `bring vortex` is not.
     if (opts.target_platform == TargetPlatform::kWasm32 &&
-        opts.output_type != CompilerOptions::OutputType::kLLVM_IR &&
-        opts.output_type != CompilerOptions::OutputType::kExe) {
+        (opts.output_type == CompilerOptions::OutputType::kObj ||
+         opts.output_type == CompilerOptions::OutputType::kJIT)) {
       return {ParseStatus::kFailure, opts,
-              "--target=wasm32 supports --emit=ir and --emit=exe.\n"
-              "Object and JIT output would silently produce a native binary "
-              "laid out for 32-bit pointers.\n"
+              "--target=wasm32 cannot --emit=obj or --emit=jit.\n"
+              "They would silently produce a native binary laid out for "
+              "32-bit pointers.\n"
               "Use: FlowWing <file> --target=wasm32 --emit=exe -o out/prog.js\n"};
     }
 

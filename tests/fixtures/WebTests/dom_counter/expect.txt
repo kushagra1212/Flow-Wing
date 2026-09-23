@@ -1,0 +1,5 @@
+ready
+clicked click 1
+clicked click 2
+clicked click 3
+clicked click 1

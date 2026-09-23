@@ -60,6 +60,11 @@ void IRGenerator::visit(binding::BoundReturnStatement *return_statement) {
     for (size_t i = 0; i < return_expressions.size(); i++) {
       return_expressions[i]->accept(this);
       auto *target_type = function_type->getReturnTypes()[i]->type.get();
+      // Temp-safety: every value is computed before any is stored, so each
+      // waits while the next is computed, which can allocate
+      // (`return String(a), String(b)` lost the first under GC stress).
+      rootIfTemporary(m_last_value, m_last_type,
+                      "ret_value_" + std::to_string(i));
       return_types.push_back(m_last_type);
       target_types.push_back(target_type);
       return_values.push_back(m_last_value);

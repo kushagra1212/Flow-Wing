@@ -9,7 +9,7 @@
 /;
 /;   h.test("wasm32 refuses --emit=jit")
 /;     .withArgs("--target=wasm32 --emit=jit")
-/;     .expectFailsWith("--target=wasm32 supports --emit=ir and --emit=exe")
+/;     .expectFailsWith("--target=wasm32 cannot --emit=obj or --emit=jit")
 /;     .done()
 /;
 /; The compiler runs on the first expectation, and only once. After the first
@@ -56,6 +56,16 @@ fun occurrences(haystack: str, needle: str) -> int {
   return removed // text::length(needle)
 }
 
+/; The first non-empty line of `s`, trimmed.
+fun firstLine(s: str) -> str {
+  var rest: str = text::trim(s)
+  var end: int = text::indexOf(rest, "\n")
+  if end < 0 {
+    return rest
+  }
+  return text::trim(text::substring(rest, 0, end))
+}
+
 /; Everything before the last "/", or "" when there is none.
 fun parentOf(path: str) -> str {
   var last: int = -1
@@ -77,7 +87,7 @@ fun parentOf(path: str) -> str {
 /; Options
 /; ===========================================================================
 
-var USAGE: str = "usage: cli_test --bin=<FlowWing> [--suite=<name>] [--filter=<text>] [--list] [--keep] [--work=<dir>]"
+var USAGE: str = "usage: cli_test --bin=<FlowWing> [--suite=<name>[,<name>...]] [--filter=<text>] [--list] [--keep] [--no-skip] [--work=<dir>]"
 
 class Options {
   var compiler: str
@@ -86,6 +96,9 @@ class Options {
   var nameFilter: str
   var listOnly: bool
   var keepFiles: bool
+  /; A case that would be skipped fails instead: for CI steps that installed
+  /; what the case needs, where a skip can only mean the setup broke.
+  var noSkip: bool
   /; Empty when argv made sense; otherwise what was wrong with it.
   var problem: str
 
@@ -96,6 +109,7 @@ class Options {
     self.nameFilter = ""
     self.listOnly = false
     self.keepFiles = false
+    self.noSkip = false
     self.problem = ""
   }
 }
@@ -126,6 +140,8 @@ fun parseOptions() -> cli::Options {
       o.listOnly = true
     } or if arg == "--keep" {
       o.keepFiles = true
+    } or if arg == "--no-skip" {
+      o.noSkip = true
     } else {
       o.problem = "unknown option: " + arg
     }
@@ -152,6 +168,7 @@ fun parseOptions() -> cli::Options {
 class Reporter {
   var passed: int
   var failed: int
+  var skipped: int
   var listed: int
   var suitesShown: int
   var suite: str
@@ -162,6 +179,7 @@ class Reporter {
   init() -> nthg {
     self.passed = 0
     self.failed = 0
+    self.skipped = 0
     self.listed = 0
     self.suitesShown = 0
     self.suite = ""
@@ -198,6 +216,13 @@ class Reporter {
     self.failures = self.failures + "  x " + self.suite + ": " + name + "\n"
   }
 
+  /; A case that could not run here, and why: the tools it needs are missing.
+  skip(name: str, reason: str) -> nthg {
+    self.showHeader()
+    self.skipped = self.skipped + 1
+    println("  [SKIP] " + name + " (" + reason + ")")
+  }
+
   list(name: str) -> nthg {
     self.showHeader()
     self.listed = self.listed + 1
@@ -212,16 +237,24 @@ class Reporter {
       return 0
     }
     var total: int = self.passed + self.failed
+    var skippedNote: str = ""
+    if self.skipped > 0 {
+      skippedNote = " " + self.skipped + " skipped: their tools are missing here."
+    }
     if total == 0 {
+      if self.skipped > 0 {
+        println("No cases ran." + skippedNote)
+        return 0
+      }
       println("No cases matched.")
       return 1
     }
     if self.failed > 0 {
-      println(self.failed + " of " + total + " CLI contract test(s) failed:")
+      println(self.failed + " of " + total + " CLI contract test(s) failed:" + skippedNote)
       print(self.failures)
       return 1
     }
-    println("All " + total + " CLI contract test(s) passed across " + self.suitesShown + " suite(s).")
+    println("All " + total + " CLI contract test(s) passed across " + self.suitesShown + " suite(s)." + skippedNote)
     return 0
   }
 }
@@ -248,6 +281,8 @@ class Case {
   var environment: str
   /; Non-empty for a case that must fail, naming the reason it must give.
   var requiredFailure: str
+  /; Non-empty for a case that cannot run here, naming what is missing.
+  var skipReason: str
 
   /; What happened.
   var ran: bool
@@ -269,6 +304,7 @@ class Case {
     self.passOutputDir = true
     self.environment = ""
     self.requiredFailure = ""
+    self.skipReason = ""
     self.ran = false
     self.code = 0
     self.output = ""
@@ -342,6 +378,16 @@ class Case {
       if err.isErr() {
         self.fail("could not write " + path + ": " + err.getMessage())
       }
+    }
+    return self
+  }
+
+  /; Skips the case when `missing` is not "": what it needs is not here, such
+  /; as h.wasmToolchain() for a wasm32 build. With --no-skip it fails instead.
+  requires(missing: str) -> cli::Case {
+    self.guardBuilding("requires")
+    if self.skipReason == "" {
+      self.skipReason = missing
     }
     return self
   }
@@ -517,6 +563,33 @@ class Case {
     return self
   }
 
+  /; `node {out}/<relPath>` exits with `exitCode` and prints `expected`. For
+  /; --target=wasm32 --emit=exe: the build runs, not merely links.
+  expectNodeRuns(relPath: str, exitCode: int, expected: str) -> cli::Case {
+    if self.ready() {
+      if !file::exists(self.outDir() + "/" + relPath) {
+        self.fail("expected " + relPath + " in the output directory, found: " + self.outDirListing())
+      } else {
+        self.checkNode(relPath, exitCode, expected)
+      }
+    }
+    return self
+  }
+
+  /; As expectNodeRuns, for the one .js file in {out}/<dir>, where a wasm32
+  /; build without -o puts it under a hashed name.
+  expectNodeRunsTheJsIn(dir: str, exitCode: int, expected: str) -> cli::Case {
+    if self.ready() {
+      var script: str = self.oneFileEndingIn(dir, ".js")
+      if script == "" {
+        self.fail("expected exactly one .js file in " + dir + "/, found: " + shell::listDir(self.outDir() + "/" + dir))
+      } else {
+        self.checkNode(script, exitCode, expected)
+      }
+    }
+    return self
+  }
+
   /; -------------------------------------------------------------------------
   /; Emitted IR ({out}/llvm_ir.ll)
   /; -------------------------------------------------------------------------
@@ -611,6 +684,12 @@ class Case {
     if self.active {
       if self.options.listOnly {
         self.reporter.list(self.name)
+      } or if self.skipReason != "" {
+        if self.options.noSkip {
+          self.reporter.fail(self.name, "could not run, and --no-skip was given: " + self.skipReason)
+        } else {
+          self.reporter.skip(self.name, self.skipReason)
+        }
       } else {
         self.report(self.verdict())
       }
@@ -664,7 +743,7 @@ class Case {
   /; be skipped: the case is filtered out, only being listed, or has already
   /; failed. Otherwise runs the compiler on first use and counts the check.
   ready() -> bool {
-    if !self.active || self.options.listOnly || self.failure != "" {
+    if !self.active || self.options.listOnly || self.failure != "" || self.skipReason != "" {
       return false
     }
     if !self.ran {
@@ -778,6 +857,36 @@ class Case {
     return dir + "/" + listing
   }
 
+  checkNode(relPath: str, exitCode: int, expected: str) -> nthg {
+    var code: int, out: str = shell::run("node " + shell::program(self.outDir() + "/" + relPath))
+    if code != exitCode {
+      self.fail("node " + relPath + " exited " + code + ", expected " + exitCode + ". Output:\n" + out)
+    } or if text::indexOf(out, expected) < 0 {
+      self.fail("node " + relPath + " did not print '" + expected + "'. Output:\n" + out)
+    }
+  }
+
+  /; `dir`/<name> for the one file in {out}/<dir> whose name ends in
+  /; `suffix`, or "" when there are none or several.
+  oneFileEndingIn(dir: str, suffix: str) -> str {
+    var rest: str = shell::listDir(self.outDir() + "/" + dir) + "\n"
+    var found: str = ""
+    var count: int = 0
+    while rest != "" {
+      var end: int = text::indexOf(rest, "\n")
+      var name: str = text::trim(text::substring(rest, 0, end))
+      rest = text::substring(rest, end + 1, text::length(rest))
+      if name != "" && text::endsWith(name, suffix) {
+        found = name
+        count = count + 1
+      }
+    }
+    if count != 1 {
+      return ""
+    }
+    return dir + "/" + found
+  }
+
   checkBinary(binary: str, expected: str) -> nthg {
     var code: int, out: str = shell::run(shell::program(binary))
     if code != 0 {
@@ -802,6 +911,8 @@ class Harness {
   var suiteActive: bool
   var open: cli::Case
   var hasOpen: bool
+  var wasmChecked: bool
+  var wasmMissing: str
 
   init(options: cli::Options) -> nthg {
     self.options = options
@@ -810,12 +921,48 @@ class Harness {
     self.caseCount = 0
     self.suiteActive = true
     self.hasOpen = false
+    self.wasmChecked = false
+    self.wasmMissing = ""
+  }
+
+  /; "" when wasm32 programs can be built and run here; otherwise what is
+  /; missing. Asks the compiler itself to build one, so emcc is found exactly
+  /; as a user's build finds it ($FLOWWING_EMCC, PATH, $EMSDK, ~/emsdk), and
+  /; a missing wasm32 runtime in the SDK is caught too. Probed once.
+  wasmToolchain() -> str {
+    if self.options.listOnly {
+      return ""
+    }
+    if !self.wasmChecked {
+      self.wasmChecked = true
+      self.wasmMissing = self.probeWasm()
+    }
+    return self.wasmMissing
+  }
+
+  probeWasm() -> str {
+    var nodeCode: int, nodeOut: str = shell::run("node --version")
+    if nodeCode != 0 {
+      return "Node is not on PATH"
+    }
+    var dir: str = self.runDir + "/wasm-probe"
+    if !shell::makeDir(dir) {
+      return "could not create " + dir
+    }
+    var written: bool, err: Err::Result = file::writeText(dir + "/probe.fg", "println(\"probe\")\n")
+    var code: int, out: str = shell::runIn(dir, shell::program(self.options.compiler) + " probe.fg --target=wasm32 --emit=exe --progress=never --output-dir=out -o out/probe.js")
+    if code != 0 {
+      return "no wasm32 build: " + cli::firstLine(cli::plainText(out))
+    }
+    return ""
   }
 
   /; Starts a suite. Every test() until the next suite() belongs to it.
   suite(name: str) -> nthg {
     self.closeOpenCase()
-    self.suiteActive = self.options.onlySuite == "" || self.options.onlySuite == name
+    /; --suite takes one name or several, comma-separated.
+    self.suiteActive = self.options.onlySuite == "" ||
+      text::indexOf("," + self.options.onlySuite + ",", "," + name + ",") >= 0
     self.reporter.startSuite(name)
   }
 

@@ -1,0 +1,3 @@
+/; EXPECT_ERROR: ModuleNotForTarget
+bring js
+println(js::global().getStr("name"))

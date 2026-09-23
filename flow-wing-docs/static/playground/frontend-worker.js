@@ -3,12 +3,14 @@
 // WebAssembly (scripts/wasm/build-frontend.sh in the Flow-Wing repo), so the
 // tokens, trees and errors are exactly the ones `flowwing --emit=...` gives.
 //
-//   page ──{ id, source }──────────────────────────────────▶ worker
+//   page ──{ id, source, target }──────────────────────────▶ worker
 //   page ◀──{ id, stages: [{ emit, ok, ms, json, output }] }── worker
 //   page ◀──{ id, unavailable: message }──  (the files did not load)
 //
 // Stages run in order, tokens → ast → sem, and stop at the first that fails:
-// a program that does not parse has no semantic tree to show.
+// a program that does not parse has no semantic tree to show. `target` is the
+// build the program is checked for ("wasm32" or "native"): `bring dom` is
+// right for one and an error for the other.
 
 const STAGES = [
   { emit: "tokens", file: "tokens.json" },
@@ -34,7 +36,7 @@ function load() {
 }
 
 // One stage, on a fresh instance: main() runs once per instance.
-async function runStage(module, source, stage) {
+async function runStage(module, source, target, stage) {
   const bytes = [];
   const collect = (byte) => {
     if (byte !== null) bytes.push(byte);
@@ -53,7 +55,9 @@ async function runStage(module, source, stage) {
   const started = performance.now();
   let status;
   try {
-    status = instance.callMain(["/main.fg", `--emit=${stage.emit}`, "--output-dir=/out", "--progress=never"]);
+    status = instance.callMain([
+      "/main.fg", `--emit=${stage.emit}`, `--target=${target}`, "--output-dir=/out", "--progress=never",
+    ]);
   } catch (error) {
     status = typeof error?.status === "number" ? error.status : 1;
   }
@@ -71,7 +75,7 @@ async function runStage(module, source, stage) {
   return { emit: stage.emit, ok: status === 0, ms, json, output };
 }
 
-self.onmessage = async ({ data: { id, source } }) => {
+self.onmessage = async ({ data: { id, source, target } }) => {
   let module;
   try {
     module = await load();
@@ -81,7 +85,7 @@ self.onmessage = async ({ data: { id, source } }) => {
   }
   const stages = [];
   for (const stage of STAGES) {
-    const result = await runStage(module, source, stage);
+    const result = await runStage(module, source, target === "native" ? "native" : "wasm32", stage);
     stages.push(result);
     if (!result.ok) break;
   }

@@ -379,6 +379,17 @@ void GlobalDeclarationsInitializer::emitClassLayoutAndVtable(
 
   (void)m_ir_gen_context.getTypeBuilder()->getLLVMType(class_type);
 
+  // A base class from another module (class Clicked extends js::Handler) is
+  // defined in that module's object. Declare its methods here, so the
+  // inherited vtable slots and super(...) name them, and the linker joins
+  // them up; otherwise the slots are left null and super() calls nothing.
+  for (auto base = class_type->getBaseClass(); base != nullptr;
+       base = base->getBaseClass()) {
+    if (base->getModuleName() != class_type->getModuleName()) {
+      declareImportedClassExterns(base.get());
+    }
+  }
+
   llvm::Module *llvm_module = m_ir_gen_context.getLLVMModule();
   class_type->forEachFunctionMember(
       [&](const std::shared_ptr<analysis::Symbol> &symbol) {

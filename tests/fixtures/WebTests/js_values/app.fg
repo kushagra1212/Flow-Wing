@@ -1,0 +1,41 @@
+/; The js module's values: get and set of every kind, calls with arguments,
+/; conversions, typeOf, and an exception returned as an error.
+bring js
+bring Err
+
+var g: js::Value = js::global()
+println(g.get("Math").callWith("max", js::args().addInt(3).addNum(7.5).addInt(2)).toStr())
+
+var obj: js::Value = js::eval("({ name: 'wing', count: 3, ok: true, ratio: 0.25, list: [10, 20, 30] })")
+println(obj.getStr("name") + " " + String(obj.getInt("count")) + " " + String(obj.getBool("ok")) + " " + String(obj.getNum("ratio")))
+println(obj.get("list").length())
+println(obj.get("list").at(1).toInt())
+
+obj.setStr("name", "flow — é 日本").setInt("count", 7).setBool("ok", false).setNum("ratio", 1.5)
+println(obj.getStr("name") + " " + String(obj.getInt("count")) + " " + String(obj.getBool("ok")) + " " + String(obj.getNum("ratio")))
+
+println(obj.typeOf() + " " + obj.get("list").typeOf() + " " + js::nullValue().typeOf() + " " + obj.get("missing").typeOf())
+println(obj.get("missing").isUndefined())
+println(js::nullValue().isNull())
+println(js::fromStr("7").typeOf() + " " + js::fromInt(7).typeOf() + " " + js::fromBool(true).typeOf())
+println(js::fromStr("42").toInt() + 1)
+println(obj.same(obj) && !obj.same(js::eval("({})")))
+
+/; new Date(2020, 0, 2).getFullYear()
+var date: js::Value = g.get("Date").construct(js::args().addInt(2020).addInt(0).addInt(2))
+println(date.call("getFullYear").toInt())
+
+/; A function value, called.
+var twice: js::Value = js::eval("(x) => x * 2")
+println(twice.invoke(js::args().addInt(21)).toInt())
+
+/; Arrays built from Flow-Wing.
+var list: js::Value = js::array()
+list.callWith("push", js::args().addStr("a").addStr("b"))
+println(list.callWith("join", js::args().addStr("+")).toStr())
+
+var result: js::Value, err: Err::Result = js::tryEval("undefinedThing.x")
+println(err.isOk())
+println(err.message)
+var r2: js::Value, e2: Err::Result = obj.tryCall("noSuchMethod", js::args())
+println(e2.message)

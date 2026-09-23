@@ -324,6 +324,8 @@ static const std::unordered_map<DiagnosticCode, MessageTemplate> kMessageTemplat
       "Built-ins such as 'println' are emitted inline by the compiler rather "
       "than called through a symbol, so there is no address for the scheduler "
       "to store and no parameter list to copy the arguments from."}},
+    {(DiagnosticCode::kModuleNotForTarget),
+     {"The '<{0}>' module works only in {1}.", "{3}", "{2}"}},
     {(DiagnosticCode::kFileNotFound),
      {"File '<{0}>' was not found.",
       "Ensure that the file '<{0}>' exists at the specified path.",
@@ -1067,6 +1069,8 @@ std::string DiagnosticMessageDatabase::toString(DiagnosticCode code) {
     return "FileNotFound";
   case DiagnosticCode::kFileContainsErrors:
     return "FileContainsErrors";
+  case DiagnosticCode::kModuleNotForTarget:
+    return "ModuleNotForTarget";
   case DiagnosticCode::kCircularReference:
     return "CircularReference";
   case DiagnosticCode::kIdentifierNotFoundInFileOrModule:
