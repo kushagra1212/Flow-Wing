@@ -1,0 +1,15 @@
+/; A form handled in the page: dom::PREVENT_DEFAULT stops the browser from
+/; submitting it and leaving, before the Flow-Wing handler even runs.
+bring dom
+
+class Submitted extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    var email: str = dom::query("#email").value()
+    dom::query("#result").setText("signed up " + email)
+    println("default prevented: " + String(event.js().getBool("defaultPrevented")))
+  }
+}
+
+dom::query("#signup").onWith("submit", new Submitted(), dom::PREVENT_DEFAULT)

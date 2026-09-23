@@ -1,0 +1,40 @@
+/; Every form of argument reaches a C function (decl) as its value. A method's
+/; result or a conversion used to be loaded a second time (an internal error
+/; for an int, garbage for a str), and a string literal was read as a pointer
+/; to itself (a crash).
+bring text
+fun abs(x: as int) -> as int decl
+fun fabs(x: as deci) -> as deci decl
+
+class Box {
+  var n: int
+  var w: str
+  init(n: int, w: str) -> nthg {
+    self.n = n
+    self.w = w
+  }
+  id() -> int {
+    return self.n
+  }
+  word() -> str {
+    return self.w
+  }
+  viaSelf() -> int {
+    return abs(self.id())
+  }
+}
+
+var b: Box = new Box(-21, "hello")
+var k: int = -4
+var v: str = "abc"
+
+println(abs(b.id()))
+println(b.viaSelf())
+println(fabs(Decimal(k)))
+println(abs(k))
+println(abs(-7))
+println(strLength("literal!"))
+println(strLength(v))
+println(strLength(b.w))
+println(strLength(b.word()))
+println(strLength(text::replace("aXbXc", "X", "")))

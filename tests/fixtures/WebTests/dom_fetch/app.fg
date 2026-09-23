@@ -1,0 +1,19 @@
+/; fetchText waits for the network without blocking the page, inside the
+/; click's handler; a failed request comes back as the error.
+bring dom
+bring Err
+
+class Load extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    var body: str, err: Err::Result = dom::fetchText("/data.txt")
+    dom::query("#data").setText(body)
+    var missing: str, err2: Err::Result = dom::fetchText("/missing.txt")
+    dom::query("#error").setText(err2.message)
+    println("ok " + String(err.isOk()) + ", missing ok " + String(err2.isOk()))
+    dom::stop()
+  }
+}
+
+dom::query("#load").on("click", new Load())

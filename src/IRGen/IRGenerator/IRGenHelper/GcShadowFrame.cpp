@@ -184,5 +184,24 @@ llvm::AllocaInst *IRGenerator::spillToRoot(llvm::Value *gcPtr,
   return slot;
 }
 
+// A value a sub-expression computed waits in a register while the next one
+// runs; if that one allocates, a collection there cannot see it. Storage (a
+// variable, a field, a global, an argument slot) is already visible, and a
+// literal is not on the GC heap.
+void IRGenerator::rootIfTemporary(llvm::Value *value, types::Type *type,
+                                  const std::string &name) {
+  if (value == nullptr || type == nullptr || type->isDynamic() ||
+      !type->isGcReference() || !value->getType()->isPointerTy()) {
+    return;
+  }
+  if (llvm::isa<llvm::AllocaInst>(value) ||
+      llvm::isa<llvm::GlobalVariable>(value) ||
+      llvm::isa<llvm::GEPOperator>(value) || llvm::isa<llvm::Argument>(value) ||
+      llvm::isa<llvm::Constant>(value)) {
+    return;
+  }
+  spillToRoot(value, name);
+}
+
 } // namespace ir_gen
 } // namespace flow_wing

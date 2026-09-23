@@ -191,6 +191,12 @@ void IRGenerator::visit(binding::BoundBinaryExpression *binary_expression) {
   llvm::Value *left_value = m_last_value;
   types::Type *left_type = m_last_type;
   clearLast();
+  // Temp-safety: evaluating the right operand can allocate (String(i), a
+  // call), and so collect. A string or object the left operand computed,
+  // rather than a variable's storage, lives only in a register until then:
+  // root it first. getStringResult roots a string again, but only after the
+  // right operand has run.
+  rootIfTemporary(left_value, left_type, "binary_lhs");
   binary_expression->getRight()->accept(this);
   assert(m_last_value && "m_last_value is null");
   llvm::Value *right_value = m_last_value;

@@ -408,11 +408,6 @@ fun parse(input: str) -> json::JsonNode {
 
 /; A string as a JSON string literal: quotes around it, and the quote, the
 /; backslash and every control character escaped.
-/;
-/; A function of its own rather than strJsonQuote in the middle of an
-/; expression: the result of a Flow-Wing function stays alive to the end of
-/; the expression, the result of a C function does not, and the next string
-/; allocation could collect it.
 fun quote(value: str) -> str {
   return strJsonQuote(value)
 }

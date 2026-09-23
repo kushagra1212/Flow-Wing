@@ -1,0 +1,9 @@
+{
+  "name": "flowwing-web-tests",
+  "private": true,
+  "description": "Runs Flow-Wing programs that use the js and dom modules in a simulated page (tests/web/run.mjs).",
+  "type": "module",
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

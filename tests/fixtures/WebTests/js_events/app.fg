@@ -1,0 +1,57 @@
+/; Events, timers and promises: the program sleeps between them and wakes for
+/; each, and ends when nothing listens any more.
+bring js
+bring Err
+
+class Pinged extends js::Handler {
+  var count: int
+  init() -> nthg {
+    self.count = 0
+  }
+  handle(event: js::Value) -> nthg {
+    self.count = self.count + 1
+    println("ping " + String(self.count) + " " + event.getStr("type"))
+  }
+}
+
+class Once extends js::Handler {
+  init() -> nthg {
+  }
+  handle(event: js::Value) -> nthg {
+    println("after: event is " + event.typeOf())
+  }
+}
+
+class Tick extends js::Handler {
+  var count: int
+  var id: int
+  init() -> nthg {
+    self.count = 0
+    self.id = 0
+  }
+  handle(event: js::Value) -> nthg {
+    self.count = self.count + 1
+    println("tick " + String(self.count))
+    if self.count == 3 {
+      js::unlisten(self.id)
+      js::stop()
+    }
+  }
+}
+
+fun awaitSome() -> nthg {
+  var p: js::Value = js::eval("new Promise((ok) => setTimeout(() => ok('resolved'), 5))")
+  var v: js::Value, e: Err::Result = js::await(p)
+  println("awaited " + v.toStr() + " " + String(e.isOk()))
+  var v2: js::Value, e2: Err::Result = js::await(js::eval("Promise.reject(new Error('nope'))"))
+  println("rejected: " + e2.message)
+}
+
+var target: js::Value = js::eval("globalThis.t = new EventTarget(); t")
+js::listen(target, "ping", new Pinged(), 0)
+js::eval("setTimeout(() => { t.dispatchEvent(new Event('ping')); t.dispatchEvent(new Event('ping')); }, 20)")
+js::after(40, new Once())
+var tick: Tick = new Tick()
+tick.id = js::every(60, tick)
+spawn awaitSome()
+println("main done")

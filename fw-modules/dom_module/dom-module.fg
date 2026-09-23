@@ -1,0 +1,393 @@
+/; dom module: the page, for a program built for the browser
+/; (--target=wasm32 -o app.js, loaded with <script src="app.js">).
+/;
+/;   bring dom
+/;
+/;   class Increment extends dom::Handler {
+/;     var count: int
+/;     init() -> nthg {
+/;       self.count = 0
+/;     }
+/;     handle(event: dom::Event) -> nthg {
+/;       self.count = self.count + 1
+/;       dom::query("#count").setText(String(self.count))
+/;     }
+/;   }
+/;
+/;   dom::query("#add").on("click", new Increment())
+/;
+/; Built on the js module: an Element is a js::Value that is a DOM element,
+/; and el.js() gives the js::Value for anything this module does not cover.
+/;
+/; Handlers are objects (extend dom::Handler), so each can keep its own state,
+/; such as the row of a list it belongs to. Events are handled one at a time,
+/; in order. While the program waits for the next one it sleeps, and the page
+/; stays responsive; it keeps running while anything listens.
+bring js
+bring Err
+
+module [dom]
+
+/; Flags for Element.onWith, added together; see js::PREVENT_DEFAULT.
+const PREVENT_DEFAULT: int = 1
+const STOP_PROPAGATION: int = 2
+
+/; =========================================================
+/; Handler
+/; =========================================================
+
+/; What an event, or a timer, calls. Extend it and override handle.
+/; For a timer, the event is dom::Event with no JavaScript event behind it.
+class Handler {
+  init() -> nthg {
+  }
+
+  handle(event: dom::Event) -> nthg {
+  }
+}
+
+/; =========================================================
+/; Element
+/; =========================================================
+class Element {
+  var node: js::Value
+
+  init(node: js::Value) -> nthg {
+    self.node = node
+  }
+
+  /; The JavaScript element, for anything this module does not cover.
+  js() -> js::Value {
+    return self.node
+  }
+
+  /; ---- content ----
+
+  text() -> str {
+    return self.node.getStr("textContent")
+  }
+
+  setText(text: str) -> dom::Element {
+    self.node.setStr("textContent", text)
+    return self
+  }
+
+  html() -> str {
+    return self.node.getStr("innerHTML")
+  }
+
+  /; Parses `html` as markup. Never pass text a user typed: use setText.
+  setHtml(html: str) -> dom::Element {
+    self.node.setStr("innerHTML", html)
+    return self
+  }
+
+  /; ---- form fields ----
+
+  value() -> str {
+    return self.node.getStr("value")
+  }
+
+  setValue(value: str) -> dom::Element {
+    self.node.setStr("value", value)
+    return self
+  }
+
+  checked() -> bool {
+    return self.node.getBool("checked")
+  }
+
+  setChecked(checked: bool) -> dom::Element {
+    self.node.setBool("checked", checked)
+    return self
+  }
+
+  focus() -> dom::Element {
+    self.node.call("focus")
+    return self
+  }
+
+  /; ---- attributes, classes, style ----
+
+  /; The attribute's value, or "" when it is not set.
+  attr(name: str) -> str {
+    if !self.hasAttr(name) {
+      return ""
+    }
+    return self.node.callWith("getAttribute", js::args().addStr(name)).toStr()
+  }
+
+  hasAttr(name: str) -> bool {
+    return self.node.callWith("hasAttribute", js::args().addStr(name)).toBool()
+  }
+
+  setAttr(name: str, value: str) -> dom::Element {
+    self.node.callWith("setAttribute", js::args().addStr(name).addStr(value))
+    return self
+  }
+
+  removeAttr(name: str) -> dom::Element {
+    self.node.callWith("removeAttribute", js::args().addStr(name))
+    return self
+  }
+
+  hasClass(name: str) -> bool {
+    return self.node.get("classList").callWith("contains", js::args().addStr(name)).toBool()
+  }
+
+  addClass(name: str) -> dom::Element {
+    self.node.get("classList").callWith("add", js::args().addStr(name))
+    return self
+  }
+
+  removeClass(name: str) -> dom::Element {
+    self.node.get("classList").callWith("remove", js::args().addStr(name))
+    return self
+  }
+
+  /; Adds the class when it is missing, removes it when present.
+  toggleClass(name: str) -> dom::Element {
+    self.node.get("classList").callWith("toggle", js::args().addStr(name))
+    return self
+  }
+
+  /; One CSS property, by its CSS name: setStyle("background-color", "red").
+  setStyle(property: str, value: str) -> dom::Element {
+    self.node.get("style").callWith("setProperty", js::args().addStr(property).addStr(value))
+    return self
+  }
+
+  style(property: str) -> str {
+    return self.node.get("style").callWith("getPropertyValue", js::args().addStr(property)).toStr()
+  }
+
+  /; ---- tree ----
+
+  /; Adds `child` as the last child. Returns this element, for chaining.
+  append(child: dom::Element) -> dom::Element {
+    self.node.callWith("appendChild", js::args().add(child.node))
+    return self
+  }
+
+  /; Adds `child` as the first child.
+  prepend(child: dom::Element) -> dom::Element {
+    self.node.callWith("prepend", js::args().add(child.node))
+    return self
+  }
+
+  /; Takes this element out of the page.
+  remove() -> nthg {
+    self.node.call("remove")
+  }
+
+  /; Removes every child.
+  clear() -> dom::Element {
+    self.node.setStr("textContent", "")
+    return self
+  }
+
+  /; The parent element, or null at the top.
+  parent() -> dom::Element {
+    return dom::elementOrNull(self.node.get("parentElement"))
+  }
+
+  /; The first element inside this one matching a CSS selector, or null.
+  query(selector: str) -> dom::Element {
+    return dom::elementOrNull(self.node.callWith("querySelector", js::args().addStr(selector)))
+  }
+
+  /; Every element inside this one matching a CSS selector.
+  queryAll(selector: str) -> dom::ElementList {
+    return dom::listOf(self.node.callWith("querySelectorAll", js::args().addStr(selector)))
+  }
+
+  /; ---- events ----
+
+  /; Calls handler.handle(event) for every `event` ("click", "input",
+  /; "keydown", ...) on this element. Returns an id for dom::cancel.
+  on(event: str, handler: dom::Handler) -> int {
+    return dom::listenOn(self.node, event, handler, 0)
+  }
+
+  /; As on, with dom::PREVENT_DEFAULT and/or dom::STOP_PROPAGATION: a form's
+  /; "submit" needs PREVENT_DEFAULT, or the browser leaves the page.
+  onWith(event: str, handler: dom::Handler, flags: int) -> int {
+    return dom::listenOn(self.node, event, handler, flags)
+  }
+}
+
+/; A list of elements, as querySelectorAll returns.
+class ElementList {
+  var items: js::Value
+
+  init(items: js::Value) -> nthg {
+    self.items = items
+  }
+
+  length() -> int {
+    return self.items.length()
+  }
+
+  at(index: int) -> dom::Element {
+    return new dom::Element(self.items.at(index))
+  }
+}
+
+/; =========================================================
+/; Event
+/; =========================================================
+class Event {
+  var event: js::Value
+
+  init(event: js::Value) -> nthg {
+    self.event = event
+  }
+
+  /; The JavaScript event, for anything this module does not cover.
+  js() -> js::Value {
+    return self.event
+  }
+
+  /; The event's type: "click", "input", ...; "" for a timer. (Named kind
+  /; because type is a Flow-Wing keyword.)
+  kind() -> str {
+    if self.event.isUndefined() {
+      return ""
+    }
+    return self.event.getStr("type")
+  }
+
+  /; The element the event happened on.
+  target() -> dom::Element {
+    return dom::elementOrNull(self.event.get("target"))
+  }
+
+  /; The key of a keyboard event: "Enter", "a", "ArrowUp", ...
+  key() -> str {
+    return self.event.getStr("key")
+  }
+
+  /; The value of the form field the event happened on.
+  value() -> str {
+    return self.event.get("target").getStr("value")
+  }
+}
+
+/; Delivers a js event to a dom handler.
+class EventAdapter extends js::Handler {
+  var target: dom::Handler
+
+  init(target: dom::Handler) -> nthg {
+    self.target = target
+  }
+
+  handle(event: js::Value) -> nthg {
+    self.target.handle(new dom::Event(event))
+  }
+}
+
+/; =========================================================
+/; Functions
+/; =========================================================
+
+fun window() -> js::Value {
+  return js::global()
+}
+
+fun document() -> js::Value {
+  return js::global().get("document")
+}
+
+fun body() -> dom::Element {
+  return new dom::Element(dom::document().get("body"))
+}
+
+/; The first element in the page matching a CSS selector, or null.
+fun query(selector: str) -> dom::Element {
+  return dom::elementOrNull(dom::document().callWith("querySelector", js::args().addStr(selector)))
+}
+
+/; Every element in the page matching a CSS selector.
+fun queryAll(selector: str) -> dom::ElementList {
+  return dom::listOf(dom::document().callWith("querySelectorAll", js::args().addStr(selector)))
+}
+
+/; The element with this id, or null.
+fun byId(id: str) -> dom::Element {
+  return dom::elementOrNull(dom::document().callWith("getElementById", js::args().addStr(id)))
+}
+
+/; A new element, not yet in the page: dom::create("li").setText("milk").
+fun create(tag: str) -> dom::Element {
+  return new dom::Element(dom::document().callWith("createElement", js::args().addStr(tag)))
+}
+
+fun title() -> str {
+  return dom::document().getStr("title")
+}
+
+fun setTitle(title: str) -> nthg {
+  dom::document().setStr("title", title)
+}
+
+/; console.log(message)
+fun log(message: str) -> nthg {
+  js::log(message)
+}
+
+/; Calls handler.handle once, after ms milliseconds. The id cancels it first,
+/; with dom::cancel.
+fun after(ms: int, handler: dom::Handler) -> int {
+  return js::after(ms, new dom::EventAdapter(handler))
+}
+
+/; Calls handler.handle every ms milliseconds, until dom::cancel(id).
+fun every(ms: int, handler: dom::Handler) -> int {
+  return js::every(ms, new dom::EventAdapter(handler))
+}
+
+/; Stops a listener (from on) or a timer (from after or every).
+fun cancel(id: int) -> nthg {
+  js::unlisten(id)
+}
+
+/; Stops handling events altogether, so the program can end.
+fun stop() -> nthg {
+  js::stop()
+}
+
+/; GETs `url` and returns the body as text. Waits without blocking the page;
+/; run it in an event handler or a spawned task. A network error, or a status
+/; other than 2xx, comes back as the error.
+fun fetchText(url: str) -> str, Err::Result {
+  var response: js::Value, sent: Err::Result = js::await(js::global().callWith("fetch", js::args().addStr(url)))
+  if !sent.isOk() {
+    return "", sent
+  }
+  if !response.getBool("ok") {
+    return "", Err::error("HTTP " + String(response.getInt("status")) + " for " + url)
+  }
+  var body: js::Value, read: Err::Result = js::await(response.call("text"))
+  if !read.isOk() {
+    return "", read
+  }
+  return body.toStr(), Err::ok()
+}
+
+/; ---- used by the classes above, which cannot construct classes declared
+/; after them ----
+
+fun elementOrNull(node: js::Value) -> dom::Element {
+  if node.isNull() || node.isUndefined() {
+    return null
+  }
+  return new dom::Element(node)
+}
+
+fun listOf(items: js::Value) -> dom::ElementList {
+  return new dom::ElementList(items)
+}
+
+fun listenOn(node: js::Value, event: str, handler: dom::Handler, flags: int) -> int {
+  return js::listen(node, event, new dom::EventAdapter(handler), flags)
+}

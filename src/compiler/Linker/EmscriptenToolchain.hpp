@@ -55,6 +55,9 @@ struct EmscriptenToolchain {
 
   std::filesystem::path runtimeArchive() const;
   std::filesystem::path nodeHostScript() const;
+  // The JavaScript half of the js module (fw-modules/js_module/js-bridge.js),
+  // an Emscripten --js-library.
+  std::filesystem::path jsLibrary() const;
 };
 
 } // namespace linker

@@ -1,0 +1,7 @@
+/; An exception JavaScript throws, outside a try, ends the program as a
+/; Flow-Wing runtime error does: message on stderr, exit code 1.
+bring js
+
+println("before")
+js::eval("null.property")
+println("never printed")

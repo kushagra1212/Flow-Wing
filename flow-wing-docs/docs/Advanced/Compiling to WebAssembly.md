@@ -70,11 +70,31 @@ thread, so a program that runs for a long time, or calls `sys::sleep`, keeps
 the page busy until it finishes. To keep the page responsive, run the `.js`
 file in a Web Worker instead, as the [playground](/playground) does.
 
+## Build an interactive page
+
+To work with the page itself (read what is typed, change elements, handle
+clicks, fetch data), bring the [dom module](../Built-in%20Libraries/Dom%20Module.md),
+build to `app.js`, and load it from your own HTML:
+
+```bash
+flowwing app.fg --target=wasm32 -o app.js
+```
+
+```html
+<button id="add">+</button> <span id="count">0</span>
+<script src="app.js"></script>
+```
+
+While it waits for the next event, the program sleeps and the page stays
+responsive. For browser APIs `dom` does not cover, the
+[js module](../Built-in%20Libraries/Js%20Module.md) reaches any JavaScript value.
+
 ## What works
 
 The whole language, including classes, inheritance, the garbage collector,
 `spawn` with `sys::yield` and `sys::sleep`, and these modules:
-`vec`, `map`, `text`, `io`, `json`, `Err`, `sys` and `file`.
+`vec`, `map`, `text`, `io`, `json`, `Err`, `sys` and `file`, plus `dom` and
+`js`, which work only here.
 
 In Node, a program sees the real disk and the real standard input, and
 `sys::run` and `sys::exec` run their command, all as a native build would.
@@ -87,7 +107,7 @@ the length of the run, standard input is whatever text the page supplies, and
 
 | | Why |
 |---|---|
-| `vortex`, `mongo`, `raylib` | They need what WebAssembly cannot reach: a listening socket, a database connection, a window. A program that brings one fails to link and names the missing function. |
+| `vortex`, `mongo`, `raylib` | They need what WebAssembly cannot reach: a listening socket, a database connection, a window. Bringing one stops the build with `ModuleNotForTarget`. |
 | Very deep recursion | Every WebAssembly call also uses the JavaScript engine's own stack, which stops recursion at roughly 10,000 to 20,000 calls, and a task also has its own stack. The program then ends with `Runtime Error: Stack Overflow.` A native `main` reaches far deeper. |
 
 ## Seeing the generated code
@@ -112,4 +132,6 @@ spawn do not pay for it.
 |---|---|
 | `needs Emscripten (emcc), which was not found` | Install emsdk, or point `EMSDK` or `FLOWWING_EMCC` at it. |
 | `The Flow-Wing runtime for wasm32 is not built` | Your install is missing the WebAssembly runtime. Reinstall a release that includes it. |
-| `--target=wasm32 supports --emit=ir and --emit=exe` | Object files and the JIT are native only. |
+| `--target=wasm32 cannot --emit=obj or --emit=jit` | Object files and the JIT are native only. |
+| `[Error:ModuleNotForTarget] The 'vortex' module works only in native builds.` | The module needs a native build (see above). |
+| `[Error:ModuleNotForTarget] The 'dom' module works only in WebAssembly builds` | Build with `--target=wasm32`: `dom` and `js` talk to a web page. |

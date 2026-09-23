@@ -133,4 +133,31 @@ fun run(h: cli::Harness) -> nthg {
     .expectFails()
     .expectLacks(cli::ESC)
     .done()
+
+  /; The wasm32 checks run a build with Node, so they need emsdk and Node and
+  /; are skipped without them, like the wasm suite.
+  var toolchain: str = h.wasmToolchain()
+
+  h.test("expectNodeRuns fails on text the program never printed")
+    .requires(toolchain)
+    .withArgs("--target=wasm32 --emit=exe -o")
+    .withArg("{out}/app.js")
+    .expectNodeRuns("app.js", 0, ABSENT)
+    .mustFailWith("did not print '" + ABSENT + "'")
+    .done()
+
+  h.test("expectNodeRuns fails on the wrong exit code")
+    .requires(toolchain)
+    .withArgs("--target=wasm32 --emit=exe -o")
+    .withArg("{out}/app.js")
+    .expectNodeRuns("app.js", 7, "ok")
+    .mustFailWith("exited 0, expected 7")
+    .done()
+
+  h.test("expectNodeRunsTheJsIn fails when there is no .js")
+    .requires(toolchain)
+    .withArgs("--emit=ir")
+    .expectNodeRunsTheJsIn("bin", 0, "ok")
+    .mustFailWith("expected exactly one .js file in bin/")
+    .done()
 }

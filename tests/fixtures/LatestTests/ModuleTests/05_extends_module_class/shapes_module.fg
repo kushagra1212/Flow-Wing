@@ -1,0 +1,20 @@
+/; A module whose class other programs extend: extends_module_class.fg.
+module [shapes]
+
+class Shape {
+  var name: str
+  init(name: str) -> nthg {
+    self.name = name
+  }
+  area() -> deci {
+    return 0.0
+  }
+  label() -> str {
+    return "shape " + self.name
+  }
+}
+
+/; Takes any Shape, so a subclass declared in another file reaches it.
+fun areaOf(s: shapes::Shape) -> deci {
+  return s.area()
+}

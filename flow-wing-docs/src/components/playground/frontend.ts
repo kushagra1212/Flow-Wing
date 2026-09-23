@@ -12,7 +12,7 @@ export type Analysis =
   | { source: string; stages: StageResult[] }
   | { source: string; unavailable: string };
 
-type Request = { source: string; resolve: (analysis: Analysis | null) => void };
+type Request = { source: string; target: string; resolve: (analysis: Analysis | null) => void };
 
 export class FrontendAnalyzer {
   private worker: Worker | null = null;
@@ -23,9 +23,10 @@ export class FrontendAnalyzer {
   constructor(private readonly url: string) {}
 
   // Resolves with the analysis, or null if a newer request replaced this one.
-  analyse(source: string): Promise<Analysis | null> {
+  // target: the build to check the program for, "wasm32" or "native".
+  analyse(source: string, target: string): Promise<Analysis | null> {
     return new Promise((resolve) => {
-      const request = { source, resolve };
+      const request = { source, target, resolve };
       if (this.running) {
         this.queued?.resolve(null);
         this.queued = request;
@@ -43,7 +44,7 @@ export class FrontendAnalyzer {
   private start(request: Request): void {
     this.running = request;
     const worker = this.ensureWorker();
-    worker.postMessage({ id: ++this.nextId, source: request.source });
+    worker.postMessage({ id: ++this.nextId, source: request.source, target: request.target });
   }
 
   private ensureWorker(): Worker {

@@ -38,6 +38,7 @@ bring "suites/parse.fg"
 bring "suites/progress.fg"
 bring "suites/source.fg"
 bring "suites/target.fg"
+bring "suites/wasm.fg"
 
 var options: cli::Options = cli::parseOptions()
 if options.problem != "" {
@@ -65,5 +66,6 @@ parse::run(h)
 progress::run(h)
 source::run(h)
 target::run(h)
+wasm::run(h)
 
 sys::exit(h.finish())

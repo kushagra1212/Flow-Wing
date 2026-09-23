@@ -1,0 +1,36 @@
+/; Form fields: what is typed is read on every "input", a key is read on
+/; "keydown", and a checkbox on "change".
+bring dom
+
+class Typed extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    dom::query("#greeting").setText("Hello, " + event.value() + "!")
+  }
+}
+
+class Keyed extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    if event.key() == "Enter" {
+      println("submitted " + dom::query("#name").value())
+      dom::query("#name").setValue("")
+    }
+  }
+}
+
+class Toggled extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    var box: dom::Element = event.target()
+    dom::query("#state").setText(box.checked() ? "yes" : "no")
+  }
+}
+
+var name: dom::Element = dom::query("#name")
+name.on("input", new Typed())
+name.on("keydown", new Keyed())
+dom::query("#agree").on("change", new Toggled())

@@ -1,0 +1,135 @@
+/; --target=wasm32 --emit=exe: what a WebAssembly build writes, where, and
+/; that the result runs under Node exactly as the program says.
+/;
+/; Needs emsdk (found as a user's build finds it) and Node. Where either is
+/; missing every case here is skipped, naming what is missing; CI runs this
+/; suite again with --no-skip once emsdk is installed, so there a skip fails.
+bring "../framework/cli-module.fg"
+module [wasm]
+
+var WASM_EXE: str = "--target=wasm32 --emit=exe"
+var HELLO: str = "println(\"hello from wasm\")\n"
+
+fun run(h: cli::Harness) -> nthg {
+  h.suite("wasm")
+  var toolchain: str = h.wasmToolchain()
+
+  h.test("-o name.js writes name.js and name.wasm, and Node runs it")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/web/app.js")
+    .expectOk()
+    .expectWrites("web/app.js")
+    .expectWrites("web/app.wasm")
+    .expectNodeRuns("web/app.js", 0, "hello from wasm")
+    .done()
+
+  h.test("without -o the program goes to bin/, under a hashed name")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE)
+    .expectOk()
+    .expectNodeRunsTheJsIn("bin", 0, "hello from wasm")
+    .done()
+
+  h.test("-o with no extension writes name.js")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app")
+    .expectOk()
+    .expectWrites("app.js")
+    .expectWrites("app.wasm")
+    .expectWritesNo("app")
+    .expectNodeRuns("app.js", 0, "hello from wasm")
+    .done()
+
+  h.test("-o name.html writes the page, its .js and its .wasm")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/site/page.html")
+    .expectOk()
+    .expectWrites("site/page.html")
+    .expectWrites("site/page.js")
+    .expectWrites("site/page.wasm")
+    .done()
+
+  /; The parent of a bare name is "": creating it used to print
+  /; "Failed to create directory ''" on a build that then succeeded.
+  h.test("-o with a bare name builds in the working directory, quietly")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE + " -o app.js")
+    .expectOk()
+    .expectLacks("Failed to create directory")
+    .expectNodeRuns("../app.js", 0, "hello from wasm")
+    .done()
+
+  h.test("sys::exit's code is Node's exit code")
+    .requires(toolchain)
+    .withSource("bring sys\nprintln(\"before exit\")\nsys::exit(3)\n")
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app.js")
+    .expectOk()
+    .expectNodeRuns("app.js", 3, "before exit")
+    .done()
+
+  h.test("a runtime error prints its message and exits 1")
+    .requires(toolchain)
+    .withSource("var a: int[2]\nvar i: int = 5\nprintln(a[i])\n")
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app.js")
+    .expectOk()
+    .expectNodeRuns("app.js", 1, "Array Index Out of Bounds")
+    .done()
+
+  /; A program that spawns is linked with Asyncify, which lets a task's stack
+  /; be put aside while another runs; one that does not is linked without it.
+  h.test("tasks run: a spawned task finishes after the main program")
+    .requires(toolchain)
+    .withSource("bring sys\nfun worker(name: str) -> nthg {\n  sys::yield()\n  println(name + \" done\")\n}\nspawn worker(\"task\")\nprintln(\"main done\")\n")
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app.js")
+    .expectOk()
+    .expectNodeRuns("app.js", 0, "main done\ntask done")
+    .done()
+
+  h.test("-O2 builds and runs")
+    .requires(toolchain)
+    .withSource(HELLO)
+    .withArgs(WASM_EXE + " -O2 -o")
+    .withArg("{out}/app.js")
+    .expectOk()
+    .expectNodeRuns("app.js", 0, "hello from wasm")
+    .done()
+
+  /; Refused at the bring, with the reason, rather than by wasm-ld naming a
+  /; missing function. Needs no emsdk: it never gets as far as linking.
+  h.test("a native-only module is refused at its bring")
+    .withSource("bring vortex\nvar server: vortex::Server = new vortex::Server()\n")
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app.js")
+    .expectFailsWith("[Error:ModuleNotForTarget]")
+    .expectSays("The '<vortex>' module works only in native builds.")
+    .expectWritesNo("app.js")
+    .done()
+
+  h.test("a web module is refused in a native build")
+    .withSource("bring dom\ndom::query(\"#x\").setText(\"hi\")\n")
+    .withArgs("--emit=exe")
+    .expectFailsWith("[Error:ModuleNotForTarget]")
+    .expectSays("The '<dom>' module works only in WebAssembly builds (--target=wasm32).")
+    .expectWritesNo("bin")
+    .done()
+
+  h.test("the js and dom modules build for wasm32, and run")
+    .requires(toolchain)
+    .withSource("bring dom\nbring js\nprintln(js::global().get(\"Math\").callWith(\"max\", js::args().addInt(2).addInt(9)).toInt())\n")
+    .withArgs(WASM_EXE + " -o")
+    .withArg("{out}/app.js")
+    .expectOk()
+    .expectNodeRuns("app.js", 0, "9")
+    .done()
+}

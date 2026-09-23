@@ -30,14 +30,6 @@ const STEP_TIMEOUT_MS = 40_000;
 const WAT_LIMIT = 4 * 1024 * 1024;
 const IR_LIMIT = 4 * 1024 * 1024;
 
-// Modules whose runtime is native only. Linking one for wasm32 fails with
-// wasm-ld naming a symbol, which tells a playground user nothing.
-const NATIVE_ONLY_MODULES = [
-  { module: "vortex", symbolPrefix: "vortex_" },
-  { module: "mongo", symbolPrefix: "_mongo_" },
-  { module: "raylib", symbolPrefix: "_ray_" },
-];
-
 function parseArgs(argv) {
   const args = { file: null, target: "wasm32", opt: 0, wat: false };
   for (const arg of argv) {
@@ -131,7 +123,7 @@ function compile(args) {
       return reply;
     }
     if (exe.code !== 0) {
-      reply.diagnostics = explain(tidy(exe.output));
+      reply.diagnostics = tidy(exe.output);
       return reply;
     }
     const js = readFileSync(path.join(dir, "out", "main.js"), "utf8");
@@ -156,16 +148,6 @@ function compile(args) {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-}
-
-function explain(diagnostics) {
-  for (const { module, symbolPrefix } of NATIVE_ONLY_MODULES) {
-    if (diagnostics.includes(`undefined symbol: ${symbolPrefix}`)) {
-      return `The ${module} module runs only in native builds, not in the browser. ` +
-        `Switch the playground to "Run on server".\n\n${diagnostics}`;
-    }
-  }
-  return diagnostics;
 }
 
 let reply;

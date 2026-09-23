@@ -161,5 +161,9 @@ fs::path EmscriptenToolchain::nodeHostScript() const {
   return runtime_dir / "node-host.js";
 }
 
+fs::path EmscriptenToolchain::jsLibrary() const {
+  return runtime_dir / "js-bridge.js";
+}
+
 } // namespace linker
 } // namespace flow_wing

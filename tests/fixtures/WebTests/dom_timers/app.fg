@@ -1,0 +1,43 @@
+/; Timers: after runs once, every repeats until cancelled, and a cancelled
+/; timer never runs. The program ends by itself once no timer is left.
+bring dom
+
+class Later extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    dom::query("#later").setText("done later (" + event.kind() + ")")
+    println("later")
+  }
+}
+
+class Never extends dom::Handler {
+  init() -> nthg {
+  }
+  handle(event: dom::Event) -> nthg {
+    dom::query("#never").setText("ran")
+  }
+}
+
+class Ticker extends dom::Handler {
+  var count: int
+  var id: int
+  init() -> nthg {
+    self.count = 0
+    self.id = 0
+  }
+  handle(event: dom::Event) -> nthg {
+    self.count = self.count + 1
+    dom::query("#ticks").setText(String(self.count))
+    println("tick " + String(self.count))
+    if self.count == 3 {
+      dom::cancel(self.id)
+    }
+  }
+}
+
+dom::after(10, new Later())
+var cancelled: int = dom::after(30, new Never())
+dom::cancel(cancelled)
+var ticker: Ticker = new Ticker()
+ticker.id = dom::every(15, ticker)

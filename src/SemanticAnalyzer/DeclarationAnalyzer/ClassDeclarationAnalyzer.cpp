@@ -24,6 +24,7 @@
 #include "src/compiler/CompilationContext/CompilationContext.h"
 #include "src/syntax/expression/IdentifierExpressionSyntax/IdentifierExpressionSyntax.h"
 #include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
+#include "src/SemanticAnalyzer/DeclarationAnalyzer/ParentClassLookup.hpp"
 
 namespace flow_wing {
 void analysis::DeclarationAnalyzer::visit(syntax::ClassStatementSyntax *node) {
@@ -33,10 +34,10 @@ void analysis::DeclarationAnalyzer::visit(syntax::ClassStatementSyntax *node) {
 
   std::shared_ptr<types::ClassType> parent_class_type = nullptr;
   if (node->getParentClassIdentifierExpr()) {
-    auto &parent_name = static_cast<syntax::IdentifierExpressionSyntax *>(
-                            node->getParentClassIdentifierExpr().get())
-                            ->getValue();
-    auto parent_sym = m_binder_context.getSymbolTable()->lookup(parent_name);
+    auto parent_sym =
+        analysis::lookupParentClass(*m_binder_context.getSymbolTable(),
+                                    node->getParentClassIdentifierExpr().get())
+            .symbol;
     if (parent_sym && parent_sym->getKind() == analysis::SymbolKind::kClass) {
       parent_class_type =
           std::dynamic_pointer_cast<types::ClassType>(parent_sym->getType());

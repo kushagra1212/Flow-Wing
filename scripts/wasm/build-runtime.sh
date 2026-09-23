@@ -33,6 +33,7 @@ C_SOURCES=(
   "$M"/dynamic/*.c
   "$M"/gc/src/*.c
   "$M"/text_module/*.c
+  "$M"/js_module/*.c
 )
 CXX_SOURCES=(
   "$M"/vec_module/*.cpp
@@ -58,6 +59,7 @@ rm -f "$OUT/libflowwing_rt.a"
 emar rcs "$OUT/libflowwing_rt.a" "$objects"/*.o
 rm -rf "$objects"
 cp "$ROOT/scripts/wasm/node-host.js" "$OUT/node-host.js"
+cp "$M/js_module/js-bridge.js" "$OUT/js-bridge.js"
 
 count=$(( ${#C_SOURCES[@]} + ${#CXX_SOURCES[@]} ))
 echo "    Finished $OUT/libflowwing_rt.a ($count sources)"

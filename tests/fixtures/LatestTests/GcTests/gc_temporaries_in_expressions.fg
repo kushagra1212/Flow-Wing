@@ -1,0 +1,45 @@
+/; A value one part of an expression computes must survive while the next
+/; part runs, because that part can allocate and so collect (this folder runs
+/; with FW_GC_STRESS=1: a collection on every allocation).
+/;
+/; These each lost a string before the fix:
+/;   a C function's result (strReplace) waiting as the left side of +
+/;   a built-in's result (String) waiting as the left side of +
+/;   a string argument of a C function waiting for the next argument
+/;   the first of several return values waiting for the next
+bring text
+
+fun two(i: int) -> str, str {
+  return String(i + 100), String(i)
+}
+
+fun twoWithC(i: int) -> str, str {
+  return strReplace("ab", "a", "A"), String(i)
+}
+
+var wrong: int = 0
+
+fun check(got: str, want: str) -> nthg {
+  if got != want {
+    wrong = wrong + 1
+  }
+}
+
+var i: int = 0
+while i < 50 {
+  var s: str = String(i)
+  check(strReplace("hello", "l", "L") + String(i), "heLLo" + s)
+  check(String(i) + String(i + 1), s + String(i + 1))
+  check(strReplace(strReplace("hello", "l", "L"), "e", String(i)), "h" + s + "LLo")
+  check(strReplace(String(i) + "z", "z", String(i + 1)), s + String(i + 1))
+  var a: str, b: str = two(i)
+  check(a + b, String(i + 100) + s)
+  var c: str, d: str = twoWithC(i)
+  check(c + d, "Ab" + s)
+  var arr: str[2] = [strReplace("xy", "x", "X"), String(i)]
+  check(arr[0] + arr[1], "Xy" + s)
+  i = i + 1
+}
+
+println(strReplace("hello", "l", "L") + String(7))
+println("wrong: " + String(wrong))

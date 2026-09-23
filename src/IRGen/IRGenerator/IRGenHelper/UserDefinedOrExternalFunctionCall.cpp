@@ -28,6 +28,67 @@
 #include <cassert>
 namespace flow_wing::ir_gen {
 
+llvm::Value *IRGenerator::loadFunctionValue(llvm::Value *value) {
+  // A function names itself: `var f: [(int) -> int] = double`.
+  if (llvm::isa<llvm::Function>(value)) {
+    return value;
+  }
+  // Storage holding one: a variable, a global, a field, an argument slot.
+  if (llvm::isa<llvm::AllocaInst>(value) ||
+      llvm::isa<llvm::GlobalVariable>(value) ||
+      llvm::isa<llvm::GEPOperator>(value) || llvm::isa<llvm::Argument>(value)) {
+    auto &builder = m_ir_gen_context.getLLVMBuilder();
+    return builder->CreateLoad(builder->getPtrTy(), value, "fn_value");
+  }
+  // Already the address: a call's result.
+  return value;
+}
+
+llvm::Value *IRGenerator::emitIndirectCallee(
+    binding::BoundCallExpression *call_expression) {
+  const auto *function_symbol = call_expression->getSymbol();
+  auto &builder = m_ir_gen_context.getLLVMBuilder();
+
+  llvm::Value *callee_val = nullptr;
+  if (auto *callee = call_expression->getCallee()) {
+    // A variable or a field holds the function to call.
+    callee->accept(this);
+    callee_val = loadFunctionValue(m_last_value);
+    clearLast();
+  } else {
+    // A parameter of a function type.
+    llvm::Value *fn_ptr_storage =
+        m_ir_gen_context.getSymbol(function_symbol->getName());
+    assert(fn_ptr_storage &&
+           "Function pointer symbol not found in local context");
+    callee_val = builder->CreateLoad(builder->getPtrTy(), fn_ptr_storage,
+                                     "fn_ptr_load");
+  }
+
+  // A function value no one set holds no function (a variable's default).
+  // Calling it stops with an error that names it, as using a null object
+  // does, instead of jumping to address 0.
+  llvm::Value *is_unset = builder->CreateIsNull(callee_val, "fn_value_unset");
+  llvm::BasicBlock *unset_block =
+      m_ir_gen_context.createBlock("fn_value_unset_error");
+  llvm::BasicBlock *set_block = m_ir_gen_context.createBlock("fn_value_set");
+  builder->CreateCondBr(is_unset, unset_block, set_block);
+
+  m_ir_gen_context.setInsertPoint(unset_block);
+  if (auto *runtime_err_fn =
+          m_ir_gen_context.getLLVMModule()->getFunction("fg_re")) {
+    builder->CreateCall(runtime_err_fn,
+                        {builder->CreateGlobalStringPtr(
+                            "Runtime Error: Cannot call '" +
+                            function_symbol->getName() +
+                            "': no function was assigned to it.")});
+  }
+  builder->CreateUnreachable();
+  m_ir_gen_context.setInsertPoint(set_block);
+
+  return callee_val;
+}
+
 void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
     binding::BoundCallExpression *call_expression) {
 
@@ -58,17 +119,14 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
 
   auto &builder = m_ir_gen_context.getLLVMBuilder();
 
-  if(!is_indirect_call) {
+  if (is_indirect_call) {
+    callee_val = emitIndirectCallee(call_expression);
+  } else {
     llvm_function = m_ir_gen_context.getLLVMModule()->getFunction(fn_name);
     assert(llvm_function && "Function not found [dispatchUserDefinedFunctionCall]");
     callee_val = llvm_function;
-  }else{
-    llvm::Value *fn_ptr_storage = m_ir_gen_context.getSymbol(function_symbol->getName());
-    assert(fn_ptr_storage && "Function pointer symbol not found in local context");
-    
-    callee_val = builder->CreateLoad(
-        builder->getPtrTy(), fn_ptr_storage, "fn_ptr_load");
   }
+
 
 
   auto function_type = static_cast<const types::FunctionType *>(
@@ -144,8 +202,54 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
 
       llvm::Type *llvm_param_type =
           m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type);
-      llvm::Value *load_value =
-          builder->CreateLoad(llvm_param_type, m_last_value, "load_value");
+      // Storage (a variable, a field, a global, an argument slot) is read. A
+      // value computed here, such as another call's result or a conversion
+      // (abs(box.id()), fabs(Decimal(k))), is already the value: loading it
+      // again read through an int (a verifier error) or, for a str, through
+      // the characters themselves (garbage, silently). So is a string
+      // literal: a global array whose address is the string (strLength("x")
+      // used to load a pointer from its characters and crash).
+      auto *global = llvm::dyn_cast<llvm::GlobalVariable>(m_last_value);
+      const bool is_literal_data =
+          global != nullptr && global->getValueType()->isArrayTy();
+      const bool is_storage =
+          !is_literal_data &&
+          (llvm::isa<llvm::AllocaInst>(m_last_value) || global != nullptr ||
+           llvm::isa<llvm::GEPOperator>(m_last_value) ||
+           llvm::isa<llvm::GetElementPtrInst>(m_last_value) ||
+           llvm::isa<llvm::Argument>(m_last_value));
+      llvm::Value *load_value = m_last_value;
+      llvm::Type *value_type = m_last_value->getType();
+      if (is_storage) {
+        load_value =
+            builder->CreateLoad(llvm_param_type, m_last_value, "load_value");
+      } else if (!is_literal_data && value_type != llvm_param_type) {
+        // A number of another width, such as the literal in abs(-7), which is
+        // typed as the smallest integer that holds it.
+        if (value_type->isIntegerTy() && llvm_param_type->isIntegerTy()) {
+          load_value = builder->CreateSExtOrTrunc(m_last_value, llvm_param_type,
+                                                  "c_arg_int");
+        } else if (value_type->isFloatingPointTy() &&
+                   llvm_param_type->isFloatingPointTy()) {
+          load_value = builder->CreateFPCast(m_last_value, llvm_param_type,
+                                             "c_arg_float");
+        } else if (value_type->isIntegerTy() &&
+                   llvm_param_type->isFloatingPointTy()) {
+          load_value = builder->CreateSIToFP(m_last_value, llvm_param_type,
+                                             "c_arg_int_to_float");
+        } else {
+          load_value =
+              builder->CreateLoad(llvm_param_type, m_last_value, "load_value");
+        }
+      }
+      // Temp-safety: C arguments are passed as values, not through argument
+      // slots the GC scans. A string argument computed here (String(i), another
+      // call) must survive while the arguments after it are evaluated, since
+      // those can allocate: root it.
+      if (param_raw_type->isString() && load_value->getType()->isPointerTy() &&
+          !is_literal_data) {
+        spillToRoot(load_value, "c_call_arg");
+      }
       llvm_args.push_back(load_value);
 
     } else if (param_types[param_idx]->value_kind ==
@@ -399,6 +503,17 @@ void IRGenerator::dispatchUserDefinedOrExternalFunctionCall(
   } else {
     m_last_value = call_result;
     m_last_type = call_expression->getType().get();
+    // Temp-safety: a C function (decl) hands back its value directly, not
+    // through a return slot the GC scans, as a Flow-Wing function does (see
+    // is_ret_via_arg above). A string it returns would live only in a register
+    // while the rest of the expression runs, and any allocation there, such as
+    // String(i) in `strReplace(...) + String(i)`, could collect it. Root it as
+    // it arrives. A string the C side does not own (a literal, argv) is skipped
+    // by the GC's heap check.
+    if (m_last_type != nullptr && m_last_type->isString() &&
+        call_result->getType()->isPointerTy()) {
+      spillToRoot(call_result, "c_call_result");
+    }
   }
 };
 } // namespace flow_wing::ir_gen

@@ -46,6 +46,7 @@ RUNTIME_SOURCES = [
     "fw-modules/gc/src/*.c",
     "fw-modules/file_module/*.cpp",
     "fw-modules/io_module/*.cpp",
+    "fw-modules/js_module/*.c",
     "fw-modules/map_module/*.cpp",
     "fw-modules/text_module/*.c",
     "fw-modules/vec_module/*.cpp",

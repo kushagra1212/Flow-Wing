@@ -6,7 +6,7 @@ module [target]
 /; lowering, rather than which triple the module is merely labelled with.
 var STR_ARRAY: str = "var s: str[3]\nprintln(\"[\"+s[0]+\"]\")\n"
 var WASM_TRIPLE: str = "target triple = \"wasm32-unknown-emscripten\""
-var WASM_IR_OR_EXE: str = "--target=wasm32 supports --emit=ir and --emit=exe"
+var WASM_NO_OBJ_OR_JIT: str = "--target=wasm32 cannot --emit=obj or --emit=jit"
 
 fun run(h: cli::Harness) -> nthg {
   h.suite("target")
@@ -46,17 +46,33 @@ fun run(h: cli::Harness) -> nthg {
   /; the result would be native code carrying wasm32 pointer sizes.
   h.test("wasm32 refuses --emit=obj")
     .withArgs("--target=wasm32 --emit=obj")
-    .expectFailsWith(WASM_IR_OR_EXE)
+    .expectFailsWith(WASM_NO_OBJ_OR_JIT)
+    .done()
+
+  /; The front end's outputs check a program for the build it is meant for:
+  /; bring dom is right for wasm32 and refused for native.
+  h.test("wasm32 accepts --emit=sem, checking for that build")
+    .withSource("bring dom\ndom::query(\"#x\").setText(\"hi\")\n")
+    .withArgs("--target=wasm32 --emit=sem")
+    .expectOk()
+    .expectWrites("semantic_tree.json")
+    .done()
+
+  h.test("native --emit=sem refuses a wasm32-only module")
+    .withSource("bring dom\ndom::query(\"#x\").setText(\"hi\")\n")
+    .withArgs("--emit=sem")
+    .expectFailsWith("[Error:ModuleNotForTarget]")
     .done()
 
   h.test("wasm32 refuses --emit=jit")
     .withArgs("--target=wasm32 --emit=jit")
-    .expectFailsWith(WASM_IR_OR_EXE)
+    .expectFailsWith(WASM_NO_OBJ_OR_JIT)
     .done()
 
-  /; --emit=exe is accepted for wasm32 and needs emcc. The full build is
-  /; covered by `make test-wasm`, which needs emsdk; CI has none. What can be
-  /; checked everywhere is that a missing emcc is reported, never guessed at.
+  /; --emit=exe is accepted for wasm32 and needs emcc. Real wasm32 builds
+  /; are the wasm suite's (suites/wasm.fg), which skips where emsdk is
+  /; missing. What can be checked everywhere is that a missing emcc is
+  /; reported, never guessed at.
   h.test("wasm32 --emit=exe reports an emcc that does not exist")
     .withEnv("FLOWWING_EMCC", "{dir}/no-such-emcc")
     .withArgs("--target=wasm32 --emit=exe")

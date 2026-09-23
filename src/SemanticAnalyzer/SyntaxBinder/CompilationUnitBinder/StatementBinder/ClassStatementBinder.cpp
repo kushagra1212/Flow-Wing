@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/SemanticAnalyzer/DeclarationAnalyzer/ParentClassLookup.hpp"
 #include "StatementBinder.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
@@ -87,13 +88,11 @@ StatementBinder::bindClassStatement(syntax::ClassStatementSyntax *statement) {
   std::shared_ptr<types::Type> parent_class_type_base = nullptr;
 
   if (class_statement->getParentClassIdentifierExpr()) {
-    auto &parent_class_name =
-        static_cast<syntax::IdentifierExpressionSyntax *>(
-            class_statement->getParentClassIdentifierExpr().get())
-            ->getValue();
-
-    auto parent_class_symbol =
-        m_context->getSymbolTable()->lookup(parent_class_name);
+    auto parent = analysis::lookupParentClass(
+        *m_context->getSymbolTable(),
+        class_statement->getParentClassIdentifierExpr().get());
+    const std::string &parent_class_name = parent.name;
+    auto parent_class_symbol = parent.symbol;
 
     if (parent_class_symbol == nullptr) {
 

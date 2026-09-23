@@ -1,0 +1,31 @@
+/; Reading and changing elements: attributes, classes, styles, markup, the
+/; tree, and queries inside an element.
+bring dom
+
+var card: dom::Element = dom::byId("card")
+println(card.attr("data-id") + " " + String(card.hasAttr("data-id")) + " [" + card.attr("missing") + "]")
+card.setAttr("data-state", "open").removeAttr("data-id")
+println(card.attr("data-state") + " " + String(card.hasAttr("data-id")))
+
+println(card.hasClass("card"))
+card.addClass("active").removeClass("card").toggleClass("wide")
+println(card.js().getStr("className"))
+
+card.setStyle("background-color", "red").setStyle("padding", "4px")
+println(card.style("background-color") + " " + card.style("padding"))
+
+var notes: dom::ElementList = card.queryAll(".note")
+println(notes.length())
+println(notes.at(1).text())
+println(card.query("h2").text() + " " + card.query("h2").parent().attr("id"))
+println(dom::query("#nothing-here") == null)
+
+card.query("h2").setHtml("<em>New</em> title")
+println(card.query("h2 em").text())
+card.query(".note").clear()
+println("[" + card.query(".note").text() + "]")
+
+dom::setTitle("After — é")
+println(dom::title())
+dom::body().prepend(dom::create("header").setText("top"))
+println(dom::body().js().get("firstElementChild").getStr("tagName"))

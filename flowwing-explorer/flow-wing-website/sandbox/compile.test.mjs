@@ -70,11 +70,11 @@ test("a compile error stops at the compile stage, naming main.fg", () => {
   assert.doesNotMatch(text, /fw-compile-/, "the temporary folder is not shown");
 });
 
-test("a module with no wasm runtime is explained", () => {
+test("a native-only module is refused by the compiler, with the reason", () => {
   const reply = compile("bring vortex\nvar server: vortex::Server = new vortex::Server()\n");
   assert.equal(reply.ok, false);
-  assert.equal(reply.stage, "link");
-  assert.match(reply.diagnostics, /^The vortex module runs only in native builds/);
+  assert.equal(reply.stage, "compile");
+  assert.match(stripAnsi(reply.diagnostics), /\[Error:ModuleNotForTarget\].*works only in native builds/);
 });
 
 test("options outside the fixed lists are refused, as JSON", () => {
