@@ -542,8 +542,8 @@ jobs:
       # It catches what only a wasm build can get wrong: 4-byte pointers,
       # runtime signatures that wasm-ld checks and native linkers never do, and
       # output that passes through JavaScript. GcTests run with FW_GC_STRESS=1
-      # here too. Fixtures that use what wasm cannot do (the file/mongo/vortex
-      # modules, recursion deeper than the JavaScript engine's stack) are
+      # here too. Fixtures that use what wasm cannot do (the mongo, vortex and
+      # raylib modules, recursion deeper than the JavaScript engine's stack) are
       # counted as unsupported, not failed.
       #
       # The full suite runs here only: a wasm build targets the same machine
@@ -582,6 +582,41 @@ jobs:
           CXX: clang++-17
           LDFLAGS: -fuse-ld=lld
         run: make test-wasm
+
+      # The GC and scheduler fixtures again, with almost no environment. Its
+      # strings live in the program's heap, so this moves everything after
+      # them. Both memory bugs found in the wasm runtime so far (a type
+      # descriptor read 4 bytes off, a task stack 8 bytes off alignment) showed
+      # up in one memory layout and hid in another.
+      - name: WebAssembly parity tests (second memory layout)
+        if: success() || failure()
+        run: >-
+          python3 tests/wasm_parity.py --bin build/sdk/bin/FlowWing --minimal-env
+          --dir tests/fixtures/LatestTests/GcTests
+          --dir tests/fixtures/LatestTests/SchedulerTests
+
+      # The front end (lexer, parser, semantic analysis) built for the browser,
+      # which the docs playground runs to show tokens, trees and errors as the
+      # user types. On every fixture it must exit, report and build the
+      # semantic tree exactly as the native compiler does.
+      - name: WebAssembly front end parity tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-wasm-frontend
+
+      # Every runtime function Flow-Wing declares, compared as wasm32 function
+      # types with the C definition: wasm-ld rejects a mismatch that native
+      # linkers accept silently.
+      - name: wasm32 ABI audit
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make wasm-abi-audit
 
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT

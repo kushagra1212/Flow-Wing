@@ -56,9 +56,9 @@ test("allows built-in modules, and \"bring\" inside a string", async () => {
 
 test("explains a module that exists only natively", async () => {
   const result = await compiler.compile(
-    'bring file\nprintln(file::exists("a.txt"))\n');
+    'bring vortex\nvar server: vortex::Server = new vortex::Server()\n');
   assert.equal(result.ok, false);
-  assert.match(result.diagnostics, /The file module runs only in native builds/);
+  assert.match(result.diagnostics, /The vortex module runs only in native builds/);
 });
 
 test("refuses a program over the size limit without compiling it", async () => {

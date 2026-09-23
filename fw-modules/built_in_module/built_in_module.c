@@ -19,6 +19,7 @@
  #  include <windows.h>
  #endif
  #include "fw_gc.h"
+ #include "fw_sched.h"
  #ifdef _MSC_VER
  #  define FG_THREAD_LOCAL __declspec(thread)
  #else
@@ -699,6 +700,17 @@ char* fg_exec(const char* cmd) {
 #if defined(__EMSCRIPTEN__)
     return fg_exec_on_host(cmd);
 #else
+    // Inside a task, with an event loop running (a vortex server, for one):
+    // run the command without stopping the other tasks. Outside one, or with
+    // no loop, popen below blocks, which is all there is to do anyway.
+    char* captured = NULL;
+    int status = -1;
+    if (fw_sched_exec(cmd, &captured, &status) == 0) {
+        char* result = fg_cs(captured, "");
+        free(captured);
+        fg_last_exec_status = status;
+        return result;
+    }
 
     char buffer[128];
     size_t size = 1024;

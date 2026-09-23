@@ -51,11 +51,23 @@ ANSI = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-9;?]*[ -/]*[@-~])")
 
 # wasm-ld naming a symbol from a module the wasm runtime does not include.
 MISSING_MODULE = re.compile(r"undefined symbol: (\S+)")
-# V8 stopping a wasm call chain. Every wasm call also uses the engine's own
-# stack, which Node limits to about 1 MB and a browser to a similar fixed
-# size, so recursion stops at 10000 to 20000 frames however large the
-# program's -sSTACK_SIZE is. Native main gets 64 MB.
-ENGINE_STACK_LIMIT = "RangeError: Maximum call stack size exceeded"
+# How node-host.js reports running out of stack. Every wasm call also uses
+# the JavaScript engine's own stack, which Node limits to about 1 MB and a
+# browser to a similar fixed size, so recursion stops at 10000 to 20000
+# frames however large the program's stack is; a task also has its own.
+# Native main gets 64 MB.
+STACK_OVERFLOW = "Runtime Error: Stack Overflow."
+EXPECT_ERROR = re.compile(r"/;\s*EXPECT_ERROR:\s*(.*)$")
+
+
+def expected_error_text(fixture):
+    """The whole EXPECT_ERROR header; runner.py keeps only its first word."""
+    with open(fixture, encoding="utf-8", errors="replace") as f:
+        for _ in range(5):
+            match = EXPECT_ERROR.search(f.readline())
+            if match:
+                return match.group(1)
+    return ""
 
 
 def strip_ansi(text):
@@ -91,7 +103,11 @@ class StatusLine:
             sys.stdout.flush()
 
 
-def classify(fixture, compiler, work, timeout):
+# --minimal-env: what a program still needs to start.
+MINIMAL_ENV = ("PATH", "HOME", "SYSTEMROOT", "TEMP", "TMP")
+
+
+def classify(fixture, compiler, work, timeout, minimal_env=False):
     expected_error = get_expected_error_code(fixture)
     out_js = work / "prog.js"
 
@@ -108,7 +124,8 @@ def classify(fixture, compiler, work, timeout):
         # fixture is for, and the native runner checks those.
         return "SKIP", "does not compile (diagnostic fixture)"
 
-    env = dict(os.environ)
+    env = ({k: v for k, v in os.environ.items() if k in MINIMAL_ENV}
+           if minimal_env else dict(os.environ))
     if test_forces_gc_stress(fixture):
         env["FW_GC_STRESS"] = "1"
     env.update(get_test_env(fixture))
@@ -120,8 +137,12 @@ def classify(fixture, compiler, work, timeout):
     except subprocess.TimeoutExpired:
         return "FAIL", f"timed out after {timeout}s"
     actual = strip_ansi(run.stdout + run.stderr)
-    if ENGINE_STACK_LIMIT in actual:
-        return "UNSUPPORTED", "recursion deeper than the JavaScript engine's call stack"
+    if STACK_OVERFLOW in actual:
+        # A test that exists to overflow its stack did what it should.
+        if expected_error and "Stack Overflow" in expected_error_text(fixture):
+            return ("PASS", "") if run.returncode != 0 else (
+                "FAIL", "reported the stack overflow but exited with status 0")
+        return "UNSUPPORTED", "recursion deeper than WebAssembly allows"
 
     if expected_error:
         if expected_error not in actual:
@@ -149,6 +170,12 @@ def main():
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
     parser.add_argument("--timeout", type=int, default=20)
     parser.add_argument("--verbose", action="store_true", help="List every fixture")
+    parser.add_argument(
+        "--minimal-env", action="store_true",
+        help="Run each program with almost no environment. Its strings live in "
+             "the program's heap, so this moves everything after them: a memory "
+             "bug that depends on where things land shows up in one layout and "
+             "hides in the other.")
     args = parser.parse_args()
 
     if not shutil.which("node"):
@@ -174,7 +201,7 @@ def main():
         index, fixture = indexed
         work = work_root / str(index)
         work.mkdir()
-        return fixture, *classify(fixture, compiler, work, args.timeout)
+        return fixture, *classify(fixture, compiler, work, args.timeout, args.minimal_env)
 
     counts = {"PASS": 0, "FAIL": 0, "UNSUPPORTED": 0, "SKIP": 0}
     unsupported = {}

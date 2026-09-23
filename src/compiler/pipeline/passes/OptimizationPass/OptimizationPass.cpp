@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "OptimizationPass.hpp"
 #include "src/compiler/CompilationContext/CompilationContext.h"
 

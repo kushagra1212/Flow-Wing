@@ -25,16 +25,19 @@
 #include <string>
 // [NEW] Required for printing LLVM Values/Types
 
+#define AOT_TEST_MODE_RELEASE_IN_LINUX                                         \
+  defined(AOT_TEST_MODE) && defined(RELEASE) && defined(__linux__)
+
+#if defined(ENABLE_LOGGING)
+
+// Only the logging build prints LLVM values, so only it needs LLVM here.
+// Without logging this header is LLVM-free, which is what lets the front end
+// (lexer, parser, semantic analysis) build for the browser without LLVM.
 // clang-format off
 #include "src/compiler/diagnostics/DiagnosticPush.hpp"
 #include <llvm/Support/raw_ostream.h>
 #include "src/compiler/diagnostics/DiagnosticPop.hpp"
 // clang-format on
-
-#define AOT_TEST_MODE_RELEASE_IN_LINUX                                         \
-  defined(AOT_TEST_MODE) && defined(RELEASE) && defined(__linux__)
-
-#if defined(ENABLE_LOGGING)
 
 
 // ==========================================

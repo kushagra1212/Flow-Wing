@@ -20,7 +20,6 @@
 #pragma once
 
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
-#include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "src/SemanticAnalyzer/SyntaxBinder/CompilationUnitBinder/CompilationUnitBinder.hpp"
 #include "src/common/io/FileUtils.h"
 #include "src/common/utils/PathUtils/PathUtils.h"
@@ -35,6 +34,9 @@
 #include <vector>
 
 namespace flow_wing {
+namespace ir_gen {
+class LLVMBackendContext;
+}
 namespace syntax {
 class SyntaxToken;
 }
@@ -90,6 +92,12 @@ public:
   const std::string &getTempDirectoryPath() const { return m_tmp_dir; }
   const std::string &getLLVMIr() const { return m_llvm_ir; }
 
+  // Created and destroyed by IR generation, which supplies the deleter, so
+  // this header needs no LLVM and the front end builds without it.
+  using BackendContextPtr =
+      std::unique_ptr<ir_gen::LLVMBackendContext,
+                      void (*)(ir_gen::LLVMBackendContext *)>;
+
   ir_gen::LLVMBackendContext *getBackendContext() const {
     return m_llvm_backend_context.get();
   }
@@ -108,8 +116,7 @@ public:
     m_bound_tree = std::move(bound_tree);
   }
   void setLLVMIr(const std::string &llvm_ir) { m_llvm_ir = llvm_ir; }
-  void setBackendContext(
-      std::unique_ptr<ir_gen::LLVMBackendContext> llvm_backend_context) {
+  void setBackendContext(BackendContextPtr llvm_backend_context) {
     m_llvm_backend_context = std::move(llvm_backend_context);
   }
 
@@ -148,7 +155,7 @@ private:
   std::unique_ptr<binding::BoundCompilationUnit> m_bound_tree;
   std::string m_llvm_ir;
   std::string m_tmp_dir;
-  std::unique_ptr<ir_gen::LLVMBackendContext> m_llvm_backend_context = nullptr;
+  BackendContextPtr m_llvm_backend_context{nullptr, nullptr};
   std::vector<std::string> m_brought_source_paths;
   std::vector<std::string> m_brought_object_files;
   int m_brought_ctor_priority = -1;

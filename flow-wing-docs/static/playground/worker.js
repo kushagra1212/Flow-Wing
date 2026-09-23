@@ -1,7 +1,7 @@
 // Runs one compiled Flow-Wing program (Emscripten's main.js + main.wasm) off
 // the page's thread and streams its output back.
 //
-//   page ──{ js, wasm }──────────────────────────▶ worker
+//   page ──{ js, wasm, input? }──────────────────▶ worker
 //   page ◀── { type: "output", fd, text }  (many) ── worker
 //   page ◀── { type: "exit", code }  or  { type: "crash", message } ── worker
 //
@@ -36,6 +36,28 @@ function outputStream(fd) {
 let streams = [];
 let finished = false;
 
+// A stack overflow is reported the way a native build reports a runtime error
+// (see node-host.js, which does the same under Node): the engine's call depth
+// ran out (a RangeError), or a task's own stack did (Emscripten's stack check).
+const STACK_OVERFLOW =
+  "\x1b[91mRuntime Error: Stack Overflow.\n" +
+  "  \u25b6 The program recursed deeper than WebAssembly allows.\n" +
+  "  \u25b6 WebAssembly shares the JavaScript engine's call stack, which stops\n" +
+  "    recursion at about 10,000 to 20,000 calls; a task also has its own stack.\n" +
+  "  \u25b6 Reduce the recursion depth, or write it as a loop.\x1b[0m\n";
+
+function isStackOverflow(error) {
+  const message = String((error && error.message) || error);
+  return (error instanceof RangeError && /call stack/i.test(message)) ||
+    /stack overflow/i.test(message);
+}
+
+function reportStackOverflow() {
+  for (const stream of streams) stream.flush();
+  postMessage({ type: "output", fd: 2, text: STACK_OVERFLOW });
+  finish({ type: "exit", code: 1 });
+}
+
 function finish(message) {
   if (finished) return;
   finished = true;
@@ -48,6 +70,7 @@ function finish(message) {
 // exit also passes through as an ExitStatus throw after onExit has run.
 function onUncaught(error) {
   if (error && error.name === "ExitStatus") return;
+  if (isStackOverflow(error)) return reportStackOverflow();
   finish({ type: "crash", message: String((error && error.message) || error) });
 }
 self.addEventListener("error", (event) => {
@@ -59,7 +82,15 @@ self.addEventListener("unhandledrejection", (event) => {
   onUncaught(event.reason);
 });
 
-self.onmessage = ({ data: { js, wasm } }) => {
+// What the program reads from standard input: the text given with the run,
+// then end of input.
+function inputStream(text) {
+  const bytes = new TextEncoder().encode(text || "");
+  let next = 0;
+  return () => (next < bytes.length ? bytes[next++] : null);
+}
+
+self.onmessage = ({ data: { js, wasm, input } }) => {
   const stdout = outputStream(1);
   const stderr = outputStream(2);
   streams = [stdout, stderr];
@@ -75,11 +106,15 @@ self.onmessage = ({ data: { js, wasm } }) => {
       );
       return {};
     },
+    stdin: inputStream(input),
     stdout: stdout.put,
     stderr: stderr.put,
     // Emscripten's own notices, not the program's output.
     printErr: (text) => console.warn(text),
     onExit: (code) => finish({ type: "exit", code }),
+    onAbort: (what) => {
+      if (isStackOverflow(what)) reportStackOverflow();
+    },
   };
   importScripts(URL.createObjectURL(new Blob([js], { type: "text/javascript" })));
 };

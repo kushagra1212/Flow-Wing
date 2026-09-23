@@ -1,7 +1,0 @@
-
-var a,b =  3,5
-b = (a = 1) + (a = 0)
-
-
-println("a: ", a)
-println("b: ",b)

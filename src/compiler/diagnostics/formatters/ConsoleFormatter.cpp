@@ -188,25 +188,34 @@ ConsoleFormatter::getErrorCodeSnippet(const Diagnostic &diagnostic,
     std::string line_number_string = std::to_string(line_number) + "| ";
     snippet += YELLOW_TEXT + line_number_string + RESET;
 
-    size_t column_count = lines[line_number].size();
+    const std::string &line = lines[line_number];
 
     std::string arrow =
         GREEN_TEXT + std::string(line_number_string.length(), ' ');
 
-    for (size_t column_number = 0; column_number < column_count;
+    // Columns are bytes. A UTF-8 continuation byte belongs to the character
+    // before it: no colour code between them (that would split the character)
+    // and no column of its own under the line.
+    enum class Colour { kNone, kPlain, kMarked };
+    Colour colour = Colour::kNone;
+    for (size_t column_number = 0; column_number < line.size();
          column_number++) {
+      const bool continuation =
+          (static_cast<unsigned char>(line[column_number]) & 0xC0) == 0x80;
 
-      SourcePoint point(line_number, column_number);
+      if (!continuation) {
+        SourcePoint point(line_number, column_number);
+        const bool marked = point >= start && point <= end;
+        arrow += marked ? "^" : " ";
 
-      if (point >= start && point <= end) {
-        snippet += RED_TEXT;
-        arrow += "^";
-      } else {
-        snippet += RESET;
-        arrow += " ";
+        const Colour wanted = marked ? Colour::kMarked : Colour::kPlain;
+        if (wanted != colour) {
+          snippet += marked ? RED_TEXT : RESET;
+          colour = wanted;
+        }
       }
 
-      snippet += lines[line_number][column_number];
+      snippet += line[column_number];
     }
 
     if (arrow.find("^") != std::string::npos) {

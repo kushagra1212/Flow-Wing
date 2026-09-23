@@ -18,6 +18,7 @@
  */
 
 #include "src/SemanticAnalyzer/Builtins/Builtins.hpp"
+#include <cassert>
 #include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/SemanticAnalyzer/BinderContext/BinderContext.hpp"
 #include "src/common/Symbol/FunctionSymbol.hpp"

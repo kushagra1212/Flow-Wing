@@ -86,8 +86,9 @@ public:
 
   const CliOption kOptEmit = {
       {"-E", "--emit"},
-      "Emit the output in a specific format (tokens, ast, sem, ir)",
-      "-E, --emit=<tokens|ast|sem|ir>"};
+      "Emit the output in a specific format (tokens, ast, sem, ir, obj, exe, "
+      "jit)",
+      "-E, --emit=<tokens|ast|sem|ir|obj|exe|jit>"};
 
   const CliOption kDump = {{"-D", "--dump"}, "Dump the output", "-D, --dump"};
 
@@ -275,6 +276,21 @@ public:
               "laid out for 32-bit pointers.\n"
               "Use: FlowWing <file> --target=wasm32 --emit=exe -o out/prog.js\n"};
     }
+
+#if defined(FLOWWING_FRONTEND_ONLY)
+    // The browser build (scripts/wasm/build-frontend.sh) has the lexer,
+    // parser and semantic analysis, and no LLVM to go further with.
+    const bool front_end_output =
+        opts.output_type == CompilerOptions::OutputType::kTokensJson ||
+        opts.output_type == CompilerOptions::OutputType::kAstJson ||
+        opts.output_type == CompilerOptions::OutputType::kSemJson;
+    if (!front_end_output && opts.format_source == 0 &&
+        opts.format_print == 0) {
+      return {ParseStatus::kFailure, opts,
+              "This build of Flow-Wing has only the front end: use "
+              "--emit=tokens, --emit=ast or --emit=sem, or --format-print.\n"};
+    }
+#endif
 
     // Handle output directory
 

@@ -36,6 +36,7 @@
 #include "fw_uv.h"
 #include "fw_sched.h"
 #include "test_harness.h"
+#include <stdlib.h>
 #include <string.h>
 
 /* ---- creation ----------------------------------------------------------- */
@@ -176,6 +177,88 @@ static void test_repeated_wakes_are_coalesced_safely(void) {
   CHECK(fw_uv_ready() == 1);
 }
 
+/* ---- running a command without blocking (fw_sched_exec) ----------------- */
+
+#ifdef _WIN32
+#  define SLOW_COMMAND   "ping -n 2 127.0.0.1 >NUL & echo done"
+#  define SLOW_OUTPUT    "done\r\n"
+#  define BIG_COMMAND    "for /L %i in (1,1,20000) do @echo 123456789"
+#  define BIG_LINE_BYTES 11 /* "123456789\r\n" */
+#else
+#  define SLOW_COMMAND   "sleep 0.3; echo done"
+#  define SLOW_OUTPUT    "done\n"
+#  define BIG_COMMAND    "i=0; while [ $i -lt 20000 ]; do echo 123456789; i=$((i+1)); done"
+#  define BIG_LINE_BYTES 10 /* "123456789\n" */
+#endif
+
+static const char *g_command;
+static char       *g_output;
+static int         g_status;
+static int         g_exec_rc;
+static int         g_exec_done;
+static int         g_ticks_while_running;
+
+static void exec_task(void) {
+  g_exec_rc = fw_sched_exec(g_command, &g_output, &g_status);
+  g_exec_done = 1;
+}
+
+static void ticker_task(void) {
+  while (!g_exec_done) {
+    g_ticks_while_running++;
+    fw_sched_sleep_ms(10);
+  }
+}
+
+static void run_exec_task(const char *command, int with_ticker) {
+  g_command = command;
+  g_output = NULL;
+  g_status = -1;
+  g_exec_rc = -2;
+  g_exec_done = 0;
+  g_ticks_while_running = 0;
+  fw_sched_spawn(exec_task);
+  if (with_ticker) fw_sched_spawn(ticker_task);
+  fw_sched_drain();
+}
+
+static void test_exec_outside_a_task_is_left_to_the_caller(void) {
+  /* Nothing else could run meanwhile, so the caller's popen is just as good. */
+  char *output = NULL;
+  int status = 0;
+  CHECK(fw_sched_exec("echo no", &output, &status) == -1);
+  CHECK(output == NULL);
+}
+
+static void test_exec_lets_other_tasks_run(void) {
+  CHECK(fw_uv_loop() != NULL); /* installs the runner */
+  run_exec_task(SLOW_COMMAND, 1);
+  CHECK(g_exec_rc == 0);
+  CHECK(g_output != NULL && strcmp(g_output, SLOW_OUTPUT) == 0);
+  CHECK(g_status == 0);
+  /* The whole point: the ticker kept running while the command did. With a
+     blocking popen it would get no turn until the command had finished. */
+  CHECK(g_ticks_while_running >= 5);
+  free(g_output);
+}
+
+static void test_exec_reports_the_exit_status(void) {
+  run_exec_task("exit 3", 0);
+  CHECK(g_exec_rc == 0);
+  CHECK(g_status == 3);
+  CHECK(g_output != NULL && g_output[0] == '\0');
+  free(g_output);
+}
+
+static void test_exec_captures_large_output(void) {
+  /* 200 KB, far past the first 1 KB buffer, so it grows many times. */
+  run_exec_task(BIG_COMMAND, 0);
+  CHECK(g_exec_rc == 0);
+  CHECK(g_status == 0);
+  CHECK(g_output != NULL && strlen(g_output) == 20000 * BIG_LINE_BYTES);
+  free(g_output);
+}
+
 /* ---- entry point -------------------------------------------------------- */
 
 int main(void) {
@@ -190,6 +273,10 @@ int main(void) {
   RUN_TEST(test_wake_from_another_thread_releases_a_parked_task);
   RUN_TEST(test_loop_still_runs_timers);
   RUN_TEST(test_repeated_wakes_are_coalesced_safely);
+  RUN_TEST(test_exec_outside_a_task_is_left_to_the_caller);
+  RUN_TEST(test_exec_lets_other_tasks_run);
+  RUN_TEST(test_exec_reports_the_exit_status);
+  RUN_TEST(test_exec_captures_large_output);
 
   return TEST_SUMMARY();
 }

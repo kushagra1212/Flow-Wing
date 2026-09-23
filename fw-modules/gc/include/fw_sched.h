@@ -120,6 +120,32 @@ void fw_sched_wake_io(void);
    an indefinite wait and returning at once. */
 unsigned long fw_sched_io_waiting(void);
 
+/* ---- running a command without stopping every other task ---------------
+ *
+ * popen blocks the thread, so a task that runs a shell command (sys::exec,
+ * sys::run) stops every other task until the command ends. In a server that
+ * is every other visitor, for as long as the command takes. An event layer
+ * that can run a process asynchronously (flowwing_uv, with its loop) plugs in
+ * here, and the task waits for the command the way it waits for a socket.
+ */
+
+/* Run `command` through the platform shell, as popen does: stdin and stderr
+   are the program's own, stdout is captured. On success returns 0, sets
+   *output to a malloc'd, NUL-terminated copy of what the command printed
+   (the caller frees it) and *status to the exit status as a shell reports it
+   in $?. Returns -1 when the command could not be run this way. */
+typedef int (*FWExecFn)(const char *command, char **output, int *status);
+
+/* Install the asynchronous runner. NULL (the default) leaves callers to run
+   commands themselves, blocking. */
+void fw_sched_set_exec(FWExecFn fn);
+
+/* Runs `command` through the installed runner, parking only the calling
+   task. Only inside a task with a runner installed; otherwise it does nothing
+   and returns -1, and the caller runs the command itself. Same contract as
+   FWExecFn. */
+int fw_sched_exec(const char *command, char **output, int *status);
+
 /* Number of tasks still queued. Test/introspection hook. */
 unsigned long fw_sched_pending(void);
 

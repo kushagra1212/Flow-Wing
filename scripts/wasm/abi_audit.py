@@ -21,7 +21,7 @@ How it works:
 Only declarations the module uses are compared: LLVM drops unused ones before
 linking, so wasm-ld never sees them.
 
-    make wasm-abi-audit                      # needs emcc on PATH (emsdk)
+    make wasm-abi-audit                      # needs emsdk, found as the compiler finds it
     python3 scripts/wasm/abi_audit.py --bin build/sdk/bin/FlowWing
 
 Exits 1 when any mismatch is found.
@@ -183,18 +183,44 @@ def emit_flowwing_ir(compiler, out_dir, jobs):
     return len(inputs)
 
 
+def find_emcc(explicit):
+    """emcc, looked for where the compiler looks: --emcc or FLOWWING_EMCC, then
+    PATH, then $EMSDK, then ~/emsdk. Found through an emsdk folder, it also
+    sets EMSDK_PYTHON, as emsdk_env.sh would: emcc needs a newer Python than
+    some systems ship. So nobody has to source emsdk_env.sh, which on Linux
+    breaks `make` (it puts a directory named cmake on PATH)."""
+    for name in (explicit, os.environ.get("FLOWWING_EMCC")):
+        if name:
+            return shutil.which(name) or (name if Path(name).is_file() else None)
+    on_path = shutil.which("emcc")
+    if on_path:
+        return on_path
+    windows = os.name == "nt"
+    for root in (os.environ.get("EMSDK"), str(Path.home() / "emsdk")):
+        if not root:
+            continue
+        emcc = Path(root) / "upstream" / "emscripten" / ("emcc.bat" if windows else "emcc")
+        if emcc.is_file():
+            pythons = sorted((Path(root) / "python").glob(
+                "*/python.exe" if windows else "*/bin/python3"))
+            if pythons:
+                os.environ.setdefault("EMSDK_PYTHON", str(pythons[0]))
+            return str(emcc)
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--bin", required=True, help="Path to FlowWing")
-    parser.add_argument("--emcc", default="emcc", help="emcc to compile the runtime with")
+    parser.add_argument("--emcc", help="emcc to compile the runtime with (default: found like the compiler finds it)")
     parser.add_argument("--work", default="build/wasm-abi-audit")
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
     args = parser.parse_args()
 
-    emcc = shutil.which(args.emcc)
+    emcc = find_emcc(args.emcc)
     if not emcc:
-        print(f"error: {args.emcc} not found. Activate emsdk first: "
-              "source ~/emsdk/emsdk_env.sh")
+        print("error: emcc not found. Install emsdk, then put emcc on PATH, set "
+              "EMSDK to the emsdk folder, or install it in ~/emsdk.")
         return 2
     compiler = Path(args.bin).resolve()
     work = Path(args.work).resolve()

@@ -57,8 +57,9 @@ void IRGenContext::storeLLVMIr() {
 }
 
 void IRGenContext::initializeLLVM() {
-  m_context.setBackendContext(std::make_unique<LLVMBackendContext>(
-      m_context.getAbsoluteSourceFilePath()));
+  m_context.setBackendContext(CompilationContext::BackendContextPtr(
+      new LLVMBackendContext(m_context.getAbsoluteSourceFilePath()),
+      [](LLVMBackendContext *context) { delete context; }));
 
   m_llvm_context = m_context.getBackendContext()->getLLVMContext();
   m_llvm_module = m_context.getBackendContext()->getLLVMModule();

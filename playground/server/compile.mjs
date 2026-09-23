@@ -28,7 +28,6 @@ const SOURCE_NAME = "main.fg";
 // Modules whose runtime is native only. Bringing one fails at link time with
 // wasm-ld naming a symbol, which says nothing useful to a playground user.
 const NATIVE_ONLY_MODULES = [
-  { module: "file", symbolPrefix: "file_" },
   { module: "vortex", symbolPrefix: "vortex_" },
   { module: "mongo", symbolPrefix: "_mongo_" },
   { module: "raylib", symbolPrefix: "_ray_" },

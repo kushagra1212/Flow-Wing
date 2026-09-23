@@ -22,6 +22,7 @@
 #include "fw_sched.h"
 #include "fw_gc.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <time.h>
@@ -431,7 +432,9 @@ static char *stack_acquire(void) {
      second iovec with `(sp + 16) | 8`, which on a stack 8 off alignment
      stays on the first. A task that wrote to stderr then looped forever
      writing 0 bytes, whenever the heap happened to hand out such a block. */
-  return (char *)aligned_alloc(FW_STACK_ALIGN, 2 * stack_size());
+  char *stack = (char *)aligned_alloc(FW_STACK_ALIGN, 2 * stack_size());
+  assert(((uintptr_t)stack & (FW_STACK_ALIGN - 1)) == 0);
+  return stack;
 #else
   size_t page = page_size();
   size_t usable = stack_size();
@@ -735,6 +738,18 @@ void fw_sched_park_io(void) {
   queue_push(t);
 
   switch_to_scheduler(t);
+}
+
+/* ---- running a command without blocking --------------------------------- */
+
+static FWExecFn g_exec = NULL;
+
+void fw_sched_set_exec(FWExecFn fn) { g_exec = fn; }
+
+int fw_sched_exec(const char *command, char **output, int *status) {
+  /* Outside a task there is nothing else to run while the command does. */
+  if (g_current == NULL || g_exec == NULL) return -1;
+  return g_exec(command, output, status);
 }
 
 void fw_sched_wake_io(void) {

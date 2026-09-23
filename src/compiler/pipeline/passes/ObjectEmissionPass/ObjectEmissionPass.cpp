@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "src/IRGen/LLVMBackendContext/LLVMBackendContext.hpp"
 #include "ObjectEmissionPass.hpp"
 #include "src/IRGen/io/ObjectUtils.hpp"
 #include "src/common/cli/CliReporter.h"

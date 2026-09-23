@@ -42,6 +42,7 @@ Arguments after a **`--`** token are not parsed as compiler options; they are pa
 | `-S`, `--server` | Optional link hint for **Vortex** (HTTP). If you already **`bring vortex`**, you typically **do not** need this—`bring` records the right native library. |
 | `--linker-warnings` | Pass **linker warnings** through where supported. |
 | `-E`, `--emit=<kind>` | Select compiler output: **tokens**, **ast**, **sem**, **ir**, **obj**, **exe**, or **jit** (if your build supports the kind). |
+| `-T`, `--target=<machine>` | Machine to generate code for: **`native`** (default) or **`wasm32`**. With `wasm32`, use `--emit=exe` for a program that runs in Node or a browser, or `--emit=ir` for its LLVM IR. See [Compiling to WebAssembly](../Advanced/Compiling%20to%20WebAssembly.md). |
 | `-D`, `--dump` | With JSON/IR emit: also print to **stdout** when a pass runs. |
 | `-OD`, `--output-dir=<path>` | Directory for generated files; default is often a **`build/`**-style directory under the project. |
 | `-o`, `--output=<path>` | **AOT:** output path of the final executable. |

@@ -521,6 +521,21 @@ test-wasm-smoke: build-aot-release
 	@$(BUILD_WASM_RUNTIME_IF_MISSING)
 	@python3 tests/wasm_parity.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(foreach dir,$(WASM_SMOKE_DIRS),--dir tests/fixtures/LatestTests/$(dir)) $(ARGS)
 
+#? Build the front end (lexer, parser, semantic analysis) for the browser,
+#? into build/wasm-frontend/ (scripts/wasm/build-frontend.sh). Needs emsdk.
+#? The docs playground runs it to show tokens, trees and errors as you type.
+.PHONY: build-wasm-frontend
+build-wasm-frontend:
+	@bash scripts/wasm/build-frontend.sh
+
+#? The browser front end against the native compiler: for every fixture,
+#? --emit=sem must exit the same way, print the same diagnostics and write
+#? the same semantic tree (tests/wasm_frontend_parity.mjs). Needs emsdk, Node.
+#?   make test-wasm-frontend ARGS="--dir tests/fixtures/LatestTests/BringTests"
+.PHONY: test-wasm-frontend
+test-wasm-frontend: build-aot-release build-wasm-frontend
+	@node tests/wasm_frontend_parity.mjs --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
 #? Build a .fg to WebAssembly and run it with Node (scripts/wasm/run.sh).
 #? Wraps FlowWing --target=wasm32 --emit=exe.
 #?   make run-wasm FILE=path/to/prog.fg

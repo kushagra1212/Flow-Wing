@@ -23,11 +23,11 @@
 /;  the scheduler runs queued handlers while it waits for the next connection.
 /;  Same shape as the portfolio site.
 /;
-/;  ---- The one route concurrency does NOT help ----
+/;  ---- POST /run ----
 /;
-/;  POST /run calls sys::exec, which is a blocking fork/exec with no libuv
-/;  threadpool behind it. It stops every task for as long as docker takes. See
-/;  the comment on runSandbox below.
+/;  POST /run runs docker through sys::exec. Inside a task, with the vortex
+/;  loop running, sys::exec suspends only that task while docker works, so
+/;  other visitors keep being served. See the comment on runSandbox below.
 /; =========================================================
 bring vortex
 bring file
@@ -100,18 +100,13 @@ fun sendIndex(res: vortex::Response) -> nthg {
 /; =========================================================
 /;  POST /run -> compile and run user code in a sandbox
 /;
-/;  This is THE EXECUTION ENGINE, and it is also the one route that does not
-/;  benefit from the scheduler.
+/;  This is THE EXECUTION ENGINE.
 /;
-/;  sys::exec is a blocking fork/exec. It is not routed through the libuv
-/;  threadpool the way file::readText is, so it does not suspend the task. It
-/;  stops the whole loop, including accept(), for as long as docker runs, up to
-/;  the 20 second timeout below.
-/;
-/;  That is no worse than before this file used spawn, because before it the
-/;  server was sequential anyway. It does mean one visitor pressing Run can
-/;  delay every other visitor. Moving sys::exec onto the threadpool is the fix,
-/;  and it belongs in the runtime, not here.
+/;  Each request runs in its own task, and sys::exec runs docker as a child
+/;  process on the vortex loop: this task waits, up to the 20 second timeout
+/;  below, while the loop keeps accepting and serving other visitors. (Before
+/;  the runtime did this, sys::exec was a blocking popen, and one visitor
+/;  pressing Run held up everyone else until docker finished.)
 /; =========================================================
 fun runSandbox(req: vortex::Request, res: vortex::Response) -> nthg {
     var body: str = req.getBody()

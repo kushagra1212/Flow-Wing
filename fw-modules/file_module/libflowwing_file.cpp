@@ -28,7 +28,9 @@
 // This matters most inside an HTTP handler: a blocking read there stalls every
 // other connection and every timer for the whole duration.
 #include "fw_sched.h"
+#if !defined(__EMSCRIPTEN__)
 #include "fw_uv.h"
+#endif
 #include <string>
 #include <cstring>
 #include <filesystem>
@@ -72,6 +74,9 @@ const char *file_absolute_path(const char *path) {
 
 // --- Static One-Shot Operations ---
 
+// wasm has no libuv and no threads, so there every read is the synchronous one
+// in file_read_all.
+#if !defined(__EMSCRIPTEN__)
 namespace {
 
 // State for one off-thread read. Deliberately uses std::string and not GC
@@ -110,10 +115,12 @@ void read_done(uv_work_t *handle, int status) {
 }
 
 } // namespace
+#endif
 
 const char *file_read_all(const char *path) {
   // Inside a task: hand the blocking read to libuv's threadpool and suspend
   // only this task. Other tasks and timers keep running.
+#if !defined(__EMSCRIPTEN__)
   if (fw_sched_in_task() && fw_uv_loop() != nullptr) {
     FwReadJob job;
     job.path = path ? path : "";
@@ -128,6 +135,15 @@ const char *file_read_all(const char *path) {
     }
     // Could not queue the work: fall through to the blocking path.
   }
+#endif
+
+#if defined(__EMSCRIPTEN__)
+  // Natively a read inside a task goes to libuv's threadpool and the task
+  // waits, so every other ready task runs first. wasm reads synchronously;
+  // yielding once first keeps that order, so a program interleaves the same
+  // way on both.
+  if (fw_sched_in_task()) fw_sched_yield();
+#endif
 
   // Outside a task there is nothing to switch to, so read inline.
   std::ifstream file(fs::path(path), std::ios::in | std::ios::binary);

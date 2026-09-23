@@ -200,6 +200,8 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
     // Under Node: byte-exact stdout and the real environment. See
     // node-host.js.
     args.push_back("-sFORCE_FILESYSTEM=1");
+    // NODEFS, which node-host.js mounts so file:: sees the real disk.
+    args.push_back("-lnodefs.js");
     args.push_back("--pre-js");
     args.push_back(toolchain.nodeHostScript().string());
   }

@@ -19,6 +19,8 @@
 
 #include "fw_uv.h"
 #include "fw_sched.h"
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef _WIN32
 #  include <signal.h>
@@ -56,6 +58,139 @@ static void fw_uv_wait(long long max_wait_ns) {
   uv_run(&g_loop, UV_RUN_ONCE);
 
   if (max_wait_ns >= 0) uv_timer_stop(&g_deadline);
+}
+
+/* ---- running a command without blocking (fw_sched_exec) ------------------
+ *
+ * The same command popen would run, started with uv_spawn instead: the
+ * calling task parks while it runs and the other tasks keep going. A process
+ * and a pipe on the loop, not a threadpool job: the pool has four threads by
+ * default, and a command that takes seconds would hold one the whole time,
+ * starving the file reads that share it.
+ *
+ * Everything below lives in one FWExec on the calling task's stack, which
+ * stays valid while the task is parked. The task is woken only once the
+ * process has exited AND both handles are closed, so libuv is done with the
+ * memory before the task's frame goes away. */
+
+typedef struct {
+  uv_process_t process;
+  uv_pipe_t    out;
+  char        *data;
+  size_t       len;
+  size_t       cap;
+  int          status;
+  int          process_closed;
+  int          out_closed;
+} FWExec;
+
+static void exec_wake_when_done(FWExec *e) {
+  if (e->process_closed && e->out_closed) fw_sched_wake_io();
+}
+
+static void exec_on_process_closed(uv_handle_t *handle) {
+  FWExec *e = (FWExec *)handle->data;
+  e->process_closed = 1;
+  exec_wake_when_done(e);
+}
+
+static void exec_on_out_closed(uv_handle_t *handle) {
+  FWExec *e = (FWExec *)handle->data;
+  e->out_closed = 1;
+  exec_wake_when_done(e);
+}
+
+static void exec_on_exit(uv_process_t *process, int64_t exit_status,
+                         int term_signal) {
+  FWExec *e = (FWExec *)process->data;
+  /* The status a shell reports in $?, as fg_decode_exec_status gives popen. */
+  e->status = term_signal != 0 ? 128 + term_signal : (int)exit_status;
+  uv_close((uv_handle_t *)process, exec_on_process_closed);
+}
+
+static void exec_alloc(uv_handle_t *handle, size_t suggested, uv_buf_t *buf) {
+  FWExec *e = (FWExec *)handle->data;
+  if (e->cap - e->len < suggested + 1) {
+    size_t cap = e->cap * 2;
+    if (cap < e->len + suggested + 1) cap = e->len + suggested + 1;
+    char *grown = (char *)realloc(e->data, cap);
+    if (grown == NULL) {
+      *buf = uv_buf_init(NULL, 0); /* libuv reports UV_ENOBUFS to on_read */
+      return;
+    }
+    e->data = grown;
+    e->cap = cap;
+  }
+  /* One byte kept back for the terminating NUL. */
+  *buf = uv_buf_init(e->data + e->len, (unsigned int)(e->cap - e->len - 1));
+}
+
+static void exec_on_read(uv_stream_t *stream, ssize_t nread,
+                         const uv_buf_t *buf) {
+  (void)buf;
+  FWExec *e = (FWExec *)stream->data;
+  if (nread > 0) {
+    e->len += (size_t)nread;
+  } else if (nread < 0) { /* UV_EOF, or an error: either way, the end */
+    uv_close((uv_handle_t *)stream, exec_on_out_closed);
+  }
+}
+
+static int fw_uv_exec(const char *command, char **output, int *status) {
+  FWExec e;
+  memset(&e, 0, sizeof e);
+  e.cap = 1024;
+  e.data = (char *)malloc(e.cap);
+  if (e.data == NULL) return -1;
+
+  if (uv_pipe_init(&g_loop, &e.out, 0) != 0) {
+    free(e.data);
+    return -1;
+  }
+  e.out.data = &e;
+  e.process.data = &e;
+
+  uv_stdio_container_t stdio[3];
+  stdio[0].flags = UV_INHERIT_FD;
+  stdio[0].data.fd = 0;
+  stdio[1].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_WRITABLE_PIPE);
+  stdio[1].data.stream = (uv_stream_t *)&e.out;
+  stdio[2].flags = UV_INHERIT_FD;
+  stdio[2].data.fd = 2;
+
+  uv_process_options_t options;
+  memset(&options, 0, sizeof options);
+#ifdef _WIN32
+  /* What _popen runs: %COMSPEC% /c <command>, the command line passed as is. */
+  const char *shell = getenv("COMSPEC");
+  char *args[] = {(char *)(shell != NULL ? shell : "cmd.exe"), (char *)"/c",
+                  (char *)command, NULL};
+  options.flags = UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS;
+#else
+  char *args[] = {(char *)"/bin/sh", (char *)"-c", (char *)command, NULL};
+#endif
+  options.file = args[0];
+  options.args = args;
+  options.stdio = stdio;
+  options.stdio_count = 3;
+  options.exit_cb = exec_on_exit;
+
+  if (uv_spawn(&g_loop, &e.process, &options) != 0) {
+    /* Both handles still have to be closed before this frame can go. */
+    uv_close((uv_handle_t *)&e.process, exec_on_process_closed);
+    uv_close((uv_handle_t *)&e.out, exec_on_out_closed);
+    while (!(e.process_closed && e.out_closed)) fw_sched_park_io();
+    free(e.data);
+    return -1; /* the caller runs it with popen instead */
+  }
+
+  uv_read_start((uv_stream_t *)&e.out, exec_alloc, exec_on_read);
+  while (!(e.process_closed && e.out_closed)) fw_sched_park_io();
+
+  e.data[e.len] = '\0';
+  *output = e.data;
+  *status = e.status;
+  return 0;
 }
 
 uv_loop_t *fw_uv_loop(void) {
@@ -103,6 +238,7 @@ uv_loop_t *fw_uv_loop(void) {
 
   g_ready = 1;
   fw_sched_set_waiter(fw_uv_wait);
+  fw_sched_set_exec(fw_uv_exec);
   return &g_loop;
 }
 

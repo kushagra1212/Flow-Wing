@@ -18,14 +18,20 @@
  */
 
 #include "PipelineFactory.hpp"
-#include "src/compiler/pipeline/backends/TargetBackend.hpp"
 #include "src/compiler/pipeline/passes/AstJsonDumperPass/AstJsonDumperPass.hpp"
 #include "src/compiler/pipeline/passes/CleanupPass/CleanupPass.hpp"
+#include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
+// FLOWWING_FRONTEND_ONLY: the browser build of the lexer, parser and semantic
+// analysis (scripts/wasm/build-frontend.sh), which has no LLVM. Everything
+// from IR generation on is left out of it; the command line refuses to ask
+// for it.
+#if !defined(FLOWWING_FRONTEND_ONLY)
+#include "src/compiler/pipeline/backends/TargetBackend.hpp"
 #include "src/compiler/pipeline/passes/IRGenerationPass/IRGenerationPass.hpp"
 #include "src/compiler/pipeline/passes/IrDumperPass/IrDumperPass.hpp"
 #include "src/compiler/pipeline/passes/JITCompilerPass/JITCompilerPass.hpp"
-#include "src/compiler/pipeline/passes/LexerPass/LexerPass.h"
 #include "src/compiler/pipeline/passes/OptimizationPass/OptimizationPass.hpp"
+#endif
 #include "src/compiler/pipeline/passes/ParsingPass/ParsingPass.h"
 #include "src/compiler/pipeline/passes/SemanticAnalysisPass/SemanticAnalysisPass.hpp"
 #include "src/compiler/pipeline/passes/SemanticTreeJsonDumperPass/SemanticTreeJsonDumperPass.hpp"
@@ -76,6 +82,9 @@ PassList PipelineFactory::passesFor(const CompilerOptions &options) const {
     return m_pipeline_definitions.at(output_type);
   }
 
+#if defined(FLOWWING_FRONTEND_ONLY)
+  return {};
+#else
   const auto &backend = TargetBackend::forPlatform(options.target_platform);
   PassList passes = m_optimized_ir_passes;
   append(passes, backend.objectPasses());
@@ -84,6 +93,7 @@ PassList PipelineFactory::passesFor(const CompilerOptions &options) const {
     passes.push_back([] { return std::make_unique<CleanupPass>(); });
   }
   return passes;
+#endif
 }
 
 void PipelineFactory::registerPipelines() {
@@ -118,6 +128,9 @@ void PipelineFactory::registerPipelines() {
   m_pipeline_definitions[CompilerOptions::OutputType::kSemJson].push_back(
       [] { return std::make_unique<SemanticTreeJsonDumperPass>(); });
 
+#if defined(FLOWWING_FRONTEND_ONLY)
+  (void)m_optimized_ir_passes;
+#else
   current_passes.push_back([] { return std::make_unique<IRGenerationPass>(); });
 
   m_pipeline_definitions[CompilerOptions::OutputType::kLLVM_IR] =
@@ -149,6 +162,7 @@ void PipelineFactory::registerPipelines() {
       [] { return std::make_unique<JITCompilerPass>(); });
   m_pipeline_definitions[CompilerOptions::OutputType::kJIT].push_back(
       [] { return std::make_unique<CleanupPass>(); });
+#endif
 }
 
 } // namespace pipeline

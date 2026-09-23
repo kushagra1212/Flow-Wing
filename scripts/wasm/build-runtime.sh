@@ -9,9 +9,9 @@
 #
 #   make build-wasm-runtime
 #
-# Not in the runtime yet: the file module (it needs libuv, which is native
-# only for now), and mongo, raylib and vortex. Bringing one of those fails at
-# link time with the missing symbol named.
+# Not in the runtime: mongo, raylib and vortex, which need sockets, a window
+# or a database. Bringing one of those fails at link time with the missing
+# symbol named. The file module is in; it reads synchronously on wasm.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -38,6 +38,7 @@ CXX_SOURCES=(
   "$M"/vec_module/*.cpp
   "$M"/map_module/*.cpp
   "$M"/io_module/*.cpp
+  "$M"/file_module/*.cpp
 )
 INCLUDES=(-I"$M/gc/include" -I"$M")
 
