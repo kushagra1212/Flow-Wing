@@ -12,6 +12,9 @@ class Square extends shapes::Shape {
   area() -> deci {
     return self.side * self.side
   }
+  corners() -> int {
+    return 4
+  }
 }
 
 /; Two levels: the grandparent is still the module's class.
@@ -21,6 +24,9 @@ class Cube extends Square {
   }
   area() -> deci {
     return 6.0 * self.side * self.side
+  }
+  corners() -> int {
+    return 8
   }
 }
 
@@ -36,3 +42,7 @@ println(shapes::areaOf(sq))
 var cube: shapes::Shape = new Cube(1.0)
 println(cube.area())
 println(cube.label())
+
+/; describe() is the module's code; its self.corners() calls the override.
+println(sq.describe())
+println(cube.describe())

@@ -306,6 +306,12 @@ llvm::Constant *IRGenContext::getDefaultValue(types::Type *type,
     return getLLVMBuilder()->getInt1(false);
   }
 
+  // A function value no one has set holds no function; calling it stops with
+  // a runtime error (dispatchUserDefinedOrExternalFunctionCall).
+  if (type != nullptr && type->getKind() == types::TypeKind::kFunction) {
+    return llvm::ConstantPointerNull::get(getLLVMBuilder()->getPtrTy());
+  }
+
   if (type == analysis::Builtins::m_str_type_instance.get() ||
       type == analysis::Builtins::m_str_type_instance.get()) {
     // Check if we already created a global empty string to reuse it

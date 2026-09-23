@@ -12,6 +12,13 @@ class Shape {
   label() -> str {
     return "shape " + self.name
   }
+  corners() -> int {
+    return 0
+  }
+  /; self.corners() reaches the override of a class another file declares.
+  describe() -> str {
+    return self.name + " has " + String(self.corners()) + " corners"
+  }
 }
 
 /; Takes any Shape, so a subclass declared in another file reaches it.

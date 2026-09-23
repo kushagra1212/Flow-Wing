@@ -1,0 +1,26 @@
+/; A function can return a function value.
+fun double(x: int) -> int {
+  return x * 2
+}
+
+fun negate(x: int) -> int {
+  return 0 - x
+}
+
+fun pick(n: int) -> [(int) -> int] {
+  if n == 0 {
+    return double
+  }
+  return negate
+}
+
+var chosen: [(int) -> int] = pick(0)
+println(chosen(9))
+chosen = pick(1)
+println(chosen(9))
+
+fun twice(g: [(int) -> int], x: int) -> int {
+  return g(g(x))
+}
+
+println(twice(pick(0), 3))

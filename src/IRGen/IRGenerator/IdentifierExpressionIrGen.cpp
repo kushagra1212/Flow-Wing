@@ -19,6 +19,7 @@
 
 #include "src/IRGen/IRGenerator/IRGenerator.hpp"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIdentifierExpression/BoundIdentifierExpression.hpp"
+#include "src/common/Symbol/FunctionSymbol.hpp"
 #include "src/common/Symbol/VariableSymbol.hpp"
 #include "src/utils/LogConfig.h"
 
@@ -38,8 +39,11 @@ void IRGenerator::visit(
   auto llvm_value = m_ir_gen_context.getSymbol(lookup_key);
 
   if (!llvm_value && symbol->getKind() == analysis::SymbolKind::kFunction) {
-    llvm_value =
-        m_ir_gen_context.getLLVMModule()->getFunction(symbol->getName());
+    // A function used as a value. Look it up as a call does: by its mangled
+    // name, which differs from its name for a module's function.
+    llvm_value = m_ir_gen_context.getLLVMModule()->getFunction(
+        static_cast<const analysis::FunctionSymbol *>(symbol)
+            ->getMangledName());
   }
 
   assert(llvm_value && "Symbol not found [BoundIdentifierExpression::visit]");

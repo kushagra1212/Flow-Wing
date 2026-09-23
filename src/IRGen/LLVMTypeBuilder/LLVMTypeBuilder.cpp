@@ -46,7 +46,10 @@ llvm::Type *LLVMTypeBuilder::getLLVMType(const types::Type *type) {
     llvmType = convertPrimitive(type);
     break;
   case types::TypeKind::kFunction:
-    llvmType = convertFunction(static_cast<const types::FunctionType *>(type));
+    // A function value (a variable, a field, an element of this type) is the
+    // address of the function. The function's own signature is
+    // convertFunction's, which declarations and calls use directly.
+    llvmType = llvm::PointerType::get(m_context, 0);
     break;
   case types::TypeKind::kArray:
     llvmType = convertArray(static_cast<const types::ArrayType *>(type));

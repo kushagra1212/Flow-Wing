@@ -32,6 +32,12 @@ void BoundTreeJson::visit(binding::BoundCallExpression *call_expression) {
   serializeArray(call_expression->getArguments(), call_expression_json,
                  "arguments");
 
+  // A call through a function value: what yields the function to call.
+  if (call_expression->getCallee()) {
+    call_expression->getCallee()->accept(this);
+    call_expression_json["callee"] = std::move(m_last_node_json);
+  }
+
   call_expression_json["range"] =
       toJsonRange(call_expression->getSourceLocation());
   m_last_node_json = std::move(call_expression_json);

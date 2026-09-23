@@ -1,0 +1,61 @@
+/; `self.method()` calls the override of the object's own class, as a call
+/; through any other variable does, and as a bare `method()` does. That holds
+/; in `init` too: the object's class is set before `init` runs.
+class Base {
+  var log: str
+  init() -> nthg {
+    self.log = "init sees " + self.name()
+  }
+  name() -> str {
+    return "base"
+  }
+  greet() -> str {
+    return "hi " + self.name()
+  }
+  greetBare() -> str {
+    return "yo " + name()
+  }
+  twice(n: int) -> int {
+    return self.scale(n) + self.scale(n)
+  }
+  scale(n: int) -> int {
+    return n
+  }
+}
+
+class Child extends Base {
+  init() -> nthg {
+    super()
+  }
+  name() -> str {
+    return "child"
+  }
+  scale(n: int) -> int {
+    return n * 10
+  }
+}
+
+class GrandChild extends Child {
+  init() -> nthg {
+    super()
+  }
+  name() -> str {
+    return "grandchild"
+  }
+}
+
+var b: Base = new Base()
+println(b.greet())
+println(b.twice(2))
+println(b.log)
+
+var c: Base = new Child()
+println(c.greet())
+println(c.greetBare())
+println(c.twice(2))
+println(c.log)
+
+var g: Child = new GrandChild()
+println(g.greet())
+println(g.twice(3))
+println(g.log)

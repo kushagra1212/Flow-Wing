@@ -69,18 +69,31 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
   auto &builder = m_ir_gen_context.getLLVMBuilder();
   auto &ctx = *m_ir_gen_context.getLLVMContext();
 
-  llvm::Function *target =
-      module->getFunction(function_symbol->getMangledName());
+  // `spawn f(...)` where `f` is a function value (a variable, a field, a
+  // parameter of a function type) runs whatever function `f` holds at the
+  // spawn site. That is known only when the program runs, so the address is
+  // evaluated here and travels with the task.
+  const bool is_function_value = function_symbol->isParameterSymbol();
 
-  // The binder rejects everything that has no emitted function — built-ins,
-  // methods, unresolved names. If one still reaches here, stop with a message
-  // instead of dereferencing null: asserts are compiled out in Release, and
-  // this used to surface as a bare segfault with no indication of the cause.
-  if (target == nullptr) {
-    assert(target && "Spawn target function not declared in module");
-    llvm::report_fatal_error(
-        llvm::Twine("spawn target '") + function_symbol->getMangledName() +
-        "' has no function in the module; the binder should have rejected it");
+  llvm::Function *target = nullptr;
+  llvm::Value *target_value = nullptr;
+  if (is_function_value) {
+    target_value = emitIndirectCallee(call_expression.get());
+  } else {
+    target = module->getFunction(function_symbol->getMangledName());
+
+    // The binder rejects everything that has no emitted function — built-ins,
+    // methods, unresolved names. If one still reaches here, stop with a
+    // message instead of dereferencing null: asserts are compiled out in
+    // Release, and this used to surface as a bare segfault with no indication
+    // of the cause.
+    if (target == nullptr) {
+      assert(target && "Spawn target function not declared in module");
+      llvm::report_fatal_error(
+          llvm::Twine("spawn target '") + function_symbol->getMangledName() +
+          "' has no function in the module; the binder should have rejected it");
+    }
+    target_value = target;
   }
 
   llvm::Type *void_ty = llvm::Type::getVoidTy(ctx);
@@ -94,7 +107,8 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
         std::string(constants::functions::kSched_spawn_fn),
         llvm::FunctionType::get(void_ty, {i8ptr_ty}, false));
 
-    builder->CreateCall(spawn_fn, {builder->CreateBitCast(target, i8ptr_ty)});
+    builder->CreateCall(spawn_fn,
+                        {builder->CreateBitCast(target_value, i8ptr_ty)});
     return;
   }
 
@@ -139,6 +153,12 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
             : m_ir_gen_context.getTypeBuilder()->getLLVMType(param_raw_type));
   }
 
+  // A function value's address rides in one more field, after the arguments.
+  const unsigned target_field = static_cast<unsigned>(arguments.size());
+  if (is_function_value) {
+    field_types.push_back(builder->getPtrTy());
+  }
+
   auto *args_struct_ty = llvm::StructType::create(
       ctx, field_types, "fw_spawn_args." + std::to_string(site_id));
 
@@ -158,6 +178,14 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
       m_ir_gen_context.createAlloca(i8ptr_ty, "spawn_args_root");
   builder->CreateStore(args_raw, args_root);
   m_ir_gen_context.addGcRootAlloca(args_root);
+
+  // A function is not a GC object; the collector passes over this field.
+  if (is_function_value) {
+    builder->CreateStore(target_value,
+                         builder->CreateStructGEP(args_struct_ty, args_raw,
+                                                  target_field,
+                                                  "spawn_target_slot"));
+  }
 
   for (size_t i = 0; i < arguments.size(); i++) {
     arguments[i]->accept(this);
@@ -231,7 +259,18 @@ void IRGenerator::visit(binding::BoundSpawnStatement *spawn_statement) {
           args_struct_ty, thunk_args, static_cast<unsigned>(i), "arg"));
     }
 
-    builder->CreateCall(target->getFunctionType(), target, call_args);
+    if (is_function_value) {
+      llvm::Value *fn = builder->CreateLoad(
+          builder->getPtrTy(),
+          builder->CreateStructGEP(args_struct_ty, thunk_args, target_field,
+                                   "target_slot"),
+          "target");
+      builder->CreateCall(
+          m_ir_gen_context.getTypeBuilder()->convertFunction(function_type), fn,
+          call_args);
+    } else {
+      builder->CreateCall(target->getFunctionType(), target, call_args);
+    }
     builder->CreateRetVoid();
 
     builder->SetInsertPoint(saved_block, saved_point);

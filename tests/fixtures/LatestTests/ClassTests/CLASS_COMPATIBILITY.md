@@ -11,7 +11,7 @@
 | `super(args)` | Keyword `super`; **only** inside `init`; resolves **immediate** base class `init` and passes `self` last (`CallExpressionBinder::bindSuperInitCall`) |
 | `extends` / field layout | Root class has hidden **vptr** (`i8*`) at LLVM struct index 0; derived layouts prefix-copy base; `getMemberFieldIndex` / `getLLVMFieldCount` |
 | **Subtyping** | `ClassType::operator<=`: a derived class type is compatible where a base class type is expected (variables, parameters, `new Derived()` assigned to `Base`) |
-| **Dynamic / virtual dispatch** | Per-class vtable globals (`__vt_<ClassName>`), vptr stored on `new`; **member calls** use indirect call when the receiver is **not** a bare `self` identifier and the method has a vtable slot (skips `init`). See `UserDefinedOrExternalFunctionCall.cpp`, `GlobalDeclarationsInitializer`, `ClassType::getVtableEntries`. |
+| **Dynamic / virtual dispatch** | Per-class vtable globals (`__vt_<ClassName>`), vptr stored on `new`; **member calls** use an indirect call whenever the method has a vtable slot (skips `init`), `self.method()` included, so a base method reaches an override (`11_inheritance_basic/virtual_dispatch_through_self.fg`). See `UserDefinedOrExternalFunctionCall.cpp`, `GlobalDeclarationsInitializer`, `ClassType::getVtableEntries`. |
 
 ## Not implemented (optional / dialect-specific)
 

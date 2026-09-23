@@ -17,6 +17,10 @@ class Type;
 struct ParameterType;
 } // namespace types
 
+namespace analysis {
+class Symbol;
+} // namespace analysis
+
 namespace syntax {
 class ExpressionSyntax;
 class BinaryExpressionSyntax;
@@ -124,6 +128,20 @@ private:
   // -- Member Function Call (obj.method(args)) --
   std::unique_ptr<BoundExpression>
   bindMemberFunctionCall(syntax::CallExpressionSyntax *expression);
+
+  /// Checks a call's arguments against `symbol` (a function, or a parameter
+  /// of a function type) and binds it.
+  std::unique_ptr<BoundExpression>
+  bindCallToSymbol(syntax::CallExpressionSyntax *expression,
+                   analysis::Symbol *symbol,
+                   const std::string &callee_display_name);
+
+  /// A call through a function value: `callee` (a variable, a field) holds
+  /// the function to call.
+  std::unique_ptr<BoundExpression>
+  bindCallThroughValue(syntax::CallExpressionSyntax *expression,
+                       std::unique_ptr<BoundExpression> callee,
+                       const std::string &callee_display_name);
 
   // -- Literal Expressions --
   std::unique_ptr<BoundExpression>

@@ -1,0 +1,10 @@
+hi base
+4
+init sees base
+hi child
+yo child
+40
+init sees child
+hi grandchild
+60
+init sees grandchild
