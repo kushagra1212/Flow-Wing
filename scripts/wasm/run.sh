@@ -9,8 +9,6 @@
 #   FlowWing prog.fg --target=wasm32 --emit=exe -o build/wasm/prog/prog.js
 #
 # The first run also builds the wasm runtime (make build-wasm-runtime).
-# Programs that `spawn` build, but stop at the first task switch until the
-# scheduler has a wasm backend.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

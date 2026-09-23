@@ -537,9 +537,10 @@ jobs:
       # Node and compared with the same .expect files (tests/wasm_parity.py).
       # It catches what only a wasm build can get wrong: 4-byte pointers,
       # runtime signatures that wasm-ld checks and native linkers never do, and
-      # output that passes through JavaScript. Fixtures that use what wasm
-      # cannot do yet (spawn, the file/mongo/vortex modules) are counted as
-      # unsupported, not failed.
+      # output that passes through JavaScript. GcTests run with FW_GC_STRESS=1
+      # here too. Fixtures that use what wasm cannot do (the file/mongo/vortex
+      # modules, recursion deeper than the JavaScript engine's stack) are
+      # counted as unsupported, not failed.
       #
       # The full suite runs here only: a wasm build targets the same machine
       # whichever host compiled it. macOS and Windows run make

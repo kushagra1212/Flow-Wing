@@ -35,12 +35,14 @@
 namespace flow_wing {
 namespace ir_gen {
 
-/// Compile-time constant that MUST equal `sizeof(FWTypeDescriptor)` in
-/// fw-modules/gc/include/fw_gc.h on an LP64 target. The C side already guards
-/// its field order with `_Static_assert`s in fw_gc_descriptors.c; this mirror
-/// lets codegen assert that the LLVM struct it builds lays out to the very same
-/// number of bytes the runtime reads back.
-constexpr uint64_t kFWTypeDescriptorAbiSize = 72;
+/// `sizeof(FWTypeDescriptor)` in fw-modules/gc/include/fw_gc.h for a target
+/// with `pointer_size`-byte pointers and size_t: 72 on 64-bit targets, 44 on
+/// wasm32. The C side already guards its field order with `_Static_assert`s in
+/// fw_gc_descriptors.c; this mirror lets codegen assert that the LLVM struct it
+/// builds lays out to the very same number of bytes the runtime reads back.
+constexpr uint64_t fwTypeDescriptorAbiSize(uint64_t pointer_size) {
+  return pointer_size == 8 ? 72 : 44;
+}
 
 /// Emits `FWTypeDescriptor` LLVM global constants whose in-memory layout
 /// matches the C struct in fw-modules/gc/include/fw_gc.h byte-for-byte, and
@@ -58,7 +60,8 @@ public:
       : m_module(module), m_ctx(ctx) {}
 
   /// The LLVM struct type mirroring `FWTypeDescriptor` (created once, cached).
-  /// Element types: { i8*, i32, i32, i32*, i32, i32, i32, i32*, i8*, i64 }.
+  /// Element types: { i8*, i32, i32, i32*, i32, i32, i32, i32*, i8*, size_t,
+  /// i8* }, where size_t is sizeType().
   llvm::StructType *descriptorType();
 
   /// PLAIN descriptor (`FW_KIND_PLAIN`) for an object/class struct. Pointer
@@ -98,10 +101,14 @@ public:
   /// ARRAY descriptor whose elements are bare GC pointers (e.g. `str[]`, or the
   /// pointer slots of an array of arrays). The element descriptor is a PLAIN
   /// shape with a single pointer at offset 0. `elem_size` is the pointer size
-  /// (8 on LP64). Cached (one shared instance). Returned as `i8*`.
+  /// (8 on 64-bit targets, 4 on wasm32). Cached (one shared instance).
+  /// Returned as `i8*`.
   llvm::Constant *getOrEmitArrayOfPointer(uint64_t elem_size);
 
 private:
+  /// C's size_t on the module's target, for the elem_size field.
+  llvm::Type *sizeType();
+
   /// PLAIN descriptor describing a single pointer at offset 0 (used as the
   /// element descriptor of a pointer-element array). Cached.
   llvm::Constant *getSinglePointerElem();

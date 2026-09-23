@@ -42,6 +42,14 @@ static constexpr uint32_t kKindBlob = 1;
 static constexpr uint32_t kKindTagged = 2;
 static constexpr uint32_t kKindArray = 3;
 
+// C's size_t: i64 on 64-bit targets, i32 on wasm32. A fixed i64 put the
+// descriptor's last two fields 4 and 8 bytes past where the wasm32 runtime
+// reads them, so the GC called elem_size as the `trace` function pointer and
+// trapped the first time it scanned an array.
+llvm::Type *GCDescriptorEmitter::sizeType() {
+  return m_module->getDataLayout().getIntPtrType(*m_ctx);
+}
+
 llvm::StructType *GCDescriptorEmitter::descriptorType() {
   if (m_desc_ty)
     return m_desc_ty;
@@ -49,7 +57,7 @@ llvm::StructType *GCDescriptorEmitter::descriptorType() {
   llvm::Type *i8p = llvm::Type::getInt8PtrTy(*m_ctx);
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   // Field order MUST mirror `FWTypeDescriptor` exactly:
   //   const char *name;            -> i8*
@@ -61,24 +69,25 @@ llvm::StructType *GCDescriptorEmitter::descriptorType() {
   //   uint32_t    num_ptr_tags;    -> i32
   //   const int32_t *ptr_tags;     -> i32*
   //   const FWTypeDescriptor *elem_desc; -> i8* (opaque descriptor pointer)
-  //   size_t      elem_size;       -> i64 (LP64)
+  //   size_t      elem_size;       -> sizeType()
   //   fw_trace_fn trace;           -> i8* (opaque function pointer, or null)
   // A non-packed struct is used deliberately: LLVM's default aggregate layout
   // follows the same platform ABI as C, so the natural padding matches.
   m_desc_ty = llvm::StructType::create(
-      *m_ctx, {i8p, i32, i32, i32p, i32, i32, i32, i32p, i8p, i64, i8p},
+      *m_ctx, {i8p, i32, i32, i32p, i32, i32, i32, i32p, i8p, size_ty, i8p},
       "FWTypeDescriptor", /*isPacked=*/false);
 
-  // ABI tripwire: if the emitted layout is not 72 bytes on LP64, one of the
-  // element types above is wrong. Fix the element types, not this assert. In
+  // ABI tripwire: if the emitted layout is not the C struct's size for this
+  // target, one of the element types above is wrong. Fix the element types, not this assert. In
   // release builds NDEBUG strips the assert, so guard against an unused-var
   // warning under -Werror when it compiles out.
   const uint64_t alloc_size =
       m_module->getDataLayout().getTypeAllocSize(m_desc_ty).getFixedValue();
   (void)alloc_size;
-  assert(
-      alloc_size == kFWTypeDescriptorAbiSize &&
-      "FWTypeDescriptor LLVM layout must match the C struct (LP64=72 bytes)");
+  assert(alloc_size ==
+             fwTypeDescriptorAbiSize(
+                 m_module->getDataLayout().getPointerSize()) &&
+         "FWTypeDescriptor LLVM layout must match the C struct");
 
   return m_desc_ty;
 }
@@ -154,7 +163,7 @@ GCDescriptorEmitter::getOrEmitPlain(llvm::StructType *struct_ty) {
   llvm::Type *i8p = llvm::Type::getInt8PtrTy(*m_ctx);
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   // Collect byte offsets of every interior GC pointer (recursing through inline
   // nested structs and arrays) from the DataLayout.
@@ -206,7 +215,7 @@ GCDescriptorEmitter::getOrEmitPlain(llvm::StructType *struct_ty) {
           llvm::cast<llvm::PointerType>(i32p)), // ptr_tags
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // elem_desc
-      llvm::ConstantInt::get(i64, 0),          // elem_size
+      llvm::ConstantInt::get(size_ty, 0),          // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // trace
   };
@@ -228,7 +237,7 @@ llvm::Constant *GCDescriptorEmitter::getBlob() {
   llvm::Type *i8p = llvm::Type::getInt8PtrTy(*m_ctx);
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   llvm::Constant *name = emitCString("blob", "__gc_name_blob");
 
@@ -245,7 +254,7 @@ llvm::Constant *GCDescriptorEmitter::getBlob() {
           llvm::cast<llvm::PointerType>(i32p)), // ptr_tags
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // elem_desc
-      llvm::ConstantInt::get(i64, 0),          // elem_size
+      llvm::ConstantInt::get(size_ty, 0),          // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // trace
   };
@@ -266,7 +275,7 @@ llvm::Constant *GCDescriptorEmitter::getDynamic() {
   llvm::Type *i8p = llvm::Type::getInt8PtrTy(*m_ctx);
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   // Boxed dynamic value is `{ i32 tag; i64 value }`: int64 aligns to 8, so 4
   // bytes of padding follow `tag` and `value` sits at offset 8. Pointer tags
@@ -298,7 +307,7 @@ llvm::Constant *GCDescriptorEmitter::getDynamic() {
       tags_ptr,                                 // ptr_tags
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // elem_desc
-      llvm::ConstantInt::get(i64, 0),          // elem_size
+      llvm::ConstantInt::get(size_ty, 0),          // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // trace
   };
@@ -321,7 +330,7 @@ GCDescriptorEmitter::getOrEmitArray(llvm::StructType *elem_struct_ty,
 
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   // elem_desc is an i8* in our struct, so the i8* returned by getOrEmitPlain
   // can be stored directly. The boxed dynamic value `{ i32 tag; i64 value }`
@@ -348,7 +357,7 @@ GCDescriptorEmitter::getOrEmitArray(llvm::StructType *elem_struct_ty,
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i32p)), // ptr_tags
       elem_desc,                                // elem_desc
-      llvm::ConstantInt::get(i64, elem_size),   // elem_size
+      llvm::ConstantInt::get(size_ty, elem_size),   // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(llvm::Type::getInt8PtrTy(*m_ctx))), // trace
   };
@@ -370,7 +379,7 @@ llvm::Constant *GCDescriptorEmitter::getSinglePointerElem() {
   llvm::Type *i8p = llvm::Type::getInt8PtrTy(*m_ctx);
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   // A single pointer sits at byte offset 0 of the element slot.
   auto *offsets_arr_ty = llvm::ArrayType::get(i32, 1);
@@ -396,7 +405,7 @@ llvm::Constant *GCDescriptorEmitter::getSinglePointerElem() {
           llvm::cast<llvm::PointerType>(i32p)), // ptr_tags
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // elem_desc
-      llvm::ConstantInt::get(i64, 0),          // elem_size
+      llvm::ConstantInt::get(size_ty, 0),          // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i8p)), // trace
   };
@@ -416,7 +425,7 @@ llvm::Constant *GCDescriptorEmitter::getOrEmitArrayOfPointer(uint64_t elem_size)
 
   llvm::Type *i32 = llvm::Type::getInt32Ty(*m_ctx);
   llvm::Type *i32p = llvm::Type::getInt32PtrTy(*m_ctx);
-  llvm::Type *i64 = llvm::Type::getInt64Ty(*m_ctx);
+  llvm::Type *size_ty = sizeType();
 
   llvm::Constant *elem_desc = getSinglePointerElem();
   llvm::Constant *name = emitCString("array_ptr", "__gc_name_array_ptr");
@@ -433,7 +442,7 @@ llvm::Constant *GCDescriptorEmitter::getOrEmitArrayOfPointer(uint64_t elem_size)
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(i32p)), // ptr_tags
       elem_desc,                                // elem_desc
-      llvm::ConstantInt::get(i64, elem_size),   // elem_size
+      llvm::ConstantInt::get(size_ty, elem_size),   // elem_size
       llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(llvm::Type::getInt8PtrTy(*m_ctx))), // trace
   };

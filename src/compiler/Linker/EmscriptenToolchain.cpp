@@ -157,8 +157,8 @@ fs::path EmscriptenToolchain::runtimeArchive() const {
   return runtime_dir / "libflowwing_rt.a";
 }
 
-fs::path EmscriptenToolchain::nodeStdioScript() const {
-  return runtime_dir / "node-stdio.js";
+fs::path EmscriptenToolchain::nodeHostScript() const {
+  return runtime_dir / "node-host.js";
 }
 
 } // namespace linker

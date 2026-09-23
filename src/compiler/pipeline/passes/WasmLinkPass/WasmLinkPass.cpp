@@ -18,6 +18,7 @@
  */
 
 #include "WasmLinkPass.hpp"
+#include "src/IRGen/FlowWingConstants/FlowWingConstants.hpp"
 #include "src/IRGen/io/ObjectUtils.hpp"
 #include "src/common/cli/CliReporter.h"
 #include "src/common/utils/PathUtils/PathUtils.h"
@@ -30,6 +31,15 @@
 #include <string>
 #include <system_error>
 #include <vector>
+
+// clang-format off
+#include "src/compiler/diagnostics/DiagnosticPush.hpp"
+#include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "src/compiler/diagnostics/DiagnosticPop.hpp"
+// clang-format on
 
 namespace flow_wing {
 namespace compiler {
@@ -95,6 +105,36 @@ std::string optimizationFlag(OptimizationLevel level) {
   return "-O0";
 }
 
+// Whether any unit spawns a task, the only way a task switch can happen. Only
+// such a program is linked with Asyncify, which fw_sched.c needs to switch
+// stacks on wasm and which makes every program about 40% bigger and
+// collection-heavy ones up to a third slower. Read from each unit's bitcode,
+// so brought units count as well as the entry.
+bool spawnsTasks(const std::vector<std::string> &units) {
+  namespace functions = ir_gen::constants::functions;
+  llvm::LLVMContext llvm_context;
+  for (const auto &unit : units) {
+    auto buffer = llvm::MemoryBuffer::getFile(unit);
+    if (!buffer) {
+      continue; // em++ reports the missing file
+    }
+    auto module =
+        llvm::parseBitcodeFile((*buffer)->getMemBufferRef(), llvm_context);
+    if (!module) {
+      llvm::consumeError(module.takeError());
+      continue;
+    }
+    for (const auto name :
+         {functions::kSched_spawn_fn, functions::kSched_spawn_args_fn}) {
+      const llvm::Function *fn = (*module)->getFunction(name);
+      if (fn != nullptr && !fn->use_empty()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 std::string readFile(const fs::path &path) {
   std::ifstream in(path);
   std::stringstream text;
@@ -129,12 +169,12 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
   std::error_code error;
   fs::create_directories(out.parent_path(), error);
 
-  std::vector<std::string> args = {toolchain.linkerDriver()};
-  for (const auto &unit : context.getBroughtObjectFiles()) {
-    args.push_back(unit);
-  }
-  args.push_back(ir_gen::ObjectUtils::getObjectFilePath(
+  std::vector<std::string> units = context.getBroughtObjectFiles();
+  units.push_back(ir_gen::ObjectUtils::getObjectFilePath(
       context.getAbsoluteSourceFilePath(), context.getOptions().output_dir));
+
+  std::vector<std::string> args = {toolchain.linkerDriver()};
+  args.insert(args.end(), units.begin(), units.end());
   args.push_back(toolchain.runtimeArchive().string());
   args.push_back(optimizationFlag(context.getOptions().optimization_level));
 
@@ -146,11 +186,19 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
   // The same 8 MB a native main gets, instead of emscripten's 64 KB, so deep
   // recursion behaves the same on both.
   args.push_back("-sSTACK_SIZE=8388608");
+  if (spawnsTasks(units)) {
+    // Emscripten fibers switch stacks through Asyncify. wasm has no guard
+    // pages, so a task's stack overflow is caught instead by a stack-pointer
+    // check at every function entry, against the running fiber's limits.
+    args.push_back("-sASYNCIFY");
+    args.push_back("-sSTACK_OVERFLOW_CHECK=2");
+  }
   if (!browser) {
-    // Byte-exact stdout under Node. See node-stdio.js for why.
+    // Under Node: byte-exact stdout and the real environment. See
+    // node-host.js.
     args.push_back("-sFORCE_FILESYSTEM=1");
     args.push_back("--pre-js");
-    args.push_back(toolchain.nodeStdioScript().string());
+    args.push_back(toolchain.nodeHostScript().string());
   }
   args.push_back("-o");
   args.push_back(out.string());

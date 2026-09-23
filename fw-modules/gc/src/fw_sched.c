@@ -1,9 +1,10 @@
 /*
  * FlowWing Runtime - Cooperative coroutine scheduler (see fw_sched.h).
  *
- * Stack switching uses ucontext on POSIX and Fibers on Windows. Both are
- * platform-native, so there is no third-party dependency and no hand-written
- * assembly to keep per-architecture.
+ * Stack switching uses ucontext on POSIX, Fibers on Windows, and Emscripten
+ * fibers on wasm. All are platform-native, so there is no third-party
+ * dependency and no hand-written assembly to keep per-architecture.
+ * switch_to_scheduler and switch_to_task are the only places that differ.
  */
 
 /* Must precede every system header. Darwin hides makecontext/swapcontext
@@ -34,8 +35,14 @@
 #  endif
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #  include <windows.h>
+#elif defined(__EMSCRIPTEN__)
+/* wasm cannot switch stacks by itself. Emscripten's fibers do it with
+   Asyncify, which unwinds the wasm call stack into a buffer and rewinds it on
+   resume, so a program that spawns is linked with -sASYNCIFY (see
+   WasmLinkPass). */
+#  include <emscripten/fiber.h>
 #else
 #  include <ucontext.h>
 /* ucontext is deprecated on Darwin but still the only dependency-free way to
@@ -88,8 +95,10 @@ typedef struct FWTask {
 
   char *stack; /* NULL until first resume */
 
-#ifdef _WIN32
+#if defined(_WIN32)
   LPVOID fiber;
+#elif defined(__EMSCRIPTEN__)
+  emscripten_fiber_t fiber;
 #else
   ucontext_t ctx;
 #endif
@@ -109,8 +118,13 @@ static FWTask *g_all_tasks = NULL; /* every live task, for GC marking */
 static FWTask *g_current = NULL;   /* task on the CPU, NULL inside scheduler */
 static int     g_scanner_registered = 0;
 
-#ifdef _WIN32
+#if defined(_WIN32)
 static LPVOID g_sched_fiber = NULL;
+#elif defined(__EMSCRIPTEN__)
+/* The drain loop's fiber, which is main's. Asyncify keeps main's suspended
+   wasm locals in g_sched_asyncify while a task runs. */
+static emscripten_fiber_t g_sched_fiber;
+static char *g_sched_asyncify = NULL;
 #else
 static ucontext_t g_sched_ctx;
 #endif
@@ -232,7 +246,15 @@ static size_t stack_size(void) {
 
 /* ---- guard pages -------------------------------------------------------- */
 
-#ifndef _WIN32
+#if defined(__EMSCRIPTEN__)
+
+/* wasm memory has no page protection, so there is no guard page to fault on.
+   A program that spawns is linked with -sSTACK_OVERFLOW_CHECK=2 instead: every
+   function entry checks the stack pointer against the running fiber's limits,
+   which emscripten_fiber_swap updates, and aborts with "stack overflow". */
+static void install_stack_overflow_handler_once(void) {}
+
+#elif !defined(_WIN32)
 /* Every live stack's guard page, so the SIGSEGV handler can tell a task stack
    overflow apart from an ordinary bad pointer. Entries are never removed:
    stacks are pooled and reused for the whole run. */
@@ -374,7 +396,7 @@ static void install_stack_overflow_handler_once(void) {
   AddVectoredExceptionHandler(1, stack_overflow_handler);
 }
 
-#endif /* !_WIN32 */
+#endif /* __EMSCRIPTEN__ / POSIX / _WIN32 */
 
 /* ---- stack pool --------------------------------------------------------- */
 
@@ -391,10 +413,15 @@ static size_t g_stack_pool_len = 0, g_stack_pool_cap = 0;
 static char *stack_acquire(void) {
   if (g_stack_pool_len > 0) return g_stack_pool[--g_stack_pool_len];
 
-#ifdef _WIN32
+#if defined(_WIN32)
   /* Never called on Windows: CreateFiber owns the stack. Returning NULL keeps
      the signature without allocating memory nothing would use. */
   return NULL;
+#elif defined(__EMSCRIPTEN__)
+  /* One block: the C stack, then the same size again for Asyncify, which
+     saves a suspended task's wasm locals there. No guard page, see
+     install_stack_overflow_handler_once. */
+  return (char *)malloc(2 * stack_size());
 #else
   size_t page = page_size();
   size_t usable = stack_size();
@@ -466,22 +493,57 @@ static void unregister_task(FWTask *t) {
   t->next_all = NULL;
 }
 
+/* ---- stack switching ---------------------------------------------------- */
+
+/* The scheduler's only two moves: from a task back to the drain loop, and from
+   the drain loop into a task. Each platform's mechanism lives here and nowhere
+   else. */
+static void switch_to_scheduler(FWTask *t) {
+#if defined(_WIN32)
+  (void)t;
+  SwitchToFiber(g_sched_fiber);
+#elif defined(__EMSCRIPTEN__)
+  emscripten_fiber_swap(&t->fiber, &g_sched_fiber);
+#else
+  swapcontext(&t->ctx, &g_sched_ctx);
+#endif
+}
+
+static void switch_to_task(FWTask *t) {
+#if defined(_WIN32)
+  SwitchToFiber(t->fiber);
+#elif defined(__EMSCRIPTEN__)
+  emscripten_fiber_swap(&g_sched_fiber, &t->fiber);
+#else
+  swapcontext(&g_sched_ctx, &t->ctx);
+#endif
+}
+
 /* ---- task entry --------------------------------------------------------- */
 
-#ifdef _WIN32
-static VOID CALLBACK task_entry(PVOID param) {
-  FWTask *t = (FWTask *)param;
+static void run_task_body(FWTask *t) {
   if (t->args_fn != NULL) t->args_fn(t->args);
   else                    t->fn();
   t->state = FW_TASK_DONE;
-  SwitchToFiber(g_sched_fiber);
+}
+
+#if defined(_WIN32)
+static VOID CALLBACK task_entry(PVOID param) {
+  FWTask *t = (FWTask *)param;
+  run_task_body(t);
+  switch_to_scheduler(t);
+}
+#elif defined(__EMSCRIPTEN__)
+/* Like the Windows fiber, it switches away for good at the end rather than
+   returning from the fiber's entry function. */
+static void task_entry(void *param) {
+  FWTask *t = (FWTask *)param;
+  run_task_body(t);
+  switch_to_scheduler(t);
 }
 #else
 static void task_entry(void) {
-  FWTask *t = g_current;
-  if (t->args_fn != NULL) t->args_fn(t->args);
-  else                    t->fn();
-  t->state = FW_TASK_DONE;
+  run_task_body(g_current);
   /* uc_link returns us to the scheduler. */
 }
 #endif
@@ -535,11 +597,7 @@ void fw_sched_yield(void) {
   t->state = FW_TASK_SUSPENDED;
   queue_push(t);
 
-#ifdef _WIN32
-  SwitchToFiber(g_sched_fiber);
-#else
-  swapcontext(&t->ctx, &g_sched_ctx);
-#endif
+  switch_to_scheduler(t);
   /* Resumed. The drain loop restored fw_gc_shadow_top for us. */
 }
 
@@ -610,11 +668,7 @@ void fw_sched_park_io(void) {
   t->state = FW_TASK_SUSPENDED;
   queue_push(t);
 
-#ifdef _WIN32
-  SwitchToFiber(g_sched_fiber);
-#else
-  swapcontext(&t->ctx, &g_sched_ctx);
-#endif
+  switch_to_scheduler(t);
 }
 
 void fw_sched_wake_io(void) {
@@ -639,11 +693,7 @@ void fw_sched_sleep_ms(long long ms) {
   t->state = FW_TASK_SUSPENDED;
   queue_push(t);
 
-#ifdef _WIN32
-  SwitchToFiber(g_sched_fiber);
-#else
-  swapcontext(&t->ctx, &g_sched_ctx);
-#endif
+  switch_to_scheduler(t);
 }
 
 /* Non-zero while a drain loop is running. See fw_sched_drain. */
@@ -669,11 +719,23 @@ void fw_sched_drain(void) {
   }
   g_draining = 1;
 
-#ifdef _WIN32
+#if defined(_WIN32)
   int converted = 0;
   if (g_sched_fiber == NULL) {
     g_sched_fiber = ConvertThreadToFiber(NULL);
     converted = (g_sched_fiber != NULL);
+  }
+#elif defined(__EMSCRIPTEN__)
+  /* Tasks switch back to the fiber this loop runs on, so it must be one. Only
+     when there is work: every main drains on the way out. */
+  if (g_head < g_tail) {
+    if (g_sched_asyncify == NULL) g_sched_asyncify = (char *)malloc(stack_size());
+    if (g_sched_asyncify == NULL) { /* OOM: skip the tasks rather than crash */
+      g_draining = 0;
+      return;
+    }
+    emscripten_fiber_init_from_current_context(&g_sched_fiber, g_sched_asyncify,
+                                               stack_size());
   }
 #endif
 
@@ -772,6 +834,10 @@ void fw_sched_drain(void) {
         free(t);
         continue;
       }
+#elif defined(__EMSCRIPTEN__)
+      /* The C stack, then Asyncify's half of the same block. */
+      emscripten_fiber_init(&t->fiber, task_entry, t, t->stack, stack_size(),
+                            t->stack + stack_size(), stack_size());
 #else
       getcontext(&t->ctx);
       t->ctx.uc_stack.ss_sp = t->stack;
@@ -783,11 +849,7 @@ void fw_sched_drain(void) {
       fw_gc_shadow_top = t->shadow_top;
     }
 
-#ifdef _WIN32
-    SwitchToFiber(t->fiber);
-#else
-    swapcontext(&g_sched_ctx, &t->ctx);
-#endif
+    switch_to_task(t);
 
     g_current = saved_current;
     fw_gc_shadow_top = saved_chain;

@@ -39,7 +39,7 @@ struct EmscriptenToolchain {
   // python3, passed as EMSDK_PYTHON the way emsdk_env.sh does it. Empty when
   // the environment is already set up.
   std::string emsdk_python;
-  // <sdk>/lib/wasm32-emscripten: libflowwing_rt.a and node-stdio.js.
+  // <sdk>/lib/wasm32-emscripten: libflowwing_rt.a and node-host.js.
   std::filesystem::path runtime_dir;
   // Empty when everything was found; otherwise what the user should do.
   std::string problem;
@@ -54,7 +54,7 @@ struct EmscriptenToolchain {
   std::string linkerDriver() const;
 
   std::filesystem::path runtimeArchive() const;
-  std::filesystem::path nodeStdioScript() const;
+  std::filesystem::path nodeHostScript() const;
 };
 
 } // namespace linker

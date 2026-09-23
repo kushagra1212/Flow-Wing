@@ -5,11 +5,14 @@ Each fixture is built with `FlowWing --target=wasm32 --emit=exe`, run under
 Node, and compared exactly as tests/runner.py compares native runs: stdout
 then stderr, colour codes stripped, byte for byte against the .expect file.
 
+It also runs them under the same environment: FW_GC_STRESS=1 for GcTests and
+any `/; ENV:` header, both decided by tests/runner.py's own helpers.
+
 A fixture lands in one of four buckets:
 
   PASS         same output as native
   FAIL         built and ran, but the output differs, or it crashed
-  UNSUPPORTED  uses something wasm builds cannot do (spawn, a module the wasm
+  UNSUPPORTED  uses something wasm builds cannot do (a module the wasm
                runtime leaves out, or recursion deeper than the JavaScript
                engine allows); counted, not failed
   SKIP         a diagnostic fixture: it exists to fail compilation
@@ -32,10 +35,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, str(ROOT / "tests"))
+# The native runner's rules for a fixture's environment, so the two agree.
+from runner import get_test_env, test_forces_gc_stress  # noqa: E402
 ANSI = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-9;?]*[ -/]*[@-~])")
 
-# Printed by fw-modules/gc/wasm/fw_context_stubs.c at the first task switch.
-SPAWN_UNSUPPORTED = "is not supported on wasm yet"
 # wasm-ld naming a symbol from a module the wasm runtime does not include.
 MISSING_MODULE = re.compile(r"undefined symbol: (\S+)")
 # V8 stopping a wasm call chain. Every wasm call also uses the engine's own
@@ -96,15 +101,18 @@ def classify(fixture, compiler, work, timeout):
         # fixture is for, and the native runner checks those.
         return "SKIP", "does not compile (diagnostic fixture)"
 
+    env = dict(os.environ)
+    if test_forces_gc_stress(fixture):
+        env["FW_GC_STRESS"] = "1"
+    env.update(get_test_env(fixture))
     try:
         run = subprocess.run(["node", str(out_js)], capture_output=True,
                              text=True, errors="replace", timeout=timeout,
-                             stdin=subprocess.DEVNULL, cwd=str(fixture.parent))
+                             stdin=subprocess.DEVNULL, cwd=str(fixture.parent),
+                             env=env)
     except subprocess.TimeoutExpired:
         return "FAIL", f"timed out after {timeout}s"
     actual = strip_ansi(run.stdout + run.stderr)
-    if SPAWN_UNSUPPORTED in actual:
-        return "UNSUPPORTED", "uses spawn"
     if ENGINE_STACK_LIMIT in actual:
         return "UNSUPPORTED", "recursion deeper than the JavaScript engine's call stack"
     if actual == expected:

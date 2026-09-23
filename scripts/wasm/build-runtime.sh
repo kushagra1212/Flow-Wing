@@ -2,7 +2,7 @@
 # Compiles the Flow-Wing runtime to wasm32, once, into the SDK:
 #
 #   <sdk>/lib/wasm32-emscripten/libflowwing_rt.a
-#   <sdk>/lib/wasm32-emscripten/node-stdio.js
+#   <sdk>/lib/wasm32-emscripten/node-host.js
 #
 # FlowWing --target=wasm32 --emit=exe links every program against these.
 # Needs emsdk: emcc on PATH, or $EMSDK, or ~/emsdk.
@@ -32,7 +32,6 @@ C_SOURCES=(
   "$M"/built_in_module/*.c
   "$M"/dynamic/*.c
   "$M"/gc/src/*.c
-  "$M"/gc/wasm/*.c        # task-switch stubs until the scheduler's wasm backend
   "$M"/text_module/*.c
 )
 CXX_SOURCES=(
@@ -57,7 +56,7 @@ done
 rm -f "$OUT/libflowwing_rt.a"
 emar rcs "$OUT/libflowwing_rt.a" "$objects"/*.o
 rm -rf "$objects"
-cp "$ROOT/scripts/wasm/node-stdio.js" "$OUT/node-stdio.js"
+cp "$ROOT/scripts/wasm/node-host.js" "$OUT/node-host.js"
 
 count=$(( ${#C_SOURCES[@]} + ${#CXX_SOURCES[@]} ))
 echo "    Finished $OUT/libflowwing_rt.a ($count sources)"

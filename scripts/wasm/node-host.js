@@ -1,4 +1,10 @@
-// Byte-exact stdout and stderr for wasm builds run under Node (emcc --pre-js).
+// What a wasm build run under Node gets from its host, as a native program
+// gets it from the operating system (emcc --pre-js):
+//
+//   - byte-exact stdout and stderr
+//   - the process environment
+//
+// Byte-exact output:
 //
 // Emscripten's default terminal device prints one line at a time through
 // console.log, which appends a newline to whatever is left when the program
@@ -52,6 +58,18 @@ if (typeof process === "object" && typeof require === "function") {
   const err = sink(2);
   Module["stdout"] = out.put;
   Module["stderr"] = err.put;
+
+  // The environment. Emscripten gives a program a made-up one (USER=web_user,
+  // HOME=/home/web_user, ...), so getenv never saw Node's. The runtime reads
+  // FW_GC_STRESS and FW_TASK_STACK_KB, and sys::getEnv reads anything. ENV is
+  // Emscripten's table behind getenv; it exists only when the program uses
+  // getenv, and it is read once, on first use, which is after preRun.
+  Module["preRun"] = [].concat(Module["preRun"] || [], () => {
+    if (typeof ENV === "object") {
+      Object.assign(ENV, process.env);
+    }
+  });
+
   const previousOnExit = Module["onExit"];
   Module["onExit"] = (status) => {
     out.flush();

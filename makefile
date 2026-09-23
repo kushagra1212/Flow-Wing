@@ -522,7 +522,7 @@ test-wasm-smoke: build-aot-release
 	@python3 tests/wasm_parity.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(foreach dir,$(WASM_SMOKE_DIRS),--dir tests/fixtures/LatestTests/$(dir)) $(ARGS)
 
 #? Build a .fg to WebAssembly and run it with Node (scripts/wasm/run.sh).
-#? Wraps FlowWing --target=wasm32 --emit=exe. `spawn` is not supported yet.
+#? Wraps FlowWing --target=wasm32 --emit=exe.
 #?   make run-wasm FILE=path/to/prog.fg
 #?   make run-wasm FILE=path/to/prog.fg ARGS=--html
 .PHONY: run-wasm

@@ -155,6 +155,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 
     # Code Generation and Optimization
     LLVMBitWriter   # wasm32 builds write bitcode for emcc to compile
+    LLVMBitReader   # and read it back to see whether a program spawns
     LLVMCodeGen
     LLVMTarget
     LLVMTransformUtils
