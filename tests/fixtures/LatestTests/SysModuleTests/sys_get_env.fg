@@ -1,0 +1,15 @@
+/; ENV: FW_TEST_GREETING=hello from the environment
+/; ENV: FW_TEST_EMPTY=
+/; sys::getEnv reads a variable set for the test, and gives "" both for a
+/; variable that is not set and for one set to the empty string.
+bring sys
+
+println(sys::getEnv("FW_TEST_GREETING"))
+println("[" + sys::getEnv("FW_TEST_EMPTY") + "]")
+println("[" + sys::getEnv("FW_TEST_NOT_SET_ANYWHERE") + "]")
+
+/; The copy the program holds is its own: changing it changes nothing else.
+var greeting: str = sys::getEnv("FW_TEST_GREETING")
+greeting = greeting + "!"
+println(greeting)
+println(sys::getEnv("FW_TEST_GREETING"))

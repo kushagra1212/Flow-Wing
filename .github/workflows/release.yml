@@ -549,27 +549,30 @@ jobs:
                   fi
                   echo "wasm32 output matches native"
 
-            # --- Browser front end (FlowWing-<tag>-wasm-frontend.zip) ---
-            # The lexer, parser and semantic analysis as flowwing-frontend.{js,wasm}
+            # --- Browser front end (flowwing-frontend.js + .wasm) ---
+            # The lexer, parser and semantic analysis for the browser
             # (scripts/wasm/build-frontend.sh). The docs playground runs it to show tokens,
-            # trees and errors as the user types. The docs site has no emsdk, so it takes
-            # the files from the release. The same on every platform: built on Linux only.
+            # trees and errors as the user types. The docs site has no emsdk, so its build
+            # downloads these two files from the latest release
+            # (flow-wing-docs/scripts/fetch-frontend.mjs): hence fixed names, not a tag in
+            # the name. The same on every platform: built on Linux only.
             - name: Build browser front end (Linux)
               if: runner.os == 'Linux'
               shell: bash
               run: |
-                  OUT="$RUNNER_TEMP/wasm-frontend"
-                  bash scripts/wasm/build-frontend.sh "$OUT"
-                  mkdir -p release-stage
-                  zip -j "release-stage/FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-wasm-frontend.zip" \
-                      "$OUT/flowwing-frontend.js" "$OUT/flowwing-frontend.wasm"
+                  bash scripts/wasm/build-frontend.sh "$RUNNER_TEMP/wasm-frontend"
+                  mkdir -p release-stage/wasm-frontend
+                  cp "$RUNNER_TEMP/wasm-frontend/flowwing-frontend.js" \
+                     "$RUNNER_TEMP/wasm-frontend/flowwing-frontend.wasm" release-stage/wasm-frontend/
 
-            - name: Upload browser front end (release asset)
+            - name: Upload browser front end (release assets)
               if: runner.os == 'Linux' && github.event_name == 'release'
               uses: softprops/action-gh-release@v2
               with:
                   tag_name: ${{ github.event.release.tag_name }}
-                  files: release-stage/FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-wasm-frontend.zip
+                  files: |
+                      release-stage/wasm-frontend/flowwing-frontend.js
+                      release-stage/wasm-frontend/flowwing-frontend.wasm
                   fail_on_unmatched_files: true
 
             - name: Upload browser front end (workflow artifact)
@@ -577,7 +580,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: wasm-frontend
-                  path: release-stage/FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-wasm-frontend.zip
+                  path: release-stage/wasm-frontend/
                   if-no-files-found: error
 
             # --- Create archive ---

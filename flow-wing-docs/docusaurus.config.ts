@@ -20,10 +20,16 @@ const config: Config = {
   onBrokenLinks: "throw",
 
   customFields: {
-    // The playground's compile server (playground/server in the Flow-Wing
-    // repo). Set PLAYGROUND_COMPILE_URL for the deployed one.
-    playgroundCompileUrl:
-      process.env.PLAYGROUND_COMPILE_URL ?? "http://localhost:8787/compile",
+    // The Flow-Wing server the playground compiles and runs programs on
+    // (server.fg in flowwing-explorer/flow-wing-website). `yarn start` uses
+    // one running locally; a production build, the deployed one. Set
+    // PLAYGROUND_SERVER_URL to choose another, or open the playground with
+    // ?server=<url>.
+    playgroundServerUrl:
+      process.env.PLAYGROUND_SERVER_URL ??
+      (process.env.NODE_ENV === "production"
+        ? "https://flowwing.kushagrarathore.in"
+        : "http://localhost:8080"),
   },
   onBrokenMarkdownLinks: "warn",
 

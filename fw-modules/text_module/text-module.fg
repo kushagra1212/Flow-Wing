@@ -14,6 +14,8 @@ fun strReplace(str1: as str, target: as str, replacement: as str) -> as str decl
 fun strStartsWith(str1: as str, prefix: as str) -> as int decl
 
 fun strEndsWith(str1: as str, suffix: as str) -> as int decl
+
+fun strSlice(str1: as str, start: as int, end: as int) -> as str decl
 module [text]
 
 fun getLength(str1: str) -> int {
@@ -60,14 +62,22 @@ fun equalsIgnoreCase(str1: str, str2: str) -> bool {
     return toLower(str1) == toLower(str2)
 }
 
+/; The bytes from start up to, not including, end. "" when start >= end.
+/;
+/; Copied as bytes, so UTF-8 text stays intact: building the result one char
+/; at a time turned each byte of "é" into a character of its own.
 fun substring(source: str, start: int, end: int) -> str {
-    var result: str = ""
-    var i = start
-    while i < end {
-        result = result + source[i]
-        i = i + 1
+    if start >= end {
+        return ""
     }
-    return result
+    /; An index outside the string is the same runtime error as before, naming
+    /; the same index: the first one out of range.
+    var n: int = text::length(source)
+    var probe: char = source[start]
+    if end > n {
+        probe = source[n]
+    }
+    return strSlice(source, start, end)
 }
 
 /; Finds the first occurrence of a target substring. Returns -1 if not found.

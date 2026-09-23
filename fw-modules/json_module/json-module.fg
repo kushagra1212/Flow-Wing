@@ -287,30 +287,80 @@ class JsonParser {
     return arr
   }
 
+  /; Unescaped text is copied a run at a time, as bytes, so UTF-8 passes
+  /; through unchanged. Copying it one char at a time turned each byte of a
+  /; multi-byte character into a character of its own: "é" came back as "Ã©".
   fun parseString() -> json::JsonNode {
     self.advance()
     var builder: text::Text = new text::Text("")
-    
-    while self.pos < self.len {
+    var runStart: int = self.pos
 
-      var c = self.advance()
+    while self.pos < self.len {
+      var c: char = self.peek()
 
       if c == '"' {
+        builder.concat(text::substring(self.src.get(), runStart, self.pos))
+        self.advance()
         return json::newString(builder.get())
       }
       if c == '\\' {
-        var esc = self.advance()
+        builder.concat(text::substring(self.src.get(), runStart, self.pos))
+        self.advance()
+        var esc: char = self.advance()
         if esc == 'n' { builder.concat("\n") }
         else if esc == 't' { builder.concat("\t") }
-        else if esc == '"' { builder.concat("\"") }
-        else if esc == '\\' { builder.concat("\\") }
-        else { builder.concat(esc) }
+        else if esc == 'r' { builder.concat("\r") }
+        else if esc == 'b' { builder.concat(String(Char(8))) }
+        else if esc == 'f' { builder.concat(String(Char(12))) }
+        else if esc == 'u' { builder.concat(self.parseUnicodeEscape()) }
+        else { builder.concat(String(esc)) }
+        runStart = self.pos
       } else {
-        builder.concat(String(c))
+        self.advance()
       }
-
     }
+    builder.concat(text::substring(self.src.get(), runStart, self.pos))
     return json::newString(builder.get())
+  }
+
+  /; The four hex digits after \u, or -1 if they are not four hex digits.
+  fun parseHex4() -> int {
+    var value: int = 0
+    var i: int = 0
+    while i < 4 {
+      var c: char = self.peek()
+      var digit: int = -1
+      if c >= '0' && c <= '9' { digit = Int32(c) - Int32('0') }
+      else if c >= 'a' && c <= 'f' { digit = Int32(c) - Int32('a') + 10 }
+      else if c >= 'A' && c <= 'F' { digit = Int32(c) - Int32('A') + 10 }
+      if digit < 0 { return -1 }
+      value = value * 16 + digit
+      self.advance()
+      i = i + 1
+    }
+    return value
+  }
+
+  /; \uXXXX, as UTF-8. A character outside the Basic Multilingual Plane comes
+  /; as two escapes, a surrogate pair; half a pair becomes U+FFFD.
+  fun parseUnicodeEscape() -> str {
+    var unit: int = self.parseHex4()
+    if unit < 0 { return String(Char(65533)) }
+    if unit >= 55296 && unit <= 56319 {
+      if self.pos + 1 < self.len && self.src.charAt(self.pos) == '\\' && self.src.charAt(self.pos + 1) == 'u' {
+        var mark: int = self.pos
+        self.advance()
+        self.advance()
+        var low: int = self.parseHex4()
+        if low >= 56320 && low <= 57343 {
+          return String(Char(65536 + (unit - 55296) * 1024 + (low - 56320)))
+        }
+        self.pos = mark
+      }
+      return String(Char(65533))
+    }
+    if unit >= 56320 && unit <= 57343 { return String(Char(65533)) }
+    return String(Char(unit))
   }
 
   fun parseNumber() -> json::JsonNode {

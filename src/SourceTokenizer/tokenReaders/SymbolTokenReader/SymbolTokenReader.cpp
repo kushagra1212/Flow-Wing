@@ -69,6 +69,19 @@ std::unique_ptr<syntax::SyntaxToken>
 SymbolTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t start = lexer.position();
 
+  // A character outside ASCII is never a symbol. Take all of its UTF-8 bytes,
+  // so the error names the whole character, once, at its first byte.
+  if (static_cast<unsigned char>(lexer.currentChar()) >= 0x80) {
+    std::string character(1, lexer.currentChar());
+    lexer.advancePosition();
+    while (!lexer.isEOLorEOF() &&
+           (static_cast<unsigned char>(lexer.currentChar()) & 0xC0) == 0x80) {
+      character += lexer.currentChar();
+      lexer.advancePosition();
+    }
+    return badCharacterToken(lexer, character, start);
+  }
+
   const std::string single_char_symbol(1, lexer.currentChar());
   lexer.advancePosition();
   const std::string &two_char_symbol = single_char_symbol + lexer.currentChar();

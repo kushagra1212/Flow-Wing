@@ -1,0 +1,5 @@
+/; Text outside ASCII is fine in strings and comments: é, —, 日本, 😀.
+/# And in multi-line comments: ünïcödé #/
+var greeting: str = "héllo — 日本 😀"
+println(greeting)
+println(`in backticks: é — 日本`)

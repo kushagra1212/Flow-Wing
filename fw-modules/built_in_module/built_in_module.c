@@ -545,6 +545,13 @@ char* fg_get_arg(int index) {
     return fg_argv[index];
 }
 
+// sys::getEnv. A copy, so the string the program holds cannot change under it;
+// "" when the variable is not set.
+char* fg_get_env(const char* name) {
+    const char* value = name ? getenv(name) : NULL;
+    return fg_cs(value ? value : "", "");
+}
+
 void fg_exit(int code) {
     exit(code);
 }

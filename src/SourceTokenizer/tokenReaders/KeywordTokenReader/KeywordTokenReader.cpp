@@ -76,7 +76,8 @@ KeywordTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
 
   while (!lexer.isEOLorEOF() &&
-         (isalnum(lexer.currentChar()) || lexer.currentChar() == '_')) {
+         (isalnum(static_cast<unsigned char>(lexer.currentChar())) ||
+          lexer.currentChar() == '_')) {
     lexer.advancePosition();
   }
   const size_t &length = lexer.position() - start;

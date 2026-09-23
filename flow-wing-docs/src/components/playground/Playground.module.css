@@ -1,72 +1,443 @@
-.playground {
-  max-width: 1400px;
+/* The playground: a dark workbench in both site themes. The editor's Prism
+   theme and the compiler's terminal colours are made for a dark background;
+   the page around it keeps the site's own theme. */
+
+.workbench {
+  --pg-bg: #0d1117;
+  --pg-panel: #11161d;
+  --pg-raised: #171e27;
+  --pg-line: #232c37;
+  --pg-line-strong: #33404e;
+  --pg-text: #d6dde5;
+  --pg-muted: #8592a0;
+  --pg-faint: #56616d;
+  --pg-signal: #3ec8e0;
+  --pg-signal-soft: rgba(62, 200, 224, 0.14);
+  --pg-ok: #56d68a;
+  --pg-error: #ff6b6b;
+  --pg-warn: #f5b942;
+  --pg-mono: var(--ifm-font-family-monospace);
+  --pg-code-padding-x: 16px;
+
+  /* Infima's own colours, as the dark theme sets them, whatever the site's
+     theme: tables, details and links inside the workbench use them. */
+  --ifm-table-border-color: var(--pg-line);
+  --ifm-table-head-background: transparent;
+  --ifm-table-stripe-background: transparent;
+  --ifm-font-color-base: var(--pg-text);
+  --ifm-color-content: var(--pg-text);
+  --ifm-link-color: var(--pg-signal);
+
+  display: flex;
+  flex-direction: column;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 2rem;
+  border: 1px solid var(--pg-line);
+  border-radius: 14px;
+  overflow: hidden;
+  color: var(--pg-text);
+  background:
+    radial-gradient(1200px 400px at 10% -10%, rgba(62, 200, 224, 0.07), transparent 60%),
+    radial-gradient(900px 300px at 110% 0%, rgba(86, 214, 138, 0.05), transparent 60%),
+    var(--pg-bg);
+  box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.6);
+  animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.workbench :focus-visible {
+  outline: 2px solid var(--pg-signal);
+  outline-offset: 2px;
+}
+
+.workbench code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: 0.95em;
+}
+
+.spacer { flex: 1; }
+
+/* Read by screen readers, not shown. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.muted { color: var(--pg-muted); }
+
+/* ---- toolbar ---- */
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--pg-line);
+  background: rgba(13, 17, 23, 0.6);
 }
 
-.examples {
+.control {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+}
+
+.controlLabel {
+  font-family: var(--pg-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+}
+
+.select {
+  padding: 6px 8px;
+  border: 1px solid var(--pg-line-strong);
+  border-radius: 8px;
+  background: var(--pg-raised);
+  color: var(--pg-text);
+  font-size: 13px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--pg-line-strong);
+  border-radius: 10px;
+  background: var(--pg-panel);
+}
+
+.segment,
+.segmentOn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pg-muted);
+  font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
 }
 
-.examples select {
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--ifm-color-emphasis-300);
-  border-radius: var(--ifm-global-radius);
-  background: var(--ifm-background-surface-color);
-  color: var(--ifm-font-color-base);
+.segment:hover { color: var(--pg-text); }
+
+.segmentOn {
+  background: var(--pg-signal-soft);
+  color: var(--pg-signal);
+  box-shadow: inset 0 0 0 1px rgba(62, 200, 224, 0.35);
 }
 
-.status {
-  color: var(--ifm-color-emphasis-700);
-  font-size: 0.9rem;
+.ghostButton,
+.runButton,
+.miniButton {
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms, background 150ms, border-color 150ms, color 150ms;
 }
 
-.panes {
+.ghostButton {
+  padding: 7px 14px;
+  border: 1px solid var(--pg-line-strong);
+  background: transparent;
+  color: var(--pg-text);
+  font-size: 13px;
+}
+
+.ghostButton:hover:not(:disabled) { border-color: var(--pg-muted); }
+
+.ghostButton:disabled,
+.miniButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.runButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  border: 0;
+  background: linear-gradient(135deg, #3ec8e0, #2fa5d6);
+  color: #03141a;
+  font-size: 14px;
+  box-shadow: 0 6px 20px -8px rgba(62, 200, 224, 0.8);
+}
+
+.runButton:hover { transform: translateY(-1px); }
+.runButton:active { transform: translateY(0); }
+
+.miniButton {
+  padding: 3px 10px;
+  border: 1px solid var(--pg-line-strong);
+  background: var(--pg-raised);
+  color: var(--pg-text);
+  font-size: 12px;
+}
+
+.miniButton:hover:not(:disabled) { border-color: var(--pg-signal); color: var(--pg-signal); }
+
+/* ---- the pipeline: tabs drawn as the compiler's stages ---- */
+
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--pg-line);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.stages {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+/* The line the stages sit on. While something works, a pulse runs along it. */
+.wire {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 17px;
+  height: 1px;
+  background: var(--pg-line-strong);
+  overflow: hidden;
+}
+
+.pipeline[data-busy="true"] .wire::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--pg-signal), transparent);
+  animation: signal 1.1s linear infinite;
+}
+
+@keyframes signal {
+  from { left: -30%; }
+  to { left: 100%; }
+}
+
+.sides {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  padding-left: 12px;
+  border-left: 1px solid var(--pg-line);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 112px;
+  padding: 8px 12px 10px;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  color: var(--pg-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+
+.sideTab { min-width: 88px; }
+
+.tab:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.02); }
+
+.tab[aria-selected="true"] {
+  color: var(--pg-text);
+  background: var(--pg-panel);
+  box-shadow: inset 0 2px 0 var(--pg-signal);
+}
+
+.tabTop {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+/* The wire shows between the stages, not through their names. */
+.stageTab .tabTop { gap: 0; }
+
+.stageTab .stageNumber,
+.stageTab .tabLabel {
+  position: relative;
+  z-index: 1;
+  padding-right: 6px;
+  background: var(--pg-bg);
+}
+
+.stageTab .stageNumber { padding-left: 7px; }
+
+.stageTab[aria-selected="true"] .stageNumber,
+.stageTab[aria-selected="true"] .tabLabel { background: var(--pg-panel); }
+
+.dot {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--pg-bg);
+  box-shadow: 0 0 0 1.5px var(--pg-faint);
+  transition: background 200ms, box-shadow 200ms;
+}
+
+.tab[data-state="ok"] .dot { background: var(--pg-ok); box-shadow: 0 0 0 3px rgba(86, 214, 138, 0.18); }
+.tab[data-state="error"] .dot { background: var(--pg-error); box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2); }
+.tab[data-state="stale"] .dot { background: var(--pg-warn); box-shadow: 0 0 0 3px rgba(245, 185, 66, 0.15); }
+.tab[data-state="skipped"] .dot { background: transparent; box-shadow: 0 0 0 1.5px var(--pg-line-strong); }
+.tab[data-state="working"] .dot {
+  background: var(--pg-signal);
+  animation: pulse 900ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(62, 200, 224, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(62, 200, 224, 0); }
+}
+
+.stageNumber {
+  font-family: var(--pg-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--pg-faint);
+}
+
+.tabLabel {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.tabDetail {
+  padding-left: 16px;
+  font-family: var(--pg-mono);
+  font-size: 11px;
+  color: var(--pg-faint);
+  white-space: nowrap;
+}
+
+.tab[data-state="error"] .tabDetail { color: var(--pg-error); }
+.tab[data-state="skipped"] { opacity: 0.6; }
+
+/* ---- body: editor and the selected panel ---- */
+
+.body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  height: 70vh;
-  min-height: 420px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: 68vh;
+  min-height: 460px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--pg-line);
+}
+
+.panel {
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 16px;
+  background: var(--pg-panel);
+  font-size: 13.5px;
 }
 
 /* ---- editor: a transparent textarea over its highlighted copy ---- */
 
 .editor {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--ifm-global-radius);
-  background: #2d2d2d;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: #1d1f21;
 }
 
-.editor:focus-within {
-  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+.gutter {
+  flex: none;
+  width: 48px;
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background: #191b1d;
+  user-select: none;
 }
+
+.gutterInner {
+  padding: 14px 10px 14px 0;
+  font-family: var(--pg-mono);
+  font-size: 12px;
+  line-height: 21px;
+  text-align: right;
+  color: #5c6370;
+  will-change: transform;
+}
+
+.gutter_error,
+.gutter_warning {
+  position: relative;
+  font-weight: 700;
+}
+
+.gutter_error { color: var(--pg-error); }
+.gutter_warning { color: var(--pg-warn); }
+
+.gutter_error::before,
+.gutter_warning::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.code {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.editor:focus-within { box-shadow: inset 0 0 0 1px rgba(62, 200, 224, 0.4); }
 
 /* Two classes, so these win over Prism's and Infima's `pre` styles. Every
-   property that moves text must be the same on both layers. */
+   property that moves text must be the same on both layers, and match
+   LINE_HEIGHT and PADDING_TOP in Editor.tsx. */
 .editor .layer {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
   margin: 0;
-  padding: 1rem;
+  padding: 14px var(--pg-code-padding-x);
   border: 0;
   border-radius: 0;
   background: transparent;
-  font-family: var(--ifm-font-family-monospace);
+  font-family: var(--pg-mono);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 21px;
   letter-spacing: normal;
   tab-size: 2;
   text-align: left;
@@ -88,55 +459,441 @@
   caret-color: #fff;
 }
 
-.editor .input::selection {
-  background: rgba(255, 255, 255, 0.25);
+.editor .input::selection { background: rgba(255, 255, 255, 0.22); }
+
+.overlayClip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  font-family: var(--pg-mono);
+  font-size: 14px;
+  will-change: transform;
+}
+
+.lineMark {
+  position: absolute;
+  left: 0;
+  right: -10000px;
+  height: 21px;
+}
+
+.lineMark_error { background: rgba(255, 107, 107, 0.1); box-shadow: inset 2px 0 0 var(--pg-error); }
+.lineMark_warning { background: rgba(245, 185, 66, 0.08); box-shadow: inset 2px 0 0 var(--pg-warn); }
+
+.highlightBox {
+  position: absolute;
+  height: 21px;
+  border-radius: 3px;
+  background: rgba(62, 200, 224, 0.2);
+  box-shadow: 0 0 0 1px rgba(62, 200, 224, 0.55);
+  transition: top 80ms, left 80ms, width 80ms;
+}
+
+/* ---- standard input ---- */
+
+.stdin {
+  border-top: 1px solid var(--pg-line);
+  background: var(--pg-panel);
+}
+
+.stdinToggle {
+  width: 100%;
+  padding: 8px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--pg-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stdinBox {
+  display: block;
+  width: 100%;
+  height: 90px;
+  padding: 8px 14px;
+  border: 0;
+  border-top: 1px solid var(--pg-line);
+  resize: vertical;
+  background: #14191f;
+  color: var(--pg-text);
+  font-family: var(--pg-mono);
+  font-size: 13px;
+  outline: none;
+}
+
+/* ---- panels ---- */
+
+.viewBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.viewTitle {
+  font-family: var(--pg-mono);
+  font-size: 12px;
+  color: var(--pg-text);
+}
+
+.viewHint {
+  color: var(--pg-muted);
+  font-size: 12.5px;
+}
+
+.explain {
+  margin: 0 0 12px;
+  color: var(--pg-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.empty {
+  margin: 24px 4px;
+  color: var(--pg-muted);
+}
+
+.stale {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--pg-warn);
+  border-radius: 0 8px 8px 0;
+  background: rgba(245, 185, 66, 0.08);
+  color: #f3d9a0;
+  font-size: 12.5px;
+}
+
+.subhead {
+  margin: 18px 0 8px;
+  font-family: var(--pg-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+}
+
+.filter {
+  width: 200px;
+  padding: 4px 10px;
+  border: 1px solid var(--pg-line-strong);
+  border-radius: 8px;
+  background: var(--pg-raised);
+  color: var(--pg-text);
+  font-size: 12.5px;
+}
+
+.table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.table th,
+.table td {
+  padding: 4px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--pg-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  position: sticky;
+  top: -14px;
+  background: var(--pg-panel);
+  font-family: var(--pg-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+}
+
+.table thead,
+.table tr {
+  border: 0;
+  background: transparent !important;
+}
+.table tbody tr[tabindex="0"] { cursor: pointer; }
+.table tbody tr:hover,
+.table tbody tr:focus-visible { background: var(--pg-signal-soft) !important; }
+.table td.code { font-family: var(--pg-mono); color: #e8eef4; }
+
+.token_keyword { color: #c792ea; }
+.token_identifier { color: #82aaff; }
+.token_literal { color: #c3e88d; }
+.token_punctuation { color: #89ddff; }
+.token_eof { color: var(--pg-faint); }
+.token_bad { color: var(--pg-error); }
+
+.barCell { width: 30%; }
+
+.bar {
+  display: block;
+  height: 8px;
+  min-width: 2px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2fa5d6, var(--pg-signal));
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.plainList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.details { margin: 4px 0; }
+.details summary { cursor: pointer; color: var(--pg-muted); font-size: 12.5px; }
+
+.listing {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--pg-line);
+  border-radius: 10px;
+  background: #0b0f14 !important;
+  color: #d6dde5;
+  font-family: var(--pg-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow: auto;
+}
+
+/* ---- trees ---- */
+
+.tree,
+.treeGroup {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.treeGroup {
+  margin-left: 9px;
+  padding-left: 10px;
+  border-left: 1px dashed var(--pg-line-strong);
+}
+
+.treeRow {
+  display: flex;
+  align-items: baseline;
+}
+
+.treeToggle {
+  flex: none;
+  width: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--pg-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.treeToggle:disabled { cursor: default; color: var(--pg-faint); }
+
+.treeLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--pg-text);
+  font-family: var(--pg-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: left;
+  cursor: pointer;
+}
+
+.treeLabel:hover,
+.treeLabel:focus-visible { background: var(--pg-signal-soft); }
+
+.treeField { color: var(--pg-faint); }
+.treeField::after { content: ":"; }
+.treeKind { color: #89ddff; font-weight: 600; }
+.treeValue { color: #c3e88d; }
+.treeType { color: #c792ea; }
+.treeRange { color: var(--pg-faint); font-size: 11px; }
+
+.treeProperty {
+  display: flex;
+  gap: 6px;
+  padding: 0 6px 0 24px;
+  font-family: var(--pg-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--pg-muted);
 }
 
 /* ---- output ---- */
 
 .output {
   margin: 0;
-  padding: 1rem;
-  overflow: auto;
-  border-radius: var(--ifm-global-radius);
-  background: #1e1e1e;
+  padding: 0;
+  background: transparent;
   color: #e6e6e6;
-  font-size: 14px;
-  line-height: 1.5;
+  font-family: var(--pg-mono);
+  font-size: 13.5px;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.stderr {
-  color: #ff8a80;
+.outputFooter {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pg-line);
+  font-family: var(--pg-mono);
+  font-size: 11.5px;
+  color: var(--pg-muted);
 }
 
-.notice {
-  color: #ffd166;
-  font-style: italic;
+.stderr { color: #ff8a80; }
+.notice { color: var(--pg-warn); font-style: italic; }
+.placeholder { color: var(--pg-faint); }
+
+/* ---- problems ---- */
+
+.problems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.placeholder {
-  color: #8a8a8a;
+.problems > li {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--pg-line);
+  border-radius: 10px;
+  background: var(--pg-raised);
 }
 
-.note {
-  margin: 0.75rem 0 0;
-  color: var(--ifm-color-emphasis-600);
-  font-size: 0.85rem;
+.problem_error { box-shadow: inset 3px 0 0 var(--pg-error); }
+.problem_warning { box-shadow: inset 3px 0 0 var(--pg-warn); }
+
+.problemHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pg-text);
+  text-align: left;
+  cursor: pointer;
 }
 
-@media (max-width: 996px) {
-  .panes {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+.problemHead:disabled { cursor: default; }
 
-  .editor,
-  .output {
-    height: 50vh;
-  }
+.problemIcon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--pg-error);
+  font-size: 11px;
+  font-weight: 700;
 }
+
+.problem_warning .problemIcon { background: rgba(245, 185, 66, 0.15); color: var(--pg-warn); }
+.problemMessage { font-weight: 600; }
+.problemWhere { font-family: var(--pg-mono); font-size: 11.5px; color: var(--pg-muted); }
+
+.problemNotes {
+  margin: 8px 0 4px 30px;
+  padding: 0;
+  list-style: none;
+  color: var(--pg-muted);
+  font-size: 12.5px;
+}
+
+.problemNotes li::before { content: "→ "; color: var(--pg-signal); }
+.problems .details { margin-left: 30px; }
+
+/* ---- logs ---- */
+
+.logs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--pg-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.logs li {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 10px;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.logTime { color: var(--pg-faint); }
+
+.logSource {
+  min-width: 72px;
+  color: var(--pg-muted);
+}
+
+.log_ok .logText { color: var(--pg-ok); }
+.log_warn .logText { color: var(--pg-warn); }
+.log_error .logText { color: var(--pg-error); }
+
+/* ---- status bar ---- */
+
+.statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  padding: 7px 14px;
+  border-top: 1px solid var(--pg-line);
+  font-family: var(--pg-mono);
+  font-size: 11.5px;
+  color: var(--pg-muted);
+}
+
+.statusOn::before,
+.statusOff::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--pg-ok);
+}
+
+.statusOff::before { background: var(--pg-faint); }
 
 /* ---- terminal colours (ansi.tsx) ---- */
 
@@ -150,3 +907,27 @@
 .ansi_cyan { color: #66d9e8; }
 .ansi_white { color: #f8f9fa; }
 .ansi_gray { color: #adb5bd; }
+
+/* ---- small screens: editor above the panel ---- */
+
+@media (max-width: 996px) {
+  .body {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .left {
+    height: 55vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--pg-line);
+  }
+
+  .panel { height: 60vh; }
+  .columns { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbench,
+  .pipeline[data-busy="true"] .wire::after,
+  .tab[data-state="working"] .dot { animation: none; }
+}

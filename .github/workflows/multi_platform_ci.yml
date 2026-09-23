@@ -607,6 +607,17 @@ jobs:
           LDFLAGS: -fuse-ld=lld
         run: make test-wasm-frontend
 
+      # The playground's compile step (flowwing-explorer/flow-wing-website/
+      # sandbox/compile.mjs), which the website's POST /compile runs in its
+      # sandbox: IR, wasm, WAT, errors, and refused options.
+      - name: Playground compile step tests
+        if: success() || failure()
+        env:
+          CC: clang-17
+          CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
+        run: make test-website
+
       # Every runtime function Flow-Wing declares, compared as wasm32 function
       # types with the C definition: wasm-ld rejects a mismatch that native
       # linkers accept silently.

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ std::unique_ptr<syntax::SyntaxToken>
 WhiteSpaceTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
 
-  while (!lexer.isEOLorEOF() && isspace(lexer.currentChar())) {
+  while (!lexer.isEOLorEOF() && isspace(static_cast<unsigned char>(lexer.currentChar()))) {
     lexer.advancePosition();
   }
 

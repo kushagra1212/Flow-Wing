@@ -44,13 +44,16 @@ TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {
   if (lexer.isEOL())
     return std::make_unique<EndOfLineTokenReader>();
 
-  if (isspace(lexer.currentChar()))
+  // ctype takes an unsigned char: a UTF-8 byte is negative as a char.
+  const auto current = static_cast<unsigned char>(lexer.currentChar());
+
+  if (isspace(current))
     return std::make_unique<WhiteSpaceTokenReader>();
 
-  if (isdigit(lexer.currentChar()))
+  if (isdigit(current))
     return std::make_unique<NumberTokenReader>();
 
-  if (isalpha(lexer.currentChar()) || lexer.currentChar() == '_')
+  if (isalpha(current) || current == '_')
     return std::make_unique<KeywordTokenReader>();
 
   if (lexer.currentChar() == '\'')

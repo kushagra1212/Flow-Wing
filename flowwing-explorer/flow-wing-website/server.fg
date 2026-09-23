@@ -23,11 +23,22 @@
 /;  the scheduler runs queued handlers while it waits for the next connection.
 /;  Same shape as the portfolio site.
 /;
-/;  ---- POST /run ----
+/;  ---- POST /run and POST /compile ----
 /;
-/;  POST /run runs docker through sys::exec. Inside a task, with the vortex
-/;  loop running, sys::exec suspends only that task while docker works, so
-/;  other visitors keep being served. See the comment on runSandbox below.
+/;  Both run docker through sys::run. Inside a task, with the vortex loop
+/;  running, that suspends only the task while docker works, so other visitors
+/;  keep being served. See runSandbox and compileProgram below.
+/;
+/;  ---- Configuration (environment) ----
+/;
+/;    FLOWWING_PLAYGROUND_SANDBOX    docker (default): every program runs in a
+/;                                   throwaway container.
+/;                                   host: runs the compiler, and /run runs the
+/;                                   program, directly on this machine. For
+/;                                   local development only: nothing is
+/;                                   sandboxed.
+/;    FLOWWING_PLAYGROUND_COMPILER   host mode: the FlowWing to use
+/;                                   (default: flowwing on PATH)
 /; =========================================================
 bring vortex
 bring file
@@ -37,6 +48,7 @@ bring Err
 bring json
 bring sys
 bring mongo
+bring map
 /; =========================================================
 /;  Shared state
 /;
@@ -51,6 +63,14 @@ var gAdminPath: str = ""
 var gAdminEventsPath: str = ""
 var gEvents: mongo::Collection = null
 var gTrackingOn: bool = false
+var gSandbox: str = "docker"
+var gHostCompiler: str = "flowwing"
+/; Written by request tasks. Safe without locks: tasks share one thread and
+/; switch only where they wait, never between a read and the write after it.
+var gSubmissionCount: int = 0
+var gCompileBusy: bool = false
+var gCompileWaiting: int = 0
+var gCompileCache: map::Map = new map::Map()
 /; =========================================================
 /;  GET / -> the landing page
 /;
@@ -98,25 +118,66 @@ fun sendIndex(res: vortex::Response) -> nthg {
 }
 
 /; =========================================================
+/;  Playground requests
+/;
+/;  The docs site calls /run and /compile from another origin, so both answer
+/;  with Access-Control-Allow-Origin: *. That is safe here: no cookie or login
+/;  is involved, and CORS would not stop a client that is not a browser anyway.
+/;  What bounds the load is nginx's rate limit, and for /compile, one compile at
+/;  a time.
+/; =========================================================
+var MAX_SOURCE_BYTES: int = 65536
+
+fun allowCrossOrigin(res: vortex::Response) -> nthg {
+    res.header("Access-Control-Allow-Origin", "*")
+}
+
+/; A folder of its own for one request. nanos() alone could repeat for two
+/; requests in the same tick; the counter cannot.
+fun newSubmissionDir() -> str {
+    gSubmissionCount = gSubmissionCount + 1
+    var dir: str = "/tmp/submissions/" + String(sys::nanos()) + "-" + String(gSubmissionCount)
+    sys::exec("mkdir -p " + dir)
+    return dir
+}
+
+/; Escapes a string for a JSON document built by hand. Control characters other
+/; than these (the compiler's colour codes) stay raw; clients escape them
+/; before JSON.parse, as template.html does.
+fun jsonText(value: str) -> str {
+    var out: str = text::replace(value, "\\", "\\\\")
+    out = text::replace(out, "\"", "\\\"")
+    out = text::replace(out, "\n", "\\n")
+    out = text::replace(out, "\r", "")
+    return out
+}
+
+/; =========================================================
 /;  POST /run -> compile and run user code in a sandbox
 /;
 /;  This is THE EXECUTION ENGINE.
 /;
-/;  Each request runs in its own task, and sys::exec runs docker as a child
+/;  Request:  {"code": "...", "input": "..."}   input is the program's stdin
+/;  Response: {"output": "...", "exitCode": N}
+/;            exitCode 124: stopped by the time limit; 137: killed, usually by
+/;            the memory limit.
+/;
+/;  Each request runs in its own task, and sys::run runs docker as a child
 /;  process on the vortex loop: this task waits, up to the 20 second timeout
-/;  below, while the loop keeps accepting and serving other visitors. (Before
-/;  the runtime did this, sys::exec was a blocking popen, and one visitor
-/;  pressing Run held up everyone else until docker finished.)
+/;  below, while the loop keeps accepting and serving other visitors.
 /; =========================================================
 fun runSandbox(req: vortex::Request, res: vortex::Response) -> nthg {
+    allowCrossOrigin(res)
     var body: str = req.getBody()
+    /; json::parse reads a string in time proportional to its length squared.
+    if text::length(body) > MAX_SOURCE_BYTES {
+        res.status(413).header("Content-Type", "application/json").send("{\"output\": \"The program is larger than 64 KB.\", \"exitCode\": -1}")
+        return :
+    }
     var parsed: json::JsonNode = json::parse(body)
     var userCode: str = parsed.get("code").strVal
     var stdInput: str = parsed.get("input").strVal
-    /; Generate a unique identifier using the system timestamp to prevent race conditions
-    var uniqueId: str = text::replace(sys::exec("date +%s%N"), "\n", "")
-    var subDir: str = "/tmp/submissions/" + uniqueId
-    sys::exec("mkdir -p " + subDir)
+    var subDir: str = newSubmissionDir()
     var tempFile: str = subDir + "/code.fg"
     var inFile: str = subDir + "/input.txt"
     file::writeText(tempFile, userCode)
@@ -126,7 +187,11 @@ fun runSandbox(req: vortex::Request, res: vortex::Response) -> nthg {
     /; cold container had eaten the rest. A runaway loop is still killed, just
     /; later.
     var cmd: str = "timeout 20s docker run --rm --network none --cpus=0.5 --memory=128m -v " + subDir + ":/sandbox:ro flowwing-sandbox sh -c 'flowwing-jit /sandbox/code.fg < /sandbox/input.txt 2>&1'"
-    var output: str = sys::exec(cmd)
+    if gSandbox == "host" {
+        /; macOS has no `timeout`: a runaway program here is stopped by hand.
+        cmd = "'" + gHostCompiler + "' " + tempFile + " --emit=exe --progress=never --output-dir=" + subDir + "/build -o " + subDir + "/program 2>&1 && " + subDir + "/program < " + inFile + " 2>&1"
+    }
+    var exitCode: int, output: str = sys::run(cmd)
     /; Clean up the unique submission files immediately after execution
     sys::exec("rm -rf " + subDir)
     /; An empty result is indistinguishable from success in the UI: the console
@@ -136,14 +201,96 @@ fun runSandbox(req: vortex::Request, res: vortex::Response) -> nthg {
     if output == "" {
         output = "[no output]\n\nThe program printed nothing, or the sandbox timed out.\nIf this was the first run after a deploy, press Run again: the container image was still warming up."
     }
-    /; Safely escape JSON strings to prevent frontend crashes on compilation errors
-    output = text::replace(output, "\\", "\\\\")
-    output = text::replace(output, "\"", "\\\"")
-    output = text::replace(output, "\n", "\\n")
-    output = text::replace(output, "\r", "")
-    var responseObj: json::JsonNode = json::newObject()
-    responseObj.put("output", json::newString(output))
-    res.status(200).header("Content-Type", "application/json").send(json::stringify(responseObj))
+    res.status(200).header("Content-Type", "application/json").send("{\"output\": \"" + jsonText(output) + "\", \"exitCode\": " + String(exitCode) + "}")
+}
+
+/; =========================================================
+/;  POST /compile?target=wasm32|native&opt=0..3&wat=1 -> what the compiler makes
+/;
+/;  Request:  the program itself, as the body (text/plain).
+/;  Response: the JSON document sandbox/compile.mjs prints: the LLVM IR, and
+/;            for wasm32 the main.js + main.wasm the browser then runs.
+/;
+/;  One compile at a time: linking to wasm needs a few hundred MB, and this VM
+/;  has one GB. Others wait their turn, up to MAX_COMPILE_WAITING, after which
+/;  the answer is "busy". A program compiled before is answered from memory.
+/; =========================================================
+var MAX_COMPILE_WAITING: int = 8
+var MAX_CACHED_COMPILES: int = 32
+
+/; True if the query has exactly `pair` (e.g. "opt=2") as one of its parts.
+fun queryHas(query: str, pair: str) -> bool {
+    return text::indexOf("&" + query + "&", "&" + pair + "&") >= 0
+}
+
+fun compileProgram(req: vortex::Request, res: vortex::Response) -> nthg {
+    allowCrossOrigin(res)
+    res.header("Content-Type", "application/json")
+    var source: str = req.getBody()
+    if text::length(source) > MAX_SOURCE_BYTES {
+        res.status(413).send("{\"ok\": false, \"stage\": \"request\", \"log\": [], \"diagnostics\": \"The program is larger than 64 KB.\"}")
+        return :
+    }
+
+    /; The options are picked from fixed lists and never copied from the query:
+    /; the command line below is built from these constants only.
+    var query: str = req.getQuery()
+    var args: str = " --target=wasm32"
+    if queryHas(query, "target=native") {
+        args = " --target=native"
+    }
+    if queryHas(query, "opt=1") {
+        args = args + " --opt=1"
+    } else if queryHas(query, "opt=2") {
+        args = args + " --opt=2"
+    } else if queryHas(query, "opt=3") {
+        args = args + " --opt=3"
+    }
+    if queryHas(query, "wat=1") {
+        args = args + " --wat"
+    }
+
+    var key: str = args + "\n" + source
+    if gCompileCache.has(key) {
+        var cached: str = gCompileCache.get(key)
+        res.status(200).send(cached)
+        return :
+    }
+
+    if gCompileWaiting >= MAX_COMPILE_WAITING {
+        res.status(503).send("{\"ok\": false, \"stage\": \"busy\", \"log\": [], \"diagnostics\": \"The compile server is busy. Try again in a few seconds.\"}")
+        return :
+    }
+    gCompileWaiting = gCompileWaiting + 1
+    while gCompileBusy {
+        sys::sleep(50)
+    }
+    gCompileWaiting = gCompileWaiting - 1
+    gCompileBusy = true
+
+    var subDir: str = newSubmissionDir()
+    file::writeText(subDir + "/code.fg", source)
+    var cmd: str = "timeout 90s docker run --rm --network none --cpus=1 --memory=512m --pids-limit=256 -v " + subDir + ":/sandbox:ro flowwing-wasm-sandbox node /opt/playground/compile.mjs /sandbox/code.fg" + args
+    if gSandbox == "host" {
+        cmd = "FLOWWING='" + gHostCompiler + "' node '" + gCurrentDir + "/sandbox/compile.mjs' " + subDir + "/code.fg" + args
+    }
+    var status: int, output: str = sys::run(cmd)
+    gCompileBusy = false
+    sys::exec("rm -rf " + subDir)
+
+    /; compile.mjs always prints one JSON object. Anything else means the
+    /; sandbox itself failed: the image is missing, docker is down, or the
+    /; time limit (status 124) or memory limit (137) killed it.
+    if !text::startsWith(output, "{") {
+        io::printErrorLogln("compile sandbox failed with status " + String(status), "red")
+        res.status(502).send("{\"ok\": false, \"stage\": \"sandbox\", \"log\": [], \"diagnostics\": \"The compile sandbox did not answer (status " + String(status) + "). If the server was just deployed, try again in a minute.\"}")
+        return :
+    }
+    if gCompileCache.size() >= MAX_CACHED_COMPILES {
+        gCompileCache.clear()
+    }
+    gCompileCache.set(key, output)
+    res.status(200).send(output)
 }
 
 /; =========================================================
@@ -249,6 +396,19 @@ fun handleRequest(req: vortex::Request, res: vortex::Response) -> nthg {
         runSandbox(req, res)
         return :
     }
+    /; === POST /compile -> IR, and wasm for the browser to run ===
+    if method == "POST" && path == "/compile" {
+        compileProgram(req, res)
+        return :
+    }
+    /; === OPTIONS -> CORS preflight for the two above ===
+    /;
+    /; The docs playground sends text/plain, which needs no preflight; this is
+    /; for clients that send application/json.
+    if method == "OPTIONS" && (path == "/run" || path == "/compile") {
+        res.status(204).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Methods", "POST, OPTIONS").header("Access-Control-Allow-Headers", "Content-Type").header("Access-Control-Max-Age", "86400").send("")
+        return :
+    }
     /; === GET /admin/<token>/events -> JSON feed ===
     if gAdminEventsPath != "" && method == "GET" && path == gAdminEventsPath {
         sendAdminEvents(res)
@@ -295,6 +455,12 @@ fun serverLoop(app: vortex::Server) -> nthg {
 /; =========================================================
 fun fg_main() -> nthg {
     gCurrentDir = file::__DIR__ == "" ? "." : file::__DIR__
+    if sys::getEnv("FLOWWING_PLAYGROUND_SANDBOX") == "host" {
+        gSandbox = "host"
+    }
+    if sys::getEnv("FLOWWING_PLAYGROUND_COMPILER") != "" {
+        gHostCompiler = sys::getEnv("FLOWWING_PLAYGROUND_COMPILER")
+    }
     var mongoUri: str = sys::getArg(1)
     var adminToken: str = sys::getArg(2)
     if mongoUri != "" {
@@ -332,8 +498,13 @@ fun fg_main() -> nthg {
     /;
     /; Backgrounded with `&`: sys::exec returns at once, so the accept loop
     /; starts serving immediately instead of waiting for the warm-up.
-    sys::exec("docker run --rm --network none flowwing-sandbox true >/dev/null 2>&1 &")
-    io::printLogln("warming the sandbox image in the background", "yellow")
+    if gSandbox == "host" {
+        io::printErrorLogln("playground: HOST mode. /run and /compile run on this machine, unsandboxed. Local development only.", "yellow")
+    } else {
+        sys::exec("docker run --rm --network none flowwing-sandbox true >/dev/null 2>&1 &")
+        sys::exec("docker run --rm --network none flowwing-wasm-sandbox true >/dev/null 2>&1 &")
+        io::printLogln("warming the sandbox images in the background", "yellow")
+    }
     io::printLogln("Flow-Wing Live Environment running at http://127.0.0.1:8080", "cyan")
     /; Queues the loop. It starts when fg_main returns and the top-level body
     /; finishes, which is exactly why the loop is not written inline here.

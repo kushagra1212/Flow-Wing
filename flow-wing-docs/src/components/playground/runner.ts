@@ -9,6 +9,7 @@ export type RunEvent =
 export function runProgram(
   workerUrl: string,
   program: { js: string; wasm: ArrayBuffer },
+  input: string,
   onEvent: (event: RunEvent) => void,
 ): () => void {
   const worker = new Worker(workerUrl);
@@ -39,6 +40,6 @@ export function runProgram(
     });
   };
 
-  worker.postMessage({ js: program.js, wasm: program.wasm });
+  worker.postMessage({ js: program.js, wasm: program.wasm, input });
   return stop;
 }

@@ -5,6 +5,8 @@ fun fg_get_arg_count() -> as int decl
 
 fun fg_get_arg(index: as int) -> as str decl
 
+fun fg_get_env(name: as str) -> as str decl
+
 fun fg_get_script_dir() -> as str decl
 
 fun fg_exit(code: as int) -> as nthg decl
@@ -37,6 +39,12 @@ fun getArg(index: int) -> str {
 
 fun getArgCount() -> int {
     return fg_get_arg_count()
+}
+
+/; The value of the environment variable `name`, or "" when it is not set.
+/; A variable set to the empty string also reads as "".
+fun getEnv(name: str) -> str {
+    return fg_get_env(name)
 }
 
 /; Script directory (same as __script_dir__)

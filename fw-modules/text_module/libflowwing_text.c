@@ -155,3 +155,18 @@ char* strReplace(const char* str, const char* target, const char* replacement) {
     
     return new_str;
 }
+
+// Slice: the bytes [start, end), clamped to the string. Bytes, like every
+// index into a str, so UTF-8 text is copied unchanged. text::substring checks
+// the range before calling this.
+char* strSlice(const char* str, int32_t start, int32_t end) {
+    size_t len = str ? strlen(str) : 0;
+    size_t to = end < 0 ? 0 : (size_t)end;
+    if (to > len) to = len;
+    size_t from = start < 0 ? 0 : (size_t)start;
+    if (from > to) from = to;
+    char* new_str = allocate_string(to - from);
+    if (to > from) memcpy(new_str, str + from, to - from);
+    new_str[to - from] = '\0';
+    return new_str;
+}

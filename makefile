@@ -544,6 +544,26 @@ test-wasm-frontend: build-aot-release build-wasm-frontend
 run-wasm: build-aot-release
 	@bash scripts/wasm/run.sh $(FILE) $(ARGS)
 
+WEBSITE_DIR := flowwing-explorer/flow-wing-website
+
+#? The Flow-Wing website (server.fg) on http://localhost:8080, for local
+#? development: the docs site's `yarn start` sends its playground here.
+#? HOST mode: /compile and /run use this repository's compiler directly,
+#? unsandboxed, so run it only on your own machine. See its README.md.
+#?   make run-website
+.PHONY: run-website
+run-website: build-aot-release
+	@$(BUILD_WASM_RUNTIME_IF_MISSING)
+	@cd $(WEBSITE_DIR) && $(abspath $(SDK_DIR))/bin/FlowWing$(EXE_EXT) server.fg --output-dir=build/fg-server-build -o fg-server --progress=never
+	@cd $(WEBSITE_DIR) && FLOWWING_PLAYGROUND_SANDBOX=host FLOWWING_PLAYGROUND_COMPILER=$(abspath $(SDK_DIR))/bin/FlowWing$(EXE_EXT) ./fg-server
+
+#? Tests for the playground's compile step (sandbox/compile.mjs), with this
+#? repository's compiler. Needs emsdk and Node.
+.PHONY: test-website
+test-website: build-aot-release
+	@$(BUILD_WASM_RUNTIME_IF_MISSING)
+	@node --test $(WEBSITE_DIR)/sandbox/compile.test.mjs
+
 #? wasm32 ABI audit (scripts/wasm/abi_audit.py). Needs emcc on PATH:
 #?   source ~/emsdk/emsdk_env.sh && make wasm-abi-audit
 #? Compares every runtime function Flow-Wing calls with its C definition as

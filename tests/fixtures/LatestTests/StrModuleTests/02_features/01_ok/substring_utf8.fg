@@ -1,0 +1,12 @@
+/; text::substring copies bytes, so UTF-8 text comes back unchanged.
+/; Indexes count bytes: "café" is 5 bytes, "—" is 3.
+bring text
+
+var s: str = "café — 日本"
+println(text::substring(s, 0, 5))
+println(text::substring(s, 6, text::length(s)))
+println("[" + text::substring(s, 3, 3) + "]")
+
+var t: text::Text = new text::Text(s)
+println(t.substring(0, 5).get())
+println(text::substring(s, 0, 5) == "café")

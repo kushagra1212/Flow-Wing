@@ -1,0 +1,25 @@
+/; json::parse keeps UTF-8 text byte for byte, and decodes every JSON escape:
+/; \n \t \r \b \f \" \\ \/ and \uXXXX, including a surrogate pair.
+bring json
+bring text
+
+var doc: str = "{\"plain\": \"café — 日本 😀\", \"esc\": \"a\\tb\\\\c\\\"d\\/e\", \"u\": \"\\u00e9\\u65e5\\ud83d\\ude00\", \"cr\": \"x\\r\\ny\", \"lone\": \"[\\ud83d]\"}"
+var node: json::JsonNode = json::parse(doc)
+
+println(node.get("plain").strVal)
+println(node.get("esc").strVal)
+println(node.get("u").strVal)
+println(node.get("plain").strVal == node.get("plain").strVal)
+println(node.get("u").strVal == "é日😀")
+
+/; \r stays a carriage return: two lines, not "xr".
+var cr: str = node.get("cr").strVal
+println(text::length(cr))
+println(text::replace(cr, "\r", "<CR>"))
+
+/; Half a surrogate pair cannot be encoded; it becomes U+FFFD.
+println(node.get("lone").strVal)
+
+/; \b and \f are single control characters.
+var controls: json::JsonNode = json::parse("{\"k\": \"\\b\\f\"}")
+println(text::length(controls.get("k").strVal))

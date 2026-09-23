@@ -54,6 +54,7 @@ for (var i: int = 0 to count - 1 : 1) {
 | `sys::getArgCount()` | `int` | Number of command-line arguments |
 | `sys::getArg(n)` | `str` | The nth argument (0 = program name), or `""` if there is none |
 | `sys::scriptDir()` | `str` | Directory of the running script |
+| `sys::getEnv(name)` | `str` | Value of the environment variable `name`, or `""` if it is not set (a variable set to `""` reads the same) |
 | `sys::timestamp()` | `int64` | Current Unix timestamp (seconds since epoch). `int64` so it stays correct after 2038, when the value no longer fits in 32 bits. |
 | `sys::exit(code)` | — | Terminates the program with exit code `code` |
 

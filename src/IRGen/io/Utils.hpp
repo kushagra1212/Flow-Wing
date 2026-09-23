@@ -18,6 +18,11 @@ public:
   /// directories — shared output dirs (e.g. build/objects/.../same_folder) must
   /// keep sibling .o files when emitting multiple TUs.
   static int8_t createDirectories(const std::string &path) {
+    // "" is the folder of a bare file name (-o prog): the current directory.
+    if (path.empty()) {
+      return EXIT_SUCCESS;
+    }
+
     std::error_code create_ec = llvm::sys::fs::create_directories(path);
 
     if (create_ec) {

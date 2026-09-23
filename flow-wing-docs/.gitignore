@@ -5,6 +5,8 @@
 /build
 
 # Generated files
+# The playground's front end (scripts/fetch-frontend.mjs)
+/static/playground/frontend/
 .docusaurus
 .cache-loader
 

@@ -1,6 +1,6 @@
 /*
  * FlowWing Compiler
- * Copyright (C) 2023-2025 Kushagra Rathore
+ * Copyright (C) 2023-2026 Kushagra Rathore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,11 +43,11 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
 
   if (isHex) {
     // Hex: 0-9, a-f, A-F
-    while (!lexer.isEOLorEOF() && isxdigit(lexer.currentChar())) {
+    while (!lexer.isEOLorEOF() && isxdigit(static_cast<unsigned char>(lexer.currentChar()))) {
       lexer.advancePosition();
     }
   } else {
-    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+    while (!lexer.isEOLorEOF() && isdigit(static_cast<unsigned char>(lexer.currentChar()))) {
       lexer.advancePosition();
     }
 
@@ -113,7 +113,7 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer,
   if (lexer.currentChar() == '.') {
     lexer.advancePosition(); // consume the dot
 
-    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+    while (!lexer.isEOLorEOF() && isdigit(static_cast<unsigned char>(lexer.currentChar()))) {
       lexer.advancePosition();
     }
   }
@@ -128,7 +128,7 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer,
     }
 
     // Exponent digits
-    while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
+    while (!lexer.isEOLorEOF() && isdigit(static_cast<unsigned char>(lexer.currentChar()))) {
       lexer.advancePosition();
     }
   }

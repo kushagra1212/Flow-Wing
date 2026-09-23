@@ -1,0 +1,5 @@
+/; EXPECT_ERROR: BadCharacterInput
+/; Identifiers are ASCII. The lexer reports a character outside ASCII whole,
+/; once, at its first byte: "Invalid character 'é'", not half of it.
+var café: int = 1
+println(café)
