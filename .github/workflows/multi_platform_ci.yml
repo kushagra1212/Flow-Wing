@@ -144,6 +144,31 @@ jobs:
         if: success()
         run: make test-format
 
+      # The host-dependent half of the wasm tests (make test-wasm-smoke):
+      # finding emcc, the em++ command line, and sys::run through this host's
+      # shell. The full wasm suite runs on Linux; see that job.
+      - name: Cache Emscripten SDK
+        id: cache-emsdk
+        if: success() || failure()
+        uses: actions/cache@v4
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-${{ runner.arch }}-emsdk-6.0.10
+
+      - name: Install Emscripten SDK
+        if: (success() || failure()) && steps.cache-emsdk.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install 6.0.10
+          ~/emsdk/emsdk activate 6.0.10
+          rm -rf ~/emsdk/downloads
+
+      - name: WebAssembly smoke tests
+        if: success() || failure()
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          make test-wasm-smoke
+
       # Runs even if AOT fails, ensuring we get JIT status too
       - name: Build and Test JIT
         if: success() || failure()
@@ -307,6 +332,37 @@ jobs:
       - name: Formatter golden tests
         if: success()
         run: make test-format
+
+      # The host-dependent half of the wasm tests (make test-wasm-smoke). On
+      # Windows that is em++.bat, the command line quoted for cmd.exe, and
+      # sys::run through cmd.exe, none of which the Linux job reaches. The
+      # full wasm suite runs on Linux; see that job.
+      #
+      # cmd, not bash: emsdk's Windows entry points are .bat files. A cmd step
+      # does not stop at a failing line, hence the explicit exits.
+      - name: Cache Emscripten SDK
+        id: cache-emsdk
+        if: success() || failure()
+        uses: actions/cache@v4
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-${{ runner.arch }}-emsdk-6.0.10
+
+      - name: Install Emscripten SDK
+        if: (success() || failure()) && steps.cache-emsdk.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "%USERPROFILE%\emsdk" || exit /b 1
+          call "%USERPROFILE%\emsdk\emsdk.bat" install 6.0.10 || exit /b 1
+          call "%USERPROFILE%\emsdk\emsdk.bat" activate 6.0.10 || exit /b 1
+          if exist "%USERPROFILE%\emsdk\downloads" rmdir /s /q "%USERPROFILE%\emsdk\downloads"
+
+      - name: WebAssembly smoke tests
+        if: success() || failure()
+        shell: cmd
+        run: |
+          call "%USERPROFILE%\emsdk\emsdk_env.bat" || exit /b 1
+          make test-wasm-smoke
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -485,8 +541,9 @@ jobs:
       # cannot do yet (spawn, the file/mongo/vortex modules) are counted as
       # unsupported, not failed.
       #
-      # Linux only: a wasm build targets the same machine whichever host
-      # compiled it, so one platform covers it.
+      # The full suite runs here only: a wasm build targets the same machine
+      # whichever host compiled it. macOS and Windows run make
+      # test-wasm-smoke, the part that does depend on the host.
       #
       # Pinned to the emsdk version the wasm work was verified with. The cache
       # holds the whole SDK, including the system libraries emcc builds on

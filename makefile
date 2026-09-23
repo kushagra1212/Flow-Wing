@@ -494,13 +494,32 @@ test-cli: build-aot-release
 build-wasm-runtime:
 	@bash scripts/wasm/build-runtime.sh $(SDK_DIR)
 
+WASM_RUNTIME := $(SDK_DIR)/lib/wasm32-emscripten/libflowwing_rt.a
+ifeq ($(OS),Windows_NT)
+    # Recipes run in cmd.exe here (see SHELL above); bash is Git Bash.
+    BUILD_WASM_RUNTIME_IF_MISSING = if not exist $(call NATIVE_PATH,$(WASM_RUNTIME)) bash scripts/wasm/build-runtime.sh $(SDK_DIR)
+else
+    BUILD_WASM_RUNTIME_IF_MISSING = test -f $(WASM_RUNTIME) || bash scripts/wasm/build-runtime.sh $(SDK_DIR)
+endif
+
 #? Run fixtures as WebAssembly and compare with their .expect files
 #? (tests/wasm_parity.py). Needs emsdk and Node.
 #?   make test-wasm ARGS="--dir tests/fixtures/LatestTests/ClassTests"
 .PHONY: test-wasm
 test-wasm: build-aot-release
-	@test -f $(SDK_DIR)/lib/wasm32-emscripten/libflowwing_rt.a || bash scripts/wasm/build-runtime.sh $(SDK_DIR)
+	@$(BUILD_WASM_RUNTIME_IF_MISSING)
 	@python3 tests/wasm_parity.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(ARGS)
+
+#? The part of test-wasm that depends on the host: finding emcc, the em++
+#? command line and its quoting, paths, the C++ runtime link, and sys::run
+#? through the host's own shell. CI runs this on macOS and Windows and the
+#? full test-wasm on Linux, since the .wasm a program becomes does not depend
+#? on the host that built it.
+WASM_SMOKE_DIRS := BringTests VecModuleTests MapModuleTests IoModuleTests SysModuleTests
+.PHONY: test-wasm-smoke
+test-wasm-smoke: build-aot-release
+	@$(BUILD_WASM_RUNTIME_IF_MISSING)
+	@python3 tests/wasm_parity.py --bin $(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(foreach dir,$(WASM_SMOKE_DIRS),--dir tests/fixtures/LatestTests/$(dir)) $(ARGS)
 
 #? Build a .fg to WebAssembly and run it with Node (scripts/wasm/run.sh).
 #? Wraps FlowWing --target=wasm32 --emit=exe. `spawn` is not supported yet.
