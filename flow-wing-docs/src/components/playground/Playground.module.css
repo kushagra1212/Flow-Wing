@@ -1,0 +1,152 @@
+.playground {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.examples {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.examples select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+}
+
+.status {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9rem;
+}
+
+.panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  height: 70vh;
+  min-height: 420px;
+}
+
+/* ---- editor: a transparent textarea over its highlighted copy ---- */
+
+.editor {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ifm-global-radius);
+  background: #2d2d2d;
+}
+
+.editor:focus-within {
+  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+}
+
+/* Two classes, so these win over Prism's and Infima's `pre` styles. Every
+   property that moves text must be the same on both layers. */
+.editor .layer {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  tab-size: 2;
+  text-align: left;
+  white-space: pre;
+  overflow: auto;
+}
+
+.editor .highlighted {
+  overflow: hidden;
+  pointer-events: none;
+  color: #ccc;
+}
+
+.editor .input {
+  resize: none;
+  outline: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: #fff;
+}
+
+.editor .input::selection {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ---- output ---- */
+
+.output {
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  border-radius: var(--ifm-global-radius);
+  background: #1e1e1e;
+  color: #e6e6e6;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.stderr {
+  color: #ff8a80;
+}
+
+.notice {
+  color: #ffd166;
+  font-style: italic;
+}
+
+.placeholder {
+  color: #8a8a8a;
+}
+
+.note {
+  margin: 0.75rem 0 0;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 996px) {
+  .panes {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .editor,
+  .output {
+    height: 50vh;
+  }
+}
+
+/* ---- terminal colours (ansi.tsx) ---- */
+
+.ansi_bold { font-weight: bold; }
+.ansi_black { color: #868e96; }
+.ansi_red { color: #ff6b6b; }
+.ansi_green { color: #69db7c; }
+.ansi_yellow { color: #ffd43b; }
+.ansi_blue { color: #74c0fc; }
+.ansi_magenta { color: #e599f7; }
+.ansi_cyan { color: #66d9e8; }
+.ansi_white { color: #f8f9fa; }
+.ansi_gray { color: #adb5bd; }

@@ -24,11 +24,13 @@ fun fg_exec(cmd: as str) -> as str decl
 fun fg_exec_status() -> as int decl
 module [sys] /; Layer 2: namespace
 /; Command-line argument access
-/; Returns the argument at the given index (0 = program name)
+/; Returns the argument at the given index (0 = program name), or "" when
+/; there is no argument at that index, so optional arguments can be read
+/; without checking getArgCount() first.
 fun getArg(index: int) -> str {
     var c = fg_get_arg_count()
     if (index < 0 || index >= c) {
-        return "" /; Unreachable, but satisfies the return type
+        return ""
     }
     return fg_get_arg(index)
 }

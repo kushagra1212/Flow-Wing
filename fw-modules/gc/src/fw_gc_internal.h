@@ -22,9 +22,15 @@
 #include "fw_gc.h"
 #include <stddef.h>
 
+/* Flags live in the low bits of a header's descriptor pointer. Only the bits
+   below the descriptor's guaranteed alignment are free: it holds pointers, so
+   that is 4 bytes on wasm32 and 8 on 64-bit targets, and only the low 2 bits
+   are free everywhere. A mask of 0x7 cleared bit 2 of every wasm32 descriptor
+   that sat at an address ending in 4, so the GC scanned objects with the
+   descriptor 4 bytes before the real one and freed live data. */
 #define FW_MARK_BIT  ((uintptr_t)1)
 #define FW_PIN_BIT   ((uintptr_t)2)
-#define FW_FLAG_MASK ((uintptr_t)0x7)
+#define FW_FLAG_MASK ((uintptr_t)0x3)
 
 /* Per-object header. Program pointer points just past this. */
 typedef struct FWObjHeader {

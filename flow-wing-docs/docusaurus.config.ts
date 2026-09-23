@@ -18,6 +18,13 @@ const config: Config = {
   projectName: "Flow-Wing", // Usually your repo name.
 
   onBrokenLinks: "throw",
+
+  customFields: {
+    // The playground's compile server (playground/server in the Flow-Wing
+    // repo). Set PLAYGROUND_COMPILE_URL for the deployed one.
+    playgroundCompileUrl:
+      process.env.PLAYGROUND_COMPILE_URL ?? "http://localhost:8787/compile",
+  },
   onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
@@ -114,6 +121,7 @@ const config: Config = {
           position: "left",
           label: "Read Docs",
         },
+        { to: "/playground", label: "Playground", position: "left" },
         { to: "/blog", label: "Blog", position: "left" },
         {
           href: "https://github.com/kushagra1212/Flow-Wing",

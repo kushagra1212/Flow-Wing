@@ -8,6 +8,11 @@ then stderr, colour codes stripped, byte for byte against the .expect file.
 It also runs them under the same environment: FW_GC_STRESS=1 for GcTests and
 any `/; ENV:` header, both decided by tests/runner.py's own helpers.
 
+A fixture with an `/; EXPECT_ERROR:` header and no .expect is a runtime-error
+test. The native runner checks that the output names the error; here the
+program must also exit non-zero, since printing the error and then exiting 0
+is a failure mode native builds do not have.
+
 A fixture lands in one of four buckets:
 
   PASS         same output as native
@@ -15,7 +20,8 @@ A fixture lands in one of four buckets:
   UNSUPPORTED  uses something wasm builds cannot do (a module the wasm
                runtime leaves out, or recursion deeper than the JavaScript
                engine allows); counted, not failed
-  SKIP         a diagnostic fixture: it exists to fail compilation
+  SKIP         a diagnostic fixture: it exists to fail compilation, which
+               does not depend on the target
 
     make test-wasm                                  # needs emsdk
     make test-wasm ARGS="--dir tests/fixtures/LatestTests/ClassTests"
@@ -24,6 +30,7 @@ A fixture lands in one of four buckets:
 Exits 1 when anything FAILs.
 """
 import argparse
+import math
 import os
 import re
 import shutil
@@ -38,7 +45,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(ROOT / "tests"))
 # The native runner's rules for a fixture's environment, so the two agree.
-from runner import get_test_env, test_forces_gc_stress  # noqa: E402
+from runner import (  # noqa: E402
+    get_expected_error_code, get_test_env, test_forces_gc_stress)
 ANSI = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-9;?]*[ -/]*[@-~])")
 
 # wasm-ld naming a symbol from a module the wasm runtime does not include.
@@ -84,8 +92,7 @@ class StatusLine:
 
 
 def classify(fixture, compiler, work, timeout):
-    expect_file = fixture.with_suffix(".expect")
-    expected = expect_file.read_text(encoding="utf-8", errors="replace")
+    expected_error = get_expected_error_code(fixture)
     out_js = work / "prog.js"
 
     build = subprocess.run(
@@ -115,6 +122,16 @@ def classify(fixture, compiler, work, timeout):
     actual = strip_ansi(run.stdout + run.stderr)
     if ENGINE_STACK_LIMIT in actual:
         return "UNSUPPORTED", "recursion deeper than the JavaScript engine's call stack"
+
+    if expected_error:
+        if expected_error not in actual:
+            return "FAIL", (f"expected a runtime error naming {expected_error!r}, "
+                            f"got {actual[-120:]!r}")
+        if run.returncode == 0:
+            return "FAIL", "printed the runtime error but exited with status 0"
+        return "PASS", ""
+
+    expected = fixture.with_suffix(".expect").read_text(encoding="utf-8", errors="replace")
     if actual == expected:
         return "PASS", ""
     first = next((i for i, (a, b) in enumerate(zip(actual, expected)) if a != b),
@@ -140,7 +157,7 @@ def main():
     compiler = Path(args.bin).resolve()
     dirs = [Path(d) for d in (args.dir or ["tests/fixtures/LatestTests"])]
     fixtures = sorted(f for d in dirs for f in d.rglob("*.fg")
-                      if f.with_suffix(".expect").exists())
+                      if f.with_suffix(".expect").exists() or get_expected_error_code(f))
     if args.filter:
         pattern = re.compile(args.filter)
         fixtures = [f for f in fixtures if pattern.search(str(f))]
@@ -188,7 +205,9 @@ def main():
     print(f"{len(fixtures)} fixtures: {counts['PASS']} pass, {counts['FAIL']} fail, "
           f"{counts['UNSUPPORTED']} unsupported, {counts['SKIP']} diagnostic (skipped)")
     if ran:
-        print(f"Parity with native: {100.0 * counts['PASS'] / ran:.1f}% of the "
+        # Rounded down, so one failure among thousands never reads as 100.0%.
+        parity = math.floor(1000.0 * counts["PASS"] / ran) / 10
+        print(f"Parity with native: {parity:.1f}% of the "
               f"{ran} fixtures that build and run on wasm")
     for reason, count in sorted(unsupported.items(), key=lambda kv: -kv[1]):
         print(f"  unsupported x{count}: {reason}")

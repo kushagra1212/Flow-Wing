@@ -1,0 +1,11 @@
+/; sys::getArg past the last argument, or below 0, returns "" instead of
+/; stopping the program, so an optional argument can be read without checking
+/; sys::getArgCount() first. flowwing-explorer's server.fg relies on this.
+/;
+/; This file used to expect a runtime error, and passed only because its own
+/; first line of output contained the expected word "index".
+bring sys
+
+println("[" + sys::getArg(9999) + "]")
+println("[" + sys::getArg(-1) + "]")
+println("still running")

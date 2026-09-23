@@ -45,8 +45,9 @@ typedef enum {
    copies and correct lifetime/identity. NULL for ordinary types. */
 typedef void (*fw_trace_fn)(void *obj, void (*mark)(void *ptr));
 
-/* Static, one-per-type map of where pointers live. 8-byte aligned so the
-   low 3 bits of a pointer to it are free for GC flags. */
+/* Static, one-per-type map of where pointers live. It holds pointers, so it
+   is at least 4-byte aligned on every target, and the GC keeps its flags in
+   the low 2 bits of a pointer to it (see FW_FLAG_MASK). */
 typedef struct FWTypeDescriptor {
   const char *name;
   FWKind      kind;

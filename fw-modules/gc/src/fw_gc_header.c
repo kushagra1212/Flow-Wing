@@ -1,8 +1,11 @@
+#include <assert.h>
 #include "fw_gc.h"
 #include "fw_gc_internal.h"
 
 uintptr_t fw_word_pack(const FWTypeDescriptor *desc) {
-  return (uintptr_t)desc;              /* aligned: low 3 bits already 0 */
+  assert(((uintptr_t)desc & FW_FLAG_MASK) == 0 &&
+         "a FWTypeDescriptor's low bits must be free for the GC's flags");
+  return (uintptr_t)desc;              /* aligned: flag bits already 0 */
 }
 const FWTypeDescriptor *fw_word_desc(uintptr_t word) {
   return (const FWTypeDescriptor *)(word & ~FW_FLAG_MASK);

@@ -42,6 +42,7 @@
    Asyncify, which unwinds the wasm call stack into a buffer and rewinds it on
    resume, so a program that spawns is linked with -sASYNCIFY (see
    WasmLinkPass). */
+#  include <emscripten/emscripten.h>
 #  include <emscripten/fiber.h>
 #else
 #  include <ucontext.h>
@@ -70,6 +71,7 @@
 #define FW_WAKE_NEVER (-1LL)
 
 #define FW_TASK_STACK_DEFAULT (256 * 1024)
+#define FW_STACK_ALIGN        16 /* the wasm ABI's stack pointer alignment */
 #define FW_TASK_STACK_MIN_KB  16L
 #define FW_TASK_STACK_MAX_KB  65536L
 
@@ -125,6 +127,8 @@ static LPVOID g_sched_fiber = NULL;
    wasm locals in g_sched_asyncify while a task runs. */
 static emscripten_fiber_t g_sched_fiber;
 static char *g_sched_asyncify = NULL;
+/* Set by main's first switch to a task; see end_program. */
+static int g_main_suspended = 0;
 #else
 static ucontext_t g_sched_ctx;
 #endif
@@ -420,8 +424,14 @@ static char *stack_acquire(void) {
 #elif defined(__EMSCRIPTEN__)
   /* One block: the C stack, then the same size again for Asyncify, which
      saves a suspended task's wasm locals there. No guard page, see
-     install_stack_overflow_handler_once. */
-  return (char *)malloc(2 * stack_size());
+     install_stack_overflow_handler_once.
+
+     16-byte aligned, as the wasm ABI requires of a stack pointer; malloc only
+     promises 8. Compiled code relies on it: musl's __stdio_write steps to its
+     second iovec with `(sp + 16) | 8`, which on a stack 8 off alignment
+     stays on the first. A task that wrote to stderr then looped forever
+     writing 0 bytes, whenever the heap happened to hand out such a block. */
+  return (char *)aligned_alloc(FW_STACK_ALIGN, 2 * stack_size());
 #else
   size_t page = page_size();
   size_t usable = stack_size();
@@ -513,11 +523,67 @@ static void switch_to_task(FWTask *t) {
 #if defined(_WIN32)
   SwitchToFiber(t->fiber);
 #elif defined(__EMSCRIPTEN__)
+  g_main_suspended = 1;
   emscripten_fiber_swap(&g_sched_fiber, &t->fiber);
 #else
   swapcontext(&g_sched_ctx, &t->ctx);
 #endif
 }
+
+#if defined(__EMSCRIPTEN__)
+/* ---- ending the program (wasm) ----------------------------------------------
+
+   Once main has switched to a task, Emscripten cannot end the program the
+   usual way. The switch unwound main's stack out to JavaScript, which it
+   counts as async work in flight, so main's final return skips exit(): no
+   onExit, and a page never hears the program end. exit() in a task prints
+   "keepRuntimeAlive() is set" and ends with status 0. Forcing the exit from
+   main or from a resumed task does end it, but the exit travels up through
+   Emscripten's resume path, which swallows it, and the program is then ended
+   a second time.
+
+   A fiber that has never run has no resume path above it. So the program is
+   ended from a fresh one: its exit goes straight out to where main was
+   started, and the program ends once, with the right status. */
+
+/* Allocated when needed, so a program that never spawns carries none of it,
+   and 16-byte aligned like every fiber stack (see stack_acquire). */
+#define FW_EXIT_FIBER_STACK    (64 * 1024) /* runs atexit handlers */
+#define FW_EXIT_FIBER_ASYNCIFY (4 * 1024)  /* never suspended */
+
+static emscripten_fiber_t g_exit_fiber;
+static int g_exit_status = 0;
+
+static void exit_fiber_entry(void *arg) {
+  (void)arg;
+  emscripten_force_exit(g_exit_status);
+}
+
+static void end_program(emscripten_fiber_t *from, int status) {
+  char *memory = (char *)aligned_alloc(
+      FW_STACK_ALIGN, FW_EXIT_FIBER_STACK + FW_EXIT_FIBER_ASYNCIFY);
+  if (memory == NULL) {
+    emscripten_force_exit(status); /* ends it, if less tidily */
+  }
+  g_exit_status = status;
+  emscripten_fiber_init(&g_exit_fiber, exit_fiber_entry, NULL,
+                        memory, FW_EXIT_FIBER_STACK,
+                        memory + FW_EXIT_FIBER_STACK, FW_EXIT_FIBER_ASYNCIFY);
+  emscripten_fiber_swap(from, &g_exit_fiber);
+}
+
+/* A program that spawns is linked with -Wl,--wrap=exit (see WasmLinkPass),
+   so its exit() calls, a runtime error's for one, land here. */
+void __wrap_exit(int status) {
+  if (g_current != NULL) {
+    end_program(&g_current->fiber, status);
+  } else if (g_main_suspended) {
+    end_program(&g_sched_fiber, status);
+  }
+  /* main has never switched to a task: the usual exit works. */
+  emscripten_force_exit(status);
+}
+#endif
 
 /* ---- task entry --------------------------------------------------------- */
 
@@ -867,7 +933,7 @@ void fw_sched_drain(void) {
   g_head = 0;
   g_tail = 0;
 
-#ifdef _WIN32
+#if defined(_WIN32)
   if (converted) {
     ConvertFiberToThread();
     g_sched_fiber = NULL;
@@ -875,6 +941,14 @@ void fw_sched_drain(void) {
 #endif
 
   g_draining = 0;
+
+#if defined(__EMSCRIPTEN__)
+  /* Every main drains on its way out, and one that switched to a task cannot
+     return (see end_program). It returns 0 when nothing called exit(). */
+  if (g_main_suspended) {
+    end_program(&g_sched_fiber, 0);
+  }
+#endif
 }
 
 unsigned long fw_sched_pending(void) {

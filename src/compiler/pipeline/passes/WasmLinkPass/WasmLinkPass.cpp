@@ -192,6 +192,9 @@ ReturnStatus WasmLinkPass::run(CompilationContext &context) {
     // check at every function entry, against the running fiber's limits.
     args.push_back("-sASYNCIFY");
     args.push_back("-sSTACK_OVERFLOW_CHECK=2");
+    // exit() after main has switched to a task must still end the program
+    // once, with its status; see end_program in fw_sched.c.
+    args.push_back("-Wl,--wrap=exit");
   }
   if (!browser) {
     // Under Node: byte-exact stdout and the real environment. See

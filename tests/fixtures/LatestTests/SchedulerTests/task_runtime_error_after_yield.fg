@@ -1,0 +1,18 @@
+/; EXPECT_ERROR: Runtime Error: Invalid input for Int conversion.
+/; --------------------------------------------------------------------------
+/; A runtime error in a task that has been suspended and resumed.
+/;
+/; On wasm this hung forever: task stacks came from malloc, which promises
+/; 8-byte alignment where compiled code assumes the ABI's 16, and the error's
+/; write to stderr then looped writing 0 bytes. Before that it ended with exit
+/; status 0 and an Emscripten warning in place of the error.
+/; --------------------------------------------------------------------------
+bring sys
+
+fun task() -> nthg {
+  sys::yield()
+  println(Int32("not a number"))
+}
+
+spawn task()
+println("queued")
