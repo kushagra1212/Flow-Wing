@@ -53,6 +53,7 @@
 #include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 #include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
+#include <algorithm>
 #include <cassert>
 #include <set>
 

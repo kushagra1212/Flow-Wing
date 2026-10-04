@@ -28,6 +28,7 @@
 #include "src/compiler/diagnostics/DiagnosticCode.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "src/utils/LogConfig.h"
+#include <algorithm>
 #include <cassert>
 
 namespace flow_wing {
