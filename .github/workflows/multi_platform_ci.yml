@@ -418,7 +418,7 @@ jobs:
 
   linux_x86_64_build_deps:
     name: Build and Cache Dependencies for Linux (x86_64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -462,7 +462,7 @@ jobs:
 
   linux_x86_64_test:
     name: Test AOT & JIT on Linux (x86_64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: linux_x86_64_build_deps
     steps:
       - name: Checkout repository

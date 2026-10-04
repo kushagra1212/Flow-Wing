@@ -138,12 +138,13 @@ jobs:
             label: Darwin-arm64
             artifact_os: Darwin
             artifact_arch: arm64
-          # ubuntu-latest, NOT ubuntu-22.04. The package list below needs
-          # clang-17, which does not exist in jammy's repositories
-          # ("E: Package 'clang-17' has no installation candidate"). The deps
-          # job in multi_platform_ci.yml runs on ubuntu-latest, and an artifact
+          # ubuntu-24.04, pinned. The package list below needs clang-17, which
+          # does not exist in jammy's repositories ("E: Package 'clang-17' has
+          # no installation candidate") and is not promised on newer images,
+          # so ubuntu-latest would break when it moves on. The deps job in
+          # multi_platform_ci.yml runs on ubuntu-24.04 too, and an artifact
           # has to be built on the same image that consumes it anyway.
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             label: Linux-x86_64
             artifact_os: Linux
             artifact_arch: x86_64

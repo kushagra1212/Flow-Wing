@@ -69,7 +69,7 @@ jobs:
                       archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.zip
                       installer_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-windows-x86_64.exe
                     - name: linux-x86_64
-                      os: ubuntu-latest
+                      os: ubuntu-24.04
                       arch: x86_64
                       installer_ext: .deb
                       archive_name: FlowWing-${{ github.event.release.tag_name || github.event.inputs.simulated_tag }}-linux-x86_64.zip
@@ -921,7 +921,7 @@ jobs:
                       runner: windows-latest
                       asset_name: FlowWing-${{ github.event.release.tag_name }}-windows-x86_64.exe
                     - os-name: linux-x86_64
-                      runner: ubuntu-latest
+                      runner: ubuntu-24.04
                       asset_name: FlowWing-${{ github.event.release.tag_name }}-linux-x86_64.deb
 
         runs-on: ${{ matrix.runner }}

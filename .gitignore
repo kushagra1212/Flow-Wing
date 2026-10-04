@@ -29,3 +29,6 @@ AGENTS.md
 # These are hundreds of MB to over a GB — they belong in a GitHub release,
 # never in the repository.
 dist/
+
+# Claude Code per-machine settings
+.claude/settings.local.json
