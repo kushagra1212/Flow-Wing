@@ -3,6 +3,16 @@ name: Build and Test on All Platforms
 on:
   push:
     branches: [main]
+  # A branch is tested before it merges, not only after.
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch or PR cancels the run still going on it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   ## ------------------ macOS Jobs (Apple Silicon) ------------------ ##
 
@@ -408,7 +418,7 @@ jobs:
 
   linux_x86_64_build_deps:
     name: Build and Cache Dependencies for Linux (x86_64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -452,7 +462,7 @@ jobs:
 
   linux_x86_64_test:
     name: Test AOT & JIT on Linux (x86_64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: linux_x86_64_build_deps
     steps:
       - name: Checkout repository
@@ -638,9 +648,6 @@ jobs:
           LDFLAGS: -fuse-ld=lld
         run: make test-wasm-frontend
 
-      # The playground's compile step (flowwing-explorer/flow-wing-website/
-      # sandbox/compile.mjs), which the website's POST /compile runs in its
-      # sandbox: IR, wasm, WAT, errors, and refused options.
       # Programs that use the js and dom modules (fw-modules/js_module,
       # fw-modules/dom_module), built for wasm32 and run in a simulated page
       # (jsdom): events, timers, fetch, forms, and handles being released.
@@ -652,6 +659,9 @@ jobs:
           LDFLAGS: -fuse-ld=lld
         run: make test-web
 
+      # The playground's compile step (flowwing-explorer/flow-wing-website/
+      # sandbox/compile.mjs), which the website's POST /compile runs in its
+      # sandbox: IR, wasm, WAT, errors, and refused options.
       - name: Playground compile step tests
         if: success() || failure()
         env:

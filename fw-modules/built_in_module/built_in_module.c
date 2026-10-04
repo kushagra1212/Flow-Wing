@@ -719,30 +719,34 @@ char* fg_exec(const char* cmd) {
         return result;
     }
 
+    FILE* pipe = POPEN(cmd, "r");
+    if (!pipe) return fg_cs("Error: Failed to execute command.", "");
+
+    // The output grows in malloc memory and becomes a GC string only once,
+    // at the end. A C local is not a GC root: growing with fw_gc_alloc let a
+    // collection free the old buffer before it was copied, and the start of
+    // any output longer than the first buffer came back as garbage.
     char buffer[128];
     size_t size = 1024;
     size_t len = 0;
-
-    char* result = (char*)fw_gc_alloc(size, &fw_blob_desc);
-    if (!result) fg_re("Memory allocation failed in fg_exec");
-    result[0] = '\0';
-
-    FILE* pipe = POPEN(cmd, "r");
-    if (!pipe) return fg_cs("Error: Failed to execute command.", "");
+    char* output = (char*)malloc(size);
+    if (!output) fg_re("Memory allocation failed in fg_exec");
+    output[0] = '\0';
 
     while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         size_t chunk_len = strlen(buffer);
         if (len + chunk_len + 1 > size) {
             size *= 2;
-            char* new_result = (char*)fw_gc_alloc(size, &fw_blob_desc);
-            if (!new_result) fg_re("Memory allocation failed in fg_exec");
-            memcpy(new_result, result, len + 1);
-            result = new_result;
+            char* grown = (char*)realloc(output, size);
+            if (!grown) fg_re("Memory allocation failed in fg_exec");
+            output = grown;
         }
-        strcpy(result + len, buffer);
+        memcpy(output + len, buffer, chunk_len + 1);
         len += chunk_len;
     }
     fg_last_exec_status = fg_decode_exec_status(PCLOSE(pipe));
+    char* result = fg_cs(output, "");
+    free(output);
     return result;
 #endif
 }

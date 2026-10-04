@@ -16,12 +16,13 @@ is a failure mode native builds do not have.
 A fixture lands in one of four buckets:
 
   PASS         same output as native
-  FAIL         built and ran, but the output differs, or it crashed
+  FAIL         built and ran, but the output differs, or it crashed; or
+               it did not build although it expects no error
   UNSUPPORTED  uses something wasm builds cannot do (a module the wasm
                runtime leaves out, or recursion deeper than the JavaScript
                engine allows); counted, not failed
-  SKIP         a diagnostic fixture: it exists to fail compilation, which
-               does not depend on the target
+  SKIP         a diagnostic fixture (an `/; EXPECT_ERROR:` header) that
+               fails compilation, which does not depend on the target
 
     make test-wasm                                  # needs emsdk
     make test-wasm ARGS="--dir tests/fixtures/LatestTests/ClassTests"
@@ -126,8 +127,12 @@ def classify(fixture, compiler, work, timeout, minimal_env=False):
         if missing:
             return "UNSUPPORTED", "links against a module not in the wasm runtime: " + missing[0]
         # The compiler rejected the program itself. That is what a diagnostic
-        # fixture is for, and the native runner checks those.
-        return "SKIP", "does not compile (diagnostic fixture)"
+        # fixture is for, and the native runner checks those. A fixture that
+        # expects no error has to build: skipping it too let a broken wasm
+        # toolchain pass as "53 diagnostic (skipped)".
+        if expected_error:
+            return "SKIP", "does not compile (diagnostic fixture)"
+        return "FAIL", "the wasm32 build failed: " + log.strip()[-400:]
 
     env = ({k: v for k, v in os.environ.items() if k in MINIMAL_ENV}
            if minimal_env else dict(os.environ))
